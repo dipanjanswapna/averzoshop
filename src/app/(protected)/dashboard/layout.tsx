@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -13,7 +14,7 @@ import { UserNav } from '@/components/user-nav';
 import AverzoLogo from '@/components/averzo-logo';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/firebase';
+import { useAuth } from '@/firebase/auth/use-auth.tsx';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 

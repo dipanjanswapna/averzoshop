@@ -9,7 +9,7 @@ import {
   updateProfile,
 } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
-import { useAuth } from '@/firebase/auth/use-auth';
+import { useAuth } from '@/firebase/auth/use-auth.tsx';
 import { Button } from '@/components/ui/button';
 import {
   Card,

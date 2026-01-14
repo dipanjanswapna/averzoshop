@@ -14,7 +14,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuth } from '@/firebase/auth/use-auth';
+import { useAuth } from '@/firebase/auth/use-auth.tsx';
 import { signOut as firebaseSignOut } from 'firebase/auth';
 import { Badge } from './ui/badge';
 import { useRouter } from 'next/navigation';

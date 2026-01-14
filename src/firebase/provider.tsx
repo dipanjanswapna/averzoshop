@@ -10,7 +10,7 @@ import type { FirebaseApp } from 'firebase/app';
 import type { Auth } from 'firebase/auth';
 import type { Firestore } from 'firebase/firestore';
 import { initializeFirebase } from '.';
-import { AuthProvider } from './auth/use-auth';
+import { AuthProvider } from './auth/use-auth.tsx';
 
 export interface FirebaseProviderProps {
   firebaseApp?: FirebaseApp;

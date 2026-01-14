@@ -13,7 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AverzoLogo from '@/components/averzo-logo';
-import { useAuth } from '@/firebase/auth/use-auth';
+import { useAuth } from '@/firebase/auth/use-auth.tsx';
 import {
   GoogleAuthProvider,
   signInWithPopup,

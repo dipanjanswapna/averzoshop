@@ -1,3 +1,4 @@
+
 'use client';
 import { getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
@@ -20,4 +21,5 @@ export function initializeFirebase() {
 }
 
 export * from './provider';
+export * from './auth/use-auth.tsx';
 export { FirebaseClientProvider } from './client-provider';
