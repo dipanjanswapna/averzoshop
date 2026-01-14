@@ -1,19 +1,31 @@
+
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { auth } from '@/firebase/server';
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  const isLoginPage = pathname === '/login'
+  const isAuthPage = pathname === '/login' || pathname === '/register'
 
-  // This is a placeholder for a real auth check.
-  // In a real app, you'd check for a valid session cookie.
-  const hasToken = request.cookies.has('firebaseIdToken');
+  const idToken = request.cookies.get('firebaseIdToken')?.value;
 
-  if (!hasToken && !isLoginPage && pathname.startsWith('/dashboard')) {
+  let decodedToken = null;
+  if (idToken) {
+    try {
+      decodedToken = await auth().verifyIdToken(idToken);
+    } catch (error) {
+      // Invalid token, clear the cookie
+      const response = NextResponse.redirect(new URL('/login', request.url));
+      response.cookies.delete('firebaseIdToken');
+      return response;
+    }
+  }
+
+  if (!decodedToken && pathname.startsWith('/dashboard')) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  if (hasToken && isLoginPage) {
+  if (decodedToken && isAuthPage) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
@@ -21,5 +33,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/login'],
+  matcher: ['/dashboard/:path*', '/login', '/register'],
 }

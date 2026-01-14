@@ -23,20 +23,25 @@
           "type": "string",
           "format": "uri",
           "description": "The URL of the user's profile picture."
+        },
+        "role": {
+          "type": "string",
+          "description": "The role of the user.",
+          "enum": ["customer", "admin", "outlet", "vendor", "rider"]
         }
       },
-      "required": ["uid", "email"]
+      "required": ["uid", "email", "role"]
     }
   },
   "auth": {
-    "providers": ["google.com"]
+    "providers": ["google.com", "password"]
   },
   "firestore": {
     "/users/{userId}": {
       "schema": {
         "$ref": "#/entities/user"
       },
-      "description": "Stores user profile information."
+      "description": "Stores user profile information, including their role."
     }
   }
 }

@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -12,18 +13,25 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AverzoLogo from '@/components/averzo-logo';
-import { useAuth } from '@/firebase';
+import { useAuth } from '@/firebase/auth/use-auth';
 import {
   GoogleAuthProvider,
   signInWithPopup,
   signOut as firebaseSignOut,
+  signInWithEmailAndPassword,
 } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { doc, getDoc, getFirestore } from 'firebase/firestore';
+
 
 export default function LoginPage() {
   const { auth, user, loading } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   useEffect(() => {
     if (!loading && user) {
@@ -31,14 +39,42 @@ export default function LoginPage() {
     }
   }, [user, loading, router]);
 
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!auth) return;
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      router.push('/dashboard');
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: error.message,
+      });
+      console.error('Error signing in with email and password', error);
+    }
+  };
+
   const signInWithGoogle = async () => {
     if (!auth) return;
     const provider = new GoogleAuthProvider();
     try {
-      await signInWithPopup(auth, provider);
-      router.push('/dashboard');
+      const result = await signInWithPopup(auth, provider);
+      const db = getFirestore(auth.app);
+      const userDoc = await getDoc(doc(db, 'users', result.user.uid));
+      if (!userDoc.exists()) {
+        // This is a new Google sign-in, redirect to choose role
+        router.push('/register');
+      } else {
+        router.push('/dashboard');
+      }
     } catch (error) {
       console.error('Error signing in with Google', error);
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: 'Could not sign in with Google. Please try again.',
+      });
     }
   };
 
@@ -46,6 +82,7 @@ export default function LoginPage() {
     if (!auth) return;
     try {
       await firebaseSignOut(auth);
+      router.push('/login');
     } catch (error) {
       console.error('Error signing out', error);
     }
@@ -94,7 +131,7 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4">
+          <form onSubmit={handleLogin} className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -102,6 +139,8 @@ export default function LoginPage() {
                 type="email"
                 placeholder="m@example.com"
                 required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div className="grid gap-2">
@@ -114,22 +153,38 @@ export default function LoginPage() {
                   Forgot your password?
                 </Link>
               </div>
-              <Input id="password" type="password" required />
+              <Input 
+                id="password" 
+                type="password" 
+                required 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
             </div>
-            <Button type="submit" className="w-full" disabled>
+            <Button type="submit" className="w-full">
               Login
             </Button>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={signInWithGoogle}
-            >
-              Login with Google
-            </Button>
+          </form>
+          <div className="relative my-4">
+              <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with
+                  </span>
+              </div>
           </div>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={signInWithGoogle}
+          >
+            Login with Google
+          </Button>
           <div className="mt-4 text-center text-sm">
             Don&apos;t have an account?{' '}
-            <Link href="#" className="underline">
+            <Link href="/register" className="underline">
               Sign up
             </Link>
           </div>

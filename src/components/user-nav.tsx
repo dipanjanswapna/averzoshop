@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -13,15 +14,19 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useAuth } from '@/firebase';
+import { useAuth } from '@/firebase/auth/use-auth';
 import { signOut as firebaseSignOut } from 'firebase/auth';
+import { Badge } from './ui/badge';
+import { useRouter } from 'next/navigation';
 
 export function UserNav() {
-  const { user, auth } = useAuth();
+  const { user, auth, userData } = useAuth();
+  const router = useRouter();
 
   const handleLogout = async () => {
     if (auth) {
       await firebaseSignOut(auth);
+      router.push('/login');
     }
   };
 
@@ -45,8 +50,11 @@ export function UserNav() {
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.displayName}</p>
+          <div className="flex flex-col space-y-2">
+            <div className="flex items-center justify-between">
+                <p className="text-sm font-medium leading-none">{user.displayName}</p>
+                {userData?.role && <Badge variant="secondary" className="capitalize">{userData.role}</Badge>}
+            </div>
             <p className="text-xs leading-none text-muted-foreground">
               {user.email}
             </p>
