@@ -19,7 +19,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import AverzoLogo from '@/components/averzo-logo';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { subBrands } from '@/lib/data';
+import { subBrands, products } from '@/lib/data';
 import {
   Carousel,
   CarouselContent,
@@ -27,10 +27,9 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
+import { ProductCard } from '@/components/product-card';
 
-const featuredProducts = PlaceHolderImages.filter(p =>
-  ['product-1', 'product-2', 'product-3', 'product-4'].includes(p.id)
-);
+const featuredProducts = products.slice(0, 4);
 const heroCarouselImages = PlaceHolderImages.filter(p => p.id.startsWith('hero-carousel-'));
 
 export default function StoreFrontPage() {
@@ -168,26 +167,9 @@ export default function StoreFrontPage() {
               <h2 className="font-headline text-3xl font-extrabold">Deals Of The Day</h2>
               <p className="mt-2 text-muted-foreground">Don't miss out on these limited-time offers.</p>
             </div>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {featuredProducts.map(product => (
-                <Card key={product.id} className="overflow-hidden border-none shadow-md hover:shadow-xl transition-shadow duration-300 group">
-                  <CardContent className="p-0">
-                    <div className="relative aspect-[3/4] w-full">
-                       <Image
-                          src={product.imageUrl}
-                          alt={product.description}
-                          data-ai-hint={product.imageHint}
-                          fill
-                          className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        />
-                        <div className="absolute bottom-2 left-2 bg-background/80 p-2 rounded-md">
-                            <h3 className="font-semibold text-sm leading-tight font-body">Aura T-Shirt</h3>
-                            <p className="text-xs text-muted-foreground">New Collection</p>
-                            <p className="mt-1 font-bold text-sm">$29.99</p>
-                        </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                <ProductCard key={product.id} product={product} />
               ))}
                <Card className="overflow-hidden border-none shadow-md hover:shadow-xl transition-shadow duration-300 group">
                   <CardContent className="p-0">
