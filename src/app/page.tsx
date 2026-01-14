@@ -153,8 +153,10 @@ export default function StoreFrontPage() {
                     </CarouselItem>
                   ))}
                 </CarouselContent>
-                <CarouselPrevious className="hidden md:flex" />
-                <CarouselNext className="hidden md:flex" />
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4">
+                    <CarouselPrevious className="static -translate-y-0" />
+                    <CarouselNext className="static -translate-y-0" />
+                </div>
               </Carousel>
             </div>
           </div>
