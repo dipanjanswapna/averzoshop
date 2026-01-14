@@ -1,3 +1,4 @@
+
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -120,7 +121,7 @@ export default function StoreFrontPage() {
 
              {/* --- Hero Image --- */}
             {heroImage && (
-                <div className="relative mt-8 h-[60vh] w-full md:h-[70vh] rounded-lg overflow-hidden">
+                <div className="relative mt-8 w-full aspect-[4/1] rounded-lg overflow-hidden">
                     <Image
                         src={heroImage.imageUrl}
                         alt={heroImage.description}
