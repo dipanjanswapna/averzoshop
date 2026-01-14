@@ -13,7 +13,8 @@ import {
   Home,
   LayoutGrid,
   ShoppingBag,
-  ChevronDown
+  ChevronDown,
+  MoreHorizontal
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -34,6 +35,12 @@ import { ProductCard } from '@/components/product-card';
 import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const featuredProducts = products.slice(0, 4);
 const heroCarouselImages = PlaceHolderImages.filter(p =>
@@ -95,6 +102,18 @@ export default function StoreFrontPage() {
               <Link href="#" className="font-bold text-destructive hover:text-destructive/90">
                 Sale
               </Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-auto w-auto p-1">
+                    <MoreHorizontal size={20} />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem>Deals</DropdownMenuItem>
+                  <DropdownMenuItem>Support</DropdownMenuItem>
+                  <DropdownMenuItem>Track Order</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </nav>
 
             <div className="flex flex-1 items-center justify-end space-x-4">
