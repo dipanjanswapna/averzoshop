@@ -142,10 +142,12 @@ export default function StoreFrontPage() {
                     <Search className="h-5 w-5" />
                     <span className="sr-only">Search</span>
                 </Button>
-                <Button variant="ghost" size="icon">
-                    <ShoppingCart className="h-5 w-5" />
-                    <span className="sr-only">Cart</span>
-                </Button>
+                 <Link href="/login">
+                    <Button variant="ghost" size="icon">
+                        <ShoppingCart className="h-5 w-5" />
+                        <span className="sr-only">Cart</span>
+                    </Button>
+                </Link>
             </div>
         </div>
       </header>
@@ -295,5 +297,7 @@ export default function StoreFrontPage() {
     </div>
   );
 }
+
+    
 
     
