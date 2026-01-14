@@ -1,11 +1,11 @@
 'use client';
 
-import { createContext, useContext, ReactNode } from 'react';
+import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import type { FirebaseApp } from 'firebase/app';
-import type { Auth } from 'firebase/auth';
+import type { Auth, User } from 'firebase/auth';
 import type { Firestore } from 'firebase/firestore';
 import { initializeFirebase } from '.';
-import { useUser } from './auth/use-user';
+import { onAuthStateChanged } from 'firebase/auth';
 
 export interface FirebaseProviderProps {
   firebaseApp?: FirebaseApp;
@@ -14,13 +14,34 @@ export interface FirebaseProviderProps {
 }
 
 interface FirebaseContextValue extends FirebaseProviderProps {
-    user: any;
+    user: User | null;
     loading: boolean;
 }
 
 const FirebaseContext = createContext<FirebaseContextValue | undefined>(
   undefined
 );
+
+export const useUser = () => {
+    const { auth } = useAuth();
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
+  
+    useEffect(() => {
+      if (!auth) {
+        setLoading(false);
+        return;
+      }
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        setUser(user);
+        setLoading(false);
+      });
+  
+      return () => unsubscribe();
+    }, [auth]);
+  
+    return { user, loading };
+  }
 
 export const FirebaseProvider = ({
   children,
@@ -40,8 +61,10 @@ export const useFirebase = (): FirebaseContextValue => {
   const context = useContext(FirebaseContext);
   if (context === undefined) {
     const { firebaseApp, auth, firestore } = initializeFirebase();
-    const { user, loading } = useUser();
-    return { firebaseApp, auth, firestore, user, loading };
+    // This part is tricky because useUser needs an auth object.
+    // In a real scenario without context, we might not have a user.
+    // For now, we return loading true and no user.
+    return { firebaseApp, auth, firestore, user: null, loading: true };
   }
   return context;
 };
