@@ -1,4 +1,3 @@
-
 import type {Config} from 'tailwindcss';
 
 export default {
@@ -18,7 +17,7 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ['Roboto', 'Noto Sans', 'sans-serif'],
+        body: ['Inter', 'Poppins', 'Roboto', 'Noto Sans', 'sans-serif'],
         headline: ['Saira', 'sans-serif'],
         code: ['monospace'],
       },
