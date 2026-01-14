@@ -8,7 +8,7 @@ import {
   createUserWithEmailAndPassword,
   updateProfile,
 } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, query, getDocs, limit } from 'firebase/firestore';
 import { useAuth } from '@/firebase/auth/use-auth.tsx';
 import { Button } from '@/components/ui/button';
 import {
@@ -63,12 +63,27 @@ export default function RegisterPage() {
 
       await updateProfile(user, { displayName });
 
+      // Check if this is the first user
+      const usersCollectionRef = collection(firestore, 'users');
+      const q = query(usersCollectionRef, limit(1));
+      const querySnapshot = await getDocs(q);
+
+      let userRole = role;
+      if (querySnapshot.empty) {
+        // No users exist, make this one an admin
+        userRole = 'admin';
+        toast({
+            title: 'Congratulations!',
+            description: 'You are the first user, so you have been assigned the Admin role.',
+        });
+      }
+
       await setDoc(doc(firestore, 'users', user.uid), {
         uid: user.uid,
         email: user.email,
         displayName: displayName,
         photoURL: user.photoURL,
-        role: role,
+        role: userRole,
       });
 
       toast({
@@ -138,7 +153,6 @@ export default function RegisterPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="customer">Customer</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
                   <SelectItem value="outlet">Outlet Manager</SelectItem>
                   <SelectItem value="vendor">Vendor</SelectItem>
                   <SelectItem value="rider">Rider / Delivery</SelectItem>

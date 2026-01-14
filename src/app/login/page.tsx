@@ -23,11 +23,11 @@ import {
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { doc, getDoc, getFirestore } from 'firebase/firestore';
+import { doc, getDoc, setDoc, getFirestore, collection, query, limit, getDocs } from 'firebase/firestore';
 
 
 export default function LoginPage() {
-  const { auth, user, loading } = useAuth();
+  const { auth, firestore, user, loading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const [email, setEmail] = useState('');
@@ -56,18 +56,38 @@ export default function LoginPage() {
   };
 
   const signInWithGoogle = async () => {
-    if (!auth) return;
+    if (!auth || !firestore) return;
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
-      const db = getFirestore(auth.app);
-      const userDoc = await getDoc(doc(db, 'users', result.user.uid));
+      const user = result.user;
+      
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+
       if (!userDoc.exists()) {
-        // This is a new Google sign-in, redirect to choose role
-        router.push('/register');
-      } else {
-        router.push('/dashboard');
+        // User does not exist, create a new document
+        const usersCollectionRef = collection(firestore, 'users');
+        const q = query(usersCollectionRef, limit(1));
+        const querySnapshot = await getDocs(q);
+
+        let role = 'customer';
+        // Check if this is the very first user in the whole system
+        if (querySnapshot.empty) {
+          role = 'admin';
+        }
+
+        await setDoc(userDocRef, {
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+            role: role,
+        });
       }
+      
+      router.push('/dashboard');
+
     } catch (error) {
       console.error('Error signing in with Google', error);
       toast({
