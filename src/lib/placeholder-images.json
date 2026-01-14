@@ -1,3 +1,82 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "hero-1",
+      "description": "Stylish person posing in a modern city setting",
+      "imageUrl": "https://images.unsplash.com/photo-1568252542512-9fe8fe9c87bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxmYXNoaW9uJTIwbW9kZWx8ZW58MHx8fHwxNzY4MzI1OTY4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "fashion model"
+    },
+    {
+      "id": "product-1",
+      "description": "A men's casual t-shirt on a hanger",
+      "imageUrl": "https://images.unsplash.com/photo-1759572095329-1dcf9522762b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx0LXNoaXJ0JTIwZmFzaGlvbnxlbnwwfHx8fDE3Njg0MDY1MzB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "t-shirt fashion"
+    },
+    {
+      "id": "product-2",
+      "description": "A pair of stylish denim jeans folded",
+      "imageUrl": "https://images.unsplash.com/photo-1714143136372-ddaf8b606da7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxkZW5pbSUyMGplYW5zfGVufDB8fHx8MTc2ODM0Njg5N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "denim jeans"
+    },
+    {
+      "id": "product-3",
+      "description": "A women's summer dress on a mannequin",
+      "imageUrl": "https://images.unsplash.com/photo-1609695813802-3c443be34359?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxzdW1tZXIlMjBkcmVzc3xlbnwwfHx8fDE3NjgyODYxNTJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "summer dress"
+    },
+    {
+      "id": "product-4",
+      "description": "A pair of modern sneakers",
+      "imageUrl": "https://images.unsplash.com/photo-1678802910315-b1bf6ca9f6a6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzbmVha2VycyUyMHNob2VzfGVufDB8fHx8MTc2ODM4NjA0Nnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "sneakers shoes"
+    },
+    {
+      "id": "product-5",
+      "description": "A leather handbag",
+      "imageUrl": "https://images.unsplash.com/photo-1570032686516-2fe01ea09f5b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxsZWF0aGVyJTIwaGFuZGJhZ3xlbnwwfHx8fDE3Njg0MDM3NjN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "leather handbag"
+    },
+    {
+      "id": "product-6",
+      "description": "A child's colorful jacket",
+      "imageUrl": "https://images.unsplash.com/photo-1524010198496-aa06f454a64e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxraWRzJTIwamFja2V0fGVufDB8fHx8MTc2ODQwNjUzMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "kids jacket"
+    },
+    {
+      "id": "category-men",
+      "description": "A well-dressed man in an urban environment",
+      "imageUrl": "https://images.unsplash.com/photo-1543764477-646365e11da3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxtYWxlJTIwbW9kZWx8ZW58MHx8fHwxNzY4Mzk4OTU1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "male model"
+    },
+    {
+      "id": "category-women",
+      "description": "A fashionable woman smiling",
+      "imageUrl": "https://images.unsplash.com/photo-1590399830217-8db7489f911e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxmZW1hbGUlMjBtb2RlbHxlbnwwfHx8fDE3Njg0MDU5MzZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "female model"
+    },
+    {
+      "id": "category-kids",
+      "description": "A happy child playing outdoors",
+      "imageUrl": "https://images.unsplash.com/photo-1472162072942-cd5147eb3902?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxoYXBweSUyMGNoaWxkfGVufDB8fHx8MTc2ODMxNDc5MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "happy child"
+    },
+    {
+      "id": "avatar-1",
+      "description": "Avatar of a user",
+      "imageUrl": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjgzMzU2NDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "avatar-2",
+      "description": "Avatar of another user",
+      "imageUrl": "https://images.unsplash.com/photo-1590086782792-42dd2350140d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjgzMzU2NDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "avatar-3",
+      "description": "Avatar of a third user",
+      "imageUrl": "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjgzMzU2NDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person portrait"
+    }
+  ]
 }
