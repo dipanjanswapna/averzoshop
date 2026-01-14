@@ -20,11 +20,18 @@ import AverzoLogo from '@/components/averzo-logo';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { subBrands } from '@/lib/data';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
 
 const featuredProducts = PlaceHolderImages.filter(p =>
   ['product-1', 'product-2', 'product-3', 'product-4'].includes(p.id)
 );
-const heroImage = PlaceHolderImages.find(p => p.id === 'hero-1');
+const heroCarouselImages = PlaceHolderImages.filter(p => p.id.startsWith('hero-carousel-'));
 
 export default function StoreFrontPage() {
   return (
@@ -119,25 +126,37 @@ export default function StoreFrontPage() {
               ))}
             </div>
 
-             {/* --- Hero Image --- */}
-            {heroImage && (
-                <div className="relative mt-8 w-full aspect-[4/1] rounded-lg overflow-hidden">
-                    <Image
-                        src={heroImage.imageUrl}
-                        alt={heroImage.description}
-                        data-ai-hint={heroImage.imageHint}
-                        fill
-                        className="object-cover"
-                        priority
-                    />
-                     <div className="absolute inset-0 bg-black/30" />
-                     <div className="absolute bottom-10 left-10 text-white">
-                         <h1 className="font-headline text-4xl md:text-6xl font-extrabold tracking-tight">New Arrivals</h1>
-                         <p className="mt-2 max-w-lg text-lg">Discover the latest collection.</p>
-                         <Button size="lg" className="mt-6 bg-primary text-primary-foreground">Shop Now</Button>
-                     </div>
-                </div>
-            )}
+            {/* --- Hero Carousel --- */}
+            <div className="mt-8">
+              <Carousel
+                opts={{
+                  align: "start",
+                  loop: true,
+                }}
+                className="w-full"
+              >
+                <CarouselContent>
+                  {heroCarouselImages.map((image, index) => (
+                    <CarouselItem key={index}>
+                      <Link href={image.link || '#'}>
+                        <div className="relative w-full aspect-[4/1] rounded-lg overflow-hidden">
+                          <Image
+                            src={image.imageUrl}
+                            alt={image.description}
+                            data-ai-hint={image.imageHint}
+                            fill
+                            className="object-cover"
+                            priority={index === 0}
+                          />
+                        </div>
+                      </Link>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="hidden md:flex" />
+                <CarouselNext className="hidden md:flex" />
+              </Carousel>
+            </div>
           </div>
         </section>
 

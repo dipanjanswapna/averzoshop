@@ -1,10 +1,25 @@
 {
   "placeholderImages": [
     {
-      "id": "hero-1",
-      "description": "Stylish person posing in a modern city setting",
-      "imageUrl": "https://images.unsplash.com/photo-1568252542512-9fe8fe9c87bb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxmYXNoaW9uJTIwbW9kZWx8ZW58MHx8fHwxNzY4MzI1OTY4fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "fashion model"
+      "id": "hero-carousel-1",
+      "description": "A stylish man in a black jacket and sunglasses in a vibrant city at night.",
+      "imageUrl": "https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxmYXNoaW9uJTIwbWFsZSUyMG1vZGVsfGVufDB8fHx8MTc2ODQxMTEyN3ww&ixlib=rb-4.1.0&q=80&w=1200",
+      "imageHint": "male fashion",
+      "link": "/men"
+    },
+    {
+      "id": "hero-carousel-2",
+      "description": "A woman in a stylish white dress walking through a sunlit field.",
+      "imageUrl": "https://images.unsplash.com/photo-1496302662116-35cc4f36df92?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxmYXNoaW9uJTIwd29tYW58ZW58MHx8fHwxNzY4MzI1OTY4fDA&ixlib=rb-4.1.0&q=80&w=1200",
+      "imageHint": "female fashion",
+      "link": "/women"
+    },
+    {
+      "id": "hero-carousel-3",
+      "description": "An advertisement for a big sale on clothing, with vibrant colors.",
+      "imageUrl": "https://images.unsplash.com/photo-1483985988355-763728e1935b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwc2FsZXxlbnwwfHx8fDE3NjgzMjU5ODV8MA&ixlib=rb-4.1.0&q=80&w=1200",
+      "imageHint": "fashion sale",
+      "link": "/sale"
     },
     {
       "id": "product-1",
