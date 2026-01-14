@@ -14,7 +14,7 @@ import { UserNav } from '@/components/user-nav';
 import AverzoLogo from '@/components/averzo-logo';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { useAuth } from '@/firebase/auth/use-auth.tsx';
+import { useAuth } from '@/firebase/auth/use-auth';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
@@ -34,7 +34,7 @@ export default function DashboardLayout({
 
   if (loading || !user) {
     return (
-        <div className="flex h-screen items-center justify-center">
+        <div className="flex h-screen items-center justify-center bg-sidebar text-sidebar-foreground">
             <p>Loading...</p>
         </div>
     );
@@ -42,17 +42,17 @@ export default function DashboardLayout({
   
   return (
     <SidebarProvider>
-      <Sidebar collapsible="icon" className="border-r border-border/50">
+      <Sidebar collapsible="icon" className="border-r border-sidebar-border">
         <SidebarHeader className="p-4">
-          <AverzoLogo className="h-8 w-auto text-sidebar-foreground" />
+          <AverzoLogo className="h-8 w-auto" />
         </SidebarHeader>
         <SidebarContent className="p-2">
           <DashboardNav />
         </SidebarContent>
       </Sidebar>
-      <SidebarInset>
-        <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
-            <SidebarTrigger className="flex md:hidden"/>
+      <SidebarInset className="bg-sidebar">
+        <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-sidebar-border bg-sidebar px-4 md:px-6">
+            <SidebarTrigger className="flex text-sidebar-foreground md:hidden"/>
             <div className="w-full flex-1">
               <form>
                 <div className="relative">
@@ -60,14 +60,14 @@ export default function DashboardLayout({
                   <Input
                     type="search"
                     placeholder="Search the dashboard..."
-                    className="w-full appearance-none bg-card pl-8 md:w-2/3 lg:w-1/3"
+                    className="w-full appearance-none bg-card pl-8 md:w-2/3 lg:w-1/3 text-card-foreground"
                   />
                 </div>
               </form>
             </div>
             <UserNav />
         </header>
-        <main className="flex-1 p-4 md:p-6">{children}</main>
+        <main className="flex-1 p-4 md:p-6 text-sidebar-foreground">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );

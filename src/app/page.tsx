@@ -7,247 +7,242 @@ import {
   ShoppingCart,
   User,
   Menu,
+  Home,
+  LayoutGrid,
+  ShoppingBag,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import AverzoLogo from '@/components/averzo-logo';
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { subBrands } from '@/lib/data';
 
 const featuredProducts = PlaceHolderImages.filter(p =>
   ['product-1', 'product-2', 'product-3', 'product-4'].includes(p.id)
-);
-const categoryImages = PlaceHolderImages.filter(p =>
-  ['category-men', 'category-women', 'category-kids'].includes(p.id)
 );
 const heroImage = PlaceHolderImages.find(p => p.id === 'hero-1');
 
 export default function StoreFrontPage() {
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
+      {/* --- Desktop Header --- */}
+      <header className="sticky top-0 z-50 hidden w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:block">
         <div className="container flex h-16 items-center">
-          <div className="mr-4 hidden md:flex">
-            <Link href="/" className="mr-6 flex items-center space-x-2">
-              <AverzoLogo className="h-6 w-auto" />
+          <Link href="/" className="mr-6 flex items-center space-x-2">
+            <AverzoLogo className="h-7 w-auto" />
+          </Link>
+          <nav className="flex items-center space-x-6 text-sm font-medium font-body">
+            <Link href="#" className="transition-colors hover:text-primary">
+              Men
             </Link>
-            <nav className="flex items-center space-x-6 text-sm font-medium">
-              <Link
-                href="#"
-                className="transition-colors hover:text-primary"
-              >
-                Men
-              </Link>
-              <Link
-                href="#"
-                className="transition-colors hover:text-primary"
-              >
-                Women
-              </Link>
-              <Link
-                href="#"
-                className="transition-colors hover:text-primary"
-              >
-                Kids
-              </Link>
-              <Link
-                href="#"
-                className="transition-colors hover:text-primary"
-              >
-                Sale
-              </Link>
-            </nav>
-          </div>
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="mr-2 md:hidden"
-              >
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle Menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="pr-0">
-                <Link href="/" className="mr-6 flex items-center space-x-2 px-6">
-                  <AverzoLogo className="h-6 w-auto" />
-                </Link>
-              <div className="space-y-4 py-4">
-                <div className="px-3 py-2">
-                  <div className="space-y-1">
-                    <Button variant="ghost" className="w-full justify-start">Men</Button>
-                    <Button variant="ghost" className="w-full justify-start">Women</Button>
-                    <Button variant="ghost" className="w-full justify-start">Kids</Button>
-                    <Button variant="ghost" className="w-full justify-start">Sale</Button>
-                  </div>
-                </div>
-              </div>
-            </SheetContent>
-          </Sheet>
-          <div className="flex flex-1 items-center justify-between space-x-2 md:justify-end">
-            <div className="w-full flex-1 md:w-auto md:flex-none">
+            <Link href="#" className="transition-colors hover:text-primary">
+              Women
+            </Link>
+            <Link href="#" className="transition-colors hover:text-primary">
+              Kids
+            </Link>
+            <Link href="#" className="font-bold text-primary hover:text-primary/90">
+              Sale
+            </Link>
+          </nav>
+
+          <div className="flex flex-1 items-center justify-end space-x-4">
+            <div className="w-full flex-1 max-w-xs">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Search products..."
-                  className="pl-9"
+                  placeholder="Search for products, brands and more"
+                  className="pl-9 bg-secondary border-none"
                 />
               </div>
             </div>
-            <nav className="flex items-center">
-              <Button variant="ghost" size="icon">
-                <Heart className="h-5 w-5" />
-                <span className="sr-only">Wishlist</span>
-              </Button>
-              <Button variant="ghost" size="icon">
-                <ShoppingCart className="h-5 w-5" />
-                <span className="sr-only">Cart</span>
-              </Button>
-              <Link href="/login">
-                <Button variant="ghost" size="icon">
+            <nav className="flex items-center space-x-2">
+               <Link href="/login">
+                <Button variant="ghost" className="flex flex-col h-auto p-1 items-center space-y-1">
                   <User className="h-5 w-5" />
-                  <span className="sr-only">Login</span>
+                  <span className="text-xs font-medium">Profile</span>
                 </Button>
               </Link>
+              <Button variant="ghost" className="flex flex-col h-auto p-1 items-center space-y-1">
+                <Heart className="h-5 w-5" />
+                <span className="text-xs font-medium">Wishlist</span>
+              </Button>
+              <Button variant="ghost" className="flex flex-col h-auto p-1 items-center space-y-1">
+                <ShoppingCart className="h-5 w-5" />
+                <span className="text-xs font-medium">Bag</span>
+              </Button>
             </nav>
           </div>
         </div>
       </header>
+
+      {/* --- Mobile Header --- */}
+       <header className="sticky top-0 z-50 flex h-14 items-center justify-between border-b bg-background px-4 md:hidden">
+        <Link href="/">
+          <AverzoLogo className="h-6 w-auto" />
+        </Link>
+        <div className="flex items-center gap-2">
+            <Button variant="ghost" size="icon">
+                <Search className="h-5 w-5" />
+                <span className="sr-only">Search</span>
+            </Button>
+             <Button variant="ghost" size="icon">
+                <Heart className="h-5 w-5" />
+                <span className="sr-only">Wishlist</span>
+            </Button>
+             <Button variant="ghost" size="icon">
+                <ShoppingCart className="h-5 w-5" />
+                <span className="sr-only">Cart</span>
+            </Button>
+        </div>
+      </header>
+
+
       <main className="flex-1">
-        <section className="relative h-[60vh] w-full md:h-[80vh]">
-          {heroImage && <Image
-            src={heroImage.imageUrl}
-            alt={heroImage.description}
-            data-ai-hint={heroImage.imageHint}
-            fill
-            className="object-cover"
-            priority
-          />}
-          <div className="absolute inset-0 bg-black/40" />
-          <div className="container relative z-10 flex h-full items-center justify-center text-center text-white md:justify-start md:text-left">
-            <div className="max-w-xl">
-              <h1 className="font-headline text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl">
-                Style for Every Story
-              </h1>
-              <p className="mt-6 max-w-lg text-lg text-slate-200">
-                Discover the new collection from Aura and find the perfect look for any occasion.
-              </p>
-              <div className="mt-10 flex flex-wrap gap-4 justify-center md:justify-start">
-                <Button size="lg">Shop Now</Button>
-                <Button size="lg" variant="secondary">
-                  Explore Brands
-                </Button>
-              </div>
+        <section className="py-8 md:py-16">
+          <div className="container">
+            {/* --- Story Circles --- */}
+            <div className="flex space-x-4 overflow-x-auto pb-4 md:justify-center">
+              {subBrands.map((brand) => (
+                <Link href="#" key={brand.id} className="flex flex-col items-center space-y-2 flex-shrink-0">
+                  <Avatar className="h-16 w-16 border-2 border-primary">
+                    <AvatarImage src={`https://picsum.photos/seed/${brand.id}/100/100`} alt={brand.name} />
+                    <AvatarFallback>{brand.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <span className="text-xs font-medium font-body">{brand.name}</span>
+                </Link>
+              ))}
             </div>
+
+             {/* --- Hero Image --- */}
+            {heroImage && (
+                <div className="relative mt-8 h-[60vh] w-full md:h-[70vh] rounded-lg overflow-hidden">
+                    <Image
+                        src={heroImage.imageUrl}
+                        alt={heroImage.description}
+                        data-ai-hint={heroImage.imageHint}
+                        fill
+                        className="object-cover"
+                        priority
+                    />
+                     <div className="absolute inset-0 bg-black/30" />
+                     <div className="absolute bottom-10 left-10 text-white">
+                         <h1 className="font-headline text-4xl md:text-6xl font-extrabold tracking-tight">New Arrivals</h1>
+                         <p className="mt-2 max-w-lg text-lg">Discover the latest collection.</p>
+                         <Button size="lg" className="mt-6 bg-primary text-primary-foreground">Shop Now</Button>
+                     </div>
+                </div>
+            )}
           </div>
         </section>
 
-        <section className="py-16 md:py-24">
+        <section className="py-16 md:py-24 bg-secondary">
           <div className="container">
-            <div className="text-center">
-              <h2 className="font-headline text-3xl font-bold">Featured Products</h2>
-              <p className="mt-2 text-muted-foreground">Check out our most popular items</p>
+            <div className="text-center mb-12">
+              <h2 className="font-headline text-3xl font-extrabold">Deals Of The Day</h2>
+              <p className="mt-2 text-muted-foreground">Don't miss out on these limited-time offers.</p>
             </div>
-            <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5">
               {featuredProducts.map(product => (
-                <Card key={product.id} className="overflow-hidden">
+                <Card key={product.id} className="overflow-hidden border-none shadow-md hover:shadow-xl transition-shadow duration-300 group">
                   <CardContent className="p-0">
-                    <div className="relative aspect-[4/5] w-full">
+                    <div className="relative aspect-[3/4] w-full">
                        <Image
                           src={product.imageUrl}
                           alt={product.description}
                           data-ai-hint={product.imageHint}
                           fill
-                          className="object-cover transition-transform duration-300 hover:scale-105"
+                          className="object-cover transition-transform duration-300 group-hover:scale-105"
                         />
-                    </div>
-                    <div className="p-4">
-                      <h3 className="font-semibold">Aura Men's T-Shirt</h3>
-                      <p className="text-sm text-muted-foreground">Classic Cotton</p>
-                      <p className="mt-2 font-bold">$29.99</p>
+                        <div className="absolute bottom-2 left-2 bg-background/80 p-2 rounded-md">
+                            <h3 className="font-semibold text-sm leading-tight font-body">Aura T-Shirt</h3>
+                            <p className="text-xs text-muted-foreground">New Collection</p>
+                            <p className="mt-1 font-bold text-sm">$29.99</p>
+                        </div>
                     </div>
                   </CardContent>
                 </Card>
               ))}
-            </div>
-          </div>
-        </section>
-        
-        <section className="bg-muted py-16 md:py-24">
-          <div className="container">
-            <div className="text-center">
-              <h2 className="font-headline text-3xl font-bold">Shop by Category</h2>
-              <p className="mt-2 text-muted-foreground">Find what you're looking for</p>
-            </div>
-            <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-3">
-              {categoryImages.map((category, index) => (
-                <Link href="#" key={category.id} className="group relative block">
-                  <div className="relative aspect-square w-full overflow-hidden rounded-lg">
-                    <Image
-                      src={category.imageUrl}
-                      alt={category.description}
-                      data-ai-hint={category.imageHint}
-                      fill
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                  </div>
-                  <div className="absolute inset-0 bg-black/30 rounded-lg"></div>
-                  <div className="absolute bottom-6 left-6">
-                    <h3 className="text-2xl font-bold text-white font-headline">
-                      {['Men', 'Women', 'Kids'][index]}
-                    </h3>
-                    <p className="mt-1 flex items-center text-sm font-medium text-white">
-                      Shop Now <ArrowRight className="ml-2 h-4 w-4" />
-                    </p>
-                  </div>
-                </Link>
-              ))}
+               <Card className="overflow-hidden border-none shadow-md hover:shadow-xl transition-shadow duration-300 group">
+                  <CardContent className="p-0">
+                    <div className="relative aspect-[3/4] w-full bg-muted flex items-center justify-center">
+                        <Link href="#" className="flex flex-col items-center">
+                           <ArrowRight className="h-8 w-8 text-primary"/>
+                           <span className="font-bold text-primary mt-2">View All</span>
+                        </Link>
+                    </div>
+                  </CardContent>
+                </Card>
             </div>
           </div>
         </section>
       </main>
+      
+      {/* --- Mobile Bottom Navigation --- */}
+      <nav className="fixed bottom-0 z-50 w-full border-t bg-background md:hidden">
+        <div className="grid h-16 grid-cols-5">
+            <Link href="/" className="flex flex-col items-center justify-center gap-1 text-primary">
+                <Home className="h-6 w-6" />
+                <span className="text-xs font-medium">Home</span>
+            </Link>
+            <Link href="#" className="flex flex-col items-center justify-center gap-1 text-muted-foreground">
+                <LayoutGrid className="h-6 w-6" />
+                <span className="text-xs font-medium">Categories</span>
+            </Link>
+            <Link href="#" className="flex flex-col items-center justify-center gap-1 text-muted-foreground">
+                <ShoppingBag className="h-6 w-6" />
+                <span className="text-xs font-medium">Brands</span>
+            </Link>
+             <Link href="/dashboard/orders" className="flex flex-col items-center justify-center gap-1 text-muted-foreground">
+                <ShoppingBag className="h-6 w-6" />
+                <span className="text-xs font-medium">Orders</span>
+            </Link>
+            <Link href="/login" className="flex flex-col items-center justify-center gap-1 text-muted-foreground">
+                <User className="h-6 w-6" />
+                <span className="text-xs font-medium">Profile</span>
+            </Link>
+        </div>
+      </nav>
 
-      <footer className="bg-secondary text-secondary-foreground">
+      {/* --- Desktop Footer --- */}
+      <footer className="bg-secondary text-secondary-foreground hidden md:block">
         <div className="container py-12">
           <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
             <div>
               <AverzoLogo className="h-7 w-auto" />
-              <p className="mt-4 text-sm">The future of fashion and retail.</p>
+              <p className="mt-4 text-sm text-muted-foreground font-body">The future of fashion and retail.</p>
             </div>
             <div>
-              <h3 className="font-semibold">Shop</h3>
-              <ul className="mt-4 space-y-2 text-sm">
-                <li><Link href="#" className="hover:text-primary">Men</Link></li>
-                <li><Link href="#" className="hover:text-primary">Women</Link></li>
-                <li><Link href="#" className="hover:text-primary">Kids</Link></li>
-                <li><Link href="#" className="hover:text-primary">Sale</Link></li>
+              <h3 className="font-semibold font-headline">Shop</h3>
+              <ul className="mt-4 space-y-2 text-sm font-body">
+                <li><Link href="#" className="text-muted-foreground hover:text-primary">Men</Link></li>
+                <li><Link href="#" className="text-muted-foreground hover:text-primary">Women</Link></li>
+                <li><Link href="#" className="text-muted-foreground hover:text-primary">Kids</Link></li>
+                <li><Link href="#" className="text-muted-foreground hover:text-primary">Sale</Link></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold">About</h3>
-              <ul className="mt-4 space-y-2 text-sm">
-                <li><Link href="#" className="hover:text-primary">Our Story</Link></li>
-                <li><Link href="#" className="hover:text-primary">Careers</Link></li>
-                <li><Link href="#" className="hover:text-primary">Press</Link></li>
+              <h3 className="font-semibold font-headline">About</h3>
+              <ul className="mt-4 space-y-2 text-sm font-body">
+                <li><Link href="#" className="text-muted-foreground hover:text-primary">Our Story</Link></li>
+                <li><Link href="#" className="text-muted-foreground hover:text-primary">Careers</Link></li>
+                <li><Link href="#" className="text-muted-foreground hover:text-primary">Press</Link></li>
               </ul>
             </div>
             <div>
-              <h3 className="font-semibold">Support</h3>
-              <ul className="mt-4 space-y-2 text-sm">
-                <li><Link href="#" className="hover:text-primary">Contact Us</Link></li>
-                <li><Link href="#" className="hover:text-primary">FAQ</Link></li>
-                <li><Link href="#" className="hover:text-primary">Shipping & Returns</Link></li>
+              <h3 className="font-semibold font-headline">Support</h3>
+              <ul className="mt-4 space-y-2 text-sm font-body">
+                <li><Link href="#" className="text-muted-foreground hover:text-primary">Contact Us</Link></li>
+                <li><Link href="#" className="text-muted-foreground hover:text-primary">FAQ</Link></li>
+                <li><Link href="#" className="text-muted-foreground hover:text-primary">Shipping & Returns</Link></li>
               </ul>
             </div>
           </div>
-          <div className="mt-8 border-t pt-8 text-center text-sm">
+          <div className="mt-8 border-t pt-8 text-center text-sm text-muted-foreground font-body">
             <p>&copy; {new Date().getFullYear()} Averzo. All rights reserved.</p>
           </div>
         </div>
