@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,8 +12,77 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AverzoLogo from '@/components/averzo-logo';
+import { useAuth } from '@/firebase';
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut as firebaseSignOut,
+} from 'firebase/auth';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 export default function LoginPage() {
+  const { auth, user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && user) {
+      router.push('/dashboard');
+    }
+  }, [user, loading, router]);
+
+  const signInWithGoogle = async () => {
+    if (!auth) return;
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      router.push('/dashboard');
+    } catch (error) {
+      console.error('Error signing in with Google', error);
+    }
+  };
+
+  const signOut = async () => {
+    if (!auth) return;
+    try {
+      await firebaseSignOut(auth);
+    } catch (error) {
+      console.error('Error signing out', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  if (user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background p-4">
+        <Card className="mx-auto w-full max-w-sm">
+          <CardHeader className="text-center space-y-4">
+            <AverzoLogo className="h-8 w-auto mx-auto" />
+            <CardTitle className="text-2xl font-headline">
+              Welcome, {user.displayName}
+            </CardTitle>
+            <CardDescription>You are already logged in.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            <Link href="/dashboard">
+              <Button className="w-full">Go to Dashboard</Button>
+            </Link>
+            <Button variant="outline" onClick={signOut} className="w-full">
+              Sign Out
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+  
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="mx-auto w-full max-w-sm">
@@ -45,12 +116,14 @@ export default function LoginPage() {
               </div>
               <Input id="password" type="password" required />
             </div>
-            <Link href="/dashboard">
-                <Button type="submit" className="w-full">
-                  Login
-                </Button>
-            </Link>
-            <Button variant="outline" className="w-full">
+            <Button type="submit" className="w-full" disabled>
+              Login
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={signInWithGoogle}
+            >
               Login with Google
             </Button>
           </div>

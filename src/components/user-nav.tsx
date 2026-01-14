@@ -13,29 +13,42 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useAuth } from '@/firebase';
+import { signOut as firebaseSignOut } from 'firebase/auth';
 
 export function UserNav() {
-  const userAvatar = PlaceHolderImages.find(p => p.id === 'avatar-1');
+  const { user, auth } = useAuth();
+
+  const handleLogout = async () => {
+    if (auth) {
+      await firebaseSignOut(auth);
+    }
+  };
+
+  if (!user) {
+    return (
+      <Link href="/login">
+        <Button>Login</Button>
+      </Link>
+    );
+  }
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-9 w-9">
-            {userAvatar && (
-                <AvatarImage src={userAvatar.imageUrl} alt="User avatar" data-ai-hint={userAvatar.imageHint} />
-            )}
-            <AvatarFallback>AD</AvatarFallback>
+            {user.photoURL && <AvatarImage src={user.photoURL} alt={user.displayName || 'User avatar'} />}
+            <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">Admin</p>
+            <p className="text-sm font-medium leading-none">{user.displayName}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              admin@averzo.com
+              {user.email}
             </p>
           </div>
         </DropdownMenuLabel>
@@ -55,8 +68,8 @@ export function UserNav() {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href="/login">Log out</Link>
+        <DropdownMenuItem onClick={handleLogout}>
+          Log out
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
