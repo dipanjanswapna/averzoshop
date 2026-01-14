@@ -15,7 +15,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
   return (
     <div className="group relative bg-card border border-border rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
       {/* Product Image Section */}
-      <div className="relative aspect-[3/4] overflow-hidden bg-muted">
+      <div className="relative aspect-square overflow-hidden bg-muted">
         {product.image && (
             <Image
             src={product.image}
