@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -145,22 +146,22 @@ export default function StoreFrontPage() {
                                 <AccordionItem value="men">
                                     <AccordionTrigger className="font-bold text-base">MEN</AccordionTrigger>
                                     <AccordionContent>
-                                        <Accordion type="single" collapsible>
+                                        <Accordion type="single" collapsible className="w-full pl-4">
                                             <AccordionItem value="topwear">
-                                                <AccordionTrigger>Topwear</AccordionTrigger>
+                                                <AccordionTrigger>Topwear (Group)</AccordionTrigger>
                                                 <AccordionContent className="pl-4">
-                                                    <ul className="space-y-2">
-                                                        <li><Link href="#">T-Shirts</Link></li>
-                                                        <li><Link href="#">Casual Shirts</Link></li>
+                                                    <ul className="space-y-2 text-muted-foreground">
+                                                        <li className="hover:text-foreground"><Link href="#">T-Shirts (Sub-cat)</Link></li>
+                                                        <li className="hover:text-foreground"><Link href="#">Casual Shirts</Link></li>
                                                     </ul>
                                                 </AccordionContent>
                                             </AccordionItem>
                                             <AccordionItem value="bottomwear">
-                                                <AccordionTrigger>Bottomwear</AccordionTrigger>
+                                                <AccordionTrigger>Bottomwear (Group)</AccordionTrigger>
                                                 <AccordionContent className="pl-4">
-                                                    <ul className="space-y-2">
-                                                        <li><Link href="#">Jeans</Link></li>
-                                                        <li><Link href="#">Chinos</Link></li>
+                                                    <ul className="space-y-2 text-muted-foreground">
+                                                        <li className="hover:text-foreground"><Link href="#">Jeans (Sub-cat)</Link></li>
+                                                        <li className="hover:text-foreground"><Link href="#">Chinos</Link></li>
                                                     </ul>
                                                 </AccordionContent>
                                             </AccordionItem>
@@ -170,13 +171,13 @@ export default function StoreFrontPage() {
                                 <AccordionItem value="women">
                                     <AccordionTrigger className="font-bold text-base">WOMEN</AccordionTrigger>
                                     <AccordionContent>
-                                        ...Women Categories here
+                                        <p className="text-muted-foreground pl-4">...Women categories here</p>
                                     </AccordionContent>
                                 </AccordionItem>
                                 <AccordionItem value="kids">
                                     <AccordionTrigger className="font-bold text-base">KIDS</AccordionTrigger>
                                     <AccordionContent>
-                                        ...Kids Categories here
+                                        <p className="text-muted-foreground pl-4">...Kids categories here</p>
                                     </AccordionContent>
                                 </AccordionItem>
                             </Accordion>
@@ -184,7 +185,7 @@ export default function StoreFrontPage() {
                                 <Link href="#" className="font-bold text-base text-destructive">SALE</Link>
                              </div>
                         </div>
-                         <div className="p-4 border-t mt-auto">
+                         <div className="p-4 border-t mt-auto bg-background">
                             <Link href="/login">
                                 <Button className="w-full">Login / Sign Up</Button>
                             </Link>
@@ -458,3 +459,5 @@ export default function StoreFrontPage() {
     </div>
   );
 }
+
+    
