@@ -72,7 +72,7 @@ export default function StoreFrontPage() {
                       </ul>
                     </div>
                     <div className="bg-muted p-4 rounded-lg flex items-center justify-center">
-                      <Image src="https://placehold.co/300x200.png?text=Aura+Men+New+Arrival" width={300} height={200} alt="Ad" className="rounded"/>
+                      <Image src={PlaceHolderImages.find(p => p.id === 'category-men')?.imageUrl || "https://placehold.co/300x200.png"} width={300} height={200} alt="Ad" className="rounded" data-ai-hint="male fashion" />
                     </div>
                   </div>
               </div>
@@ -82,7 +82,7 @@ export default function StoreFrontPage() {
               <Link href="#" className="transition-colors hover:text-primary">
                 Kids
               </Link>
-              <Link href="#" className="font-bold text-primary hover:text-primary/90">
+              <Link href="#" className="font-bold text-destructive hover:text-destructive/90">
                 Sale
               </Link>
             </nav>
@@ -127,10 +127,10 @@ export default function StoreFrontPage() {
                       </Button>
                   </SheetTrigger>
                   <SheetContent side="left">
-                      {/* Add Mobile Drawer Content Here */}
+                      {/* TODO: Add Mobile Drawer Content Here (Accordion for categories) */}
                       <div className="p-4">
+                          <AverzoLogo className="h-7 w-auto mb-6" />
                           <h2 className="text-lg font-semibold font-headline">Categories</h2>
-                          {/* Accordion for categories */}
                       </div>
                   </SheetContent>
               </Sheet>
@@ -246,8 +246,8 @@ export default function StoreFrontPage() {
                 <span className="text-xs font-medium">Brands</span>
             </Link>
              <Link href="/dashboard/orders" className="flex flex-col items-center justify-center gap-1 text-muted-foreground">
-                <ShoppingBag className="h-6 w-6" />
-                <span className="text-xs font-medium">Orders</span>
+                <ShoppingCart className="h-6 w-6" />
+                <span className="text-xs font-medium">Bag</span>
             </Link>
             <Link href="/login" className="flex flex-col items-center justify-center gap-1 text-muted-foreground">
                 <User className="h-6 w-6" />
@@ -298,5 +298,3 @@ export default function StoreFrontPage() {
     </div>
   );
 }
-
-    
