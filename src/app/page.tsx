@@ -35,121 +35,122 @@ const heroCarouselImages = PlaceHolderImages.filter(p => p.id.startsWith('hero-c
 export default function StoreFrontPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      {/* --- New Navigation System --- */}
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        {/* Desktop Header */}
-        <div className="container hidden h-16 items-center md:flex">
-          <Link href="/" className="mr-6 flex items-center space-x-2">
-            <AverzoLogo className="h-7 w-auto" />
-          </Link>
-          <nav className="flex items-center space-x-6 text-sm font-medium font-body group">
-            <Link href="#" className="transition-colors hover:text-primary">
-              Men
+        <nav className="w-full">
+          {/* Desktop Header */}
+          <div className="hidden h-16 items-center md:flex container">
+            <Link href="/" className="mr-6 flex items-center space-x-2">
+              <AverzoLogo className="h-7 w-auto" />
             </Link>
-            <div className="absolute left-0 top-full w-full bg-background shadow-lg border-t hidden group-hover:grid grid-cols-4 p-10 mt-0 animate-in fade-in slide-in-from-top-2">
-                <div>
-                  <h4 className="font-bold text-primary mb-3 uppercase font-headline">Topwear (Group)</h4>
-                  <ul className="space-y-2 text-muted-foreground font-body font-normal">
-                    <li className="hover:translate-x-1 transition-transform cursor-pointer">T-Shirts (Subcategory)</li>
-                    <li className="hover:translate-x-1 transition-transform cursor-pointer">Casual Shirts</li>
-                    <li className="hover:translate-x-1 transition-transform cursor-pointer">Polos</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-bold text-primary mb-3 uppercase font-headline">Bottomwear</h4>
-                  <ul className="space-y-2 text-muted-foreground font-body font-normal">
-                    <li className="hover:translate-x-1 transition-transform cursor-pointer">Jeans</li>
-                    <li className="hover:translate-x-1 transition-transform cursor-pointer">Chinos</li>
-                    <li className="hover:translate-x-1 transition-transform cursor-pointer">Formal Trousers</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-bold text-primary mb-3 uppercase font-headline">Featured Brands</h4>
-                  <ul className="space-y-2 text-muted-foreground font-body font-normal">
-                    <li className="font-bold text-foreground italic">Aura Men</li>
-                    <li className="hover:translate-x-1 transition-transform cursor-pointer">Levi's</li>
-                    <li className="hover:translate-x-1 transition-transform cursor-pointer">Puma</li>
-                  </ul>
-                </div>
-                <div className="bg-muted p-4 rounded-lg flex items-center justify-center">
-                   <Image src="https://placehold.co/300x200.png?text=Aura+Men+New+Arrival" width={300} height={200} alt="Ad" className="rounded"/>
-                </div>
-              </div>
-
-            <Link href="#" className="transition-colors hover:text-primary">
-              Women
-            </Link>
-            <Link href="#" className="transition-colors hover:text-primary">
-              Kids
-            </Link>
-            <Link href="#" className="font-bold text-primary hover:text-primary/90">
-              Sale
-            </Link>
-          </nav>
-
-          <div className="flex flex-1 items-center justify-end space-x-4">
-            <div className="w-full flex-1 max-w-xs">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search for products, brands and more"
-                  className="pl-9 bg-secondary border-none"
-                />
-              </div>
-            </div>
-            <nav className="flex items-center space-x-2">
-               <Link href="/login">
-                <Button variant="ghost" className="flex flex-col h-auto p-1 items-center space-y-1">
-                  <User className="h-5 w-5" />
-                  <span className="text-xs font-medium">Profile</span>
-                </Button>
-              </Link>
-              <Button variant="ghost" className="flex flex-col h-auto p-1 items-center space-y-1">
-                <Heart className="h-5 w-5" />
-                <span className="text-xs font-medium">Wishlist</span>
-              </Button>
-              <Button variant="ghost" className="flex flex-col h-auto p-1 items-center space-y-1">
-                <ShoppingCart className="h-5 w-5" />
-                <span className="text-xs font-medium">Bag</span>
-              </Button>
-            </nav>
-          </div>
-        </div>
-
-        {/* Mobile Header */}
-        <div className="flex h-14 items-center justify-between px-4 md:hidden">
-            <Sheet>
-                <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                        <Menu className="h-6 w-6" />
-                        <span className="sr-only">Open Menu</span>
-                    </Button>
-                </SheetTrigger>
-                <SheetContent side="left">
-                    {/* Add Mobile Drawer Content Here */}
-                    <div className="p-4">
-                        <h2 className="text-lg font-semibold font-headline">Categories</h2>
-                        {/* Accordion for categories */}
+            <nav className="flex items-center space-x-6 text-sm font-medium font-body group">
+              <div className="group cursor-pointer">
+                  <span className="hover:text-primary transition-colors">MEN</span>
+                  {/* Mega Menu Container */}
+                  <div className="absolute left-0 w-full bg-background shadow-lg border-t hidden group-hover:grid grid-cols-4 p-10 mt-3 animate-in fade-in slide-in-from-top-2">
+                    <div>
+                      <h4 className="font-bold text-primary mb-3 uppercase font-headline">Topwear (Group)</h4>
+                      <ul className="space-y-2 text-muted-foreground font-body font-normal">
+                        <li className="hover:translate-x-1 transition-transform cursor-pointer">T-Shirts (Subcategory)</li>
+                        <li className="hover:translate-x-1 transition-transform cursor-pointer">Casual Shirts</li>
+                        <li className="hover:translate-x-1 transition-transform cursor-pointer">Polos</li>
+                      </ul>
                     </div>
-                </SheetContent>
-            </Sheet>
-            <Link href="/">
-                <AverzoLogo className="h-6 w-auto" />
-            </Link>
-            <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon">
-                    <Search className="h-5 w-5" />
-                    <span className="sr-only">Search</span>
-                </Button>
-                 <Link href="/login">
-                    <Button variant="ghost" size="icon">
-                        <ShoppingCart className="h-5 w-5" />
-                        <span className="sr-only">Cart</span>
-                    </Button>
+                    <div>
+                      <h4 className="font-bold text-primary mb-3 uppercase font-headline">Bottomwear</h4>
+                      <ul className="space-y-2 text-muted-foreground font-body font-normal">
+                        <li className="hover:translate-x-1 transition-transform cursor-pointer">Jeans</li>
+                        <li className="hover:translate-x-1 transition-transform cursor-pointer">Chinos</li>
+                        <li className="hover:translate-x-1 transition-transform cursor-pointer">Formal Trousers</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-primary mb-3 uppercase font-headline">Featured Brands</h4>
+                      <ul className="space-y-2 text-muted-foreground font-body font-normal">
+                        <li className="font-bold text-foreground italic">Aura Men</li>
+                        <li className="hover:translate-x-1 transition-transform cursor-pointer">Levi's</li>
+                        <li className="hover:translate-x-1 transition-transform cursor-pointer">Puma</li>
+                      </ul>
+                    </div>
+                    <div className="bg-muted p-4 rounded-lg flex items-center justify-center">
+                      <Image src="https://placehold.co/300x200.png?text=Aura+Men+New+Arrival" width={300} height={200} alt="Ad" className="rounded"/>
+                    </div>
+                  </div>
+              </div>
+              <Link href="#" className="transition-colors hover:text-primary">
+                Women
+              </Link>
+              <Link href="#" className="transition-colors hover:text-primary">
+                Kids
+              </Link>
+              <Link href="#" className="font-bold text-primary hover:text-primary/90">
+                Sale
+              </Link>
+            </nav>
+
+            <div className="flex flex-1 items-center justify-end space-x-4">
+              <div className="w-full flex-1 max-w-xs">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search for products, brands and more"
+                    className="pl-9 bg-secondary border-none"
+                  />
+                </div>
+              </div>
+              <nav className="flex items-center space-x-2">
+                <Link href="/login">
+                  <Button variant="ghost" className="flex flex-col h-auto p-1 items-center space-y-1">
+                    <User className="h-5 w-5" />
+                    <span className="text-xs font-medium">Profile</span>
+                  </Button>
                 </Link>
+                <Button variant="ghost" className="flex flex-col h-auto p-1 items-center space-y-1">
+                  <Heart className="h-5 w-5" />
+                  <span className="text-xs font-medium">Wishlist</span>
+                </Button>
+                <Button variant="ghost" className="flex flex-col h-auto p-1 items-center space-y-1">
+                  <ShoppingCart className="h-5 w-5" />
+                  <span className="text-xs font-medium">Bag</span>
+                </Button>
+              </nav>
             </div>
-        </div>
+          </div>
+
+          {/* Mobile Header */}
+          <div className="flex h-14 items-center justify-between px-4 md:hidden">
+              <Sheet>
+                  <SheetTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                          <Menu className="h-6 w-6" />
+                          <span className="sr-only">Open Menu</span>
+                      </Button>
+                  </SheetTrigger>
+                  <SheetContent side="left">
+                      {/* Add Mobile Drawer Content Here */}
+                      <div className="p-4">
+                          <h2 className="text-lg font-semibold font-headline">Categories</h2>
+                          {/* Accordion for categories */}
+                      </div>
+                  </SheetContent>
+              </Sheet>
+              <Link href="/">
+                  <AverzoLogo className="h-6 w-auto" />
+              </Link>
+              <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="icon">
+                      <Search className="h-5 w-5" />
+                      <span className="sr-only">Search</span>
+                  </Button>
+                  <Link href="/login">
+                      <Button variant="ghost" size="icon">
+                          <ShoppingCart className="h-5 w-5" />
+                          <span className="sr-only">Cart</span>
+                      </Button>
+                  </Link>
+              </div>
+          </div>
+        </nav>
       </header>
 
       <main className="flex-1">
@@ -297,7 +298,5 @@ export default function StoreFrontPage() {
     </div>
   );
 }
-
-    
 
     
