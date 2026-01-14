@@ -21,28 +21,8 @@ import {
   Users,
 } from 'lucide-react';
 import { orders } from '@/lib/data';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart"
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
+import { SalesChart } from '@/components/sales-chart';
 
-const chartData = [
-  { month: "January", desktop: 186 },
-  { month: "February", desktop: 305 },
-  { month: "March", desktop: 237 },
-  { month: "April", desktop: 73 },
-  { month: "May", desktop: 209 },
-  { month: "June", desktop: 214 },
-]
-
-const chartConfig = {
-  desktop: {
-    label: "Sales",
-    color: "hsl(var(--primary))",
-  },
-}
 
 export default function DashboardPage() {
   const recentOrders = orders.slice(0, 5);
@@ -106,23 +86,7 @@ export default function DashboardPage() {
             <CardTitle className="font-headline">Sales Overview</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
-             <ChartContainer config={chartConfig} className="h-[300px] w-full">
-              <BarChart accessibilityLayer data={chartData}>
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey="month"
-                  tickLine={false}
-                  tickMargin={10}
-                  axisLine={false}
-                  tickFormatter={(value) => value.slice(0, 3)}
-                />
-                <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent indicator="dot" />}
-                />
-                <Bar dataKey="desktop" fill="var(--color-desktop)" radius={4} />
-              </BarChart>
-            </ChartContainer>
+             <SalesChart />
           </CardContent>
         </Card>
         <Card className="lg:col-span-3">
