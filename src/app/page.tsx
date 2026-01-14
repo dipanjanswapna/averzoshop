@@ -20,7 +20,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import AverzoLogo from '@/components/averzo-logo';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { subBrands, products } from '@/lib/data';
 import {
@@ -137,6 +137,7 @@ export default function StoreFrontPage() {
                       </Button>
                   </SheetTrigger>
                   <SheetContent side="left" className="p-0">
+                      <SheetTitle className="sr-only">Menu</SheetTitle>
                       <div className="flex h-full flex-col">
                         <div className="p-4 border-b">
                             <AverzoLogo className="h-7 w-auto" />
