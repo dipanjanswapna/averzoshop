@@ -1,8 +1,10 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
 import { FirebaseProvider, type FirebaseProviderProps } from './provider';
 import { initializeFirebase } from '.';
+import { AuthProvider } from './auth/use-auth.tsx';
 
 export function FirebaseClientProvider({
   children,
@@ -27,8 +29,11 @@ export function FirebaseClientProvider({
     <FirebaseProvider
       firebaseApp={firebase.firebaseApp}
       auth={firebase.auth}
+      firestore={firebase.firestore}
     >
-      {children}
+      <AuthProvider>
+        {children}
+      </AuthProvider>
     </FirebaseProvider>
   );
 }
