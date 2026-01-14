@@ -53,12 +53,19 @@ export default function StoreFrontPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground font-body">
       <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <Sheet>
         <nav className="w-full">
           {/* Desktop Header */}
           <div className="hidden h-16 items-center md:flex container">
-            <Link href="/" className="mr-6 flex items-center space-x-2">
+            <Link href="/" className="mr-4 flex items-center space-x-2">
               <AverzoLogo className="h-7 w-auto" />
             </Link>
+            <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="mr-4">
+                    <Menu className="h-6 w-6" />
+                    <span className="sr-only">Open Menu</span>
+                </Button>
+            </SheetTrigger>
             <nav className="flex items-center space-x-6 text-sm font-medium font-body group">
               <div className="group cursor-pointer">
                   <span className="hover:text-primary transition-colors flex items-center gap-1">MEN <ChevronDown size={16}/></span>
@@ -148,71 +155,12 @@ export default function StoreFrontPage() {
 
           {/* Mobile Header */}
           <div className="flex h-14 items-center justify-between px-4 md:hidden">
-              <Sheet>
-                  <SheetTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                          <Menu className="h-6 w-6" />
-                          <span className="sr-only">Open Menu</span>
-                      </Button>
-                  </SheetTrigger>
-                  <SheetContent side="left" className="p-0">
-                      <SheetTitle className="sr-only">Menu</SheetTitle>
-                      <div className="flex h-full flex-col">
-                        <div className="p-4 border-b">
-                            <AverzoLogo className="h-7 w-auto" />
-                        </div>
-                        <div className="p-4 flex-1 overflow-y-auto">
-                            <Accordion type="single" collapsible className="w-full">
-                                <AccordionItem value="men">
-                                    <AccordionTrigger className="font-bold text-base">MEN</AccordionTrigger>
-                                    <AccordionContent>
-                                        <Accordion type="single" collapsible className="w-full pl-4">
-                                            <AccordionItem value="topwear">
-                                                <AccordionTrigger>Topwear (Group)</AccordionTrigger>
-                                                <AccordionContent className="pl-4">
-                                                    <ul className="space-y-2 text-muted-foreground">
-                                                        <li className="hover:text-foreground"><Link href="#">T-Shirts (Sub-cat)</Link></li>
-                                                        <li className="hover:text-foreground"><Link href="#">Casual Shirts</Link></li>
-                                                    </ul>
-                                                </AccordionContent>
-                                            </AccordionItem>
-                                            <AccordionItem value="bottomwear">
-                                                <AccordionTrigger>Bottomwear (Group)</AccordionTrigger>
-                                                <AccordionContent className="pl-4">
-                                                    <ul className="space-y-2 text-muted-foreground">
-                                                        <li className="hover:text-foreground"><Link href="#">Jeans (Sub-cat)</Link></li>
-                                                        <li className="hover:text-foreground"><Link href="#">Chinos</Link></li>
-                                                    </ul>
-                                                </AccordionContent>
-                                            </AccordionItem>
-                                        </Accordion>
-                                    </AccordionContent>
-                                </AccordionItem>
-                                <AccordionItem value="women">
-                                    <AccordionTrigger className="font-bold text-base">WOMEN</AccordionTrigger>
-                                    <AccordionContent>
-                                        <p className="text-muted-foreground pl-4">...Women categories here</p>
-                                    </AccordionContent>
-                                </AccordionItem>
-                                <AccordionItem value="kids">
-                                    <AccordionTrigger className="font-bold text-base">KIDS</AccordionTrigger>
-                                    <AccordionContent>
-                                        <p className="text-muted-foreground pl-4">...Kids categories here</p>
-                                    </AccordionContent>
-                                </AccordionItem>
-                            </Accordion>
-                             <div className="mt-6 border-t pt-6">
-                                <Link href="#" className="font-bold text-base text-destructive">SALE</Link>
-                             </div>
-                        </div>
-                         <div className="p-4 border-t mt-auto bg-background">
-                            <Link href="/login">
-                                <Button className="w-full">Login / Sign Up</Button>
-                            </Link>
-                        </div>
-                      </div>
-                  </SheetContent>
-              </Sheet>
+              <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                      <Menu className="h-6 w-6" />
+                      <span className="sr-only">Open Menu</span>
+                  </Button>
+              </SheetTrigger>
               <Link href="/">
                   <AverzoLogo className="h-6 w-auto" />
               </Link>
@@ -230,6 +178,64 @@ export default function StoreFrontPage() {
               </div>
           </div>
         </nav>
+        <SheetContent side="left" className="p-0">
+            <SheetTitle className="sr-only">Menu</SheetTitle>
+            <div className="flex h-full flex-col">
+            <div className="p-4 border-b">
+                <AverzoLogo className="h-7 w-auto" />
+            </div>
+            <div className="p-4 flex-1 overflow-y-auto">
+                <Accordion type="single" collapsible className="w-full">
+                    <AccordionItem value="men">
+                        <AccordionTrigger className="font-bold text-base">MEN</AccordionTrigger>
+                        <AccordionContent>
+                            <Accordion type="single" collapsible className="w-full pl-4">
+                                <AccordionItem value="topwear">
+                                    <AccordionTrigger>Topwear (Group)</AccordionTrigger>
+                                    <AccordionContent className="pl-4">
+                                        <ul className="space-y-2 text-muted-foreground">
+                                            <li className="hover:text-foreground"><Link href="#">T-Shirts (Sub-cat)</Link></li>
+                                            <li className="hover:text-foreground"><Link href="#">Casual Shirts</Link></li>
+                                        </ul>
+                                    </AccordionContent>
+                                </AccordionItem>
+                                <AccordionItem value="bottomwear">
+                                    <AccordionTrigger>Bottomwear (Group)</AccordionTrigger>
+                                    <AccordionContent className="pl-4">
+                                        <ul className="space-y-2 text-muted-foreground">
+                                            <li className="hover:text-foreground"><Link href="#">Jeans (Sub-cat)</Link></li>
+                                            <li className="hover:text-foreground"><Link href="#">Chinos</Link></li>
+                                        </ul>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            </Accordion>
+                        </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="women">
+                        <AccordionTrigger className="font-bold text-base">WOMEN</AccordionTrigger>
+                        <AccordionContent>
+                            <p className="text-muted-foreground pl-4">...Women categories here</p>
+                        </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="kids">
+                        <AccordionTrigger className="font-bold text-base">KIDS</AccordionTrigger>
+                        <AccordionContent>
+                            <p className="text-muted-foreground pl-4">...Kids categories here</p>
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
+                    <div className="mt-6 border-t pt-6">
+                    <Link href="#" className="font-bold text-base text-destructive">SALE</Link>
+                    </div>
+            </div>
+                <div className="p-4 border-t mt-auto bg-background">
+                <Link href="/login">
+                    <Button className="w-full">Login / Sign Up</Button>
+                </Link>
+            </div>
+            </div>
+        </SheetContent>
+        </Sheet>
       </header>
 
       <main className="flex-1">
@@ -479,5 +485,7 @@ export default function StoreFrontPage() {
     </div>
   );
 }
+
+    
 
     
