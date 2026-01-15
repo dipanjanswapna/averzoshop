@@ -24,7 +24,7 @@ export function ProductTabs({ product }: { product: Product }) {
   const [isQuestionDialogOpen, setIsQuestionDialogOpen] = useState(false);
     return (
         <Tabs defaultValue="description" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
                 <TabsTrigger value="description">Description</TabsTrigger>
                 <TabsTrigger value="specifications">Specifications</TabsTrigger>
                 <TabsTrigger value="reviews">Reviews</TabsTrigger>
