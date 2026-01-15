@@ -35,7 +35,7 @@ const NestedAccordion = ({ category, onClose }: { category: any, onClose: () => 
         onClick={() => setIsMotherOpen(!isMotherOpen)}
         className="w-full flex items-center justify-between py-4 px-5 text-sm font-bold text-zinc-800 hover:bg-gray-50"
       >
-        <Link href={motherCategoryPath} onClick={onClose} className="uppercase tracking-wide">{category.mother_name}</Link>
+        <Link href={motherCategoryPath} onClick={onClose} className="uppercase tracking-wide truncate">{category.mother_name}</Link>
         <ChevronDown size={18} className={`transition-transform duration-300 ${isMotherOpen ? "rotate-180 text-primary" : ""}`} />
       </button>
 
@@ -46,7 +46,7 @@ const NestedAccordion = ({ category, onClose }: { category: any, onClose: () => 
               onClick={() => toggleGroup(idx)}
               className="w-full flex items-center justify-between py-3 px-8 text-[11px] font-black text-zinc-500 uppercase tracking-widest"
             >
-              <Link href={`/shop?${createQueryString({ mother_category: category.mother_name, group: group.group_name })}`} onClick={onClose}>{group.group_name}</Link>
+              <Link href={`/shop?${createQueryString({ mother_category: category.mother_name, group: group.group_name })}`} onClick={onClose} className="truncate">{group.group_name}</Link>
               <ChevronRight size={14} className={`transition-transform ${openGroupIndex === idx ? "rotate-90 text-primary" : ""}`} />
             </button>
             <ul className={`overflow-hidden transition-all duration-300 ${openGroupIndex === idx ? "max-h-96 pb-3" : "max-h-0"}`}>
@@ -56,7 +56,7 @@ const NestedAccordion = ({ category, onClose }: { category: any, onClose: () => 
                   onClick={onClose}
                   className="pl-12 pr-5 py-2 text-xs font-semibold text-gray-600 hover:text-primary cursor-pointer active:bg-primary/10"
                 >
-                  <Link href={`/shop?${createQueryString({ mother_category: category.mother_name, group: group.group_name, subcategory: sub })}`}>{sub}</Link>
+                  <Link href={`/shop?${createQueryString({ mother_category: category.mother_name, group: group.group_name, subcategory: sub })}`} className="truncate block">{sub}</Link>
                 </li>
               ))}
             </ul>
