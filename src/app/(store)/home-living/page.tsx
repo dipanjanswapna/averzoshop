@@ -62,7 +62,7 @@ export default function CategoryPage() {
 
   const [priceRange, setPriceRange] = useState<[number, number]>([
     Number(searchParams.get('min_price') || 0),
-    Number(search_params.get('max_price') || 1000)
+    Number(searchParams.get('max_price') || 1000)
   ]);
   const [selectedBrand, setSelectedBrand] = useState<string | null>(searchParams.get('brand'));
   const [selectedMotherCategory, setSelectedMotherCategory] = useState<string | null>(defaultMotherCategory);
