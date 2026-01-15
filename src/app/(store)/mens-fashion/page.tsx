@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, 'useState', 'useEffect', 'useMemo' } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { FilterSidebar } from '@/components/shop/filter-sidebar';
 import { ProductGrid } from '@/components/shop/product-grid';
@@ -145,7 +145,7 @@ export default function MensFashionPage() {
     }
 
     return filtered;
-  }, [selectedBrand, selectedGroup, selectedSubcategory, priceRange, sortBy]);
+  }, [selectedBrand, selectedGroup, selectedSubcategory, priceRange, sortBy, selectedMotherCategory]);
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
