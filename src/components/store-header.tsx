@@ -4,15 +4,11 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import {
-  ArrowRight,
   Heart,
   Search,
   ShoppingCart,
   User,
   Menu,
-  Home,
-  LayoutGrid,
-  ShoppingBag,
   ChevronDown,
   MoreHorizontal
 } from 'lucide-react';
@@ -28,6 +24,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
 
 export function StoreHeader() {
   return (
@@ -45,125 +48,149 @@ export function StoreHeader() {
                     <span className="sr-only">Open Menu</span>
                 </Button>
             </SheetTrigger>
-            <nav className="flex items-center gap-4 text-sm font-medium font-body group overflow-x-auto pb-2 whitespace-nowrap">
-              <div className="group relative cursor-pointer">
-                  <span className="hover:text-primary transition-colors flex items-center gap-1">MEN <ChevronDown size={16}/></span>
-                  {/* Mega Menu Container */}
-                  <div className="absolute left-0 top-full w-full bg-background shadow-lg border-t hidden group-hover:grid grid-cols-4 gap-x-8 p-10 animate-in fade-in slide-in-from-top-2">
-                    <div>
-                      <h4 className="font-bold text-primary mb-3 uppercase font-headline">Topwear (Group)</h4>
-                      <ul className="space-y-2 text-muted-foreground font-body font-normal">
-                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">T-Shirts (Subcategory)</li>
-                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Casual Shirts</li>
-                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Polos</li>
-                      </ul>
+            
+            <div className="flex-1 px-12">
+              <Carousel
+                opts={{
+                  align: 'start',
+                  dragFree: true,
+                }}
+                className="w-full"
+              >
+                <CarouselContent className="-ml-2">
+                  <CarouselItem className="basis-auto pl-2">
+                    <div className="group relative cursor-pointer p-2">
+                        <span className="hover:text-primary transition-colors flex items-center gap-1 font-medium">MEN <ChevronDown size={16}/></span>
+                        {/* Mega Menu Container */}
+                        <div className="absolute left-0 top-full w-[100vw] max-w-7xl -translate-x-1/4 bg-background shadow-lg border-t hidden group-hover:grid grid-cols-4 gap-x-8 p-10 animate-in fade-in slide-in-from-top-2">
+                          <div>
+                            <h4 className="font-bold text-primary mb-3 uppercase font-headline">Topwear (Group)</h4>
+                            <ul className="space-y-2 text-muted-foreground font-body font-normal">
+                              <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">T-Shirts (Subcategory)</li>
+                              <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Casual Shirts</li>
+                              <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Polos</li>
+                            </ul>
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-primary mb-3 uppercase font-headline">Bottomwear</h4>
+                            <ul className="space-y-2 text-muted-foreground font-body font-normal">
+                              <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Jeans</li>
+                              <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Chinos</li>
+                              <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Formal Trousers</li>
+                            </ul>
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-primary mb-3 uppercase font-headline">Featured Brands</h4>
+                            <ul className="space-y-2 text-muted-foreground font-body font-normal">
+                              <li className="font-bold text-foreground italic">Aura Men</li>
+                              <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Levi's</li>
+                              <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Puma</li>
+                            </ul>
+                          </div>
+                          <div className="bg-muted p-4 rounded-lg flex items-center justify-center">
+                            <Image src={PlaceHolderImages.find(p => p.id === 'category-men')?.imageUrl || "https://placehold.co/300x200.png"} width={300} height={200} alt="Ad" className="rounded object-cover" data-ai-hint="male fashion" />
+                          </div>
+                        </div>
                     </div>
-                    <div>
-                      <h4 className="font-bold text-primary mb-3 uppercase font-headline">Bottomwear</h4>
-                      <ul className="space-y-2 text-muted-foreground font-body font-normal">
-                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Jeans</li>
-                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Chinos</li>
-                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Formal Trousers</li>
-                      </ul>
+                  </CarouselItem>
+                  <CarouselItem className="basis-auto pl-2">
+                     <div className="group relative cursor-pointer p-2">
+                      <span className="hover:text-primary transition-colors flex items-center gap-1 font-medium">Women <ChevronDown size={16}/></span>
                     </div>
-                    <div>
-                      <h4 className="font-bold text-primary mb-3 uppercase font-headline">Featured Brands</h4>
-                      <ul className="space-y-2 text-muted-foreground font-body font-normal">
-                        <li className="font-bold text-foreground italic">Aura Men</li>
-                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Levi's</li>
-                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Puma</li>
-                      </ul>
+                  </CarouselItem>
+                  <CarouselItem className="basis-auto pl-2">
+                     <div className="group relative cursor-pointer p-2">
+                      <span className="hover:text-primary transition-colors flex items-center gap-1 font-medium">Kids <ChevronDown size={16}/></span>
                     </div>
-                    <div className="bg-muted p-4 rounded-lg flex items-center justify-center">
-                      <Image src={PlaceHolderImages.find(p => p.id === 'category-men')?.imageUrl || "https://placehold.co/300x200.png"} width={300} height={200} alt="Ad" className="rounded object-cover" data-ai-hint="male fashion" />
+                  </CarouselItem>
+                  <CarouselItem className="basis-auto pl-2">
+                     <div className="group relative cursor-pointer p-2">
+                        <span className="hover:text-primary transition-colors flex items-center gap-1 font-medium">Electronics <ChevronDown size={16}/></span>
+                         <div className="absolute left-0 top-full w-full bg-background shadow-lg border-t hidden group-hover:grid grid-cols-4 gap-x-8 p-10 animate-in fade-in slide-in-from-top-2">
+                          <div>
+                            <h4 className="font-bold text-primary mb-3 uppercase font-headline">Mobiles</h4>
+                            <ul className="space-y-2 text-muted-foreground font-body font-normal">
+                              <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Smartphones</li>
+                              <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Feature Phones</li>
+                            </ul>
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-primary mb-3 uppercase font-headline">Laptops</h4>
+                            <ul className="space-y-2 text-muted-foreground font-body font-normal">
+                              <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Gaming Laptops</li>
+                              <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Ultrabooks</li>
+                            </ul>
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-primary mb-3 uppercase font-headline">Featured Brands</h4>
+                            <ul className="space-y-2 text-muted-foreground font-body font-normal">
+                              <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Samsung</li>
+                              <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">HP</li>
+                            </ul>
+                          </div>
+                           <div className="bg-muted p-4 rounded-lg flex items-center justify-center">
+                            <Image src={"https://picsum.photos/seed/electronics/300/200"} width={300} height={200} alt="Electronics Ad" className="rounded object-cover" data-ai-hint="electronics gadget" />
+                          </div>
+                        </div>
                     </div>
-                  </div>
-              </div>
-              <div className="group relative cursor-pointer">
-                <span className="hover:text-primary transition-colors flex items-center gap-1">Women <ChevronDown size={16}/></span>
-              </div>
-              <div className="group relative cursor-pointer">
-                <span className="hover:text-primary transition-colors flex items-center gap-1">Kids <ChevronDown size={16}/></span>
-              </div>
-              <div className="group relative cursor-pointer">
-                  <span className="hover:text-primary transition-colors flex items-center gap-1">Electronics <ChevronDown size={16}/></span>
-                  <div className="absolute left-0 top-full w-full bg-background shadow-lg border-t hidden group-hover:grid grid-cols-4 gap-x-8 p-10 animate-in fade-in slide-in-from-top-2">
-                    <div>
-                      <h4 className="font-bold text-primary mb-3 uppercase font-headline">Mobiles</h4>
-                      <ul className="space-y-2 text-muted-foreground font-body font-normal">
-                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Smartphones</li>
-                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Feature Phones</li>
-                      </ul>
+                  </CarouselItem>
+                  <CarouselItem className="basis-auto pl-2">
+                     <div className="group relative cursor-pointer p-2">
+                        <span className="hover:text-primary transition-colors flex items-center gap-1 font-medium">Health &amp; Wellness <ChevronDown size={16}/></span>
+                        <div className="absolute left-0 top-full w-full bg-background shadow-lg border-t hidden group-hover:grid grid-cols-4 gap-x-8 p-10 animate-in fade-in slide-in-from-top-2">
+                          <div>
+                            <h4 className="font-bold text-primary mb-3 uppercase font-headline">Supplements</h4>
+                            <ul className="space-y-2 text-muted-foreground font-body font-normal">
+                              <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Whey Protein</li>
+                              <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Vitamins</li>
+                              <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Pre-workout</li>
+                            </ul>
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-primary mb-3 uppercase font-headline">Fitness Gear</h4>
+                            <ul className="space-y-2 text-muted-foreground font-body font-normal">
+                              <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Yoga Mat</li>
+                              <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Resistance Band</li>
+                            </ul>
+                          </div>
+                           <div className="bg-muted p-4 rounded-lg flex items-center justify-center col-span-2">
+                             <Image src={"https://picsum.photos/seed/health/600/200"} width={600} height={200} alt="Health Ad" className="rounded object-cover" data-ai-hint="health fitness" />
+                          </div>
+                        </div>
                     </div>
-                    <div>
-                      <h4 className="font-bold text-primary mb-3 uppercase font-headline">Laptops</h4>
-                      <ul className="space-y-2 text-muted-foreground font-body font-normal">
-                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Gaming Laptops</li>
-                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Ultrabooks</li>
-                      </ul>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-primary mb-3 uppercase font-headline">Featured Brands</h4>
-                      <ul className="space-y-2 text-muted-foreground font-body font-normal">
-                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Samsung</li>
-                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">HP</li>
-                      </ul>
-                    </div>
-                     <div className="bg-muted p-4 rounded-lg flex items-center justify-center">
-                      <Image src={"https://picsum.photos/seed/electronics/300/200"} width={300} height={200} alt="Electronics Ad" className="rounded object-cover" data-ai-hint="electronics gadget" />
-                    </div>
-                  </div>
-              </div>
+                  </CarouselItem>
+                  <CarouselItem className="basis-auto pl-2">
+                     <div className="group relative cursor-pointer p-2">
+                        <span className="hover:text-primary transition-colors flex items-center gap-1 font-medium">Pet Care <ChevronDown size={16}/></span>
+                         <div className="absolute left-0 top-full w-full bg-background shadow-lg border-t hidden group-hover:grid grid-cols-4 gap-x-8 p-10 animate-in fade-in slide-in-from-top-2">
+                          <div>
+                            <h4 className="font-bold text-primary mb-3 uppercase font-headline">Cat Essentials</h4>
+                            <ul className="space-y-2 text-muted-foreground font-body font-normal">
+                              <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Cat Food</li>
+                              <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Litter Box</li>
+                              <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Toys</li>
+                            </ul>
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-primary mb-3 uppercase font-headline">Dog Essentials</h4>
+                            <ul className="space-y-2 text-muted-foreground font-body font-normal">
+                              <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Dog Treats</li>
+                              <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Leash</li>
+                              <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Shampoo</li>
+                            </ul>
+                          </div>
+                           <div className="bg-muted p-4 rounded-lg flex items-center justify-center col-span-2">
+                             <Image src={"https://picsum.photos/seed/pets/600/200"} width={600} height={200} alt="Pet Care Ad" className="rounded object-cover" data-ai-hint="cute pet" />
+                          </div>
+                        </div>
+                      </div>
+                  </CarouselItem>
+                </CarouselContent>
+                <CarouselPrevious className="left-0" />
+                <CarouselNext className="right-0"/>
+              </Carousel>
+            </div>
 
-               <div className="group relative cursor-pointer">
-                  <span className="hover:text-primary transition-colors flex items-center gap-1">Health &amp; Wellness <ChevronDown size={16}/></span>
-                  <div className="absolute left-0 top-full w-full bg-background shadow-lg border-t hidden group-hover:grid grid-cols-4 gap-x-8 p-10 animate-in fade-in slide-in-from-top-2">
-                    <div>
-                      <h4 className="font-bold text-primary mb-3 uppercase font-headline">Supplements</h4>
-                      <ul className="space-y-2 text-muted-foreground font-body font-normal">
-                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Whey Protein</li>
-                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Vitamins</li>
-                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Pre-workout</li>
-                      </ul>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-primary mb-3 uppercase font-headline">Fitness Gear</h4>
-                      <ul className="space-y-2 text-muted-foreground font-body font-normal">
-                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Yoga Mat</li>
-                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Resistance Band</li>
-                      </ul>
-                    </div>
-                     <div className="bg-muted p-4 rounded-lg flex items-center justify-center col-span-2">
-                       <Image src={"https://picsum.photos/seed/health/600/200"} width={600} height={200} alt="Health Ad" className="rounded object-cover" data-ai-hint="health fitness" />
-                    </div>
-                  </div>
-              </div>
-                <div className="group relative cursor-pointer">
-                  <span className="hover:text-primary transition-colors flex items-center gap-1">Pet Care <ChevronDown size={16}/></span>
-                   <div className="absolute left-0 top-full w-full bg-background shadow-lg border-t hidden group-hover:grid grid-cols-4 gap-x-8 p-10 animate-in fade-in slide-in-from-top-2">
-                    <div>
-                      <h4 className="font-bold text-primary mb-3 uppercase font-headline">Cat Essentials</h4>
-                      <ul className="space-y-2 text-muted-foreground font-body font-normal">
-                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Cat Food</li>
-                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Litter Box</li>
-                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Toys</li>
-                      </ul>
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-primary mb-3 uppercase font-headline">Dog Essentials</h4>
-                      <ul className="space-y-2 text-muted-foreground font-body font-normal">
-                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Dog Treats</li>
-                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Leash</li>
-                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Shampoo</li>
-                      </ul>
-                    </div>
-                     <div className="bg-muted p-4 rounded-lg flex items-center justify-center col-span-2">
-                       <Image src={"https://picsum.photos/seed/pets/600/200"} width={600} height={200} alt="Pet Care Ad" className="rounded object-cover" data-ai-hint="cute pet" />
-                    </div>
-                  </div>
-                </div>
-
-            </nav>
 
             <div className="flex flex-1 items-center justify-end space-x-2">
               <div className="w-full flex-1 max-w-xs">
