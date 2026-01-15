@@ -21,10 +21,15 @@ export function ProductImageGallery({ product }: { product: Product }) {
     ...(product.videos?.map(src => ({ type: 'video', src })) || [])
   ];
 
+  const isOutOfStock = product.total_stock <= 0;
+
   return (
     <div className="flex flex-col gap-4 sticky top-28">
       <motion.div 
-        className="relative aspect-square w-full rounded-xl overflow-hidden shadow-lg border"
+        className={cn(
+          "relative aspect-square w-full rounded-xl overflow-hidden shadow-lg border",
+           isOutOfStock && "grayscale"
+        )}
         whileHover="hover"
       >
         <motion.div
@@ -43,9 +48,17 @@ export function ProductImageGallery({ product }: { product: Product }) {
           />
         </motion.div>
         
+        {isOutOfStock && (
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+            <div className="bg-white text-destructive font-bold text-lg px-6 py-3 rounded-md uppercase tracking-widest -rotate-12 border-2 border-destructive">
+              Out of Stock
+            </div>
+          </div>
+        )}
+
         <div className="absolute top-4 left-4 flex flex-col gap-2">
             {product.isNew && <div className="bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">NEW</div>}
-            {product.discount > 0 && (
+            {product.discount > 0 && !isOutOfStock && (
               <div className="bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full">
                 -{product.discount}% OFF
               </div>
