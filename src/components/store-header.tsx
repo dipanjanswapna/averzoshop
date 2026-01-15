@@ -4,6 +4,7 @@ import { Search, ShoppingBag, Heart, User, Menu, ChevronDown, X } from 'lucide-r
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
+
 // New structured data for categories, groups, and sub-categories
 const categoriesData = [
     {
