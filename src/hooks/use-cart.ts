@@ -1,21 +1,20 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { products } from '@/lib/data';
+import type { Product, ProductVariant } from '@/types/product';
 import { toast } from './use-toast';
-
-type Product = (typeof products)[0];
 
 export type CartItem = {
   product: Product;
+  variant: ProductVariant;
   quantity: number;
 };
 
 type CartState = {
   items: CartItem[];
-  addItem: (product: Product) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  addItem: (product: Product, variant: ProductVariant, quantity?: number) => void;
+  removeItem: (variantSku: string) => void;
+  updateQuantity: (variantSku: string, quantity: number) => void;
   clearCart: () => void;
 };
 
@@ -23,39 +22,39 @@ export const useCart = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
-      addItem: (product) => {
+      addItem: (product, variant, quantity = 1) => {
         const currentItems = get().items;
         const existingItem = currentItems.find(
-          (item) => item.product.id === product.id
+          (item) => item.variant.sku === variant.sku
         );
 
         if (existingItem) {
-           get().updateQuantity(product.id, existingItem.quantity + 1);
+           get().updateQuantity(variant.sku, existingItem.quantity + quantity);
         } else {
-            set({ items: [...get().items, { product, quantity: 1 }] });
+            set({ items: [...get().items, { product, variant, quantity }] });
         }
         
         toast({
           title: 'Added to cart',
-          description: `${product.name} has been added to your cart.`,
+          description: `${product.name} (${variant.sku}) has been added to your cart.`,
         });
       },
-      removeItem: (productId) => {
+      removeItem: (variantSku) => {
         set({
-          items: get().items.filter((item) => item.product.id !== productId),
+          items: get().items.filter((item) => item.variant.sku !== variantSku),
         });
         toast({
           title: 'Item removed',
           description: 'The item has been removed from your cart.',
         });
       },
-      updateQuantity: (productId, quantity) => {
+      updateQuantity: (variantSku, quantity) => {
         if (quantity <= 0) {
-          get().removeItem(productId);
+          get().removeItem(variantSku);
         } else {
           set({
             items: get().items.map((item) =>
-              item.product.id === productId ? { ...item, quantity } : item
+              item.variant.sku === variantSku ? { ...item, quantity } : item
             ),
           });
         }

@@ -6,50 +6,15 @@
       "description": "A user of the application.",
       "type": "object",
       "properties": {
-        "uid": {
-          "type": "string",
-          "description": "The user's unique ID."
-        },
-        "email": {
-          "type": "string",
-          "format": "email",
-          "description": "The user's email address."
-        },
-        "displayName": {
-          "type": "string",
-          "description": "The user's display name."
-        },
-        "photoURL": {
-          "type": "string",
-          "format": "uri",
-          "description": "The URL of the user's profile picture."
-        },
-        "role": {
-          "type": "string",
-          "description": "The role of the user.",
-          "enum": ["customer", "admin", "outlet", "vendor", "rider"]
-        },
-        "status": {
-          "type": "string",
-          "description": "The approval status of the user.",
-          "enum": ["pending", "approved", "rejected"]
-        },
-        "wishlist": {
-            "type": "array",
-            "description": "An array of product IDs that the user has added to their wishlist.",
-            "items": {
-                "type": "string"
-            }
-        },
-        "outletId": {
-            "type": "string",
-            "description": "The ID of the outlet this user manages, if applicable."
-        },
-        "createdAt": {
-            "type": "string",
-            "format": "date-time",
-            "description": "The timestamp when the user account was created."
-        }
+        "uid": { "type": "string", "description": "The user's unique ID." },
+        "email": { "type": "string", "format": "email", "description": "The user's email address." },
+        "displayName": { "type": "string", "description": "The user's display name." },
+        "photoURL": { "type": "string", "format": "uri", "description": "The URL of the user's profile picture." },
+        "role": { "type": "string", "description": "The role of the user.", "enum": ["customer", "admin", "outlet", "vendor", "rider"] },
+        "status": { "type": "string", "description": "The approval status of the user.", "enum": ["pending", "approved", "rejected"] },
+        "wishlist": { "type": "array", "description": "An array of product IDs that the user has added to their wishlist.", "items": { "type": "string" } },
+        "outletId": { "type": "string", "description": "The ID of the outlet this user manages, if applicable." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the user account was created." }
       },
       "required": ["uid", "email", "role", "status"]
     },
@@ -58,29 +23,11 @@
       "description": "A product supplier for Averzo.",
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "The vendor's unique ID."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the vendor company."
-        },
-        "contact": {
-          "type": "string",
-          "format": "email",
-          "description": "The primary contact email for the vendor."
-        },
-        "status": {
-          "type": "string",
-          "description": "The status of the vendor.",
-          "enum": ["Active", "Inactive"]
-        },
-        "createdAt": {
-            "type": "string",
-            "format": "date-time",
-            "description": "The timestamp when the vendor was added."
-        }
+        "id": { "type": "string", "description": "The vendor's unique ID." },
+        "name": { "type": "string", "description": "The name of the vendor company." },
+        "contact": { "type": "string", "format": "email", "description": "The primary contact email for the vendor." },
+        "status": { "type": "string", "description": "The status of the vendor.", "enum": ["Active", "Inactive"] },
+        "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the vendor was added." }
       },
       "required": ["id", "name", "contact", "status"]
     },
@@ -89,43 +36,13 @@
       "description": "A physical store location for Averzo.",
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "The outlet's unique ID."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the outlet."
-        },
-        "location": {
-          "type": "string",
-          "description": "The physical address of the outlet."
-        },
-        "status": {
-          "type": "string",
-          "description": "The operational status of the outlet.",
-          "enum": ["Active", "Inactive"]
-        },
-        "managerId": {
-          "type": "string",
-          "description": "The UID of the user managing this outlet."
-        },
-        "inventory": {
-          "type": "array",
-          "description": "List of products and their stock levels at this outlet.",
-          "items": {
-            "type": "object",
-            "properties": {
-              "productId": { "type": "string" },
-              "stock": { "type": "number" }
-            }
-          }
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "The timestamp when the outlet was added."
-        }
+        "id": { "type": "string", "description": "The outlet's unique ID." },
+        "name": { "type": "string", "description": "The name of the outlet." },
+        "location": { "type": "string", "description": "The physical address of the outlet." },
+        "status": { "type": "string", "description": "The operational status of the outlet.", "enum": ["Active", "Inactive"] },
+        "managerId": { "type": "string", "description": "The UID of the user managing this outlet." },
+        "inventory": { "type": "array", "description": "List of products and their stock levels at this outlet.", "items": { "type": "object", "properties": { "productId": { "type": "string" }, "stock": { "type": "number" } } } },
+        "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the outlet was added." }
       },
       "required": ["name", "location", "status"]
     },
@@ -137,19 +54,7 @@
         "id": { "type": "string", "description": "The unique ID of the sale." },
         "outletId": { "type": "string", "description": "The ID of the outlet where the sale occurred." },
         "soldBy": { "type": "string", "description": "The UID of the sales assistant who made the sale." },
-        "items": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "productId": { "type": "string" },
-              "productName": { "type": "string" },
-              "quantity": { "type": "number" },
-              "price": { "type": "number" }
-            },
-            "required": ["productId", "productName", "quantity", "price"]
-          }
-        },
+        "items": { "type": "array", "items": { "type": "object", "properties": { "productId": { "type": "string" }, "productName": { "type": "string" }, "quantity": { "type": "number" }, "price": { "type": "number" } }, "required": ["productId", "productName", "quantity", "price"] } },
         "totalAmount": { "type": "number" },
         "paymentMethod": { "type": "string", "enum": ["cash", "card", "mobile"] },
         "createdAt": { "type": "string", "format": "date-time" }
@@ -167,65 +72,44 @@
         "category": { "type": "string" },
         "group": { "type": "string" },
         "subcategory": { "type": "string" },
-        "price": { "type": "number" },
-        "total_stock": { "type": "number" },
-        "outlet_stocks": {
-          "type": "object",
-          "description": "Stock count per outlet",
-          "additionalProperties": {
-            "type": "number"
+        "price": { "type": "number", "description": "Base price of the product." },
+        "baseSku": { "type": "string", "description": "The base Stock Keeping Unit for the product." },
+        "total_stock": { "type": "number", "description": "Aggregated stock from all variants." },
+        "variants": {
+          "type": "array",
+          "description": "Product variants for different sizes and colors.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "sku": { "type": "string", "description": "Unique SKU for the variant." },
+              "color": { "type": "string" },
+              "size": { "type": "string" },
+              "stock": { "type": "number" },
+              "price": { "type": "number", "description": "Price specific to this variant, if different from base price." }
+            },
+            "required": ["sku", "stock", "price"]
           }
         },
+        "outlet_stocks": { "type": "object", "description": "Stock count per outlet", "additionalProperties": { "type": "number" } },
         "image": { "type": "string", "format": "uri" },
         "brand": { "type": "string" },
-        "colors": {
-          "type": "array",
-          "items": { "type": "string" }
-        },
-        "sizes": {
-          "type": "array",
-          "items": { "type": "string" }
-        },
+        "colors": { "type": "array", "items": { "type": "string" } },
+        "sizes": { "type": "array", "items": { "type": "string" } },
         "vendorId": { "type": "string" },
-        "status": { "type": "string", "enum": ["pending", "approved", "rejected"]},
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["name", "price", "total_stock", "vendorId", "status", "category", "group", "subcategory", "brand", "image"]
+      "required": ["name", "price", "total_stock", "vendorId", "status", "category", "group", "subcategory", "brand", "image", "baseSku", "variants"]
     }
   },
   "auth": {
     "providers": ["google.com", "password"]
   },
   "firestore": {
-    "/users/{userId}": {
-      "schema": {
-        "$ref": "#/entities/user"
-      },
-      "description": "Stores user profile information, including their role, status, and wishlist."
-    },
-    "/vendors/{vendorId}": {
-      "schema": {
-        "$ref": "#/entities/vendor"
-      },
-      "description": "Stores information about product suppliers (vendors)."
-    },
-    "/outlets/{outletId}": {
-      "schema": {
-        "$ref": "#/entities/outlet"
-      },
-      "description": "Stores information about physical store locations (outlets)."
-    },
-    "/pos_sales/{saleId}": {
-      "schema": {
-        "$ref": "#/entities/pos_sale"
-      },
-      "description": "Logs all point-of-sale transactions from outlets."
-    },
-    "/products/{productId}": {
-      "schema": {
-        "$ref": "#/entities/product"
-      },
-      "description": "Stores all product information for the platform."
-    }
+    "/users/{userId}": { "schema": { "$ref": "#/entities/user" }, "description": "Stores user profile information, including their role, status, and wishlist." },
+    "/vendors/{vendorId}": { "schema": { "$ref": "#/entities/vendor" }, "description": "Stores information about product suppliers (vendors)." },
+    "/outlets/{outletId}": { "schema": { "$ref": "#/entities/outlet" }, "description": "Stores information about physical store locations (outlets)." },
+    "/pos_sales/{saleId}": { "schema": { "$ref": "#/entities/pos_sale" }, "description": "Logs all point-of-sale transactions from outlets." },
+    "/products/{productId}": { "schema": { "$ref": "#/entities/product" }, "description": "Stores all product information for the platform." }
   }
 }

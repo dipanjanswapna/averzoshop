@@ -1,4 +1,13 @@
 
+
+export type ProductVariant = {
+    sku: string;
+    color?: string;
+    size?: string;
+    stock: number;
+    price: number;
+};
+
 export type Product = {
     id: string;
     name: string;
@@ -6,8 +15,10 @@ export type Product = {
     category: string;
     group: string;
     subcategory: string;
-    price: number;
+    price: number; // Base price
+    baseSku: string;
     total_stock: number;
+    variants: ProductVariant[];
     outlet_stocks: { [key: string]: number };
     image: string;
     brand: string;

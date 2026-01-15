@@ -104,9 +104,12 @@ function ProductPageContent() {
                 </div>
             </div>
             
-            <div className="container py-12">
-                <FrequentlyBought products={frequentlyBoughtTogether} />
-            </div>
+            {frequentlyBoughtTogether.length > 1 &&
+              <div className="container py-12">
+                  <FrequentlyBought products={frequentlyBoughtTogether} />
+              </div>
+            }
+
 
             <div className="container py-12">
                 <ProductTabs product={product} />
