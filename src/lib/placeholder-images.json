@@ -22,6 +22,13 @@
       "link": "/shop"
     },
     {
+      "id": "mens-fashion-banner",
+      "description": "A promotional banner for men's fashion.",
+      "imageUrl": "https://images.unsplash.com/photo-1596662666063-33730c935c95?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxtYWxlJTIwZmFzaGlvbnxlbnwwfHx8fDE3Njg0NzQxMTJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "male fashion",
+      "link": "/shop?group=Topwear"
+    },
+    {
       "id": "product-1",
       "description": "A men's casual t-shirt on a hanger",
       "imageUrl": "https://images.unsplash.com/photo-1759572095329-1dcf9522762b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx0LXNoaXJ0JTIwZmFzaGlvbnxlbnwwfHx8fDE3Njg0MDY1MzB8MA&ixlib=rb-4.1.0&q=80&w=1080",

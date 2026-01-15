@@ -50,6 +50,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 const heroCarouselImages = PlaceHolderImages.filter(p =>
   p.id.startsWith('hero-carousel-')
 );
+const bannerImage = PlaceHolderImages.find(p => p.id === 'mens-fashion-banner');
 
 
 export default function MensFashionPage() {
@@ -194,6 +195,23 @@ export default function MensFashionPage() {
             </div>
           </Carousel>
         </div>
+
+        {/* --- Banner Image --- */}
+        {bannerImage && (
+            <div className="mb-8">
+                <Link href={bannerImage.link || '#'}>
+                    <div className="relative w-full aspect-[6/1] rounded-lg overflow-hidden">
+                        <Image
+                            src={bannerImage.imageUrl}
+                            alt={bannerImage.description}
+                            data-ai-hint={bannerImage.imageHint}
+                            fill
+                            className="object-cover"
+                        />
+                    </div>
+                </Link>
+            </div>
+        )}
       </div>
       
       <div className="bg-secondary py-8">
