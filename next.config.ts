@@ -1,14 +1,8 @@
+
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
-  experimental: {
-    turbo: {
-      resolveAlias: {
-        "node:process": "process/browser",
-      },
-    },
-  },
   typescript: {
     ignoreBuildErrors: true,
   },
