@@ -13,6 +13,7 @@ import {
   Tags,
   Settings,
   ClipboardList,
+  ArrowRightLeft,
 } from 'lucide-react';
 import {
   SidebarMenu,
@@ -27,6 +28,7 @@ const adminNavItems = [
   { href: '/dashboard/users', label: 'Users', icon: Users },
   { href: '/dashboard/vendors', label: 'Vendors', icon: Truck },
   { href: '/dashboard/stock-requests', label: 'Stock Requests', icon: ClipboardList },
+  { href: '/dashboard/stock-transfers', label: 'Stock Transfers', icon: ArrowRightLeft },
   { href: '/dashboard/sub-brands', label: 'Sub-Brands', icon: Tags },
   { href: '/dashboard/outlets', label: 'Offline Outlets', icon: Building },
 ];

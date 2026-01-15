@@ -246,6 +246,24 @@
         "issuedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["stockRequestId", "vendorId", "outletId", "items", "totalQuantity", "status", "issuedAt"]
+    },
+    "stock_transfer": {
+      "title": "Stock Transfer",
+      "description": "A request to transfer stock from one outlet to another, initiated by an admin.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "sourceOutletId": { "type": "string" },
+        "destinationOutletId": { "type": "string" },
+        "productId": { "type": "string" },
+        "productName": { "type": "string" },
+        "variantSku": { "type": "string" },
+        "quantity": { "type": "number" },
+        "status": { "type": "string", "enum": ["requested", "dispatched", "received", "cancelled"] },
+        "requestedBy": { "type": "string", "description": "UID of the admin who initiated the transfer." },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["sourceOutletId", "destinationOutletId", "productId", "quantity", "status", "requestedBy", "createdAt"]
     }
   },
   "auth": {
@@ -260,6 +278,7 @@
     "/products/{productId}/questions/{questionId}": { "schema": { "$ref": "#/entities/question"}, "description": "Stores customer questions and answers for a specific product."},
     "/stock_requests/{requestId}": { "schema": { "$ref": "#/entities/stock_request" }, "description": "Tracks stock movement requests from vendors to outlets." },
     "/delivery_challans/{challanId}": { "schema": { "$ref": "#/entities/delivery_challan" }, "description": "Stores delivery challans generated after stock request approvals." },
-    "/orders/{orderId}": { "schema": { "$ref": "#/entities/order" }, "description": "Stores customer online orders routed to specific outlets for fulfillment." }
+    "/orders/{orderId}": { "schema": { "$ref": "#/entities/order" }, "description": "Stores customer online orders routed to specific outlets for fulfillment." },
+    "/stock_transfers/{transferId}": { "schema": { "$ref": "#/entities/stock_transfer" }, "description": "Tracks inter-outlet stock transfers initiated by admins." }
   }
 }

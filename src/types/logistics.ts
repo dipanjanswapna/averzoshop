@@ -7,6 +7,8 @@ export type StockRequest = {
     productId: string;
     productName: string;
     quantity: number;
+    variantSku: string;
+    variantDescription?: string;
   }[];
   totalQuantity: number;
   status: 'pending' | 'approved' | 'shipped' | 'received' | 'rejected';
@@ -22,8 +24,23 @@ export type DeliveryChallan = {
         productId: string;
         productName: string;
         quantity: number;
+        variantSku: string;
+        variantDescription?: string;
     }[];
     totalQuantity: number;
     status: 'issued' | 'in_transit' | 'received';
     issuedAt: any; // Firestore Timestamp
 }
+
+export type StockTransfer = {
+  id: string;
+  sourceOutletId: string;
+  destinationOutletId: string;
+  productId: string;
+  productName: string;
+  variantSku: string;
+  quantity: number;
+  status: 'requested' | 'dispatched' | 'received' | 'cancelled';
+  requestedBy: string;
+  createdAt: any; // Firestore Timestamp
+};
