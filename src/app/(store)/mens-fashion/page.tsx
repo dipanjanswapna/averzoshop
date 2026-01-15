@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -30,9 +31,26 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
+import Autoplay from "embla-carousel-autoplay";
+import Link from 'next/link';
+import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
+
 
 // This is the dedicated page for Men's Fashion.
 // It reuses the structure of the main shop page but is pre-filtered.
+
+const heroCarouselImages = PlaceHolderImages.filter(p =>
+  p.id.startsWith('hero-carousel-')
+);
+
 
 export default function MensFashionPage() {
   const router = useRouter();
@@ -202,6 +220,46 @@ export default function MensFashionPage() {
             </Select>
         </div>
       </div>
+
+       {/* --- Hero Carousel --- */}
+       <div className="mb-8">
+            <Carousel
+            opts={{
+                align: 'start',
+                loop: true,
+            }}
+            plugins={[
+                Autoplay({
+                    delay: 4000,
+                }),
+            ]}
+            className="w-full"
+            >
+            <CarouselContent>
+                {heroCarouselImages.map((image, index) => (
+                <CarouselItem key={index}>
+                    <Link href={image.link || '#'}>
+                    <div className="relative w-full aspect-[21/9] md:aspect-[4/1] rounded-lg overflow-hidden">
+                        <Image
+                        src={image.imageUrl}
+                        alt={image.description}
+                        data-ai-hint={image.imageHint}
+                        fill
+                        className="object-cover"
+                        priority={index === 0}
+                        />
+                    </div>
+                    </Link>
+                </CarouselItem>
+                ))}
+            </CarouselContent>
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4">
+                <CarouselPrevious className="static -translate-y-0" />
+                <CarouselNext className="static -translate-y-0" />
+            </div>
+            </Carousel>
+        </div>
+
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <aside className="hidden lg:block lg:col-span-1">
