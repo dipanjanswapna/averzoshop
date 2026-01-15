@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { FilterSidebar } from '@/components/shop/filter-sidebar';
 import { ProductGrid } from '@/components/shop/product-grid';
@@ -184,7 +184,7 @@ export default function ShopPage() {
                         </SheetHeader>
                         <ScrollArea className="h-[calc(100vh-80px)] overflow-y-auto">
                         <FilterSidebar 
-                            priceRange={priceRange}
+                            priceRange={priceRange as [number, number]}
                             onPriceChange={handlePriceChange}
                             selectedBrand={selectedBrand}
                             onBrandChange={(brand) => handleFilterChange('brand', brand)}
@@ -217,7 +217,7 @@ export default function ShopPage() {
             <aside className="hidden lg:block lg:col-span-1">
               <div className="sticky top-28">
                 <FilterSidebar 
-                    priceRange={priceRange}
+                    priceRange={priceRange as [number, number]}
                     onPriceChange={handlePriceChange}
                     selectedBrand={selectedBrand}
                     onBrandChange={(brand) => handleFilterChange('brand', brand)}

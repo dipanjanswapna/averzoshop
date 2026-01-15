@@ -56,77 +56,59 @@ export default function MensFashionPage() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   
-  const [loading, setLoading] = useState(true);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // Default filter for this page
   const defaultMotherCategory = "Men's Fashion";
 
   // Filter States
-  const [priceRange, setPriceRange] = useState<[number, number]>([0,1000]);
-  const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
-  const [selectedMotherCategory, setSelectedMotherCategory] = useState<string | null>(defaultMotherCategory);
-  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
-  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState('newest');
-  const [currentPage, setCurrentPage] = useState(1);
+  const priceRange = useMemo(() => [
+    Number(searchParams.get('min_price') || 0),
+    Number(searchParams.get('max_price') || 1000)
+  ], [searchParams]);
+  
+  const selectedBrand = useMemo(() => searchParams.get('brand'), [searchParams]);
+  const selectedMotherCategory = defaultMotherCategory;
+  const selectedGroup = useMemo(() => searchParams.get('group'), [searchParams]);
+  const selectedSubcategory = useMemo(() => searchParams.get('subcategory'), [searchParams]);
+  const sortBy = useMemo(() => searchParams.get('sort_by') || 'newest', [searchParams]);
+  const currentPage = useMemo(() => Number(searchParams.get('page') || 1), [searchParams]);
 
-  const updateStateFromParams = useCallback(() => {
-    setPriceRange([Number(searchParams.get('min_price') || 0), Number(searchParams.get('max_price') || 1000)]);
-    setSelectedBrand(searchParams.get('brand'));
-    setSelectedGroup(searchParams.get('group'));
-    setSelectedSubcategory(searchParams.get('subcategory'));
-    setSortBy(searchParams.get('sort_by') || 'newest');
-    setCurrentPage(Number(searchParams.get('page') || 1));
-    setSelectedMotherCategory(defaultMotherCategory);
-    setLoading(false);
-  }, [searchParams, defaultMotherCategory]);
 
-  // Sync state from URL on initial load and param changes
-  useEffect(() => {
-    updateStateFromParams();
-  }, [searchParams, updateStateFromParams]);
+  const handleFilterChange = useCallback((key: string, value: string | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) {
+      params.set(key, value);
+    } else {
+      params.delete(key);
+    }
+    // Reset page to 1 on any filter change
+    params.delete('page');
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [searchParams, pathname, router]);
 
-   const onPageChange = useCallback((page: number) => {
-    setCurrentPage(page);
+  const handlePriceChange = useCallback((newRange: number[]) => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (newRange[0] > 0) {
+        params.set('min_price', String(newRange[0]));
+      } else {
+        params.delete('min_price');
+      }
+      if (newRange[1] < 1000) {
+        params.set('max_price', String(newRange[1]));
+      } else {
+        params.delete('max_price');
+      }
+      params.delete('page');
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [searchParams, pathname, router]);
+
+
+  const onPageChange = useCallback((page: number) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('page', String(page));
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   }, [router, pathname, searchParams]);
-
-  // Update URL from state changes
-  useEffect(() => {
-    const params = new URLSearchParams(searchParams.toString());
-    
-    const updateParam = (key: string, value: string | null | undefined) => {
-      if (value) {
-        params.set(key, value);
-      } else {
-        params.delete(key);
-      }
-    };
-    
-    updateParam('brand', selectedBrand);
-    updateParam('group', selectedGroup);
-    updateParam('subcategory', selectedSubcategory);
-    updateParam('sort_by', sortBy === 'newest' ? null : sortBy);
-    updateParam('page', currentPage > 1 ? String(currentPage) : null);
-
-    if (priceRange[0] > 0) {
-      params.set('min_price', String(priceRange[0]));
-    } else {
-        params.delete('min_price');
-    }
-    if (priceRange[1] < 1000) {
-      params.set('max_price', String(priceRange[1]));
-    } else {
-        params.delete('max_price');
-    }
-
-    if (searchParams.toString() !== params.toString()) {
-        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-    }
-  }, [selectedBrand, selectedGroup, selectedSubcategory, priceRange, sortBy, currentPage, pathname, router, searchParams]);
 
   const { paginatedProducts, totalPages } = useMemo(() => {
     let filtered = products.filter(p => p.category === "Men" || (selectedMotherCategory && p.group && categoriesData.find(cat => cat.mother_name === selectedMotherCategory)?.groups.some(g => g.group_name === p.group)));
@@ -283,23 +265,22 @@ export default function MensFashionPage() {
                     </SheetHeader>
                     <ScrollArea className="h-[calc(100vh-80px)] overflow-y-auto">
                       <FilterSidebar
-                        isLoading={loading}
-                        priceRange={priceRange}
-                        setPriceRange={setPriceRange}
+                        priceRange={priceRange as [number, number]}
+                        onPriceChange={handlePriceChange}
                         selectedBrand={selectedBrand}
-                        setSelectedBrand={setSelectedBrand}
+                        onBrandChange={(brand) => handleFilterChange('brand', brand)}
                         selectedMotherCategory={selectedMotherCategory}
-                        setSelectedMotherCategory={setSelectedMotherCategory}
+                        onMotherCategoryChange={(cat) => handleFilterChange('mother_category', cat)}
                         selectedGroup={selectedGroup}
-                        setSelectedGroup={setSelectedGroup}
+                        onGroupChange={(group) => handleFilterChange('group', group)}
                         selectedSubcategory={selectedSubcategory}
-                        setSelectedSubcategory={setSelectedSubcategory}
+                        onSubcategoryChange={(sub) => handleFilterChange('subcategory', sub)}
                       />
                     </ScrollArea>
                   </SheetContent>
                 </Sheet>
 
-                <Select value={sortBy} onValueChange={setSortBy}>
+                <Select value={sortBy} onValueChange={(value) => handleFilterChange('sort_by', value)}>
                   <SelectTrigger className="w-full md:w-[220px]">
                     <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
@@ -321,17 +302,16 @@ export default function MensFashionPage() {
               <aside className="hidden lg:block lg:col-span-1">
                 <div className="sticky top-28">
                   <FilterSidebar
-                    isLoading={loading}
-                    priceRange={priceRange}
-                    setPriceRange={setPriceRange}
+                    priceRange={priceRange as [number, number]}
+                    onPriceChange={handlePriceChange}
                     selectedBrand={selectedBrand}
-                    setSelectedBrand={setSelectedBrand}
+                    onBrandChange={(brand) => handleFilterChange('brand', brand)}
                     selectedMotherCategory={selectedMotherCategory}
-                    setSelectedMotherCategory={setSelectedMotherCategory}
+                    onMotherCategoryChange={(cat) => handleFilterChange('mother_category', cat)}
                     selectedGroup={selectedGroup}
-                    setSelectedGroup={setSelectedGroup}
+                    onGroupChange={(group) => handleFilterChange('group', group)}
                     selectedSubcategory={selectedSubcategory}
-                    setSelectedSubcategory={setSelectedSubcategory}
+                    onSubcategoryChange={(sub) => handleFilterChange('subcategory', sub)}
                   />
                 </div>
               </aside>
@@ -339,7 +319,7 @@ export default function MensFashionPage() {
               <main className="lg:col-span-3">
                  <ProductGrid 
                     products={paginatedProducts} 
-                    isLoading={loading} 
+                    isLoading={false} 
                     currentPage={currentPage}
                     totalPages={totalPages}
                     onPageChange={onPageChange}
