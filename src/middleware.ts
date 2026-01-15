@@ -1,15 +1,9 @@
-
-'use client';
-
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-
-// This middleware runs on the Edge runtime.
-// It should not use any Node.js specific APIs.
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  const isAuthPage = pathname === '/login' || pathname === '/register';
+  const { pathname } = request.nextUrl
+  const isAuthPage = pathname === '/login' || pathname === '/register'
   const isDashboardRoute =
     pathname.startsWith('/dashboard') || pathname.startsWith('/customer');
 
@@ -30,9 +24,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  return NextResponse.next();
+  return NextResponse.next()
 }
 
 export const config = {
   matcher: ['/dashboard/:path*', '/customer/:path*', '/login', '/register'],
-};
+}
