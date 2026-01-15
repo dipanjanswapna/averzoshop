@@ -4,168 +4,162 @@
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { PlusCircle, Upload, BarChart2, Package, History } from 'lucide-react';
+  DollarSign,
+  Package,
+  ShoppingCart,
+  AlertCircle,
+} from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
-import { Product } from '@/types/product';
-import Image from 'next/image';
-import { Badge } from '../ui/badge';
-import { useState } from 'react';
-import { AddProductDialog } from './add-product-dialog';
+import type { Product } from '@/types/product';
 import { Skeleton } from '../ui/skeleton';
+import { SalesChart } from '../sales-chart';
+import { useMemo } from 'react';
+
+interface PosSale {
+    id: string;
+    outletId: string;
+    createdAt: {
+        seconds: number;
+        nanoseconds: number;
+    };
+    totalAmount: number;
+}
 
 export function OutletDashboard() {
-  const { user, userData } = useAuth();
-  const { data: products, isLoading } = useFirestoreQuery<Product>('products');
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const { userData } = useAuth();
+  const { data: products, isLoading: productsLoading } = useFirestoreQuery<Product>('products');
+  const { data: sales, isLoading: salesLoading } = useFirestoreQuery<PosSale>('pos_sales');
 
-  const outletProducts = products?.filter(p => p.outlet_stocks && p.outlet_stocks[userData?.outletId || ''] > 0) || [];
+  const outletId = useMemo(() => userData?.outletId, [userData]);
 
-  const renderSkeleton = () => (
-    [...Array(3)].map((_, i) => (
-       <TableRow key={i}>
-            <TableCell className="hidden sm:table-cell"><Skeleton className="h-16 w-16 rounded-md" /></TableCell>
-            <TableCell><Skeleton className="h-5 w-40" /></TableCell>
-            <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
-            <TableCell><Skeleton className="h-5 w-12" /></TableCell>
-            <TableCell className="text-right"><Skeleton className="h-5 w-16 ml-auto" /></TableCell>
-        </TableRow>
-    ))
-  );
+  const { todaysSales, totalProducts, lowStockCount } = useMemo(() => {
+    if (!outletId || !products || !sales) {
+      return { todaysSales: 0, totalProducts: 0, lowStockCount: 0 };
+    }
+
+    // Calculate today's sales
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const todaysSalesData = sales.filter(sale => {
+        if (sale.outletId !== outletId) return false;
+        const saleDate = new Date(sale.createdAt.seconds * 1000);
+        return saleDate >= today;
+    });
+    
+    const totalSalesAmount = todaysSalesData.reduce((sum, sale) => sum + sale.totalAmount, 0);
+
+    // Calculate total products and low stock
+    let totalProductCount = 0;
+    let lowStockProductCount = 0;
+
+    products.forEach(product => {
+        const stockInOutlet = product.outlet_stocks?.[outletId] ?? 0;
+        if (stockInOutlet > 0) {
+            totalProductCount++;
+            if (stockInOutlet < 10) {
+                lowStockProductCount++;
+            }
+        }
+    });
+
+    return { 
+        todaysSales: totalSalesAmount,
+        totalProducts: totalProductCount,
+        lowStockCount: lowStockProductCount
+    };
+
+  }, [outletId, products, sales]);
+
+
+  const isLoading = productsLoading || salesLoading;
 
   return (
-    <div className="space-y-6">
-       <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-6">
+        <div className="flex items-center justify-between">
             <div>
                 <h1 className="text-3xl font-bold font-headline">Welcome, {userData?.displayName}!</h1>
-                <p className="text-muted-foreground">Here's the live dashboard for {userData?.outletId}.</p>
+                <p className="text-muted-foreground">Live performance for your outlet: <span className="font-bold text-primary">{outletId}</span></p>
             </div>
        </div>
-      <Tabs defaultValue="products">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="products"><Package className="mr-2 h-4 w-4" /> My Products</TabsTrigger>
-          <TabsTrigger value="inventory"><History className="mr-2 h-4 w-4" /> Stock Requests</TabsTrigger>
-          <TabsTrigger value="outlets"><BarChart2 className="mr-2 h-4 w-4" /> Outlet Performance</TabsTrigger>
-          <TabsTrigger value="analytics"><BarChart2 className="mr-2 h-4 w-4" /> Sales Analytics</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="products">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle>My Products</CardTitle>
-                  <CardDescription>Manage all products available in your outlet.</CardDescription>
-                </div>
-                <Button onClick={() => setIsAddDialogOpen(true)}>
-                  <PlusCircle className="mr-2 h-4 w-4" /> List New Product
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="hidden w-[100px] sm:table-cell">Image</TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Stock in Outlet</TableHead>
-                    <TableHead className="text-right">Price</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoading ? (
-                    renderSkeleton()
-                  ) : outletProducts.length > 0 ? (
-                    outletProducts.map(product => (
-                      <TableRow key={product.id}>
-                        <TableCell className="hidden sm:table-cell">
-                          <Image alt={product.name} className="aspect-square rounded-md object-cover" height="64" src={product.image || 'https://placehold.co/64'} width="64" />
-                        </TableCell>
-                        <TableCell className="font-medium">{product.name}</TableCell>
-                        <TableCell>
-                           <Badge variant={
-                            product.status === 'approved' ? 'default' :
-                            product.status === 'pending' ? 'secondary' : 'destructive'
-                          } className={`capitalize ${
-                            product.status === 'approved' ? 'bg-green-100 text-green-800' :
-                            product.status === 'pending' ? 'bg-orange-100 text-orange-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
-                            {product.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{product.outlet_stocks[userData?.outletId || '']}</TableCell>
-                        <TableCell className="text-right">৳{product.price.toFixed(2)}</TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow><TableCell colSpan={5} className="h-24 text-center">No products found in this outlet.</TableCell></TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Today's Offline Sales</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">৳{todaysSales.toFixed(2)}</div>}
+             <p className="text-xs text-muted-foreground">
+              Total sales made in-store today.
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Products in Stock</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {isLoading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{totalProducts}</div>}
+             <p className="text-xs text-muted-foreground">
+              Unique products available in your outlet.
+            </p>
+          </CardContent>
+        </Card>
+         <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Online Orders</CardTitle>
+            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            {isLoading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">12</div>}
+             <p className="text-xs text-muted-foreground">
+              New orders to be packed and shipped.
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-destructive">Low Stock Alert</CardTitle>
+            <AlertCircle className="h-4 w-4 text-destructive" />
+          </CardHeader>
+          <CardContent>
+            {isLoading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{lowStockCount} items</div>}
+             <p className="text-xs text-muted-foreground">
+              Items with less than 10 units in stock.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
 
-        <TabsContent value="inventory">
-           <Card>
-            <CardHeader>
-              <CardTitle>Inventory Requests</CardTitle>
-              <CardDescription>Request to add new stock to outlets from vendors.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center justify-center text-center h-64 border-2 border-dashed rounded-lg">
-                <Upload className="h-12 w-12 text-muted-foreground" />
-                <h3 className="mt-4 text-lg font-semibold">Coming Soon</h3>
-                <p className="mt-1 text-sm text-muted-foreground">This feature is under development.</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="outlets">
-           <Card>
-            <CardHeader>
-              <CardTitle>Outlet Performance</CardTitle>
-              <CardDescription>See how your products are performing.</CardDescription>
-            </CardHeader>
-             <CardContent className="flex flex-col items-center justify-center text-center h-64 border-2 border-dashed rounded-lg">
-                <BarChart2 className="h-12 w-12 text-muted-foreground" />
-                <h3 className="mt-4 text-lg font-semibold">Coming Soon</h3>
-                <p className="mt-1 text-sm text-muted-foreground">This feature is under development.</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="analytics">
-          <Card>
-            <CardHeader>
-              <CardTitle>Sales Analytics</CardTitle>
-              <CardDescription>Review your sales and earnings.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center justify-center text-center h-64 border-2 border-dashed rounded-lg">
-                <BarChart2 className="h-12 w-12 text-muted-foreground" />
-                <h3 className="mt-4 text-lg font-semibold">Coming Soon</h3>
-                <p className="mt-1 text-sm text-muted-foreground">This feature is under development.</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-      </Tabs>
-      <AddProductDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} />
+       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        <Card className="lg:col-span-4">
+          <CardHeader>
+            <CardTitle className="font-headline">Outlet Sales Overview</CardTitle>
+          </CardHeader>
+          <CardContent className="pl-2">
+             <SalesChart />
+          </CardContent>
+        </Card>
+        <Card className="lg:col-span-3">
+          <CardHeader>
+            <CardTitle className="font-headline">Recent Activities</CardTitle>
+            <CardDescription>
+              A log of recent sales and stock movements.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex items-center justify-center h-48 text-muted-foreground border-2 border-dashed rounded-lg">
+             <p>Activity Log Coming Soon</p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
+
