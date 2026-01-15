@@ -3,6 +3,8 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { auth } from '@/firebase/server';
 
+export const runtime = 'nodejs';
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const isAuthPage = pathname === '/login' || pathname === '/register'
