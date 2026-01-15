@@ -390,24 +390,10 @@ export function StoreHeader() {
           </div>
           {/* Category Bar */}
           <div className="border-t bg-background/80 backdrop-blur-sm">
-            <div className="container relative flex h-14 items-center justify-center">
-              <Carousel
-                opts={{
-                  align: 'start',
-                  dragFree: true,
-                }}
-                className="w-full"
-              >
-                <CarouselContent className="-ml-4">
-                  {categories.map((category, index) => (
-                    <CarouselItem key={index} className="basis-auto pl-4">
-                        <NavItem category={category} />
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className="absolute left-[-50px] top-1/2 -translate-y-1/2" />
-                <CarouselNext className="absolute right-[-50px] top-1/2 -translate-y-1/2" />
-              </Carousel>
+            <div className="container flex h-14 items-center justify-start gap-8 overflow-x-auto">
+              {categories.map((category, index) => (
+                <NavItem key={index} category={category} />
+              ))}
             </div>
           </div>
         </div>
