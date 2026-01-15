@@ -35,7 +35,6 @@ export default function ShopPage() {
   const parseQueryParam = (param: string | null, defaultValue: any) => {
     if (!param) return defaultValue;
     try {
-      // For price_range, parse it as JSON
       if (param.startsWith('[') && param.endsWith(']')) {
         const parsed = JSON.parse(param);
         if (Array.isArray(parsed) && parsed.length === 2 && typeof parsed[0] === 'number' && typeof parsed[1] === 'number') {
@@ -65,24 +64,18 @@ export default function ShopPage() {
   const handleFilterChange = useCallback((filters: Record<string, any>) => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
-        if (value !== null && value !== undefined) {
-            if (Array.isArray(value)) {
-                if (value.length > 0) {
-                    params.set(key, key === 'price_range' ? JSON.stringify(value) : value.join(','));
-                }
-            } else if (String(value).trim() !== '') {
-                params.set(key, String(value));
-            }
+      if (value !== null && value !== undefined) {
+        if (Array.isArray(value)) {
+          if (value.length > 0) {
+            params.set(key, key === 'price_range' ? JSON.stringify(value) : value.join(','));
+          }
+        } else if (String(value).trim() !== '') {
+          params.set(key, String(value));
         }
+      }
     });
-
-     if(initialFilters.sort_by) {
-      params.set('sort_by', initialFilters.sort_by);
-    }
-    
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [router, pathname, initialFilters.sort_by]);
-
+  }, [router, pathname]);
 
   const handleSortChange = (value: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -100,11 +93,9 @@ export default function ShopPage() {
     router.push(`${pathname}?${params.toString()}`, { scroll: false });
   }, [router, pathname, searchParams]);
 
-
   const { paginatedProducts, totalPages } = useMemo(() => {
     let filtered = [...products];
 
-    // Apply filters
     if (initialFilters.mother_category) {
         filtered = filtered.filter(p => p.category === initialFilters.mother_category || categoriesData.find(c => c.mother_name === initialFilters.mother_category)?.groups.some(g => g.group_name === p.group));
     }
@@ -136,7 +127,6 @@ export default function ShopPage() {
     let inStockProducts = filtered.filter(p => p.stock > 0);
     const outOfStockProducts = filtered.filter(p => p.stock === 0);
 
-    // Apply sorting
     switch (initialFilters.sort_by) {
         case 'price-asc':
             inStockProducts.sort((a, b) => a.price - b.price);
@@ -158,18 +148,46 @@ export default function ShopPage() {
     return { paginatedProducts, totalPages };
   }, [initialFilters]);
 
+  const breadcrumbItems = useMemo(() => {
+    const items = [
+      { name: 'Home', href: '/' },
+      { name: 'Shop', href: '/shop' }
+    ];
+    if (initialFilters.mother_category) {
+      items.push({ name: initialFilters.mother_category, href: `/shop?mother_category=${encodeURIComponent(initialFilters.mother_category)}` });
+    }
+    if (initialFilters.group) {
+      items.push({ name: initialFilters.group, href: `/shop?mother_category=${encodeURIComponent(initialFilters.mother_category || '')}&group=${encodeURIComponent(initialFilters.group)}` });
+    }
+    if (initialFilters.subcategory) {
+      items.push({ name: initialFilters.subcategory, href: `/shop?mother_category=${encodeURIComponent(initialFilters.mother_category || '')}&group=${encodeURIComponent(initialFilters.group || '')}&subcategory=${encodeURIComponent(initialFilters.subcategory)}` });
+    }
+    return items;
+  }, [initialFilters.mother_category, initialFilters.group, initialFilters.subcategory]);
+
   return (
     <div className="bg-secondary">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-between mb-6 gap-4">
-          <Breadcrumb>
-            <BreadcrumbList>
-              <BreadcrumbItem><BreadcrumbLink href="/">Home</BreadcrumbLink></BreadcrumbItem>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem><BreadcrumbPage>Shop</BreadcrumbPage></BreadcrumbItem>
-            </BreadcrumbList>
-          </Breadcrumb>
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
+          <div className="w-full overflow-x-auto whitespace-nowrap no-scrollbar">
+            <Breadcrumb>
+              <BreadcrumbList>
+                {breadcrumbItems.map((item, index) => (
+                  <React.Fragment key={item.name}>
+                    <BreadcrumbItem>
+                      {index === breadcrumbItems.length - 1 ? (
+                        <BreadcrumbPage>{item.name}</BreadcrumbPage>
+                      ) : (
+                        <BreadcrumbLink href={item.href}>{item.name}</BreadcrumbLink>
+                      )}
+                    </BreadcrumbItem>
+                    {index < breadcrumbItems.length - 1 && <BreadcrumbSeparator />}
+                  </React.Fragment>
+                ))}
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
+          <div className="flex items-center gap-4 w-full md:w-auto flex-shrink-0">
              <Sheet>
                 <SheetTrigger asChild>
                     <Button variant="outline" className="lg:hidden">
@@ -182,8 +200,6 @@ export default function ShopPage() {
                     </SheetHeader>
                     <div className="p-6 pt-0">
                       <FilterSidebar 
-                        categories={categoriesData} 
-                        products={products}
                         onFilterChange={handleFilterChange}
                         initialFilters={initialFilters}
                       />
@@ -207,8 +223,6 @@ export default function ShopPage() {
           <aside className="hidden lg:block lg:col-span-1">
             <div className="sticky top-28">
               <FilterSidebar 
-                categories={categoriesData}
-                products={products}
                 onFilterChange={handleFilterChange}
                 initialFilters={initialFilters}
               />
