@@ -188,6 +188,15 @@ export default function MensFashionPage() {
         </Carousel>
       </div>
 
+      <div className="text-center my-8 md:my-12">
+        <h1 className="text-4xl md:text-5xl font-extrabold font-headline tracking-tight">
+          Men's Fashion
+        </h1>
+        <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
+          Discover the latest trends and timeless classics. From sharp suits to casual essentials, find your perfect look here.
+        </p>
+      </div>
+
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
         <Breadcrumb>
           <BreadcrumbList>
