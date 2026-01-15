@@ -141,6 +141,8 @@ export function ProductDetails({ product }: { product: Product }) {
   const stock = selectedVariant ? selectedVariant.stock : 0;
   const stockStatus = stock > 10 ? 'In Stock' : stock > 0 ? `Only ${stock} left!` : 'Out of Stock';
   const stockColor = stock > 10 ? 'text-green-600' : stock > 0 ? 'text-orange-600' : 'text-destructive';
+  const isOutOfStock = !selectedVariant || stock <= 0;
+
 
   const handleWishlistToggle = async () => {
     if (!user || !firestore) {
@@ -163,7 +165,7 @@ export function ProductDetails({ product }: { product: Product }) {
   };
 
   const handleAddToCart = () => {
-    if (!selectedVariant || stock <= 0) {
+    if (isOutOfStock) {
       toast({ variant: "destructive", title: "Unavailable", description: "This variant is out of stock or invalid." });
       return;
     }
@@ -172,7 +174,7 @@ export function ProductDetails({ product }: { product: Product }) {
   };
 
   const handleBuyNow = () => {
-     if (!selectedVariant || stock <= 0) {
+     if (isOutOfStock) {
       toast({ variant: "destructive", title: "Unavailable", description: "This variant is out of stock or invalid." });
       return;
     }
@@ -280,22 +282,36 @@ export function ProductDetails({ product }: { product: Product }) {
           </div>
         )}
         
-        <div className="flex flex-col sm:flex-row items-center gap-4">
-          <div className="flex items-center border border-border rounded-md w-fit">
-              <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => setQuantity(q => Math.max(1, q - 1))}><Minus size={14}/></Button>
-              <span className="w-10 text-center font-bold">{quantity}</span>
-              <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => setQuantity(q => q + 1)} disabled={quantity >= stock}><Plus size={14}/></Button>
+        {isOutOfStock ? (
+          <div className="flex w-full items-center gap-4 pt-4">
+            <Button size="lg" disabled className="flex-1">
+              Out of Stock
+            </Button>
+            <Button variant="outline" size="icon" className="h-12 w-12" onClick={handleWishlistToggle}>
+                <Heart size={20} className={cn(isWishlisted ? 'text-destructive fill-destructive' : 'text-foreground')} />
+            </Button>
           </div>
-          <div className="flex items-center gap-2 w-full">
-              <Button size="lg" variant="outline" className="w-full" onClick={handleAddToCart} disabled={!selectedVariant || stock <= 0}>
-                  <ShoppingBag size={20} className="mr-2" /> Add to Bag
-              </Button>
-               <Button variant="ghost" size="icon" onClick={handleWishlistToggle} className={cn("border", isWishlisted ? 'bg-destructive/20 text-destructive border-destructive' : '')}>
-                  <Heart size={20} className={cn(isWishlisted ? 'fill-current' : '')} />
-              </Button>
-          </div>
-        </div>
-        <Button size="lg" className="w-full" onClick={handleBuyNow} disabled={!selectedVariant || stock <= 0}>Buy Now</Button>
+        ) : (
+          <>
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <div className="flex items-center border border-border rounded-md w-fit">
+                  <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => setQuantity(q => Math.max(1, q - 1))}><Minus size={14}/></Button>
+                  <span className="w-10 text-center font-bold">{quantity}</span>
+                  <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => setQuantity(q => q + 1)} disabled={quantity >= stock}><Plus size={14}/></Button>
+              </div>
+              <div className="flex items-center gap-2 w-full">
+                  <Button size="lg" variant="outline" className="w-full" onClick={handleAddToCart}>
+                      <ShoppingBag size={20} className="mr-2" /> Add to Bag
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={handleWishlistToggle} className={cn("border", isWishlisted ? 'bg-destructive/20 text-destructive border-destructive' : '')}>
+                      <Heart size={20} className={cn(isWishlisted ? 'fill-current' : '')} />
+                  </Button>
+              </div>
+            </div>
+            <Button size="lg" className="w-full" onClick={handleBuyNow}>Buy Now</Button>
+          </>
+        )}
+
 
          {selectedVariant && (
           <div className="border rounded-lg p-4 space-y-3 flex flex-col items-center">
