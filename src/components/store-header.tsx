@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -203,10 +204,10 @@ const NavItem = ({
     >
       {category.name}
     </Link>
-    {/* --- Mega Menu Container (This is the fix for the cut-off issue) --- */}
+    {/* --- Mega Menu Container --- */}
     {category.sections && (
       <div className="absolute left-0 w-screen top-full bg-background/80 border-t shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-40 backdrop-blur-sm">
-        <div className="container mx-auto grid grid-cols-6 gap-8 p-10">
+        <div className="container mx-auto grid grid-cols-4 gap-8 p-10">
           {children}
         </div>
       </div>
@@ -281,31 +282,6 @@ export function StoreHeader() {
                           </ul>
                         </div>
                       ))}
-
-                      {/* Promo Section */}
-                      <div className="col-span-2">
-                        <div className="relative w-full h-full rounded-lg overflow-hidden bg-secondary min-h-[150px]">
-                          {category.promo?.image && (
-                            <Image
-                              src={category.promo.image}
-                              alt={category.promo.title}
-                              fill
-                              className="object-cover"
-                            />
-                          )}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent p-4 flex flex-col justify-end">
-                            <h3 className="font-bold text-xl font-headline text-white">
-                              {category.promo?.title}
-                            </h3>
-                            <p className="text-white/80 text-sm font-body">
-                              {category.promo?.description}
-                            </p>
-                            <Button size="sm" className="mt-4 w-fit">
-                              Shop Now
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
                     </>
                   )}
                 </NavItem>
