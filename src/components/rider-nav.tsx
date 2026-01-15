@@ -1,18 +1,11 @@
-
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
-  Package,
-  ShoppingCart,
-  Users,
   Truck,
-  Building,
-  Tags,
   Settings,
-  Store
 } from 'lucide-react';
 import {
   SidebarMenu,
@@ -20,22 +13,13 @@ import {
   SidebarMenuButton,
 } from '@/components/ui/sidebar';
 
-const adminNavItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/dashboard/pos', label: 'Point of Sale', icon: Store },
-  { href: '/dashboard/products', label: 'Products', icon: Package },
-  { href: '/dashboard/orders', label: 'Orders & Delivery', icon: ShoppingCart },
-  { href: '/dashboard/users', label: 'Users', icon: Users },
-  { href: '/dashboard/vendors', label: 'Vendors', icon: Truck },
-  { href: '/dashboard/sub-brands', label: 'Sub-Brands', icon: Tags },
-  { href: '/dashboard/outlets', label: 'Offline Outlets', icon: Building },
+const navItems = [
+  { href: '/rider/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/rider/deliveries', label: 'My Deliveries', icon: Truck },
 ];
 
-export function DashboardNav() {
+export function RiderNav() {
   const pathname = usePathname();
-  
-  // This nav is now only for Admins
-  const navItems = adminNavItems;
 
   return (
     <SidebarMenu>
@@ -43,7 +27,7 @@ export function DashboardNav() {
         <SidebarMenuItem key={item.href}>
           <Link href={item.href}>
             <SidebarMenuButton
-              isActive={pathname === item.href}
+              isActive={pathname.startsWith(item.href)}
               tooltip={item.label}
               className="justify-start"
             >
@@ -54,9 +38,9 @@ export function DashboardNav() {
         </SidebarMenuItem>
       ))}
       <SidebarMenuItem className="mt-auto">
-        <Link href="/dashboard/settings">
+        <Link href="/rider/settings">
             <SidebarMenuButton
-            isActive={pathname === '/dashboard/settings'}
+            isActive={pathname === '/rider/settings'}
             tooltip="Settings"
             className="justify-start"
             >

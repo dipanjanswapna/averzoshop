@@ -8,31 +8,29 @@ import {
   SidebarInset,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { DashboardNav } from '@/components/dashboard-nav';
+import { RiderNav } from '@/components/rider-nav';
 import { UserNav } from '@/components/user-nav';
 import AverzoLogo from '@/components/averzo-logo';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/use-auth';
 
-export default function DashboardLayout({
+export default function RiderLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const { user, userData, loading } = useAuth();
   
-  const allowedRoles = ['admin'];
-
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background text-foreground">
-          <p>Loading dashboard...</p>
+          <p>Loading rider dashboard...</p>
       </div>
     );
   }
   
-  if (!user || !userData || !allowedRoles.includes(userData.role)) {
+  if (!user || (userData && userData.role !== 'rider')) {
       return (
         <div className="flex h-screen items-center justify-center bg-background text-foreground">
             <p>Redirecting...</p>
@@ -40,6 +38,14 @@ export default function DashboardLayout({
       );
   }
   
+  if (!userData) {
+     return (
+        <div className="flex h-screen items-center justify-center bg-background text-foreground">
+            <p>Verifying rider account...</p>
+        </div>
+    );
+  }
+
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon" className="border-r border-sidebar-border">
@@ -47,7 +53,7 @@ export default function DashboardLayout({
           <AverzoLogo className="h-8 w-auto" />
         </SidebarHeader>
         <SidebarContent className="p-2">
-           <DashboardNav />
+           <RiderNav />
         </SidebarContent>
       </Sidebar>
       <SidebarInset className="bg-sidebar">
@@ -59,7 +65,7 @@ export default function DashboardLayout({
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="search"
-                    placeholder="Search the dashboard..."
+                    placeholder="Search your deliveries..."
                     className="w-full appearance-none bg-card pl-8 md:w-2/3 lg:w-1/3 text-card-foreground"
                   />
                 </div>

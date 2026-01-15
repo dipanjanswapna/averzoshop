@@ -25,21 +25,35 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
 
     if (userData) {
       if (userData.status !== 'approved') {
+        // Allow access to pending/rejected page, but prevent redirection loops
+        if (pathname !== '/pending-approval') { // Assuming you have a pending page
+           // router.replace('/pending-approval');
+        }
         return;
       }
 
       const isCustomer = userData.role === 'customer';
       const isOutlet = userData.role === 'outlet';
+      const isVendor = userData.role === 'vendor';
+      const isRider = userData.role === 'rider';
+      const isAdmin = userData.role === 'admin';
       
       const onAdminRoute = pathname.startsWith('/dashboard');
       const onCustomerRoute = pathname.startsWith('/customer');
       const onOutletRoute = pathname.startsWith('/outlet');
+      const onVendorRoute = pathname.startsWith('/vendor');
+      const onRiderRoute = pathname.startsWith('/rider');
+
 
       if (isCustomer && !onCustomerRoute) {
         router.replace('/customer');
       } else if (isOutlet && !onOutletRoute) {
         router.replace('/outlet/dashboard');
-      } else if (!isCustomer && !isOutlet && !onAdminRoute) {
+      } else if (isVendor && !onVendorRoute) {
+        router.replace('/vendor/dashboard');
+      } else if (isRider && !onRiderRoute) {
+        router.replace('/rider/dashboard');
+      } else if (isAdmin && !onAdminRoute) {
         router.replace('/dashboard');
       }
     }
@@ -72,6 +86,8 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
     )
   }
 
+  // This check ensures we don't render children until we have user and userData,
+  // and the user is approved.
   if (userData?.status === 'approved') {
     return <>{children}</>;
   }
