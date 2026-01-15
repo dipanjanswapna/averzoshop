@@ -13,25 +13,29 @@ import {
   Tags,
   Settings
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/use-auth';
 import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
 } from '@/components/ui/sidebar';
 
-const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/dashboard/products', label: 'Products', icon: Package },
-  { href: '/dashboard/orders', label: 'Orders & Delivery', icon: ShoppingCart },
-  { href: '/dashboard/users', label: 'Users', icon: Users },
-  { href: '/dashboard/vendors', label: 'Vendors', icon: Truck },
-  { href: '/dashboard/sub-brands', label: 'Sub-Brands', icon: Tags },
-  { href: '/dashboard/outlets', label: 'Offline Outlets', icon: Building },
+const allNavItems = [
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'outlet', 'vendor', 'rider'] },
+  { href: '/dashboard/products', label: 'Products', icon: Package, roles: ['admin'] },
+  { href: '/dashboard/orders', label: 'Orders & Delivery', icon: ShoppingCart, roles: ['admin', 'rider'] },
+  { href: '/dashboard/users', label: 'Users', icon: Users, roles: ['admin'] },
+  { href: '/dashboard/vendors', label: 'Vendors', icon: Truck, roles: ['admin', 'vendor'] },
+  { href: '/dashboard/sub-brands', label: 'Sub-Brands', icon: Tags, roles: ['admin'] },
+  { href: '/dashboard/outlets', label: 'Offline Outlets', icon: Building, roles: ['admin', 'outlet'] },
 ];
 
 export function DashboardNav() {
   const pathname = usePathname();
+  const { userData } = useAuth();
+  const userRole = userData?.role;
+
+  const navItems = allNavItems.filter(item => userRole && item.roles.includes(userRole));
 
   return (
     <SidebarMenu>

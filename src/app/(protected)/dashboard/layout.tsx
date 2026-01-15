@@ -21,9 +21,19 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, userData } = useAuth();
+  const { user, userData, loading } = useAuth();
   
-  if (!user || !userData || userData.role === 'customer') {
+  const allowedRoles = ['admin', 'outlet', 'vendor', 'rider'];
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background text-foreground">
+          <p>Loading dashboard...</p>
+      </div>
+    );
+  }
+  
+  if (!user || !userData || !allowedRoles.includes(userData.role)) {
       return (
         <div className="flex h-screen items-center justify-center bg-background text-foreground">
             <p>Redirecting...</p>

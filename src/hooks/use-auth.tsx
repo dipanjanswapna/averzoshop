@@ -40,23 +40,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setLoading(false);
         return;
     }
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
-      if (user) {
+    const unsubscribe = onAuthStateChanged(auth, (authUser) => {
+      setUser(authUser);
+      if (authUser) {
         if (!firestore) {
             setLoading(false);
             return;
         }
-        const userDocRef = doc(firestore, 'users', user.uid);
+        const userDocRef = doc(firestore, 'users', authUser.uid);
         const unsubSnapshot = onSnapshot(userDocRef, (doc) => {
           if (doc.exists()) {
-            setUserData(doc.data() as UserData);
+            const data = doc.data() as UserData;
+            // Ensure both role and status are loaded before setting userData
+            if (data.role && data.status) {
+              setUserData(data);
+            } else {
+              setUserData(null);
+            }
           } else {
-            // Handle case where user exists in Auth but not in Firestore
             setUserData(null);
           }
           setLoading(false);
+        }, (error) => {
+          console.error("Error fetching user data:", error);
+          setUserData(null);
+          setLoading(false);
         });
+
         return () => unsubSnapshot();
       } else {
         setUserData(null);
