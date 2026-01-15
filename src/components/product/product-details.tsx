@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Minus, Plus, ShoppingBag, Heart, HelpCircle, MapPin, Share2, Printer } from 'lucide-react';
+import { Minus, Plus, ShoppingBag, Heart, HelpCircle, MapPin, Share2, Printer, X } from 'lucide-react';
 import type { Product, ProductVariant } from '@/types/product';
 import { TrustBadges } from './trust-badges';
 import Link from 'next/link';
@@ -36,7 +36,7 @@ export function ProductDetails({ product }: { product: Product }) {
   const { user, firestore, userData } = useAuth();
   const { toast } = useToast();
   
-  const stickerRef = useRef(null);
+  const stickerRef = useRef<HTMLDivElement>(null);
   const handlePrint = useReactToPrint({
     content: () => stickerRef.current,
   });
@@ -169,6 +169,7 @@ export function ProductDetails({ product }: { product: Product }) {
       toast({ variant: "destructive", title: "Unavailable", description: "This variant is out of stock or invalid." });
       return;
     }
+    if (!product || !selectedVariant) return;
     addItem(product, selectedVariant, quantity);
   };
 
@@ -177,6 +178,7 @@ export function ProductDetails({ product }: { product: Product }) {
       toast({ variant: "destructive", title: "Unavailable", description: "This variant is out of stock or invalid." });
       return;
     }
+    if (!product || !selectedVariant) return;
     addItem(product, selectedVariant, quantity);
     router.push('/checkout');
   };

@@ -1,0 +1,40 @@
+diff --git a/node_modules/react-to-print/lib/index.js b/node_modules/react-to-print/lib/index.js
+index 7232235..b29f71c 100644
+--- a/node_modules/react-to-print/lib/index.js
++++ b/node_modules/react-to-print/lib/index.js
+@@ -1,5 +1,4 @@
+ "use strict";
+-var __importStar = (this && this.__importStar) || function (mod) {
+-    if (mod && mod.__esModule) return mod;
+-    var result = {};
+-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+-    result["default"] = mod;
+-    return result;
+-};
+ var __importDefault = (this && this.__importDefault) || function (mod) {
+     return (mod && mod.__esModule) ? mod : { "default": mod };
+ };
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const react_1 = __importDefault(require("react"));
+-const react_dom_1 = __importStar(require("react-dom"));
++const react_dom_1 = __importDefault(require("react-dom"));
+ const Print_1 = require("./Print");
+ class ReactToPrint extends react_1.default.Component {
+     constructor() {
+@@ -9,7 +8,6 @@
+         };
+         this.handlePrint = () => {
+             const { bodyClass, content, copyStyles, onAfterPrint, onBeforePrint, onBeforeGetContent, pageStyle, } = this.props;
+-            const contentEl = react_dom_1.findDOMNode(this.triggerRef.current);
+             const print = new Print_1.Print({
+                 bodyClass,
+                 content,
+@@ -18,7 +16,6 @@
+                 onBeforeGetContent,
+                 onBeforePrint,
+                 pageStyle,
+-            }, contentEl);
++            });
+             print.print();
+         };
+         this.setTriggerRef = (ref) => {

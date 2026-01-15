@@ -10,7 +10,7 @@ export function CheckoutOrderSummary() {
   const { items } = useCart();
 
   const subtotal = items.reduce(
-    (acc, item) => acc + item.product.price * item.quantity,
+    (acc, item) => acc + item.variant.price * item.quantity,
     0
   );
 
@@ -25,7 +25,7 @@ export function CheckoutOrderSummary() {
       <CardContent className="space-y-4">
         <div className="space-y-4 max-h-64 overflow-y-auto pr-2">
           {items.map(item => (
-            <div key={item.product.id} className="flex items-center gap-4 text-sm">
+            <div key={item.variant.sku} className="flex items-center gap-4 text-sm">
                 <div className="relative h-16 w-16 rounded-md overflow-hidden border">
                     <Image src={item.product.image} alt={item.product.name} fill className="object-cover" />
                      <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] w-5 h-5 rounded-full flex items-center justify-center">
@@ -34,9 +34,9 @@ export function CheckoutOrderSummary() {
                 </div>
               <div className="flex-1">
                 <p className="font-medium truncate">{item.product.name}</p>
-                <p className="text-xs text-muted-foreground">৳{item.product.price.toFixed(2)}</p>
+                <p className="text-xs text-muted-foreground">৳{item.variant.price.toFixed(2)}</p>
               </div>
-              <p className="font-bold">৳{(item.product.price * item.quantity).toFixed(2)}</p>
+              <p className="font-bold">৳{(item.variant.price * item.quantity).toFixed(2)}</p>
             </div>
           ))}
         </div>
