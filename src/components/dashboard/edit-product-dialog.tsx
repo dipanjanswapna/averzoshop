@@ -75,7 +75,7 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
       name: product?.name || '',
       description: product?.description || '',
       price: product?.price || 0,
-      compareAtPrice: product?.compareAtPrice || 0,
+      compareAtPrice: product?.compareAtPrice ?? 0,
       baseSku: product?.baseSku || '',
       brand: product?.brand || '',
       image: product?.image || '',
@@ -84,7 +84,10 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
       subcategory: product?.subcategory || '',
       variantSizes: product?.sizes?.join(', ') || '',
       variantColors: product?.colors?.join(', ') || '',
-      variants: product?.variants || [],
+      variants: (product?.variants || []).map(v => ({
+        ...v,
+        compareAtPrice: v.compareAtPrice ?? 0,
+      })),
       giftWithPurchase: product?.giftWithPurchase || { enabled: false, description: '' },
     },
   });
@@ -100,7 +103,7 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
       name: product.name || '',
       description: product.description || '',
       price: product.price || 0,
-      compareAtPrice: product.compareAtPrice || 0,
+      compareAtPrice: product.compareAtPrice ?? 0,
       baseSku: product.baseSku || '',
       brand: product.brand || '',
       image: product.image || '',
@@ -109,7 +112,10 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
       subcategory: product.subcategory || '',
       variantSizes: product.sizes?.join(', ') || '',
       variantColors: product.colors?.join(', ') || '',
-      variants: product.variants || [],
+      variants: (product.variants || []).map(v => ({
+        ...v,
+        compareAtPrice: v.compareAtPrice ?? 0,
+      })),
       giftWithPurchase: product.giftWithPurchase || { enabled: false, description: '' },
     });
   }, [product, form]);
