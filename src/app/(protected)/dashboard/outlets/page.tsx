@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -17,7 +16,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, MoreHorizontal, MapPin, Power } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, MapPin, Power, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
@@ -30,11 +29,16 @@ import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useState } from 'react';
 import { AddOutletDialog } from '@/components/dashboard/add-outlet-dialog';
+import Link from 'next/link';
 
 interface Outlet {
   id: string;
   name: string;
-  location: string;
+  location: {
+    address: string;
+    lat: number;
+    lng: number;
+  };
   status: 'Active' | 'Inactive';
 }
 
@@ -84,11 +88,15 @@ export default function OutletsPage() {
                 {isLoading ? renderSkeleton() : outlets && outlets.length > 0 ? (
                   outlets.map((outlet) => (
                     <TableRow key={outlet.id}>
-                      <TableCell className="font-medium">{outlet.name}</TableCell>
+                      <TableCell className="font-medium">
+                        <Link href={`/dashboard/outlets/${outlet.id}`} className="hover:underline text-primary">
+                          {outlet.name}
+                        </Link>
+                      </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                            <MapPin className="h-4 w-4 text-muted-foreground" />
-                           {outlet.location}
+                           {outlet.location.address}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -107,8 +115,12 @@ export default function OutletsPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                             <DropdownMenuItem asChild>
+                              <Link href={`/dashboard/outlets/${outlet.id}`}>
+                                <Eye className="mr-2 h-4 w-4" /> View Details & Inventory
+                              </Link>
+                            </DropdownMenuItem>
                             <DropdownMenuItem>Edit Details</DropdownMenuItem>
-                            <DropdownMenuItem>Manage Inventory</DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
