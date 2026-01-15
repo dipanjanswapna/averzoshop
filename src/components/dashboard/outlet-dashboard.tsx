@@ -22,6 +22,7 @@ import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
+import type { Product } from '@/types/product';
 
 interface PosSale {
   id: string;
@@ -35,24 +36,41 @@ interface PosSale {
 export function OutletDashboard() {
   const { userData } = useAuth();
   const outletId = userData?.outletId;
-  const { data: posSales, isLoading } = useFirestoreQuery<PosSale>('pos_sales');
+  const { data: posSales, isLoading: salesLoading } = useFirestoreQuery<PosSale>('pos_sales');
+  const { data: products, isLoading: productsLoading } = useFirestoreQuery<Product>('products');
 
-  const outletSales = useMemo(() => {
-    if (!posSales || !outletId) return [];
-    return posSales
-      .filter((sale) => sale.outletId === outletId)
-      .sort((a, b) => b.createdAt.seconds - a.createdAt.seconds);
-  }, [posSales, outletId]);
-  
-  const todaySales = useMemo(() => {
+  const { outletSales, todaySales, totalProductsInStock } = useMemo(() => {
+    if (!outletId) return { outletSales: [], todaySales: 0, totalProductsInStock: 0 };
+    
+    const filteredSales = posSales
+      ? posSales
+          .filter((sale) => sale.outletId === outletId)
+          .sort((a, b) => b.createdAt.seconds - a.createdAt.seconds)
+      : [];
+
     const today = new Date().toDateString();
-    return outletSales
-        .filter(sale => new Date(sale.createdAt.seconds * 1000).toDateString() === today)
-        .reduce((acc, sale) => acc + sale.totalAmount, 0);
-  }, [outletSales])
+    const salesToday = filteredSales
+      .filter(sale => new Date(sale.createdAt.seconds * 1000).toDateString() === today)
+      .reduce((acc, sale) => acc + sale.totalAmount, 0);
 
-  const totalProductsInStock = 0; // This needs a query on products collection
+    const stockCount = products 
+      ? products.reduce((acc, product) => {
+          if (product.outlet_stocks && product.outlet_stocks[outletId] > 0) {
+            return acc + 1; // counts unique products with stock > 0 in this outlet
+          }
+          return acc;
+        }, 0)
+      : 0;
+
+    return { 
+      outletSales: filteredSales, 
+      todaySales: salesToday, 
+      totalProductsInStock: stockCount 
+    };
+  }, [posSales, products, outletId]);
+  
   const pendingOnlineOrders = 0; // This needs a query on online orders collection
+  const isLoading = salesLoading || productsLoading;
 
   return (
     <div className="flex flex-col gap-6">
@@ -70,7 +88,7 @@ export function OutletDashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">৳{todaySales.toFixed(2)}</div>
+            {isLoading ? <Skeleton className="h-8 w-32" /> : <div className="text-2xl font-bold">৳{todaySales.toFixed(2)}</div>}
             <p className="text-xs text-muted-foreground">
               Total revenue from POS today
             </p>
@@ -90,11 +108,11 @@ export function OutletDashboard() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Products in Stock</CardTitle>
+            <CardTitle className="text-sm font-medium">Products in Stock</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totalProductsInStock}</div>
+             {isLoading ? <Skeleton className="h-8 w-16" /> : <div className="text-2xl font-bold">{totalProductsInStock}</div>}
             <p className="text-xs text-muted-foreground">
               Unique products available in this outlet
             </p>
@@ -153,3 +171,4 @@ export function OutletDashboard() {
     </div>
   );
 }
+

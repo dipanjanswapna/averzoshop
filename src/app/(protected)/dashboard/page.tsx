@@ -39,3 +39,4 @@ export default function DashboardPage() {
   // Default to Admin/Rider dashboard
   return <AdminDashboard />;
 }
+
