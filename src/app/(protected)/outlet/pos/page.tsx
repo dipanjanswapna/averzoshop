@@ -1,22 +1,22 @@
 
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Search, PlusCircle, MinusCircle, XCircle, ShoppingCart } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
-import { Product } from '@/types/product';
+import { Product, ProductVariant } from '@/types/product';
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { useFirebase } from '@/firebase';
 import { doc, runTransaction, serverTimestamp, collection, addDoc } from 'firebase/firestore';
-import { Separator } from '@/components/ui/separator';
 
 type CartItem = {
     product: Product;
+    variant: ProductVariant;
     quantity: number;
 };
 
@@ -34,36 +34,89 @@ export default function POSPage() {
     const availableProducts = useMemo(() => {
         if (!allProducts || !outletId) return [];
         return allProducts
-            .filter(p => (p.outlet_stocks?.[outletId] ?? 0) > 0)
-            .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+            .filter(p => p.status === 'approved' && p.total_stock > 0 && (p.outlet_stocks?.[outletId] ?? 0) > 0)
+            .filter(p => 
+                p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                p.baseSku.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                p.variants?.some(v => v.sku.toLowerCase().includes(searchTerm.toLowerCase()))
+            );
     }, [allProducts, outletId, searchTerm]);
 
-    const addToCart = (product: Product) => {
+    const findVariantInStock = (product: Product): ProductVariant | null => {
+        if (!outletId) return null;
+        
+        // Find a variant that has stock in the current outlet
+        const variantInStock = product.variants?.find(v => {
+            // Assuming variant-level stock is not tracked per outlet yet, we check total variant stock
+            // and main product outlet_stock. This can be refined.
+            const productStockInOutlet = product.outlet_stocks?.[outletId] ?? 0;
+            return v.stock > 0 && productStockInOutlet > 0;
+        });
+
+        // Fallback to the first variant if none specifically match, but the product has outlet stock
+        if (!variantInStock && (product.outlet_stocks?.[outletId] ?? 0) > 0) {
+            return product.variants?.[0] || null;
+        }
+
+        return variantInStock || null;
+    }
+
+    const addToCart = (product: Product, variant: ProductVariant | null) => {
+        if (!variant) {
+            toast({ variant: 'destructive', title: 'Variant not available', description: 'Please select a valid product variant.' });
+            return;
+        }
+
         setCart(prevCart => {
-            const existingItem = prevCart.find(item => item.product.id === product.id);
+            const existingItem = prevCart.find(item => item.variant.sku === variant.sku);
             if (existingItem) {
+                const outletStock = product.outlet_stocks?.[outletId || ''] ?? 0;
+                if (existingItem.quantity >= outletStock || existingItem.quantity >= variant.stock) {
+                    toast({ variant: 'destructive', title: 'Stock limit reached' });
+                    return prevCart;
+                }
                 return prevCart.map(item =>
-                    item.product.id === product.id
+                    item.variant.sku === variant.sku
                         ? { ...item, quantity: item.quantity + 1 }
                         : item
                 );
             }
-            return [...prevCart, { product, quantity: 1 }];
+            return [...prevCart, { product, variant, quantity: 1 }];
         });
     };
 
-    const updateQuantity = (productId: string, newQuantity: number) => {
-        if (newQuantity <= 0) {
-            setCart(prev => prev.filter(item => item.product.id !== productId));
-        } else {
+    const updateQuantity = (variantSku: string, newQuantity: number) => {
+        const cartItem = cart.find(item => item.variant.sku === variantSku);
+        if (!cartItem) return;
+
+        if (newQuantity > 0) {
+            const outletStock = cartItem.product.outlet_stocks?.[outletId || ''] ?? 0;
+            if (newQuantity > outletStock || newQuantity > cartItem.variant.stock) {
+                toast({ variant: 'destructive', title: 'Stock limit reached' });
+                return;
+            }
             setCart(prev => prev.map(item =>
-                item.product.id === productId ? { ...item, quantity: newQuantity } : item
+                item.variant.sku === variantSku ? { ...item, quantity: newQuantity } : item
             ));
+        } else {
+            setCart(prev => prev.filter(item => item.variant.sku !== variantSku));
+        }
+    };
+
+    const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (availableProducts.length === 1) {
+            const product = availableProducts[0];
+            const variant = findVariantInStock(product);
+            if(variant){
+                addToCart(product, variant);
+                setSearchTerm('');
+            }
         }
     };
 
     const cartSubtotal = useMemo(() => {
-        return cart.reduce((total, item) => total + item.product.price * item.quantity, 0);
+        return cart.reduce((total, item) => total + item.variant.price * item.quantity, 0);
     }, [cart]);
 
     const totalItems = useMemo(() => {
@@ -72,11 +125,7 @@ export default function POSPage() {
 
     const handleCompleteSale = async () => {
         if (!firestore || !user || !outletId || cart.length === 0) {
-            toast({
-                variant: 'destructive',
-                title: 'Error',
-                description: 'Cannot complete sale. Check if you are logged in and the cart is not empty.',
-            });
+            toast({ variant: 'destructive', title: 'Error', description: 'Cannot complete sale. Check login and cart.' });
             return;
         }
 
@@ -90,30 +139,37 @@ export default function POSPage() {
                     const productRef = doc(firestore, 'products', cartItem.product.id);
                     const productDoc = await transaction.get(productRef);
 
-                    if (!productDoc.exists()) {
-                        throw new Error(`Product ${cartItem.product.name} not found.`);
-                    }
+                    if (!productDoc.exists()) throw new Error(`Product ${cartItem.product.name} not found.`);
 
                     const currentData = productDoc.data() as Product;
                     const currentOutletStock = currentData.outlet_stocks?.[outletId] ?? 0;
+                    
+                    const variantIndex = currentData.variants.findIndex(v => v.sku === cartItem.variant.sku);
+                    if (variantIndex === -1) throw new Error(`Variant ${cartItem.variant.sku} not found.`);
+                    
+                    const currentVariantStock = currentData.variants[variantIndex].stock;
 
-                    if (currentOutletStock < cartItem.quantity) {
-                        throw new Error(`Not enough stock for ${cartItem.product.name}. Available: ${currentOutletStock}`);
+                    if (currentOutletStock < cartItem.quantity || currentVariantStock < cartItem.quantity) {
+                        throw new Error(`Not enough stock for ${cartItem.product.name}. Available: ${Math.min(currentOutletStock, currentVariantStock)}`);
                     }
-
+                    
                     const newOutletStock = currentOutletStock - cartItem.quantity;
-                    const newTotalStock = (currentData.total_stock ?? 0) - cartItem.quantity;
+                    const newTotalStock = currentData.total_stock - cartItem.quantity;
+                    const newVariantStock = currentVariantStock - cartItem.quantity;
 
+                    // Update product-level stock and outlet-level stock
                     transaction.update(productRef, {
                         [`outlet_stocks.${outletId}`]: newOutletStock,
-                        total_stock: newTotalStock
+                        total_stock: newTotalStock,
+                        [`variants.${variantIndex}.stock`]: newVariantStock
                     });
 
                     saleItems.push({
                         productId: cartItem.product.id,
                         productName: cartItem.product.name,
+                        variantSku: cartItem.variant.sku,
                         quantity: cartItem.quantity,
-                        price: cartItem.product.price,
+                        price: cartItem.variant.price,
                     });
                 }
                 
@@ -123,24 +179,17 @@ export default function POSPage() {
                     soldBy: user.uid,
                     items: saleItems,
                     totalAmount: cartSubtotal,
-                    paymentMethod: 'cash', // Placeholder
+                    paymentMethod: 'cash',
                     createdAt: serverTimestamp(),
                 });
             });
 
-            toast({
-                title: 'Sale Completed!',
-                description: `Successfully recorded sale of ${totalItems} items.`,
-            });
+            toast({ title: 'Sale Completed!', description: `Successfully recorded sale of ${totalItems} items.` });
             setCart([]);
 
         } catch (error: any) {
             console.error('Sale transaction failed: ', error);
-            toast({
-                variant: 'destructive',
-                title: 'Sale Failed',
-                description: error.message || 'An unexpected error occurred.',
-            });
+            toast({ variant: 'destructive', title: 'Sale Failed', description: error.message || 'An unexpected error occurred.' });
         } finally {
             setIsProcessing(false);
         }
@@ -153,22 +202,25 @@ export default function POSPage() {
                  <h1 className="text-2xl font-bold font-headline">Point of Sale</h1>
             </div>
             <div className="flex-grow grid grid-cols-1 md:grid-cols-3 gap-4 p-4 overflow-hidden">
-                {/* Product List */}
                 <div className="md:col-span-2 flex flex-col gap-4 h-full">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        <Input
-                            placeholder="Search products by name or scan barcode..."
-                            className="pl-10 h-12 text-lg"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
+                    <form onSubmit={handleSearchSubmit}>
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                            <Input
+                                placeholder="Search products by name or scan barcode/SKU..."
+                                className="pl-10 h-12 text-lg"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                    </form>
                     <ScrollArea className="flex-grow border rounded-lg">
                          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 p-4">
                             {isLoading && Array.from({ length: 10 }).map((_, i) => <Card key={i} className="animate-pulse bg-muted aspect-square" />)}
-                            {availableProducts.map(product => (
-                                <Card key={product.id} onClick={() => addToCart(product)} className="cursor-pointer hover:border-primary transition-colors flex flex-col">
+                            {availableProducts.map(product => {
+                                const variant = findVariantInStock(product);
+                                return (
+                                <Card key={product.id} onClick={() => addToCart(product, variant)} className="cursor-pointer hover:border-primary transition-colors flex flex-col">
                                     <CardContent className="p-0 flex-grow">
                                         <div className="relative aspect-square">
                                             <Image src={product.image || 'https://placehold.co/300'} alt={product.name} fill className="object-cover rounded-t-lg" />
@@ -176,14 +228,14 @@ export default function POSPage() {
                                     </CardContent>
                                     <CardFooter className="p-2 flex-col items-start">
                                         <p className="text-xs font-semibold truncate w-full">{product.name}</p>
-                                        <p className="text-sm font-bold text-primary">৳{product.price}</p>
+                                        <p className="text-sm font-bold text-primary">৳{variant?.price ?? product.price}</p>
                                     </CardFooter>
                                 </Card>
-                            ))}
+                            )})}
                         </div>
                         {!isLoading && availableProducts.length === 0 && (
                             <div className="flex items-center justify-center h-full text-muted-foreground">
-                                <p>No products found for &quot;{searchTerm}&quot;</p>
+                                <p>{searchTerm ? `No products found for "${searchTerm}"` : 'No products available in this outlet.'}</p>
                             </div>
                         )}
                     </ScrollArea>
@@ -207,18 +259,19 @@ export default function POSPage() {
                                     <p className="mt-4">Your cart is empty</p>
                                 </div>
                             ) : cart.map(item => (
-                                <div key={item.product.id} className="flex items-center gap-4">
+                                <div key={item.variant.sku} className="flex items-center gap-4">
                                      <Image src={item.product.image || 'https://placehold.co/64'} alt={item.product.name} width={48} height={48} className="rounded-md object-cover w-12 h-12" />
                                     <div className="flex-grow">
                                         <p className="text-sm font-medium truncate">{item.product.name}</p>
-                                        <p className="text-xs text-muted-foreground">৳{item.product.price.toFixed(2)}</p>
+                                        <p className="text-xs text-muted-foreground">{item.variant.size} {item.variant.color}</p>
+                                        <p className="text-xs text-muted-foreground">৳{item.variant.price.toFixed(2)}</p>
                                     </div>
                                     <div className="flex items-center gap-1">
-                                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => updateQuantity(item.product.id, item.quantity - 1)}><MinusCircle className="h-4 w-4" /></Button>
+                                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => updateQuantity(item.variant.sku, item.quantity - 1)}><MinusCircle className="h-4 w-4" /></Button>
                                         <span className="font-bold text-sm w-6 text-center">{item.quantity}</span>
-                                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => updateQuantity(item.product.id, item.quantity + 1)}><PlusCircle className="h-4 w-4" /></Button>
+                                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => updateQuantity(item.variant.sku, item.quantity + 1)}><PlusCircle className="h-4 w-4" /></Button>
                                     </div>
-                                     <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => updateQuantity(item.product.id, 0)}><XCircle className="h-4 w-4" /></Button>
+                                     <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => updateQuantity(item.variant.sku, 0)}><XCircle className="h-4 w-4" /></Button>
                                 </div>
                             ))}
                         </CardContent>
@@ -241,3 +294,4 @@ export default function POSPage() {
         </div>
     );
 }
+
