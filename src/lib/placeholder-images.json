@@ -157,56 +157,302 @@
     {
       "id": "product-1",
       "description": "A men's casual t-shirt on a hanger",
-      "imageUrl": "https://images.unsplash.com/photo-1759572095329-1dcf9522762b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx0LXNoaXJ0JTIwZmFzaGlvbnxlbnwwfHx8fDE3Njg0MDY1MzB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1759572095329-1dcf9522762b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx0LXNoaXJ0JTIwZmFzaGlvbnxlbnwwfHx8fDE3NjgzNTg1NTZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "t-shirt fashion"
     },
     {
       "id": "product-2",
       "description": "A pair of stylish denim jeans folded",
-      "imageUrl": "https://images.unsplash.com/photo-1714143136372-ddaf8b606da7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxkZW5pbSUyMGplYW5zfGVufDB8fHx8MTc2ODM0Njg5N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1551715789-d7b5cfccd1c8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxkZW5pbSUyMGplYW5zfGVufDB8fHx8MTc2ODQ3NjA0NHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "denim jeans"
     },
     {
       "id": "product-3",
       "description": "A women's summer dress on a mannequin",
-      "imageUrl": "https://images.unsplash.com/photo-1609695813802-3c443be34359?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxzdW1tZXIlMjBkcmVzc3xlbnwwfHx8fDE3NjgyODYxNTJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1604506272685-a999a4d122e7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxzdW1tZXIlMjBkcmVzc3xlbnwwfHx8fDE3Njg0MTU0MTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "summer dress"
     },
     {
       "id": "product-4",
       "description": "A pair of modern sneakers",
-      "imageUrl": "https://images.unsplash.com/photo-1678802910315-b1bf6ca9f6a6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzbmVha2VycyUyMHNob2VzfGVufDB8fHx8MTc2ODM4NjA0Nnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1656944227480-98180d2a5155?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzbmVha2VycyUyMHNob2VzfGVufDB8fHx8MTc2ODM4NjA0Nnww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "sneakers shoes"
     },
     {
       "id": "product-5",
       "description": "A leather handbag",
-      "imageUrl": "https://images.unsplash.com/photo-1570032686516-2fe01ea09f5b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxsZWF0aGVyJTIwaGFuZGJhZ3xlbnwwfHx8fDE3Njg0MDM3NjN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxsZWF0aGVyJTIwaGFuZGJhZ3xlbnwwfHx8fDE3Njg0MDM3NjN8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "leather handbag"
     },
     {
       "id": "product-6",
       "description": "A child's colorful jacket",
-      "imageUrl": "https://images.unsplash.com/photo-1524010198496-aa06f454a64e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxraWRzJTIwamFja2V0fGVufDB8fHx8MTc2ODQwNjUzMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1603923407810-f61528416aeb?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8a2lkcyUyMGphY2tldHxlbnwwfHx8fDE3Njg0MDY1MzB8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "kids jacket"
     },
     {
-      "id": "category-men",
-      "description": "A well-dressed man in an urban environment",
-      "imageUrl": "https://images.unsplash.com/photo-1543764477-646365e11da3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxtYWxlJTIwbW9kZWx8ZW58MHx8fHwxNzY4Mzk4OTU1fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "male model"
+      "id": "product-7",
+      "description": "A men's formal shirt",
+      "imageUrl": "https://images.unsplash.com/photo-1603252109612-24fa03d145c8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxmb3JtYWwlMjBzaGlydHxlbnwwfHx8fDE3Njg0NzYwNDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "formal shirt"
     },
     {
-      "id": "category-women",
-      "description": "A fashionable woman smiling",
-      "imageUrl": "https://images.unsplash.com/photo-1590399830217-8db7489f911e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxmZW1hbGUlMjBtb2RlbHxlbnwwfHx8fDE3Njg0MDU5MzZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "female model"
+      "id": "product-8",
+      "description": "Women's high-waist jeans",
+      "imageUrl": "https://images.unsplash.com/photo-1663441788296-3bff23123526?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx3b21lbiUyMGplYW5zfGVufDB8fHx8MTc2ODQ3NjA0NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "women jeans"
     },
     {
-      "id": "category-kids",
-      "description": "A happy child playing outdoors",
-      "imageUrl": "https://images.unsplash.com/photo-1472162072942-cd5147eb3902?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxoYXBweSUyMGNoaWxkfGVufDB8fHx8MTc2ODMxNDc5MXww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "happy child"
+      "id": "product-9",
+      "description": "Gaming Laptop XG200",
+      "imageUrl": "https://images.unsplash.com/photo-1560252719-59e35a3bbc6d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Z2FtaW5nJTIwbGFwdG9wfGVufDB8fHx8MTc2ODQ1MzU4N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "gaming laptop"
+    },
+    {
+      "id": "product-10",
+      "description": "Baby romper suit",
+      "imageUrl": "https://images.unsplash.com/photo-1622290319146-7b63df48a635?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxiYWJ5JTIwY2xvdGhlc3xlbnwwfHx8fDE3Njg0NzYwNDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "baby clothes"
+    },
+    {
+      "id": "product-11",
+      "description": "Organic face moisturizer",
+      "imageUrl": "https://images.unsplash.com/photo-1583334529937-bc4761d2cdad?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxmYWNlJTIwbW9pc3R1cml6ZXJ8ZW58MHx8fHwxNzY4NDY3NjM2fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "face moisturizer"
+    },
+    {
+      "id": "product-12",
+      "description": "Modern wall art set",
+      "imageUrl": "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx3YWxsJTIwYXJ0fGVufDB8fHx8MTc2ODQwODgxMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "wall art"
+    },
+    {
+      "id": "product-13",
+      "description": "Whey protein powder",
+      "imageUrl": "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwcm90ZWluJTIwcG93ZGVyfGVufDB8fHx8MTc2ODM5OTMzMXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "protein powder"
+    },
+    {
+      "id": "product-14",
+      "description": "Ergonomic gaming chair",
+      "imageUrl": "https://images.unsplash.com/photo-1612011213721-3936d387f318?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxnYW1pbmclMjBjaGFpcnxlbnwwfHx8fDE3Njg0NzYwNDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "gaming chair"
+    },
+    {
+      "id": "product-15",
+      "description": "Natural grain-free dog food",
+      "imageUrl": "https://images.unsplash.com/photo-1714068691256-cd3d65f97795?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxkb2clMjBmb29kfGVufDB8fHx8MTc2ODM4NDY1NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dog food"
+    },
+    {
+      "id": "product-16",
+      "description": "Professional cricket bat",
+      "imageUrl": "https://images.unsplash.com/photo-1646282814550-f521d9b57a59?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjcmlja2V0JTIwYmF0fGVufDB8fHx8MTc2ODQ3NjA0NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cricket bat"
+    },
+    {
+      "id": "product-17",
+      "description": "Smart LED light strip",
+      "imageUrl": "https://images.unsplash.com/photo-1687573806596-4b6ee0b7a42d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxsZWQlMjBzdHJpcHxlbnwwfHx8fDE3Njg0NzYwNDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "led strip"
+    },
+    {
+      "id": "product-18",
+      "description": "Full-face motorcycle helmet",
+      "imageUrl": "https://images.unsplash.com/photo-1610900656436-1baa9fbe8d05?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxtb3RvcmN5Y2xlJTIwaGVsbWV0fGVufDB8fHx8MTc2ODQ3NjA0NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "motorcycle helmet"
+    },
+    {
+      "id": "product-19",
+      "description": "Bestselling fiction novel",
+      "imageUrl": "https://images.unsplash.com/photo-1764728671460-34931d8261f5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxmaWN0aW9uJTIwYm9va3xlbnwwfHx8fDE3Njg0NzYwNDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "fiction book"
+    },
+    {
+      "id": "product-20",
+      "description": "Handmade pottery vase",
+      "imageUrl": "https://images.unsplash.com/photo-1723779235151-a33924d170da?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxwb3R0ZXJ5JTIwdmFzZXxlbnwwfHx8fDE3Njg0NzYwNDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "pottery vase"
+    },
+    {
+      "id": "product-21",
+      "description": "Men's casual polo shirt",
+      "imageUrl": "https://images.unsplash.com/photo-1622622016645-7b7065e7c129?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cG9sbyUyMHNoaXJ0fGVufDB8fHx8MTc2ODQ1MTY5N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "polo shirt"
+    },
+    {
+      "id": "product-22",
+      "description": "Women's elegant saree",
+      "imageUrl": "https://images.unsplash.com/photo-1756483510818-060b42c7cecc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxlbGVnYW50JTIwc2FyZWV8ZW58MHx8fHwxNzY4NDc2MDQ0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "elegant saree"
+    },
+    {
+      "id": "product-23",
+      "description": "Latest smartphone model",
+      "imageUrl": "https://images.unsplash.com/photo-1598327105666-5b89351aff97?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzbWFydHBob25lfGVufDB8fHx8MTc2ODQ3MzE4NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "smartphone"
+    },
+    {
+      "id": "product-24",
+      "description": "Educational toy blocks",
+      "imageUrl": "https://images.unsplash.com/photo-1636314229901-61b1c1da1675?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx0b3klMjBibG9ja3N8ZW58MHx8fHwxNzY4NDc2MDQ0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "toy blocks"
+    },
+    {
+      "id": "product-25",
+      "description": "Matte finish lipstick",
+      "imageUrl": "https://images.unsplash.com/photo-1586495777744-4413f21062fa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxsaXBzdGlja3xlbnwwfHx8fDE3Njg0MzYwMDN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "lipstick"
+    },
+    {
+      "id": "product-26",
+      "description": "Non-stick cookware set",
+      "imageUrl": "https://images.unsplash.com/photo-1584990347449-fd98bc063110?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjb29rd2FyZSUyMHNldHxlbnwwfHx8fDE3Njg0NzYwNDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cookware set"
+    },
+    {
+      "id": "product-27",
+      "description": "Yoga mat",
+      "imageUrl": "https://images.unsplash.com/photo-1624651208388-f8726eace8f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8eW9nYSUyMG1hdHxlbnwwfHx8fDE3NjgzODkyNzN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "yoga mat"
+    },
+    {
+      "id": "product-28",
+      "description": "Wireless gaming headset",
+      "imageUrl": "https://images.unsplash.com/photo-1710265029735-434f63c672c4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxnYW1pbmclMjBoZWFkc2V0fGVufDB8fHx8MTc2ODM5NTQzNHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "gaming headset"
+    },
+    {
+      "id": "product-29",
+      "description": "Pet grooming shampoo",
+      "imageUrl": "https://images.unsplash.com/photo-1669910803409-a447456beaca?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwZXQlMjBzaGFtcG9vfGVufDB8fHx8MTc2ODQ3NjA0NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "pet shampoo"
+    },
+    {
+      "id": "product-30",
+      "description": "4-person camping tent",
+      "imageUrl": "https://images.unsplash.com/photo-1653526167310-714293464c9c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxjYW1waW5nJTIwdGVudHxlbnwwfHx8fDE3Njg0NzYwNDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "camping tent"
+    },
+    {
+      "id": "product-31",
+      "description": "Smart security camera",
+      "imageUrl": "https://images.unsplash.com/photo-1549109926-58f039549485?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzZWN1cml0eSUyMGNhbWVyYXxlbnwwfHx8fDE3NjgzOTI5MTZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "security camera"
+    },
+    {
+      "id": "product-32",
+      "description": "Leather biking gloves",
+      "imageUrl": "https://images.unsplash.com/photo-1763902972634-3e97f66a53bf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxiaWtpbmclMjBnbG92ZXN8ZW58MHx8fHwxNzY4NDc2MDQ0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "biking gloves"
+    },
+    {
+      "id": "product-33",
+      "description": "Set of premium pens",
+      "imageUrl": "https://images.unsplash.com/photo-1573378117021-973985f2e465?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8cHJlbWl1bSUyMHBlbnN8ZW58MHx8fHwxNzY4NDc2MDQ0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "premium pens"
+    },
+    {
+      "id": "product-34",
+      "description": "Abstract canvas painting",
+      "imageUrl": "https://images.unsplash.com/photo-1667980898743-fcfe470b7d2a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxjYW52YXMlMjBwYWludGluZ3xlbnwwfHx8fDE3Njg0NzYwNDZ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "canvas painting"
+    },
+    {
+      "id": "product-35",
+      "description": "Hardshell trolley bag",
+      "imageUrl": "https://images.unsplash.com/photo-1760648311436-d18d39f499bd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx0cm9sbGV5JTIwYmFnfGVufDB8fHx8MTc2ODQ3NjA0NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "trolley bag"
+    },
+    {
+      "id": "product-36",
+      "description": "Recycled fabric tote bag",
+      "imageUrl": "https://images.unsplash.com/photo-1630381260512-e3fe55c11973?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx0b3RlJTIwYmFnfGVufDB8fHx8MTc2ODQzMjI1MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "tote bag"
+    },
+    {
+      "id": "product-37",
+      "description": "Acoustic guitar",
+      "imageUrl": "https://images.unsplash.com/photo-1588449668365-d15e397f6787?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxhY291c3RpYyUyMGd1aXRhcnxlbnwwfHx8fDE3Njg0Njc2ODV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "acoustic guitar"
+    },
+    {
+      "id": "product-38",
+      "description": "Luxury gift box",
+      "imageUrl": "https://images.unsplash.com/photo-1625552187571-7ee60ac43d2b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxnaWZ0JTIwYm94fGVufDB8fHx8MTc2ODM3NjYzMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "gift box"
+    },
+    {
+      "id": "product-39",
+      "description": "Organic basmati rice",
+      "imageUrl": "https://images.unsplash.com/photo-1586201375761-83865001e31c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxiYXNtYXRpJTIwcmljZXxlbnwwfHx8fDE3Njg0MjQ2MzR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "basmati rice"
+    },
+    {
+      "id": "product-40",
+      "description": "Men's leather belt",
+      "imageUrl": "https://images.unsplash.com/photo-1637868796504-32f45a96d5a0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxsZWF0aGVyJTIwYmVsdHxlbnwwfHx8fDE3NjgzOTA2Nzl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "leather belt"
+    },
+    {
+      "id": "product-41",
+      "description": "Women's casual top",
+      "imageUrl": "https://images.unsplash.com/photo-1768289222847-85d000729b7d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxjYXN1YWwlMjB0b3B8ZW58MHx8fHwxNzY4NDc2MDQ1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "casual top"
+    },
+    {
+      "id": "product-42",
+      "description": "Professional DSLR camera",
+      "imageUrl": "https://images.unsplash.com/photo-1546805022-9c4e4ab7e3a3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxkc2xyJTIwY2FtZXJhfGVufDB8fHx8MTc2ODQ3NjA0NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dslr camera"
+    },
+    {
+      "id": "product-43",
+      "description": "Girls' princess dress",
+      "imageUrl": "https://images.unsplash.com/photo-1704806102078-a84002d5f217?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwcmluY2VzcyUyMGRyZXNzfGVufDB8fHx8MTc2ODQ3NjA0NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "princess dress"
+    },
+    {
+      "id": "product-44",
+      "description": "Herbal face wash",
+      "imageUrl": "https://images.unsplash.com/photo-1593155726603-89149b7cbfd6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxmYWNlJTIwd2FzaHxlbnwwfHx8fDE3Njg0NzYwNDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "face wash"
+    },
+    {
+      "id": "product-45",
+      "description": "Designer floor lamp",
+      "imageUrl": "https://images.unsplash.com/photo-1673939859210-23d8444237ff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxmbG9vciUyMGxhbXB8ZW58MHx8fHwxNzY4NDA1NzgyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "floor lamp"
+    },
+    {
+      "id": "product-46",
+      "description": "Multivitamin supplements",
+      "imageUrl": "https://images.unsplash.com/photo-1592323818181-f9b967ff537c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxzdXBwbGVtZW50c3xlbnwwfHx8fDE3Njg0NDYyNjV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "supplements"
+    },
+    {
+      "id": "product-47",
+      "description": "Mechanical gaming keyboard",
+      "imageUrl": "https://images.unsplash.com/photo-1612600840881-8aba94904ab9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxnYW1pbmclMjBrZXlib2FyZHxlbnwwfHx8fDE3Njg0MjQxOTl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "gaming keyboard"
+    },
+    {
+      "id": "product-48",
+      "description": "Premium cat food",
+      "imageUrl": "https://images.unsplash.com/photo-1580238169544-86bf7cd8c84c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxjYXQlMjBmb29kfGVufDB8fHx8MTc2ODM4NDY1NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cat food"
+    },
+    {
+      "id": "product-49",
+      "description": "Hiking backpack",
+      "imageUrl": "https://images.unsplash.com/photo-1664411049635-5cda636ea106?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxoaWtpbmclMjBiYWNrcGFja3xlbnwwfHx8fDE3Njg0NDcyNDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "hiking backpack"
+    },
+    {
+      "id": "product-50",
+      "description": "Digital notebook",
+      "imageUrl": "https://images.unsplash.com/photo-1613398773682-9e272a85f203?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8ZGlnaXRhbCUyMG5vdGVib29rfGVufDB8fHx8MTc2ODQ3NjA0NXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "digital notebook"
     },
     {
       "id": "avatar-1",
