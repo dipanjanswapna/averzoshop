@@ -185,7 +185,19 @@ export default function CategoryPage() {
                 <SheetContent side="left" className="w-[85%] sm:max-w-sm p-0">
                   <SheetHeader className="p-4 border-b"><SheetTitle>Filter & Sort</SheetTitle></SheetHeader>
                   <ScrollArea className="h-[calc(100vh-80px)] overflow-y-auto">
-                    <FilterSidebar priceRange={priceRange as [number, number]} onPriceChange={handlePriceChange} selectedBrand={selectedBrand} onBrandChange={(brand) => handleFilterChange('brand', brand)} selectedMotherCategory={selectedMotherCategory} onMotherCategoryChange={(cat) => handleFilterChange('mother_category', cat)} selectedGroup={selectedGroup} onGroupChange={(group) => handleFilterChange('group', group)} selectedSubcategory={selectedSubcategory} onSubcategoryChange={(sub) => handleFilterChange('subcategory', sub)} />
+                    <FilterSidebar 
+                      categories={categoriesData}
+                      priceRange={priceRange as [number, number]} 
+                      onPriceChange={handlePriceChange} 
+                      selectedBrand={selectedBrand} 
+                      onBrandChange={(brand) => handleFilterChange('brand', brand)} 
+                      selectedMotherCategory={selectedMotherCategory} 
+                      onMotherCategoryChange={(cat) => handleFilterChange('mother_category', cat)} 
+                      selectedGroup={selectedGroup} 
+                      onGroupChange={(group) => handleFilterChange('group', group)} 
+                      selectedSubcategory={selectedSubcategory} 
+                      onSubcategoryChange={(sub) => handleFilterChange('subcategory', sub)} 
+                    />
                   </ScrollArea>
                 </SheetContent>
               </Sheet>
@@ -204,7 +216,19 @@ export default function CategoryPage() {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             <aside className="hidden lg:block lg:col-span-1">
               <div className="sticky top-28">
-                <FilterSidebar priceRange={priceRange as [number, number]} onPriceChange={handlePriceChange} selectedBrand={selectedBrand} onBrandChange={(brand) => handleFilterChange('brand', brand)} selectedMotherCategory={selectedMotherCategory} onMotherCategoryChange={(cat) => handleFilterChange('mother_category', cat)} selectedGroup={selectedGroup} onGroupChange={(group) => handleFilterChange('group', group)} selectedSubcategory={selectedSubcategory} onSubcategoryChange={(sub) => handleFilterChange('subcategory', sub)} />
+                <FilterSidebar 
+                  categories={categoriesData}
+                  priceRange={priceRange as [number, number]} 
+                  onPriceChange={handlePriceChange} 
+                  selectedBrand={selectedBrand} 
+                  onBrandChange={(brand) => handleFilterChange('brand', brand)} 
+                  selectedMotherCategory={selectedMotherCategory} 
+                  onMotherCategoryChange={(cat) => handleFilterChange('mother_category', cat)} 
+                  selectedGroup={selectedGroup} 
+                  onGroupChange={(group) => handleFilterChange('group', group)} 
+                  selectedSubcategory={selectedSubcategory} 
+                  onSubcategoryChange={(sub) => handleFilterChange('subcategory', sub)} 
+                />
               </div>
             </aside>
             <main className="lg:col-span-3">

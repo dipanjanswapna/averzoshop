@@ -265,6 +265,7 @@ export default function MensFashionPage() {
                     </SheetHeader>
                     <ScrollArea className="h-[calc(100vh-80px)] overflow-y-auto">
                       <FilterSidebar
+                        categories={categoriesData}
                         priceRange={priceRange as [number, number]}
                         onPriceChange={handlePriceChange}
                         selectedBrand={selectedBrand}
@@ -302,6 +303,7 @@ export default function MensFashionPage() {
               <aside className="hidden lg:block lg:col-span-1">
                 <div className="sticky top-28">
                   <FilterSidebar
+                    categories={categoriesData}
                     priceRange={priceRange as [number, number]}
                     onPriceChange={handlePriceChange}
                     selectedBrand={selectedBrand}

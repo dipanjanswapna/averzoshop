@@ -6,6 +6,7 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { FilterSidebar } from '@/components/shop/filter-sidebar';
 import { ProductGrid } from '@/components/shop/product-grid';
 import { products } from '@/lib/data';
+import { categoriesData } from '@/lib/categories';
 import {
   Select,
   SelectContent,
@@ -91,6 +92,21 @@ export default function ShopPage() {
 
   const { paginatedProducts, totalPages } = useMemo(() => {
     let filtered = [...products];
+
+    if (selectedMotherCategory) {
+      const category = categoriesData.find(cat => cat.mother_name === selectedMotherCategory);
+      const validGroups = category?.groups.map(g => g.group_name) || [];
+      const validSubcategories = category?.groups.flatMap(g => g.subs) || [];
+      
+      filtered = filtered.filter(p => {
+        if (p.category === selectedMotherCategory) return true;
+        // This is a bit of a hack to account for Men/Women categories in products
+        if (selectedMotherCategory === "Men's Fashion" && p.category === "Men") return true;
+        if (selectedMotherCategory === "Women's Fashion" && p.category === "Women") return true;
+
+        return validGroups.includes(p.group!) || validSubcategories.includes(p.subcategory!);
+      });
+    }
 
     // Separate in-stock and out-of-stock products
     let inStockProducts = filtered.filter(p => p.stock > 0);
@@ -184,6 +200,7 @@ export default function ShopPage() {
                         </SheetHeader>
                         <ScrollArea className="h-[calc(100vh-80px)] overflow-y-auto">
                         <FilterSidebar 
+                            categories={categoriesData}
                             priceRange={priceRange as [number, number]}
                             onPriceChange={handlePriceChange}
                             selectedBrand={selectedBrand}
@@ -217,6 +234,7 @@ export default function ShopPage() {
             <aside className="hidden lg:block lg:col-span-1">
               <div className="sticky top-28">
                 <FilterSidebar 
+                    categories={categoriesData}
                     priceRange={priceRange as [number, number]}
                     onPriceChange={handlePriceChange}
                     selectedBrand={selectedBrand}
@@ -245,5 +263,3 @@ export default function ShopPage() {
     </div>
   );
 }
-
-    
