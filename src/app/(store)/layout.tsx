@@ -1,4 +1,5 @@
 
+
 import AverzoNavbar from '@/components/store-header';
 import Link from 'next/link';
 
@@ -7,12 +8,11 @@ export default function StoreLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const headerHeight = '112px'; // Approximate height of the sticky header
-
+  
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground font-body">
       <AverzoNavbar />
-      <main className="flex-1" style={{ paddingTop: headerHeight }}>{children}</main>
+      <main className="flex-1 pt-[112px]">{children}</main>
       {/* --- Desktop Footer --- */}
       <footer className="bg-secondary text-secondary-foreground hidden lg:block">
         <div className="container py-12">
@@ -28,6 +28,14 @@ export default function StoreLayout({
             <div>
               <h3 className="font-semibold font-headline">Shop</h3>
               <ul className="mt-4 space-y-2 text-sm font-body">
+                <li>
+                  <Link
+                    href="/shop"
+                    className="text-muted-foreground hover:text-primary"
+                  >
+                    All Products
+                  </Link>
+                </li>
                 <li>
                   <Link
                     href="#"

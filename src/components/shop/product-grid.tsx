@@ -1,0 +1,60 @@
+
+'use client';
+import { ProductCard } from '@/components/product-card';
+import type { products } from '@/lib/data';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
+import { Button } from '../ui/button';
+
+type ProductGridProps = {
+  products: typeof products;
+  isLoading: boolean;
+};
+
+const SKELETON_COUNT = 8;
+
+export const ProductGrid = ({ products, isLoading }: ProductGridProps) => {
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+        {Array.from({ length: SKELETON_COUNT }).map((_, index) => (
+          <div key={index} className="space-y-2">
+            <Skeleton className="aspect-square w-full" />
+            <Skeleton className="h-4 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (!products || products.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-96 border-2 border-dashed rounded-lg">
+        <h3 className="text-xl font-bold">No Products Found</h3>
+        <p className="text-muted-foreground">Try adjusting your filters.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+        {products.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </div>
+       <div className="mt-12 flex justify-center">
+            <Button variant="outline">Load More</Button>
+       </div>
+    </div>
+  );
+};
