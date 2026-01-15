@@ -7,12 +7,12 @@ import { Search, ShoppingCart, User, ChevronDown } from 'lucide-react';
 import AverzoLogo from './averzo-logo';
 import { cn } from '@/lib/utils';
 import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from '@/components/ui/carousel';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
 
 const menuData: Record<string, React.ReactNode> = {
   "All Categories": (
@@ -121,6 +121,12 @@ const menuData: Record<string, React.ReactNode> = {
         <ul className="space-y-2 text-sm text-muted-foreground font-body">
           <li className="hover:text-foreground cursor-pointer">DSLR</li>
           <li className="hover:text-foreground cursor-pointer">Action Cameras</li>
+        </ul>
+      </div>
+       <div className="col-span-1">
+        <h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Smart Dice</h4>
+        <ul className="space-y-2 text-sm text-muted-foreground font-body">
+          <li className="hover:text-foreground cursor-pointer">Ryans Style</li>
         </ul>
       </div>
     </div>
@@ -291,78 +297,90 @@ export function StoreHeader() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
   const allCategories = Object.keys(menuData);
+  const visibleCategories = allCategories.slice(0, 10);
+  const hiddenCategories = allCategories.slice(10);
 
   return (
-    <header className="w-full bg-background z-50">
-       {/* Layer 1: Top Bar (Sticky) */}
-        <div className="sticky top-0 w-full bg-background z-50 transition-all duration-300 shadow-sm overflow-visible">
-            <div className="container mx-auto px-4 lg:px-8">
-                <div className="flex items-center justify-between py-3 gap-6 border-b">
-                <Link href="/" className="text-3xl font-black font-saira tracking-tighter text-foreground">
-                    <AverzoLogo className="h-8 w-auto" />
+    <header className="sticky top-0 w-full bg-background z-50 shadow-sm">
+       {/* Layer 1: Top Bar */}
+        <div className="container mx-auto px-4 lg:px-8">
+            <div className="flex items-center justify-between py-3 gap-6 border-b">
+            <Link href="/" className="text-3xl font-black font-saira tracking-tighter text-foreground">
+                <AverzoLogo className="h-8 w-auto" />
+            </Link>
+
+            <div className="flex-1 max-w-2xl relative hidden md:block">
+                <input
+                type="text"
+                placeholder="Search for products, brands and more..."
+                className="w-full bg-secondary border-none rounded-lg py-2.5 px-6 focus:ring-2 focus:ring-primary outline-none text-sm font-body"
+                />
+                <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+            </div>
+
+            <div className="flex items-center gap-4 sm:gap-6 font-bold text-sm text-foreground">
+                <div className="flex-col items-center cursor-pointer hover:text-primary hidden sm:flex">
+                <Search size={20} strokeWidth={2.5} className="md:hidden"/>
+                <span className="text-[10px] uppercase mt-1 md:hidden">Search</span>
+                </div>
+                <Link href="/login" className="flex flex-col items-center cursor-pointer hover:text-primary">
+                <User size={20} strokeWidth={2.5} />
+                <span className="text-[10px] uppercase mt-1">Profile</span>
                 </Link>
-
-                <div className="flex-1 max-w-2xl relative hidden md:block">
-                    <input
-                    type="text"
-                    placeholder="Search for products, brands and more..."
-                    className="w-full bg-secondary border-none rounded-lg py-2.5 px-6 focus:ring-2 focus:ring-primary outline-none text-sm font-body"
-                    />
-                    <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-                </div>
-
-                <div className="flex items-center gap-4 sm:gap-6 font-bold text-sm text-foreground">
-                    <div className="flex-col items-center cursor-pointer hover:text-primary hidden sm:flex">
-                    <Search size={20} strokeWidth={2.5} className="md:hidden"/>
-                    <span className="text-[10px] uppercase mt-1 md:hidden">Search</span>
-                    </div>
-                    <Link href="/login" className="flex flex-col items-center cursor-pointer hover:text-primary">
-                    <User size={20} strokeWidth={2.5} />
-                    <span className="text-[10px] uppercase mt-1">Profile</span>
-                    </Link>
-                    <Link href="/cart" className="flex flex-col items-center cursor-pointer hover:text-primary relative">
-                    <ShoppingCart size={20} strokeWidth={2.5} />
-                    <span className="text-[10px] uppercase mt-1">Bag</span>
-                    <span className="absolute -top-1 -right-2 bg-primary text-primary-foreground text-[9px] w-4 h-4 rounded-full flex items-center justify-center">0</span>
-                    </Link>
-                </div>
-                </div>
+                <Link href="/cart" className="flex flex-col items-center cursor-pointer hover:text-primary relative">
+                <ShoppingCart size={20} strokeWidth={2.5} />
+                <span className="text-[10px] uppercase mt-1">Bag</span>
+                <span className="absolute -top-1 -right-2 bg-primary text-primary-foreground text-[9px] w-4 h-4 rounded-full flex items-center justify-center">0</span>
+                </Link>
+            </div>
             </div>
         </div>
       
       {/* Layer 2: Category Bar */}
       <nav className="w-full bg-background border-b">
-        <div className="container mx-auto px-4 lg:px-8">
-            <Carousel
-                opts={{
-                    align: 'start',
-                    dragFree: true,
-                }}
-                className="w-full"
-            >
-                <CarouselContent className="-ml-4">
-                {allCategories.map((cat) => (
-                    <CarouselItem key={cat} className="pl-4 basis-auto">
-                        <div
-                            className="relative group py-3"
-                            onMouseEnter={() => setActiveMenu(cat)}
-                            onMouseLeave={() => setActiveMenu(null)}
-                        >
+        <div className="container mx-auto px-4 lg:px-8 flex items-center gap-6">
+            {visibleCategories.map((cat) => (
+                <div
+                    key={cat}
+                    className="relative group py-3"
+                    onMouseEnter={() => setActiveMenu(cat)}
+                    onMouseLeave={() => setActiveMenu(null)}
+                >
+                    <button className="flex items-center gap-1 text-[12px] font-bold tracking-wider hover:text-primary transition-colors uppercase font-saira whitespace-nowrap">
+                    {cat}
+                    </button>
+                    <MegaMenu isOpen={activeMenu === cat} items={menuData[cat]} />
+                </div>
+            ))}
+             {hiddenCategories.length > 0 && (
+                <div className="relative group py-3">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
                             <button className="flex items-center gap-1 text-[12px] font-bold tracking-wider hover:text-primary transition-colors uppercase font-saira whitespace-nowrap">
-                            {cat}
+                                More <ChevronDown size={14} />
                             </button>
-                            <MegaMenu isOpen={activeMenu === cat} items={menuData[cat]} />
-                        </div>
-                    </CarouselItem>
-                ))}
-                </CarouselContent>
-                <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-8 bg-background/50 backdrop-blur-sm" />
-                <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-8 bg-background/50 backdrop-blur-sm" />
-            </Carousel>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start">
+                            {hiddenCategories.map((cat) => (
+                                 <DropdownMenuItem key={cat} asChild>
+                                    <div
+                                        className="relative group py-3 px-2"
+                                        onMouseEnter={() => setActiveMenu(cat)}
+                                        onMouseLeave={() => setActiveMenu(null)}
+                                    >
+                                        <button className="flex items-center justify-between w-full text-[12px] font-bold tracking-wider hover:text-primary transition-colors uppercase font-saira whitespace-nowrap">
+                                            {cat}
+                                        </button>
+                                        <MegaMenu isOpen={activeMenu === cat} items={menuData[cat]} />
+                                    </div>
+                                 </DropdownMenuItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            )}
         </div>
       </nav>
     </header>
   );
 }
-
-    
