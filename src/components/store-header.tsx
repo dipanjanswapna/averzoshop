@@ -2,13 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import {
-  Heart,
-  Search,
-  ShoppingCart,
-  User,
-  Menu,
-} from 'lucide-react';
+import { Heart, Search, ShoppingCart, User, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AverzoLogo from '@/components/averzo-logo';
 import {
@@ -28,187 +22,109 @@ import Image from 'next/image';
 
 const categories = [
   {
-    name: 'MEN',
+    name: 'Eco & Sustainable',
     href: '#',
-    promo: {
-      title: "Men's Fashion",
-      description: "Explore the latest trends in men's apparel and accessories.",
-      image:
-        'https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxmYXNoaW9uJTIwbWFsZSUyMG1vZGVsfGVufDB8fHx8MTc2ODQxMTEyN3ww&ixlib=rb-4.1.0&q=80&w=400',
-    },
     sections: [
-      {
-        title: 'Topwear',
-        links: [
-          'T-Shirts',
-          'Casual Shirts',
-          'Polos',
-          'Formal Shirts',
-          'Sweatshirts',
-        ],
-      },
-      {
-        title: 'Bottomwear',
-        links: ['Jeans', 'Chinos', 'Shorts', 'Trousers'],
-      },
-      {
-        title: 'Accessories',
-        links: ['Watches', 'Belts', 'Wallets', 'Sunglasses'],
-      },
+        { title: 'Eco Fashion', links: ['Recycled Apparel', 'Organic Cotton', 'Vegan Leather', 'Upcycled Bags'] },
+        { title: 'Sustainable Home', links: ['Reusable Kitchenware', 'Solar Gadgets', 'Natural Cleaners', 'Bamboo Cutlery'] },
+        { title: 'Personal Care', links: ['Zero-Waste Deodorant', 'Shampoo Bars', 'Bamboo Toothbrushes'] },
     ],
   },
   {
-    name: 'WOMEN',
+    name: 'Smart Home & IoT',
     href: '#',
-    promo: {
-      title: "Women's Fashion",
-      description: 'Discover elegant styles for every occasion.',
-      image:
-        'https://images.unsplash.com/photo-1496302662116-35cc4f36df92?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxmYXNoaW9uJTIwd29tYW58ZW58MHx8fHwxNzY4MzI1OTY4fDA&ixlib=rb-4.1.0&q=80&w=400',
-    },
     sections: [
-      {
-        title: 'Ethnic & Fusion Wear',
-        links: ['Kurtas & Suits', 'Sarees', 'Lehengas', 'Ethnic Dresses'],
-      },
-      {
-        title: 'Western Wear',
-        links: [
-          'Dresses',
-          'Tops & T-shirts',
-          'Jeans & Jeggings',
-          'Skirts & Shorts',
-        ],
-      },
-      {
-        title: 'Footwear & Bags',
-        links: ['Flats & Heels', 'Handbags', 'Sling Bags', 'Clutches'],
-      },
+        { title: 'Security', links: ['Smart Cams', 'Door Locks', 'Sensors', 'Video Doorbells'] },
+        { title: 'Automation', links: ['Smart Bulbs', 'Hubs & Controllers', 'Smart Plugs', 'Voice Assistants'] },
+        { title: 'Kitchen', links: ['Smart Fridges', 'Automated Coffee Makers', 'Smart Ovens'] },
+        { title: 'Climate', links: ['Smart Thermostats', 'Air Purifiers'] },
     ],
   },
-  { name: 'KIDS', href: '#' },
-  { name: 'ELECTRONICS', href: '#' },
   {
-    name: 'HEALTH & WELLNESS',
+    name: 'Gaming & Esports',
     href: '#',
-    promo: {
-        title: 'Health & Wellness',
-        description: 'অর্গানিক খাবার, জিম সাপ্লিমেন্ট এবং পার্সোনাল কেয়ার ডিভাইস।',
-        image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2120&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-    },
     sections: [
-        { title: 'Organic Food', links: ['Fruits', 'Vegetables', 'Grains', 'Honey'] },
-        { title: 'Gym Supplements', links: ['Protein', 'Creatine', 'Vitamins'] },
-        { title: 'Personal Care', links: ['Skincare', 'Haircare', 'Grooming Devices'] }
-    ]
+        { title: 'PC Gaming', links: ['Graphic Cards', 'Monitors', 'RAM', 'Gaming PCs'] },
+        { title: 'Peripherals', links: ['Keyboards', 'Mice', 'Headsets', 'Mousepads'] },
+        { title: 'Consoles', links: ['PlayStation', 'Xbox', 'Nintendo Switch'] },
+        { title: 'Streaming Gear', links: ['Webcams', 'Microphones', 'Capture Cards'] },
+    ],
   },
   {
-    name: 'PET ESSENTIALS',
+    name: 'Aura Grooming',
     href: '#',
-    promo: {
-        title: 'Pet Essentials',
-        description: 'পোষা প্রাণীর খাবার, গ্রুমিং কিট এবং খেলনা।',
-        image: 'https://images.unsplash.com/photo-1533743983669-94fa5c4338ec?q=80&w=1992&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-    },
     sections: [
-        { title: 'Pet Food', links: ['Dog Food', 'Cat Food', 'Fish Food'] },
-        { title: 'Grooming Kits', links: ['Brushes', 'Shampoos', 'Clippers'] },
-        { title: 'Toys', links: ['Chew Toys', 'Interactive Toys'] }
-    ]
+        { title: 'Skincare', links: ['Cleansers', 'Serums', 'Moisturizers', 'Sunscreens'] },
+        { title: 'Haircare', links: ['Shampoos', 'Conditioners', 'Styling Gels', 'Hair Dryers'] },
+        { title: 'Professional Tools', links: ['Trimmers', 'Epilators', 'Facial Steamers'] },
+    ],
   },
   {
-    name: 'AUTOMOTIVE',
+    name: 'Artisan & Handmade',
     href: '#',
-    promo: {
-        title: 'Automotive & Biking',
-        description: 'বাইকের এক্সেসরিজ, হেলমেট, কার গ্যাজেট এবং টায়ার।',
-        image: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-    },
     sections: [
-        { title: 'Bike Accessories', links: ['Helmets', 'Gloves', 'Jackets'] },
-        { title: 'Car Gadgets', links: ['Dashcams', 'Chargers', 'Holders'] },
-        { title: 'Tires & Parts', links: ['Car Tires', 'Bike Tires', 'Engine Oil'] }
-    ]
-  },
-    {
-    name: 'STATIONERY',
-    href: '#',
-    promo: {
-        title: 'Stationery & Hobby',
-        description: 'অফিস সাপ্লাই, ড্রয়িং মেটেরিয়ালস এবং মিউজিক্যাল ইনস্ট্রুমেন্টস।',
-        image: 'https://images.unsplash.com/photo-1456735190827-d1262f71b8a3?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-    },
-    sections: [
-        { title: 'Office Supplies', links: ['Pens', 'Notebooks', 'Staplers'] },
-        { title: 'Drawing Materials', links: ['Canvases', 'Paints', 'Brushes'] },
-        { title: 'Musical Instruments', links: ['Guitars', 'Keyboards', 'Drums'] }
-    ]
+        { title: 'Home Decor', links: ['Pottery', 'Wall Hangings', 'Handmade Candles'] },
+        { title: 'Fashion', links: ['Handwoven Sarees', 'Nakshi Kantha', 'Leather Goods'] },
+        { title: 'Jewelry', links: ['Handcrafted Necklaces', 'Beaded Bracelets'] },
+    ],
   },
   {
-    name: 'GROCERIES',
+    name: 'Baby & Toddler',
     href: '#',
-    promo: {
-        title: 'Groceries & Daily',
-        description: 'দ্রুত ডেলিভারির জন্য নিত্যপ্রয়োজনীয় পণ্য।',
-        image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-    },
     sections: [
-        { title: 'Daily Needs', links: ['Rice', 'Lentils', 'Oil', 'Spices'] },
-        { title: 'Snacks & Beverages', links: ['Chips', 'Juices', 'Soft Drinks'] },
-        { title: 'Baby Care', links: ['Diapers', 'Baby Food', 'Wipes'] }
-    ]
-  },
-    {
-    name: 'TOOLS',
-    href: '#',
-    promo: {
-        title: 'Industrial & Tools',
-        description: 'হার্ডওয়্যার টুলস, সেফটি গিয়ার এবং ছোট মেশিনারি।',
-        image: 'https://images.unsplash.com/photo-1518615345293-441a1443a9d9?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-    },
-    sections: [
-        { title: 'Hardware Tools', links: ['Drills', 'Hammers', 'Screwdrivers'] },
-        { title: 'Safety Gear', links: ['Helmets', 'Gloves', 'Goggles'] },
-        { title: 'Machinery', links: ['Welding Machines', 'Power Saws'] }
-    ]
+        { title: 'Diapering', links: ['Diapers', 'Wipes', 'Changing Mats'] },
+        { title: 'Feeding', links: ['Baby Food', 'Bottles', 'High Chairs'] },
+        { title: 'Gear', links: ['Strollers', 'Car Seats', 'Baby Carriers'] },
+        { title: 'Nursery', links: ['Cribs', 'Monitors', 'Bedding'] },
+    ],
   },
   {
-    name: 'GIFTS',
+    name: 'Musical Instruments',
     href: '#',
-    promo: {
-        title: 'Gifts & Flowers',
-        description: 'গিফট বক্স, পার্সোনালাইজড আইটেম এবং ফুল।',
-        image: 'https://images.unsplash.com/photo-1531747118684-6f3b0114c513?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'
-    },
     sections: [
-        { title: 'Gift Boxes', links: ['Corporate Gifts', 'Birthday Boxes'] },
-        { title: 'Personalized Items', links: ['Mugs', 'T-Shirts', 'Photo Frames'] },
-        { title: 'Flowers', links: ['Roses', 'Orchids', 'Bouquets'] }
-    ]
+        { title: 'Guitars', links: ['Acoustic', 'Electric', 'Bass', 'Ukuleles'] },
+        { title: 'Keyboards', links: ['Digital Pianos', 'Synthesizers', 'MIDI Controllers'] },
+        { title: 'Drums & Percussion', links: ['Acoustic Kits', 'Electronic Kits', 'Cymbals'] },
+        { title: 'Studio Gear', links: ['Microphones', 'Audio Interfaces', 'Monitors'] },
+    ],
   },
 ];
 
+
 const NavItem = ({
   category,
-  children,
 }: {
   category: (typeof categories)[0];
-  children: React.ReactNode;
 }) => (
   <div className="group static">
-    {' '}
-    {/* 'static' is important for the mega menu to span the full width */}
     <Link
       href={category.href}
-      className="flex items-center gap-1 py-4 font-headline font-bold text-sm uppercase text-foreground hover:text-primary transition-colors"
+      className="flex items-center gap-1 py-4 font-saira font-bold text-sm uppercase text-foreground hover:text-primary transition-colors"
     >
       {category.name}
     </Link>
-    {/* --- Mega Menu Container --- */}
     {category.sections && (
-      <div className="absolute left-0 w-screen top-full bg-background/80 border-t shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-40 backdrop-blur-sm">
+      <div className="absolute left-0 top-full w-screen bg-background/80 border-t shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-40 backdrop-blur-sm">
         <div className="container mx-auto grid grid-cols-4 gap-8 p-10">
-          {children}
+          {category.sections.map(section => (
+            <div key={section.title} className="col-span-1">
+              <h4 className="font-bold text-primary mb-4 uppercase font-saira text-sm tracking-wider">
+                {section.title}
+              </h4>
+              <ul className="space-y-3 text-sm font-noto">
+                {section.links.map(link => (
+                  <li key={link}>
+                    <Link
+                      href="#"
+                      className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-transform cursor-pointer block font-medium"
+                    >
+                      {link}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
       </div>
     )}
@@ -259,32 +175,7 @@ export function StoreHeader() {
           <div className="border-t bg-background">
             <div className="container flex h-14 items-center justify-center space-x-6">
               {categories.map(category => (
-                <NavItem key={category.name} category={category}>
-                  {category.sections && (
-                    <>
-                      {/* Links Columns */}
-                      {category.sections.map(section => (
-                        <div key={section.title} className="col-span-1">
-                          <h4 className="font-bold text-primary mb-4 uppercase font-headline text-sm tracking-wider">
-                            {section.title}
-                          </h4>
-                          <ul className="space-y-3 text-sm font-body">
-                            {section.links.map(link => (
-                              <li key={link}>
-                                <Link
-                                  href="#"
-                                  className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-transform cursor-pointer block font-medium"
-                                >
-                                  {link}
-                                </Link>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </>
-                  )}
-                </NavItem>
+                <NavItem key={category.name} category={category} />
               ))}
             </div>
           </div>
@@ -370,11 +261,6 @@ export function StoreHeader() {
                   </AccordionItem>
                 ))}
               </Accordion>
-              <div className="mt-6 border-t pt-6">
-                <Link href="#" className="font-bold text-base text-destructive">
-                  SALE
-                </Link>
-              </div>
             </div>
             <div className="p-4 border-t mt-auto bg-background">
               <Link href="/login">
