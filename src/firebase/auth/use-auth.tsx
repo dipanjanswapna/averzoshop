@@ -11,16 +11,10 @@ import {
 import type { Auth, User } from 'firebase/auth';
 import { onAuthStateChanged, getIdToken } from 'firebase/auth';
 import type { Firestore } from 'firebase/firestore';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { useFirebase } from '../provider';
+import type { UserData } from '@/types/user';
 
-interface UserData {
-  uid: string;
-  email: string | null;
-  displayName: string | null;
-  photoURL: string | null;
-  role: string;
-}
 
 interface AuthContextValue {
   auth?: Auth;
@@ -48,36 +42,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       setUser(user);
       if (user) {
         // Set cookie for server-side rendering
         const token = await getIdToken(user);
         document.cookie = `firebaseIdToken=${token}; path=/;`;
-        
-        // Fetch user role from Firestore
-        if (firestore) {
-            const userDocRef = doc(firestore, 'users', user.uid);
-            const userDoc = await getDoc(userDocRef);
-            if (userDoc.exists()) {
-                setUserData(userDoc.data() as UserData);
-            } else {
-                // This case can happen if a user authenticates but their doc isn't created yet
-                // e.g., during the registration process.
-                setUserData(null);
-            }
-        }
-
       } else {
         // Clear cookie on sign out
         document.cookie = 'firebaseIdToken=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
         setUserData(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return () => unsubscribe();
-  }, [auth, firestore]);
+    return () => unsubscribeAuth();
+  }, [auth]);
+
+
+  useEffect(() => {
+    if (!firestore || !user) {
+        setLoading(false);
+        return;
+    }
+
+    setLoading(true);
+    const userDocRef = doc(firestore, 'users', user.uid);
+    const unsubscribeFirestore = onSnapshot(userDocRef, (doc) => {
+        if (doc.exists()) {
+            setUserData(doc.data() as UserData);
+        } else {
+            setUserData(null);
+        }
+        setLoading(false);
+    }, (error) => {
+        console.error("Error fetching user data:", error);
+        setUserData(null);
+        setLoading(false);
+    });
+
+    return () => unsubscribeFirestore();
+
+  }, [firestore, user]);
+
 
   const value = { auth, firestore, user, userData, loading };
 

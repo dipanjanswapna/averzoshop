@@ -28,6 +28,13 @@
           "type": "string",
           "description": "The role of the user.",
           "enum": ["customer", "admin", "outlet", "vendor", "rider"]
+        },
+        "wishlist": {
+            "type": "array",
+            "description": "An array of product IDs that the user has added to their wishlist.",
+            "items": {
+                "type": "string"
+            }
         }
       },
       "required": ["uid", "email", "role"]
@@ -41,7 +48,7 @@
       "schema": {
         "$ref": "#/entities/user"
       },
-      "description": "Stores user profile information, including their role."
+      "description": "Stores user profile information, including their role and wishlist."
     }
   }
 }
