@@ -66,7 +66,7 @@ export default function StoreFrontPage() {
                     <span className="sr-only">Open Menu</span>
                 </Button>
             </SheetTrigger>
-            <nav className="flex items-center space-x-6 text-sm font-medium font-body group">
+            <nav className="flex items-center space-x-6 text-sm font-medium font-body group overflow-x-auto pb-2">
               <div className="group cursor-pointer">
                   <span className="hover:text-primary transition-colors flex items-center gap-1">MEN <ChevronDown size={16}/></span>
                   {/* Mega Menu Container */}
@@ -100,12 +100,12 @@ export default function StoreFrontPage() {
                     </div>
                   </div>
               </div>
-              <Link href="#" className="transition-colors hover:text-primary flex items-center gap-1">
-                Women <ChevronDown size={16}/>
-              </Link>
-              <Link href="#" className="transition-colors hover:text-primary flex items-center gap-1">
-                Kids <ChevronDown size={16}/>
-              </Link>
+              <div className="group cursor-pointer">
+                <span className="hover:text-primary transition-colors flex items-center gap-1">Women <ChevronDown size={16}/></span>
+              </div>
+              <div className="group cursor-pointer">
+                <span className="hover:text-primary transition-colors flex items-center gap-1">Kids <ChevronDown size={16}/></span>
+              </div>
               <div className="group cursor-pointer">
                   <span className="hover:text-primary transition-colors flex items-center gap-1">Electronics <ChevronDown size={16}/></span>
                   <div className="absolute left-0 w-full bg-background shadow-lg border-t hidden group-hover:grid grid-cols-4 gap-x-8 p-10 mt-3 animate-in fade-in slide-in-from-top-2">
@@ -137,7 +137,7 @@ export default function StoreFrontPage() {
               </div>
 
                <div className="group cursor-pointer">
-                  <span className="hover:text-primary transition-colors flex items-center gap-1">Health & Wellness <ChevronDown size={16}/></span>
+                  <span className="hover:text-primary transition-colors flex items-center gap-1">Health &amp; Wellness <ChevronDown size={16}/></span>
                   <div className="absolute left-0 w-full bg-background shadow-lg border-t hidden group-hover:grid grid-cols-4 gap-x-8 p-10 mt-3 animate-in fade-in slide-in-from-top-2">
                     <div>
                       <h4 className="font-bold text-primary mb-3 uppercase font-headline">Supplements</h4>
@@ -184,21 +184,6 @@ export default function StoreFrontPage() {
                   </div>
                 </div>
 
-              <Link href="#" className="font-bold text-destructive hover:text-destructive/90">
-                Sale
-              </Link>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-auto w-auto p-1">
-                    <MoreHorizontal size={20} />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem>Deals</DropdownMenuItem>
-                  <DropdownMenuItem>Support</DropdownMenuItem>
-                  <DropdownMenuItem>Track Order</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </nav>
 
             <div className="flex flex-1 items-center justify-end space-x-4">
@@ -318,7 +303,7 @@ export default function StoreFrontPage() {
                         </AccordionContent>
                     </AccordionItem>
                      <AccordionItem value="health">
-                        <AccordionTrigger className="font-bold text-base">HEALTH & WELLNESS</AccordionTrigger>
+                        <AccordionTrigger className="font-bold text-base">HEALTH &amp; WELLNESS</AccordionTrigger>
                         <AccordionContent>
                             <Accordion type="multiple" className="w-full pl-4">
                                 <AccordionItem value="supplements">
@@ -597,7 +582,7 @@ export default function StoreFrontPage() {
                     href="#"
                     className="text-muted-foreground hover:text-primary"
                   >
-                    Shipping & Returns
+                    Shipping &amp; Returns
                   </Link>
                 </li>
               </ul>
@@ -611,6 +596,8 @@ export default function StoreFrontPage() {
     </div>
   );
 }
+
+    
 
     
 
