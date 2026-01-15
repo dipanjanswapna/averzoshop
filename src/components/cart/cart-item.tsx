@@ -15,11 +15,11 @@ interface CartItemProps {
 
 export function CartItem({ item }: CartItemProps) {
   const { updateQuantity, removeItem } = useCart();
-  const { product, quantity } = item;
+  const { product, variant, quantity } = item;
 
   return (
     <div className="flex items-start gap-4 border-b pb-6 last:border-b-0 last:pb-0">
-      <Link href={`/product/${product.id}`} className="flex-shrink-0">
+      <Link href={`/product/${product.id}?sku=${variant.sku}`} className="flex-shrink-0">
         <div className="relative h-24 w-24 rounded-lg overflow-hidden border">
           <Image
             src={product.image}
@@ -30,13 +30,14 @@ export function CartItem({ item }: CartItemProps) {
         </div>
       </Link>
       <div className="flex-1">
-        <Link href={`/product/${product.id}`}>
+        <Link href={`/product/${product.id}?sku=${variant.sku}`}>
           <h3 className="font-semibold text-sm hover:text-primary">{product.name}</h3>
         </Link>
         <p className="text-xs text-muted-foreground mt-1">
-            {product.colors.length > 0 && `Color: ${product.colors[0]}`}
-            {product.colors.length > 0 && product.sizes.length > 0 && ' / '}
-            {product.sizes.length > 0 && `Size: ${product.sizes[0]}`}
+            {variant.color && `Color: ${variant.color}`}
+            {variant.color && variant.size && ' / '}
+            {variant.size && `Size: ${variant.size}`}
+            {!variant.color && !variant.size && 'Standard'}
         </p>
 
         <div className="flex items-center justify-between mt-4">
@@ -45,7 +46,7 @@ export function CartItem({ item }: CartItemProps) {
               variant="ghost"
               size="icon"
               className="h-8 w-8"
-              onClick={() => updateQuantity(product.id, quantity - 1)}
+              onClick={() => updateQuantity(variant.sku, quantity - 1)}
             >
               <Minus size={14} />
             </Button>
@@ -54,15 +55,15 @@ export function CartItem({ item }: CartItemProps) {
               variant="ghost"
               size="icon"
               className="h-8 w-8"
-              onClick={() => updateQuantity(product.id, quantity + 1)}
+              onClick={() => updateQuantity(variant.sku, quantity + 1)}
             >
               <Plus size={14} />
             </Button>
           </div>
           <div className="text-right">
-              <p className="font-bold text-base text-primary">৳{(product.price * quantity).toFixed(2)}</p>
+              <p className="font-bold text-base text-primary">৳{(variant.price * quantity).toFixed(2)}</p>
                {quantity > 1 && (
-                 <p className="text-xs text-muted-foreground">৳{product.price.toFixed(2)} each</p>
+                 <p className="text-xs text-muted-foreground">৳{variant.price.toFixed(2)} each</p>
                )}
           </div>
         </div>
@@ -71,7 +72,7 @@ export function CartItem({ item }: CartItemProps) {
         variant="ghost"
         size="icon"
         className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-8 w-8"
-        onClick={() => removeItem(product.id)}
+        onClick={() => removeItem(variant.sku)}
       >
         <Trash2 size={16} />
       </Button>

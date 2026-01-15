@@ -28,10 +28,21 @@ export const useCart = create<CartState>()(
           (item) => item.variant.sku === variant.sku
         );
 
+        let newQuantity = existingItem ? existingItem.quantity + quantity : quantity;
+
+        if (newQuantity > variant.stock) {
+            toast({
+                variant: 'destructive',
+                title: 'Stock limit reached',
+                description: `You can only add up to ${variant.stock} items for this variant.`,
+            });
+            newQuantity = variant.stock;
+        }
+
         if (existingItem) {
-           get().updateQuantity(variant.sku, existingItem.quantity + quantity);
+           get().updateQuantity(variant.sku, newQuantity);
         } else {
-            set({ items: [...get().items, { product, variant, quantity }] });
+            set({ items: [...get().items, { product, variant, quantity: newQuantity }] });
         }
         
         toast({
@@ -49,6 +60,18 @@ export const useCart = create<CartState>()(
         });
       },
       updateQuantity: (variantSku, quantity) => {
+        const itemToUpdate = get().items.find(item => item.variant.sku === variantSku);
+        if (!itemToUpdate) return;
+        
+        if (quantity > itemToUpdate.variant.stock) {
+            toast({
+                variant: 'destructive',
+                title: 'Stock limit reached',
+                description: `Only ${itemToUpdate.variant.stock} items available.`,
+            });
+            quantity = itemToUpdate.variant.stock;
+        }
+
         if (quantity <= 0) {
           get().removeItem(variantSku);
         } else {
