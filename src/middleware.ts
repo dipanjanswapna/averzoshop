@@ -21,8 +21,11 @@ export function middleware(request: NextRequest) {
   }
 
   // If the user is authenticated and tries to access an auth page (login/register),
-  // let them stay. The login page itself will handle the "Go to Dashboard" logic.
-  // This prevents redirect loops if they land on /login while already having a cookie.
+  // redirect them to the main dashboard. The dashboard layout will then handle
+  // routing to the correct dashboard (admin vs customer).
+  if (idToken && isAuthPage) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
 
   return NextResponse.next();
 }

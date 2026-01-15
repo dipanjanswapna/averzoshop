@@ -27,19 +27,13 @@ export default function DashboardLayout({
   const router = useRouter();
 
   useEffect(() => {
-    // If not loading and no user is found, redirect to login.
-    // This is a fallback, as middleware should handle this.
-    if (!loading && !user) {
-      router.push('/login');
-    }
-  }, [user, loading, router]);
-
-  useEffect(() => {
     // Once user data is loaded, check their role.
-    if (userData?.role === 'customer') {
+    // If the user is a customer, they should not be on the admin dashboard.
+    // The middleware now handles the initial redirection, but this is a failsafe.
+    if (!loading && userData?.role === 'customer') {
       router.replace('/customer');
     }
-  }, [userData, router]);
+  }, [userData, loading, router]);
 
 
   // Initial loading state for the entire dashboard

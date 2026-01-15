@@ -27,8 +27,8 @@ export default function CustomerDashboardLayout({
   const router = useRouter();
 
   useEffect(() => {
-    // Fallback protection: If loading is done and there's no user, redirect to login.
-    // The middleware should handle this, but this is a safety net.
+    // The middleware already protects this route.
+    // This is an additional client-side check.
     if (!loading && !user) {
       router.push('/login');
     }
@@ -43,10 +43,9 @@ export default function CustomerDashboardLayout({
     );
   }
   
-  // If user data is available, and the role is NOT customer, they don't belong here.
-  // This can happen if an admin tries to manually navigate to /customer.
-  // The main dashboard layout will handle redirecting them to the correct place.
+  // If a non-customer somehow lands here, redirect them.
   if (userData && userData.role !== 'customer') {
+      router.replace('/dashboard'); // Redirect to the main dashboard
       return (
           <div className="flex h-screen items-center justify-center bg-background text-foreground">
               <p>Access Denied. Redirecting...</p>
