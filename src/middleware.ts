@@ -1,9 +1,8 @@
+export const runtime = 'nodejs';
 
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { auth } from '@/firebase/server';
-
-export const runtime = 'nodejs';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -30,7 +29,7 @@ export async function middleware(request: NextRequest) {
   }
 
   if (decodedToken && isAuthPage) {
-    if (decodedToken.role === 'customer') {
+    if ((decodedToken as any).role === 'customer') {
       return NextResponse.redirect(new URL('/customer', request.url))
     }
     return NextResponse.redirect(new URL('/dashboard', request.url))
