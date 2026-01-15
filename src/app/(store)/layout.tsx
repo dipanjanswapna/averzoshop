@@ -1,5 +1,6 @@
 
 import AverzoLogo from '@/components/averzo-logo';
+import StoreHeader from '@/components/store-header';
 import Link from 'next/link';
 
 export default function StoreLayout({
@@ -9,7 +10,8 @@ export default function StoreLayout({
 }>) {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground font-body">
-      <main className="flex-1">{children}</main>
+      <StoreHeader />
+      <main className="flex-1 pt-[112px]">{children}</main>
       {/* --- Desktop Footer --- */}
       <footer className="bg-secondary text-secondary-foreground hidden lg:block">
         <div className="container py-12">
