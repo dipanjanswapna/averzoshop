@@ -33,7 +33,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Saira:wght@600;700;800&display=swap" rel="stylesheet" />
       </head>
-      <body className={cn('font-body antialiased min-h-screen bg-background')}>
+      <body className={cn('font-body antialiased min-h-screen bg-background pb-16 lg:pb-0')}>
         <FirebaseClientProvider>
           {children}
           <Toaster />

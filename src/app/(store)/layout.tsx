@@ -13,7 +13,7 @@ export default function StoreLayout({
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground font-body">
       <AverzoNavbar />
-      <main className="flex-1 pt-[112px]">{children}</main>
+      <main className="flex-1 pt-[112px] pb-20">{children}</main>
       {/* --- Desktop Footer --- */}
       <footer className="bg-secondary text-secondary-foreground hidden lg:block">
         <div className="container py-12">
@@ -135,7 +135,6 @@ export default function StoreLayout({
           </div>
         </div>
       </footer>
-      <MobileBottomNav />
     </div>
   );
 }
