@@ -1,5 +1,6 @@
 
 
+
 import { MobileBottomNav } from '@/components/mobile-bottom-nav';
 import AverzoNavbar from '@/components/store-header';
 import Link from 'next/link';
@@ -13,7 +14,7 @@ export default function StoreLayout({
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground font-body">
       <AverzoNavbar />
-      <main className="flex-1 pt-[112px] pb-20">{children}</main>
+      <main className="flex-1 pt-[112px] pb-24 lg:pb-0">{children}</main>
       {/* --- Desktop Footer --- */}
       <footer className="bg-secondary text-secondary-foreground hidden lg:block">
         <div className="container py-12">

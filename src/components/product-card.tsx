@@ -4,6 +4,7 @@
 import Image from 'next/image';
 import { Heart, ShoppingCart, Eye, MapPin } from 'lucide-react';
 import type { products } from '@/lib/data';
+import Link from 'next/link';
 
 type Product = (typeof products)[0];
 
@@ -13,7 +14,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
   const stockStatus = product.stock < 10 ? 'Low Stock' : null;
 
   return (
-    <div className="group relative bg-card border border-border rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+    <Link href={`/product/${product.id}`} className="group relative bg-card border border-border rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 block">
       {/* Product Image Section */}
       <div className="relative aspect-square overflow-hidden bg-muted">
         {product.image && (
@@ -73,6 +74,6 @@ export const ProductCard = ({ product }: { product: Product }) => {
           ADD TO CART
         </button>
       </div>
-    </div>
+    </Link>
   );
 };
