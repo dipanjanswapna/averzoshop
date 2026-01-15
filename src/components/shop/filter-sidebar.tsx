@@ -1,6 +1,6 @@
 
 'use client';
-import React from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Slider } from '@/components/ui/slider';
 import type { categoriesData as CategoriesDataType } from '@/lib/categories';
@@ -38,22 +38,23 @@ export const FilterSidebar = ({
 }: FilterSidebarProps) => {
   const [isLoading, setIsLoading] = React.useState(true);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setIsLoading(false);
   }, []);
 
-  const brands = React.useMemo(() => [...new Set(products.map(p => p.group).filter(Boolean))], []);
+  const brands = useMemo(() => [...new Set(products.map(p => p.group).filter(Boolean))], []);
 
-  const availableGroups = React.useMemo(() => {
+  const availableGroups = useMemo(() => {
     if (!selectedMotherCategory) return [];
     const category = categories.find(cat => cat.mother_name === selectedMotherCategory);
     return category?.groups || [];
   }, [selectedMotherCategory, categories]);
 
-  const availableSubcategories = React.useMemo(() => {
-    if (!selectedGroup || !selectedMotherCategory) return [];
+  const availableSubcategories = useMemo(() => {
+    if (!selectedGroup) return [];
     const category = categories.find(cat => cat.mother_name === selectedMotherCategory);
-    const group = category?.groups.find(g => g.group_name === selectedGroup);
+    if (!category) return [];
+    const group = category.groups.find(g => g.group_name === selectedGroup);
     return group?.subs || [];
   }, [selectedGroup, selectedMotherCategory, categories]);
 
@@ -69,15 +70,16 @@ export const FilterSidebar = ({
     onGroupChange(newValue);
     onSubcategoryChange(null);
   };
+  
+  const handleSubcategoryChange = (value: string) => {
+    const newValue = value === 'all' ? null : value;
+    onSubcategoryChange(newValue);
+  };
 
   const handleBrandChange = (value: string) => {
     onBrandChange(value === 'all' ? null : value);
   };
 
-  const handleSubcategoryChange = (value: string) => {
-    const newValue = value === 'all' ? null : value;
-    onSubcategoryChange(newValue);
-  };
 
   if (isLoading) {
     return (
