@@ -86,6 +86,42 @@
       },
       "required": ["outletId", "soldBy", "items", "totalAmount", "paymentMethod", "createdAt"]
     },
+     "order": {
+      "title": "Online Order",
+      "description": "Represents an online order placed by a customer.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "customerId": { "type": "string" },
+        "shippingAddress": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "phone": { "type": "string" },
+            "address": { "type": "string" },
+            "city": { "type": "string" }
+          }
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "productId": { "type": "string" },
+              "productName": { "type": "string" },
+              "variantSku": { "type": "string" },
+              "quantity": { "type": "number" },
+              "price": { "type": "number" }
+            }
+          }
+        },
+        "totalAmount": { "type": "number" },
+        "assignedOutletId": { "type": "string" },
+        "status": { "type": "string", "enum": ["new", "preparing", "shipped", "delivered", "canceled"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["customerId", "shippingAddress", "items", "totalAmount", "assignedOutletId", "status", "createdAt"]
+    },
     "product": {
       "title": "Product",
       "description": "A product sold on the Averzo platform.",
@@ -169,9 +205,11 @@
             "properties": {
               "productId": { "type": "string" },
               "productName": { "type": "string" },
-              "quantity": { "type": "number" }
+              "quantity": { "type": "number" },
+              "variantSku": { "type": "string" },
+              "variantDescription": { "type": "string" }
             },
-            "required": ["productId", "productName", "quantity"]
+            "required": ["productId", "productName", "quantity", "variantSku"]
           }
         },
         "totalQuantity": { "type": "number" },
@@ -196,9 +234,11 @@
             "properties": {
               "productId": { "type": "string" },
               "productName": { "type": "string" },
-              "quantity": { "type": "number" }
+              "quantity": { "type": "number" },
+              "variantSku": { "type": "string" },
+              "variantDescription": { "type": "string" }
             },
-            "required": ["productId", "productName", "quantity"]
+            "required": ["productId", "productName", "quantity", "variantSku"]
           }
         },
         "totalQuantity": { "type": "number" },
@@ -219,6 +259,7 @@
     "/products/{productId}": { "schema": { "$ref": "#/entities/product" }, "description": "Stores all product information for the platform." },
     "/products/{productId}/questions/{questionId}": { "schema": { "$ref": "#/entities/question"}, "description": "Stores customer questions and answers for a specific product."},
     "/stock_requests/{requestId}": { "schema": { "$ref": "#/entities/stock_request" }, "description": "Tracks stock movement requests from vendors to outlets." },
-    "/delivery_challans/{challanId}": { "schema": { "$ref": "#/entities/delivery_challan" }, "description": "Stores delivery challans generated after stock request approvals." }
+    "/delivery_challans/{challanId}": { "schema": { "$ref": "#/entities/delivery_challan" }, "description": "Stores delivery challans generated after stock request approvals." },
+    "/orders/{orderId}": { "schema": { "$ref": "#/entities/order" }, "description": "Stores customer online orders routed to specific outlets for fulfillment." }
   }
 }

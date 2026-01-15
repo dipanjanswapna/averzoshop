@@ -1,6 +1,7 @@
 
 'use client';
 
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -16,7 +17,15 @@ import {
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from '@/hooks/use-toast';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../ui/card';
+import { CardHeader, CardTitle } from '../ui/card';
+import { useCart, CartItem as CartItemType } from '@/hooks/use-cart';
+import { useFirebase } from '@/firebase';
+import { useAuth } from '@/hooks/use-auth';
+import { collection, doc, writeBatch, serverTimestamp, getDocs, Query } from 'firebase/firestore';
+import { calculateDistance } from '@/lib/distance';
+import type { Outlet } from '@/types/outlet';
+import type { Product } from '@/types/product';
+import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -27,23 +36,130 @@ const formSchema = z.object({
 });
 
 export function ShippingForm() {
+  const { items: cartItems, clearCart, total } = useCart(state => ({
+    items: state.items,
+    clearCart: state.clearCart,
+    total: state.items.reduce((acc, item) => acc + (item.variant?.price || 0) * item.quantity, 0),
+  }));
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: '',
-      phone: '',
-      address: '',
-      city: '',
-      paymentMethod: 'cod',
-    },
+    defaultValues: { name: '', phone: '', address: '', city: 'Dhaka', paymentMethod: 'cod' },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log('Form Submitted', values);
-    toast({
-      title: 'Order Placed!',
-      description: 'Your order has been successfully placed.',
-    });
+  const [isLoading, setIsLoading] = useState(false);
+  const { firestore } = useFirebase();
+  const { user } = useAuth();
+  const router = useRouter();
+
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true);
+    if (!firestore || !user || cartItems.length === 0) {
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not process order. Please try again.' });
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      // 1. Fetch all products and outlets
+      const [productsSnapshot, outletsSnapshot] = await Promise.all([
+        getDocs(collection(firestore, 'products')),
+        getDocs(collection(firestore, 'outlets'))
+      ]);
+      const allProducts = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Product[];
+      const allOutlets = outletsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Outlet[];
+      
+      // 2. Find outlets that have all items in stock
+      const suitableOutlets = allOutlets.filter(outlet => {
+        return cartItems.every(cartItem => {
+          const product = allProducts.find(p => p.id === cartItem.product.id);
+          if (!product) return false;
+          const stockInOutlet = product.outlet_stocks?.[outlet.id] ?? 0;
+          return stockInOutlet >= cartItem.quantity;
+        });
+      });
+
+      if (suitableOutlets.length === 0) {
+        toast({ variant: 'destructive', title: 'Out of Stock', description: 'Sorry, no single outlet can fulfill your entire order at the moment.' });
+        setIsLoading(false);
+        return;
+      }
+
+      // 3. Find the nearest outlet among the suitable ones
+      // For this demo, customer location is hardcoded to a central point in Dhaka.
+      const customerCoords = { lat: 23.8103, lng: 90.4125 }; 
+      
+      const nearestOutlet = suitableOutlets.reduce((closest, outlet) => {
+          const distance = calculateDistance(
+              customerCoords.lat,
+              customerCoords.lng,
+              outlet.location.lat,
+              outlet.location.lng
+          );
+          if (!closest || distance < closest.distance) {
+              return { ...outlet, distance };
+          }
+          return closest;
+      }, null as (Outlet & { distance: number }) | null);
+
+      if (!nearestOutlet) {
+        toast({ variant: 'destructive', title: 'Routing Error', description: 'Could not find a suitable outlet to ship from.' });
+        setIsLoading(false);
+        return;
+      }
+
+      // 4. Create a batch write to create the order and update stock
+      const batch = writeBatch(firestore);
+      
+      // Create new order
+      const orderRef = doc(collection(firestore, 'orders'));
+      batch.set(orderRef, {
+        customerId: user.uid,
+        shippingAddress: values,
+        items: cartItems.map(item => ({
+          productId: item.product.id,
+          productName: item.product.name,
+          variantSku: item.variant.sku,
+          quantity: item.quantity,
+          price: item.variant.price
+        })),
+        totalAmount: total,
+        assignedOutletId: nearestOutlet.id,
+        status: 'new',
+        createdAt: serverTimestamp(),
+      });
+
+      // Update stock for each item
+      for (const cartItem of cartItems) {
+        const productRef = doc(firestore, 'products', cartItem.product.id);
+        const product = allProducts.find(p => p.id === cartItem.product.id)!;
+        const variantIndex = product.variants.findIndex(v => v.sku === cartItem.variant.sku);
+        
+        batch.update(productRef, {
+          total_stock: product.total_stock - cartItem.quantity,
+          [`outlet_stocks.${nearestOutlet.id}`]: (product.outlet_stocks[nearestOutlet.id] || 0) - cartItem.quantity,
+          [`variants.${variantIndex}.stock`]: product.variants[variantIndex].stock - cartItem.quantity
+        });
+      }
+
+      // 5. Commit the batch
+      await batch.commit();
+
+      // 6. Clear cart and show success
+      clearCart();
+      toast({
+        title: 'Order Placed!',
+        description: `Your order has been routed to our ${nearestOutlet.name} outlet for fulfillment.`,
+      });
+      router.push('/customer/my-orders');
+
+    } catch (error: any) {
+      console.error("Order placement failed:", error);
+      toast({ variant: 'destructive', title: 'Order Failed', description: error.message || 'An unexpected error occurred.' });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -126,10 +242,10 @@ export function ShippingForm() {
                     </FormItem>
                     <FormItem className="flex items-center space-x-3 space-y-0">
                       <FormControl>
-                        <RadioGroupItem value="online" />
+                        <RadioGroupItem value="online" disabled />
                       </FormControl>
-                      <FormLabel className="font-normal">
-                        Online Payment
+                      <FormLabel className="font-normal text-muted-foreground">
+                        Online Payment (Coming Soon)
                       </FormLabel>
                     </FormItem>
                   </RadioGroup>
@@ -139,7 +255,9 @@ export function ShippingForm() {
             )}
           />
 
-          <Button type="submit" className="w-full" size="lg">Place Order</Button>
+          <Button type="submit" className="w-full" size="lg" disabled={isLoading || cartItems.length === 0}>
+            {isLoading ? 'Processing...' : 'Place Order'}
+          </Button>
         </form>
       </Form>
   );
