@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
-import { categoriesData, products } from '@/lib/data';
+import { products } from '@/lib/data';
+import { categoriesData } from '@/lib/categories';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const brands = [...new Set(products.map(p => p.group))]; // Example brands from product groups
