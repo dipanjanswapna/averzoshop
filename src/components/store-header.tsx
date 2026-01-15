@@ -308,7 +308,7 @@ const NavItem = ({
       {category.name}
     </Link>
     {(category.sections || category.megaMenu) && (
-      <div className="absolute left-0 top-full w-screen bg-background/80 border-t shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-40 backdrop-blur-sm">
+      <div className="absolute left-0 top-full w-screen bg-background/80 border-t shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-40 backdrop-blur-sm max-h-[70vh] overflow-y-auto">
         <div className="container mx-auto p-10">
           {category.megaMenu?.type === 'grid' ? (
              <div className="grid grid-cols-5 gap-x-8 gap-y-4">
