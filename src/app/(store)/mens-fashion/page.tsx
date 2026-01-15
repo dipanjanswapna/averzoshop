@@ -149,9 +149,9 @@ export default function MensFashionPage() {
   }, [selectedBrand, selectedGroup, selectedSubcategory, priceRange, sortBy, selectedMotherCategory]);
 
   return (
-    <div className="py-8">
+    <div>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center my-8 md:my-12">
+        <div className="text-center pt-8 mb-8 md:pt-12 md:mb-12">
           <h1 className="text-4xl md:text-5xl font-extrabold font-headline tracking-tight">
             Men's Fashion
           </h1>
