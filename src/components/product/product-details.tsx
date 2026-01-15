@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -15,6 +16,7 @@ import { ShareButtons } from './share-buttons';
 import { SizeGuideDialog } from './size-guide-dialog';
 import { useCart } from '@/hooks/use-cart';
 import Barcode from 'react-barcode';
+import { useReactToPrint } from 'react-to-print';
 import { ProductSticker } from './product-sticker';
 
 export function ProductDetails({ product }: { product: Product }) {
@@ -34,9 +36,9 @@ export function ProductDetails({ product }: { product: Product }) {
   const { toast } = useToast();
   
   const stickerRef = useRef<HTMLDivElement>(null);
-  const handlePrint = () => {
-    window.print();
-  };
+  const handlePrint = useReactToPrint({
+    content: () => stickerRef.current,
+  });
 
   const uniqueColors = useMemo(() => [...new Set(product.variants?.map(v => v.color).filter(Boolean))], [product.variants]);
   const uniqueSizes = useMemo(() => [...new Set(product.variants?.map(v => v.size).filter(Boolean))], [product.variants]);
@@ -302,7 +304,7 @@ export function ProductDetails({ product }: { product: Product }) {
         </div>
        )}
 
-      <div className="hidden printable-area">
+      <div className="hidden">
         {selectedVariant && (
           <ProductSticker
             ref={stickerRef}

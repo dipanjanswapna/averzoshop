@@ -12,16 +12,16 @@ interface ProductStickerProps {
 
 export const ProductSticker = React.forwardRef<HTMLDivElement, ProductStickerProps>(({ product, variant }, ref) => {
   return (
-    <div ref={ref} className="p-4 border border-dashed border-black w-[300px] font-sans bg-white">
+    <div ref={ref} className="p-4 border border-dashed border-black w-[300px] font-sans bg-white text-black">
       <div className="text-center space-y-1">
-        <p className="text-sm font-bold uppercase text-black">{product.brand}</p>
-        <p className="text-xs text-black">{product.name}</p>
+        <p className="text-sm font-bold uppercase">{product.brand}</p>
+        <p className="text-xs">{product.name}</p>
         {(variant.color || variant.size) && (
-             <p className="text-xs font-semibold text-black">
+             <p className="text-xs font-semibold">
                 {variant.color}{variant.color && variant.size && ' / '}{variant.size}
             </p>
         )}
-        <p className="text-lg font-bold text-black">৳{variant.price.toFixed(2)}</p>
+        <p className="text-lg font-bold">৳{variant.price.toFixed(2)}</p>
         <div className="flex justify-center pt-2">
             <Barcode 
                 value={variant.sku}
@@ -29,6 +29,7 @@ export const ProductSticker = React.forwardRef<HTMLDivElement, ProductStickerPro
                 height={40}
                 fontSize={12}
                 margin={0}
+                background="transparent"
             />
         </div>
       </div>
