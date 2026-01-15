@@ -128,104 +128,106 @@ export default function ShopPage() {
 
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href="/">Home</BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Shop</BreadcrumbPage>
-            </BreadcrumbItem>
-             {selectedMotherCategory && <BreadcrumbSeparator />}
-             {selectedMotherCategory && (
+    <div className="bg-secondary">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
+            <Breadcrumb>
+            <BreadcrumbList>
                 <BreadcrumbItem>
-                    <BreadcrumbPage>{selectedMotherCategory}</BreadcrumbPage>
+                <BreadcrumbLink href="/">Home</BreadcrumbLink>
                 </BreadcrumbItem>
-             )}
-             {selectedGroup && <BreadcrumbSeparator />}
-             {selectedGroup && (
+                <BreadcrumbSeparator />
                 <BreadcrumbItem>
-                    <BreadcrumbPage>{selectedGroup}</BreadcrumbPage>
+                <BreadcrumbPage>Shop</BreadcrumbPage>
                 </BreadcrumbItem>
-             )}
-             {selectedSubcategory && <BreadcrumbSeparator />}
-             {selectedSubcategory && (
-                <BreadcrumbItem>
-                    <BreadcrumbPage>{selectedSubcategory}</BreadcrumbPage>
-                </BreadcrumbItem>
-             )}
-          </BreadcrumbList>
-        </Breadcrumb>
-        <div className="flex items-center gap-4 w-full md:w-auto">
-            <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-                <SheetTrigger asChild>
-                    <Button variant="outline" className="flex items-center gap-2 lg:hidden">
-                        <Filter size={16} />
-                        <span>Filter</span>
-                    </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-[85%] sm:max-w-sm p-0">
-                    <SheetHeader className="p-4 border-b">
-                        <SheetTitle>Filter & Sort</SheetTitle>
-                    </SheetHeader>
-                    <ScrollArea className="h-[calc(100vh-80px)] overflow-y-auto">
-                       <FilterSidebar 
-                         isLoading={loading}
-                         priceRange={priceRange}
-                         setPriceRange={setPriceRange}
-                         selectedBrand={selectedBrand}
-                         setSelectedBrand={setSelectedBrand}
-                         selectedMotherCategory={selectedMotherCategory}
-                         setSelectedMotherCategory={setSelectedMotherCategory}
-                         selectedGroup={selectedGroup}
-                         setSelectedGroup={setSelectedGroup}
-                         selectedSubcategory={selectedSubcategory}
-                         setSelectedSubcategory={setSelectedSubcategory}
-                       />
-                    </ScrollArea>
-                </SheetContent>
-            </Sheet>
+                {selectedMotherCategory && <BreadcrumbSeparator />}
+                {selectedMotherCategory && (
+                    <BreadcrumbItem>
+                        <BreadcrumbPage>{selectedMotherCategory}</BreadcrumbPage>
+                    </BreadcrumbItem>
+                )}
+                {selectedGroup && <BreadcrumbSeparator />}
+                {selectedGroup && (
+                    <BreadcrumbItem>
+                        <BreadcrumbPage>{selectedGroup}</BreadcrumbPage>
+                    </BreadcrumbItem>
+                )}
+                {selectedSubcategory && <BreadcrumbSeparator />}
+                {selectedSubcategory && (
+                    <BreadcrumbItem>
+                        <BreadcrumbPage>{selectedSubcategory}</BreadcrumbPage>
+                    </BreadcrumbItem>
+                )}
+            </BreadcrumbList>
+            </Breadcrumb>
+            <div className="flex items-center gap-4 w-full md:w-auto">
+                <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+                    <SheetTrigger asChild>
+                        <Button variant="outline" className="flex items-center gap-2 lg:hidden">
+                            <Filter size={16} />
+                            <span>Filter</span>
+                        </Button>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="w-[85%] sm:max-w-sm p-0">
+                        <SheetHeader className="p-4 border-b">
+                            <SheetTitle>Filter & Sort</SheetTitle>
+                        </SheetHeader>
+                        <ScrollArea className="h-[calc(100vh-80px)] overflow-y-auto">
+                        <FilterSidebar 
+                            isLoading={loading}
+                            priceRange={priceRange}
+                            setPriceRange={setPriceRange}
+                            selectedBrand={selectedBrand}
+                            setSelectedBrand={setSelectedBrand}
+                            selectedMotherCategory={selectedMotherCategory}
+                            setSelectedMotherCategory={setSelectedMotherCategory}
+                            selectedGroup={selectedGroup}
+                            setSelectedGroup={setSelectedGroup}
+                            selectedSubcategory={selectedSubcategory}
+                            setSelectedSubcategory={setSelectedSubcategory}
+                        />
+                        </ScrollArea>
+                    </SheetContent>
+                </Sheet>
 
-            <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-full md:w-[220px]">
-                <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                <SelectItem value="newest">Sort by: Newest</SelectItem>
-                <SelectItem value="popularity">Sort by: Popularity</SelectItem>
-                <SelectItem value="price-asc">Sort by: Price Low to High</SelectItem>
-                <SelectItem value="price-desc">Sort by: Price High to Low</SelectItem>
-                </SelectContent>
-            </Select>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="w-full md:w-[220px]">
+                    <SelectValue placeholder="Sort by" />
+                    </SelectTrigger>
+                    <SelectContent>
+                    <SelectItem value="newest">Sort by: Newest</SelectItem>
+                    <SelectItem value="popularity">Sort by: Popularity</SelectItem>
+                    <SelectItem value="price-asc">Sort by: Price Low to High</SelectItem>
+                    <SelectItem value="price-desc">Sort by: Price High to Low</SelectItem>
+                    </SelectContent>
+                </Select>
+            </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <aside className="hidden lg:block lg:col-span-1">
-          <div className="sticky top-28">
-            <FilterSidebar 
-              isLoading={loading}
-              priceRange={priceRange}
-              setPriceRange={setPriceRange}
-              selectedBrand={selectedBrand}
-              setSelectedBrand={setSelectedBrand}
-              selectedMotherCategory={selectedMotherCategory}
-              setSelectedMotherCategory={setSelectedMotherCategory}
-              selectedGroup={selectedGroup}
-              setSelectedGroup={setSelectedGroup}
-              selectedSubcategory={selectedSubcategory}
-              setSelectedSubcategory={setSelectedSubcategory}
-            />
-          </div>
-        </aside>
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <aside className="hidden lg:block lg:col-span-1">
+            <div className="sticky top-28">
+                <FilterSidebar 
+                isLoading={loading}
+                priceRange={priceRange}
+                setPriceRange={setPriceRange}
+                selectedBrand={selectedBrand}
+                setSelectedBrand={setSelectedBrand}
+                selectedMotherCategory={selectedMotherCategory}
+                setSelectedMotherCategory={setSelectedMotherCategory}
+                selectedGroup={selectedGroup}
+                setSelectedGroup={setSelectedGroup}
+                selectedSubcategory={selectedSubcategory}
+                setSelectedSubcategory={setSelectedSubcategory}
+                />
+            </div>
+            </aside>
 
-        <main className="lg:col-span-3">
-          <ProductGrid products={filteredProducts} isLoading={loading} />
-        </main>
-      </div>
+            <main className="lg:col-span-3">
+            <ProductGrid products={filteredProducts} isLoading={loading} />
+            </main>
+        </div>
+        </div>
     </div>
   );
 }
