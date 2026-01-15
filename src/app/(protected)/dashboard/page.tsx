@@ -2,7 +2,6 @@
 'use client';
 
 import { useAuth } from '@/hooks/use-auth';
-import { OutletDashboard } from '@/components/dashboard/outlet-dashboard';
 import { AdminDashboard } from '@/components/dashboard/admin-dashboard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { VendorDashboard } from '@/components/dashboard/vendor-dashboard';
@@ -28,10 +27,6 @@ export default function DashboardPage() {
   }
 
   // Render specific dashboards based on user role
-  if (userData.role === 'outlet') {
-    return <OutletDashboard />;
-  }
-  
   if (userData.role === 'vendor') {
     return <VendorDashboard />;
   }

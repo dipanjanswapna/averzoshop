@@ -9,31 +9,31 @@ import {
   SidebarInset,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { DashboardNav } from '@/components/dashboard-nav';
+import { OutletNav } from '@/components/outlet-nav';
 import { UserNav } from '@/components/user-nav';
 import AverzoLogo from '@/components/averzo-logo';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/use-auth';
 
-export default function DashboardLayout({
+export default function OutletLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const { user, userData, loading } = useAuth();
   
-  const allowedRoles = ['admin', 'vendor', 'rider'];
-
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background text-foreground">
-          <p>Loading dashboard...</p>
+          <p>Loading outlet dashboard...</p>
       </div>
     );
   }
   
-  if (!user || !userData || !allowedRoles.includes(userData.role)) {
+  // This is a crucial check. If the user data is loaded and the role is NOT 'outlet',
+  // we redirect them. The main protected layout will catch this and send them away.
+  if (!user || (userData && userData.role !== 'outlet')) {
       return (
         <div className="flex h-screen items-center justify-center bg-background text-foreground">
             <p>Redirecting...</p>
@@ -41,6 +41,16 @@ export default function DashboardLayout({
       );
   }
   
+  // If still loading or role is not yet confirmed, we can show a loader.
+  // Once loading is false and the role is 'outlet', the main content will render.
+  if (!userData) {
+     return (
+        <div className="flex h-screen items-center justify-center bg-background text-foreground">
+            <p>Verifying outlet account...</p>
+        </div>
+    );
+  }
+
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon" className="border-r border-sidebar-border">
@@ -48,7 +58,7 @@ export default function DashboardLayout({
           <AverzoLogo className="h-8 w-auto" />
         </SidebarHeader>
         <SidebarContent className="p-2">
-           <DashboardNav />
+           <OutletNav />
         </SidebarContent>
       </Sidebar>
       <SidebarInset className="bg-sidebar">
@@ -60,7 +70,7 @@ export default function DashboardLayout({
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="search"
-                    placeholder="Search the dashboard..."
+                    placeholder="Search the outlet panel..."
                     className="w-full appearance-none bg-card pl-8 md:w-2/3 lg:w-1/3 text-card-foreground"
                   />
                 </div>

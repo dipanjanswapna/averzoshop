@@ -23,23 +23,23 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // This check is important to wait until user data (especially role) is loaded.
     if (userData) {
       if (userData.status !== 'approved') {
-        // If not approved, they shouldn't access anything protected yet,
-        // except the pending approval screen.
         return;
       }
 
       const isCustomer = userData.role === 'customer';
+      const isOutlet = userData.role === 'outlet';
+      
       const onAdminRoute = pathname.startsWith('/dashboard');
       const onCustomerRoute = pathname.startsWith('/customer');
+      const onOutletRoute = pathname.startsWith('/outlet');
 
-      if (isCustomer && onAdminRoute) {
-        // Customer trying to access a non-customer dashboard page
+      if (isCustomer && !onCustomerRoute) {
         router.replace('/customer');
-      } else if (!isCustomer && onCustomerRoute) {
-         // Non-customer (admin/vendor/etc.) trying to access customer-only page
+      } else if (isOutlet && !onOutletRoute) {
+        router.replace('/outlet/dashboard');
+      } else if (!isCustomer && !isOutlet && !onAdminRoute) {
         router.replace('/dashboard');
       }
     }
@@ -72,13 +72,10 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
     )
   }
 
-  // Render children only if loading is false and user is approved.
-  // The useEffect above will handle redirection if the role/path is mismatched.
   if (userData?.status === 'approved') {
     return <>{children}</>;
   }
 
-  // Fallback for edge cases where userData is still loading but status isn't 'approved' yet
   return (
     <div className="flex h-screen w-full items-center justify-center bg-background text-foreground">
       <p>Verifying account status...</p>

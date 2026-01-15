@@ -32,13 +32,6 @@ const adminNavItems = [
   { href: '/dashboard/outlets', label: 'Offline Outlets', icon: Building },
 ];
 
-const outletNavItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/dashboard/pos', label: 'Point of Sale', icon: Store },
-    { href: '/dashboard/products', label: 'Products', icon: Package },
-    { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart },
-];
-
 const vendorNavItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/dashboard/products', label: 'My Products', icon: Package },
@@ -61,9 +54,6 @@ export function DashboardNav() {
   switch (userRole) {
     case 'admin':
       navItems = adminNavItems;
-      break;
-    case 'outlet':
-      navItems = outletNavItems;
       break;
     case 'vendor':
         navItems = vendorNavItems;
