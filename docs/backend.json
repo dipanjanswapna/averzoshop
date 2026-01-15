@@ -79,6 +79,36 @@
         }
       },
       "required": ["id", "name", "contact", "status"]
+    },
+    "outlet": {
+      "title": "Outlet",
+      "description": "A physical store location for Averzo.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The outlet's unique ID."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the outlet."
+        },
+        "location": {
+          "type": "string",
+          "description": "The physical address of the outlet."
+        },
+        "status": {
+          "type": "string",
+          "description": "The operational status of the outlet.",
+          "enum": ["Active", "Inactive"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the outlet was added."
+        }
+      },
+      "required": ["name", "location", "status"]
     }
   },
   "auth": {
@@ -96,6 +126,12 @@
         "$ref": "#/entities/vendor"
       },
       "description": "Stores information about product suppliers (vendors)."
+    },
+    "/outlets/{outletId}": {
+      "schema": {
+        "$ref": "#/entities/outlet"
+      },
+      "description": "Stores information about physical store locations (outlets)."
     }
   }
 }
