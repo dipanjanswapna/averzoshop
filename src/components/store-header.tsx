@@ -7,6 +7,7 @@ import {
   ShoppingCart,
   User,
   Menu,
+  ChevronDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AverzoLogo from '@/components/averzo-logo';
@@ -26,8 +27,6 @@ import { Input } from '@/components/ui/input';
 import { subBrands } from '@/lib/data';
 import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { cn } from '@/lib/utils';
-
 
 const categories = [
   { 
@@ -82,9 +81,29 @@ const categories = [
   { name: 'PET CARE', href: '#' },
 ];
 
+const NavItem = ({ category, children }: { category: typeof categories[0], children: React.ReactNode }) => (
+    <div className="group static">
+        <Link
+            href={category.href}
+            className="flex items-center gap-1 py-4 font-headline font-bold text-sm uppercase text-foreground hover:text-primary transition-colors"
+        >
+            {category.name}
+        </Link>
+
+        {category.sections && (
+            <div className="absolute left-0 right-0 top-full w-full bg-background/90 border-t shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-40 backdrop-blur-sm">
+                <div className="container mx-auto grid grid-cols-6 gap-8 p-10">
+                    {children}
+                </div>
+            </div>
+        )}
+    </div>
+);
+
+
 export function StoreHeader() {
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background">
       <Sheet>
         {/* --- DESKTOP HEADER --- */}
         <div className="hidden lg:block">
@@ -126,82 +145,59 @@ export function StoreHeader() {
           <div className="border-t bg-background">
             <div className="container flex h-14 items-center justify-center space-x-6">
               {categories.map((category) => (
-                <div key={category.name} className="group relative h-full flex items-center">
-                  <Link
-                    href={category.href}
-                    className="flex items-center gap-1 font-bold text-sm uppercase tracking-wider text-foreground/70 hover:text-primary transition-colors"
-                  >
-                    {category.name}
-                  </Link>
+                <NavItem key={category.name} category={category}>
+                   {category.sections && (
+                     <>
+                        {/* Links Columns */}
+                        {category.sections.map(section => (
+                            <div key={section.title} className="col-span-1">
+                                <h4 className="font-bold text-primary mb-4 uppercase font-headline text-sm tracking-wider">{section.title}</h4>
+                                <ul className="space-y-3 text-sm font-body">
+                                    {section.links.map(link => (
+                                        <li key={link}>
+                                          <Link href="#" className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-transform cursor-pointer block font-medium">{link}</Link>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ))}
+                        
+                        <div className="col-span-1 border-l pl-8">
+                           <h4 className="font-bold text-primary mb-4 uppercase font-headline text-sm tracking-wider">Featured Brands</h4>
+                           <div className="grid grid-cols-3 gap-4">
+                              {subBrands.slice(0, 3).map(brand => (
+                                  <Link href="#" key={brand.id} className="flex flex-col items-center text-center gap-2 group/brand">
+                                      <Avatar className="h-14 w-14 border-2 border-transparent group-hover/brand:border-primary transition-colors">
+                                        <AvatarImage src={`https://picsum.photos/seed/${brand.id}/100/100`} alt={brand.name} />
+                                        <AvatarFallback>{brand.name.charAt(0)}</AvatarFallback>
+                                      </Avatar>
+                                      <p className="font-semibold text-xs font-body text-muted-foreground group-hover/brand:text-foreground">{brand.name}</p>
+                                  </Link>
+                              ))}
+                           </div>
+                        </div>
 
-                  {/* --- Mega Menu --- */}
-                  {category.sections && (
-                     <div className="absolute left-0 top-full w-screen max-w-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform group-hover:translate-y-0 -translate-y-2">
-                        <div className="absolute left-0 w-full mt-px">
-                            <div className="bg-background/80 shadow-lg border-t backdrop-blur-md">
-                                <div className="container mx-auto px-4 py-8">
-                                    <div className="grid grid-cols-6 gap-8">
-                                        
-                                        {/* Promo Section */}
-                                        <div className="col-span-2 rounded-lg p-6 flex flex-col justify-between">
-                                            <div>
-                                                <h3 className="font-bold text-2xl font-headline text-primary uppercase">{category.promo?.title}</h3>
-                                                <p className="text-muted-foreground mt-2 text-sm font-body">{category.promo?.description}</p>
-                                            </div>
-                                            <Button size="sm" className="mt-4 w-fit">Shop Now</Button>
-                                        </div>
-                                        
-                                        {/* Links Columns */}
-                                        {category.sections.map(section => (
-                                            <div key={section.title} className="col-span-1">
-                                                <h4 className="font-bold text-primary mb-4 uppercase font-headline text-sm tracking-wider">{section.title}</h4>
-                                                <ul className="space-y-3 text-sm">
-                                                    {section.links.map(link => (
-                                                        <li key={link} className="text-muted-foreground hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground font-medium font-body">{link}</li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        ))}
-
-                                        {/* Featured Brands & Promo Image */}
-                                        <div className="col-span-2 grid grid-cols-1 gap-6">
-                                             <div>
-                                               <h4 className="font-bold text-primary mb-4 uppercase font-headline text-sm tracking-wider">Featured Brands</h4>
-                                               <div className="grid grid-cols-3 gap-4">
-                                                  {subBrands.slice(0, 3).map(brand => (
-                                                      <div key={brand.id} className="flex flex-col items-center text-center gap-2 cursor-pointer group/brand">
-                                                          <Avatar className="h-16 w-16 border-2 border-transparent group-hover/brand:border-primary transition-colors">
-                                                            <AvatarImage src={`https://picsum.photos/seed/${brand.id}/100/100`} alt={brand.name} />
-                                                            <AvatarFallback>{brand.name.charAt(0)}</AvatarFallback>
-                                                          </Avatar>
-                                                          <p className="font-semibold text-xs font-body">{brand.name}</p>
-                                                      </div>
-                                                  ))}
-                                               </div>
-                                            </div>
-                                             <div className="relative w-full h-full rounded-lg overflow-hidden bg-secondary min-h-[150px]">
-                                                {category.promo?.image && (
-                                                  <Image
-                                                    src={category.promo.image}
-                                                    alt="Ad campaign"
-                                                    layout="fill"
-                                                    objectFit="cover"
-                                                  />
-                                                )}
-                                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent p-4 flex flex-col justify-end">
-                                                    <p className="text-white font-bold text-lg font-headline">New Arrivals</p>
-                                                    <p className="text-white/80 text-sm font-body">Up to 30% off</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                        {/* Promo Section */}
+                        <div className="col-span-2">
+                            <div className="relative w-full h-full rounded-lg overflow-hidden bg-secondary min-h-[150px]">
+                                {category.promo?.image && (
+                                    <Image
+                                    src={category.promo.image}
+                                    alt="Ad campaign"
+                                    fill
+                                    className="object-cover"
+                                    />
+                                )}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent p-4 flex flex-col justify-end">
+                                    <h3 className="font-bold text-xl font-headline text-white">{category.promo?.title}</h3>
+                                    <p className="text-white/80 text-sm font-body">{category.promo?.description}</p>
+                                    <Button size="sm" className="mt-4 w-fit">Shop Now</Button>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                  )}
-
-                </div>
+                     </>
+                   )}
+                </NavItem>
               ))}
             </div>
           </div>
