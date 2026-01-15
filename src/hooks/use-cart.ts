@@ -30,15 +30,11 @@ export const useCart = create<CartState>()(
         );
 
         if (existingItem) {
-          toast({
-            title: 'Already in cart',
-            description: 'You can change the quantity in your cart.',
-            variant: 'default',
-          });
-          return;
+           get().updateQuantity(product.id, existingItem.quantity + 1);
+        } else {
+            set({ items: [...get().items, { product, quantity: 1 }] });
         }
-
-        set({ items: [...get().items, { product, quantity: 1 }] });
+        
         toast({
           title: 'Added to cart',
           description: `${product.name} has been added to your cart.`,

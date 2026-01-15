@@ -5,6 +5,7 @@ import { useCart } from '@/hooks/use-cart';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import Link from 'next/link';
 
 export function CartSummary() {
   const { items } = useCart();
@@ -38,7 +39,9 @@ export function CartSummary() {
         </div>
       </CardContent>
       <CardFooter>
-        <Button className="w-full" size="lg">Proceed to Checkout</Button>
+        <Link href="/checkout" className='w-full'>
+          <Button className="w-full" size="lg">Proceed to Checkout</Button>
+        </Link>
       </CardFooter>
     </Card>
   );

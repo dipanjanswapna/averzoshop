@@ -50,7 +50,7 @@ export function MobileBottomNav() {
             <span className="text-xs font-medium">{item.label}</span>
             {isMounted && items.length > 0 && (
                 <span className="absolute top-0 right-3 bg-primary text-primary-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
-                    {items.length}
+                    {items.reduce((acc, item) => acc + item.quantity, 0)}
                 </span>
             )}
         </Link>

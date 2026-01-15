@@ -1,3 +1,4 @@
+
 "use client";
 import React, { useState, useEffect, useCallback } from 'react';
 import { Search, ShoppingBag, User, Menu, ChevronDown, X, ChevronRight } from 'lucide-react';
@@ -198,14 +199,14 @@ export default function AverzoNavbar() {
           <Link href="/login">
             <User size={22} className="cursor-pointer hover:text-primary transition-colors" />
           </Link>
-          <div className="relative cursor-pointer">
+          <Link href="/cart" className="relative cursor-pointer">
             <ShoppingBag size={22} className="hover:text-primary transition-colors" />
             {isMounted && items.length > 0 && (
               <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
-                {items.length}
+                {items.reduce((acc, item) => acc + item.quantity, 0)}
               </span>
             )}
-          </div>
+          </Link>
         </div>
       </div>
 
