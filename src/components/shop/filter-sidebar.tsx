@@ -50,31 +50,30 @@ export const FilterSidebar = ({
       sub: new Map<string, number>(),
       brand: new Map<string, number>(),
     };
-
-    // Base filtering for counts
-    const baseFiltered = products.filter(p => p.price >= priceRange[0] && p.price <= priceRange[1]);
-
-    // Count brands without category filters
-    baseFiltered.forEach(p => {
+  
+    // Base filtering for counts based on price
+    const baseFilteredByPrice = products.filter(p => p.price >= priceRange[0] && p.price <= priceRange[1]);
+  
+    // Count brands based only on price filter
+    baseFilteredByPrice.forEach(p => {
         if(p.group) counts.brand.set(p.group, (counts.brand.get(p.group) || 0) + 1);
     });
-
-    // Determine filtered products for category counts
-    let categoryFiltered = baseFiltered;
-    if(selectedBrand) {
-        categoryFiltered = categoryFiltered.filter(p => p.group === selectedBrand);
-    }
-    
-    // Count categories, groups, and subs based on brand filter (if any)
+  
+    // Determine products filtered by brand (if any)
+    const baseFilteredByPriceAndBrand = selectedBrand 
+      ? baseFilteredByPrice.filter(p => p.group === selectedBrand)
+      : baseFilteredByPrice;
+  
+    // Count categories, groups, and subs based on price and brand filters
     categoriesData.forEach(cat => {
       let motherCount = 0;
-      const motherCategoryProducts = categoryFiltered.filter(p => {
-        const productCategory = p.category === "Men" ? "Men's Fashion" : (p.category === "Women" ? "Women's Fashion" : p.category);
-        return productCategory === cat.mother_name || cat.groups.some(g => g.group_name === p.group);
+      const motherCategoryProducts = baseFilteredByPriceAndBrand.filter(p => {
+        const productCategoryName = p.category === "Men" ? "Men's Fashion" : p.category === "Women" ? "Women's Fashion" : p.category === 'Kids' ? 'Kids & Baby' : p.category;
+        return productCategoryName === cat.mother_name || cat.groups.some(g => g.group_name === p.group);
       });
       motherCount = motherCategoryProducts.length;
       counts.mother.set(cat.mother_name, motherCount);
-
+  
       cat.groups.forEach(group => {
         const groupProducts = motherCategoryProducts.filter(p => p.group === group.group_name);
         counts.group.set(group.group_name, groupProducts.length);
@@ -85,7 +84,7 @@ export const FilterSidebar = ({
         });
       });
     });
-
+  
     return counts;
   }, [priceRange, selectedBrand]);
 
