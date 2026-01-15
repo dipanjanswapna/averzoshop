@@ -27,7 +27,7 @@ import { doc, getDoc, setDoc, getFirestore, collection, query, limit, getDocs } 
 
 
 export default function LoginPage() {
-  const { auth, firestore, user, loading } = useAuth();
+  const { auth, firestore, user, userData, loading } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const [email, setEmail] = useState('');
@@ -35,16 +35,22 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!loading && user) {
-      router.push('/dashboard');
+      // The middleware will handle redirection if the user is already logged in
+      // but this is a good fallback.
+      if (userData?.role === 'customer') {
+          router.replace('/customer');
+      } else {
+          router.replace('/dashboard');
+      }
     }
-  }, [user, loading, router]);
+  }, [user, userData, loading, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth) return;
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.push('/dashboard');
+      // Redirection is handled by the useEffect above
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -66,13 +72,11 @@ export default function LoginPage() {
       const userDoc = await getDoc(userDocRef);
 
       if (!userDoc.exists()) {
-        // User does not exist, create a new document
         const usersCollectionRef = collection(firestore, 'users');
         const q = query(usersCollectionRef, limit(1));
         const querySnapshot = await getDocs(q);
 
         let role = 'customer';
-        // Check if this is the very first user in the whole system
         if (querySnapshot.empty) {
           role = 'admin';
         }
@@ -86,8 +90,7 @@ export default function LoginPage() {
         });
       }
       
-      router.push('/dashboard');
-
+      // Redirection is handled by the useEffect above
     } catch (error) {
       console.error('Error signing in with Google', error);
       toast({
@@ -102,9 +105,18 @@ export default function LoginPage() {
     if (!auth) return;
     try {
       await firebaseSignOut(auth);
+      // After signing out, stay on the login page
       router.push('/login');
     } catch (error) {
       console.error('Error signing out', error);
+    }
+  };
+
+  const handleGoToDashboard = () => {
+    if (userData?.role === 'customer') {
+      router.push('/customer');
+    } else {
+      router.push('/dashboard');
     }
   };
 
@@ -128,9 +140,7 @@ export default function LoginPage() {
             <CardDescription>You are already logged in.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
-            <Link href="/dashboard">
-              <Button className="w-full">Go to Dashboard</Button>
-            </Link>
+            <Button onClick={handleGoToDashboard} className="w-full">Go to Dashboard</Button>
             <Button variant="outline" onClick={signOut} className="w-full">
               Sign Out
             </Button>
