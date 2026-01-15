@@ -53,8 +53,8 @@ export function AdminVendorView() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Vendor Management</CardTitle>
-        <CardDescription>Manage product suppliers for Averzo.</CardDescription>
+        <CardTitle>All Vendors</CardTitle>
+        <CardDescription>Manage all product suppliers for Averzo.</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>

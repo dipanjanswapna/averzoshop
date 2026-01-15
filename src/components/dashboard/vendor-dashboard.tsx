@@ -26,6 +26,7 @@ import Image from 'next/image';
 import { Badge } from '../ui/badge';
 import { useState } from 'react';
 import { AddProductDialog } from './add-product-dialog';
+import { Skeleton } from '../ui/skeleton';
 
 export function VendorDashboard() {
   const { user } = useAuth();
@@ -34,9 +35,20 @@ export function VendorDashboard() {
 
   const vendorProducts = products?.filter(p => p.vendorId === user?.uid) || [];
 
+  const renderSkeleton = () => (
+    [...Array(3)].map((_, i) => (
+       <TableRow key={i}>
+            <TableCell className="hidden sm:table-cell"><Skeleton className="h-16 w-16 rounded-md" /></TableCell>
+            <TableCell><Skeleton className="h-5 w-40" /></TableCell>
+            <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+            <TableCell><Skeleton className="h-5 w-12" /></TableCell>
+            <TableCell className="text-right"><Skeleton className="h-5 w-16 ml-auto" /></TableCell>
+        </TableRow>
+    ))
+  );
+
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold font-headline">Vendor Dashboard</h1>
       <Tabs defaultValue="products">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="products"><Package className="mr-2 h-4 w-4" /> My Products</TabsTrigger>
@@ -71,15 +83,22 @@ export function VendorDashboard() {
                 </TableHeader>
                 <TableBody>
                   {isLoading ? (
-                    <TableRow><TableCell colSpan={5} className="h-24 text-center">Loading products...</TableCell></TableRow>
+                    renderSkeleton()
                   ) : vendorProducts.length > 0 ? (
                     vendorProducts.map(product => (
                       <TableRow key={product.id}>
                         <TableCell className="hidden sm:table-cell">
-                          <Image alt={product.name} className="aspect-square rounded-md object-cover" height="64" src={product.image} width="64" />
+                          <Image alt={product.name} className="aspect-square rounded-md object-cover" height="64" src={product.image || 'https://placehold.co/64'} width="64" />
                         </TableCell>
                         <TableCell className="font-medium">{product.name}</TableCell>
-                        <TableCell><Badge variant={product.status === 'approved' ? 'default' : 'secondary'} className="capitalize">{product.status}</Badge></TableCell>
+                        <TableCell>
+                          <Badge variant={
+                            product.status === 'approved' ? 'default' :
+                            product.status === 'pending' ? 'secondary' : 'destructive'
+                          } className="capitalize">
+                            {product.status}
+                          </Badge>
+                        </TableCell>
                         <TableCell>{product.stock}</TableCell>
                         <TableCell className="text-right">৳{product.price.toFixed(2)}</TableCell>
                       </TableRow>
