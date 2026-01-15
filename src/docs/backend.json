@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "user": {
@@ -173,6 +174,33 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["vendorId", "outletId", "items", "totalQuantity", "status", "createdAt"]
+    },
+    "delivery_challan": {
+      "title": "Delivery Challan",
+      "description": "A digital document authorizing the transfer of stock from a vendor to an outlet.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "stockRequestId": { "type": "string" },
+        "vendorId": { "type": "string" },
+        "outletId": { "type": "string" },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "productId": { "type": "string" },
+              "productName": { "type": "string" },
+              "quantity": { "type": "number" }
+            },
+            "required": ["productId", "productName", "quantity"]
+          }
+        },
+        "totalQuantity": { "type": "number" },
+        "status": { "type": "string", "enum": ["issued", "in_transit", "received"] },
+        "issuedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["stockRequestId", "vendorId", "outletId", "items", "totalQuantity", "status", "issuedAt"]
     }
   },
   "auth": {
@@ -185,6 +213,7 @@
     "/pos_sales/{saleId}": { "schema": { "$ref": "#/entities/pos_sale" }, "description": "Logs all point-of-sale transactions from outlets." },
     "/products/{productId}": { "schema": { "$ref": "#/entities/product" }, "description": "Stores all product information for the platform." },
     "/products/{productId}/questions/{questionId}": { "schema": { "$ref": "#/entities/question"}, "description": "Stores customer questions and answers for a specific product."},
-    "/stock_requests/{requestId}": { "schema": { "$ref": "#/entities/stock_request" }, "description": "Tracks stock movement requests from vendors to outlets." }
+    "/stock_requests/{requestId}": { "schema": { "$ref": "#/entities/stock_request" }, "description": "Tracks stock movement requests from vendors to outlets." },
+    "/delivery_challans/{challanId}": { "schema": { "$ref": "#/entities/delivery_challan" }, "description": "Stores delivery challans generated after stock request approvals." }
   }
 }

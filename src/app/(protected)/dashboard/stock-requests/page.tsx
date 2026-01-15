@@ -32,7 +32,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { useFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import type { StockRequest } from '@/types/logistics';
 import type { UserData } from '@/types/user';
 import type { Outlet } from '@/types/outlet';
@@ -51,15 +51,35 @@ export default function StockRequestsPage() {
 
   const isLoading = requestsLoading || usersLoading || outletsLoading;
 
-  const handleStatusChange = async (requestId: string, newStatus: 'approved' | 'rejected') => {
+  const handleStatusChange = async (request: StockRequest, newStatus: 'approved' | 'rejected') => {
     if (!firestore) return;
-    const requestRef = doc(firestore, 'stock_requests', requestId);
+    const requestRef = doc(firestore, 'stock_requests', request.id);
     try {
       await updateDoc(requestRef, { status: newStatus });
-      toast({
-        title: 'Request status updated',
-        description: `Request has been ${newStatus}.`,
-      });
+
+      if (newStatus === 'approved') {
+        // Create a delivery challan
+        const challanRef = collection(firestore, 'delivery_challans');
+        await addDoc(challanRef, {
+            stockRequestId: request.id,
+            vendorId: request.vendorId,
+            outletId: request.outletId,
+            items: request.items,
+            totalQuantity: request.totalQuantity,
+            status: 'issued',
+            issuedAt: serverTimestamp(),
+        });
+         toast({
+            title: 'Request Approved',
+            description: `A delivery challan has been issued.`,
+         });
+      } else {
+         toast({
+            title: 'Request Rejected',
+            description: `Request has been successfully rejected.`,
+         });
+      }
+
     } catch (error) {
       console.error('Error updating request status:', error);
       toast({
@@ -160,8 +180,8 @@ export default function StockRequestsPage() {
                             {req.status === 'pending' && (
                                 <>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={() => handleStatusChange(req.id, 'approved')} className="text-green-600 focus:text-green-700">Approve</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleStatusChange(req.id, 'rejected')} className="text-destructive focus:text-destructive">Reject</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleStatusChange(req, 'approved')} className="text-green-600 focus:text-green-700">Approve</DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleStatusChange(req, 'rejected')} className="text-destructive focus:text-destructive">Reject</DropdownMenuItem>
                                 </>
                             )}
                           </DropdownMenuContent>
