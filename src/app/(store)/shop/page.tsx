@@ -32,6 +32,8 @@ import {
 } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
+const PRODUCTS_PER_PAGE = 32;
+
 export default function ShopPage() {
   const router = useRouter();
   const pathname = usePathname();
@@ -41,26 +43,37 @@ export default function ShopPage() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // Filter States
-  const [priceRange, setPriceRange] = useState<[number, number]>([
-    Number(searchParams.get('min_price') || 0),
-    Number(searchParams.get('max_price') || 1000)
-  ]);
-  const [selectedBrand, setSelectedBrand] = useState<string | null>(searchParams.get('brand'));
-  const [selectedMotherCategory, setSelectedMotherCategory] = useState<string | null>(searchParams.get('mother_category'));
-  const [selectedGroup, setSelectedGroup] = useState<string | null>(searchParams.get('group'));
-  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(searchParams.get('subcategory'));
-  const [sortBy, setSortBy] = useState(searchParams.get('sort_by') || 'newest');
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
+  const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
+  const [selectedMotherCategory, setSelectedMotherCategory] = useState<string | null>(null);
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState('newest');
+  const [currentPage, setCurrentPage] = useState(1);
+  
 
-  // Sync state from URL
-  useEffect(() => {
+  const updateStateFromParams = useCallback(() => {
     setPriceRange([Number(searchParams.get('min_price') || 0), Number(searchParams.get('max_price') || 1000)]);
     setSelectedBrand(searchParams.get('brand'));
     setSelectedMotherCategory(searchParams.get('mother_category'));
     setSelectedGroup(searchParams.get('group'));
     setSelectedSubcategory(searchParams.get('subcategory'));
     setSortBy(searchParams.get('sort_by') || 'newest');
+    setCurrentPage(Number(searchParams.get('page') || 1));
     setLoading(false);
   }, [searchParams]);
+
+  // Sync state from URL
+  useEffect(() => {
+    updateStateFromParams();
+  }, [searchParams, updateStateFromParams]);
+
+  const onPageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', String(page));
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [router, pathname, searchParams]);
 
   // Update URL from state
   useEffect(() => {
@@ -80,6 +93,7 @@ export default function ShopPage() {
     updateParam('group', selectedGroup);
     updateParam('subcategory', selectedSubcategory);
     updateParam('sort_by', sortBy === 'newest' ? null : sortBy);
+    updateParam('page', currentPage > 1 ? String(currentPage) : null);
 
     if (priceRange[0] > 0) {
       params.set('min_price', String(priceRange[0]));
@@ -93,38 +107,58 @@ export default function ShopPage() {
     }
 
     // Use router.replace for a smoother experience that doesn't add to browser history
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [selectedBrand, selectedMotherCategory, selectedGroup, selectedSubcategory, priceRange, sortBy, pathname, router, searchParams]);
+    // only if the query string is different
+    if(searchParams.toString() !== params.toString()) {
+        router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    }
+  }, [selectedBrand, selectedMotherCategory, selectedGroup, selectedSubcategory, priceRange, sortBy, currentPage, pathname, router, searchParams]);
 
-  const filteredProducts = useMemo(() => {
+  const { paginatedProducts, totalPages } = useMemo(() => {
     let filtered = [...products];
 
+    // Separate in-stock and out-of-stock products
+    let inStockProducts = filtered.filter(p => p.stock > 0);
+    const outOfStockProducts = filtered.filter(p => p.stock === 0);
+
     if (selectedBrand) {
-      filtered = filtered.filter(p => p.group === selectedBrand);
+      inStockProducts = inStockProducts.filter(p => p.group === selectedBrand);
     }
     
     if (selectedGroup) {
-       filtered = filtered.filter(p => p.group === selectedGroup);
+       inStockProducts = inStockProducts.filter(p => p.group === selectedGroup);
     }
     if (selectedSubcategory) {
-       filtered = filtered.filter(p => p.subcategory === selectedSubcategory);
+       inStockProducts = inStockProducts.filter(p => p.subcategory === selectedSubcategory);
     }
 
-    filtered = filtered.filter(p => p.price >= priceRange[0] && p.price <= priceRange[1]);
+    inStockProducts = inStockProducts.filter(p => p.price >= priceRange[0] && p.price <= priceRange[1]);
 
     switch (sortBy) {
         case 'price-asc':
-            filtered.sort((a, b) => a.price - b.price);
+            inStockProducts.sort((a, b) => a.price - b.price);
             break;
         case 'price-desc':
-            filtered.sort((a, b) => b.price - a.price);
+            inStockProducts.sort((a, b) => b.price - a.price);
             break;
         case 'newest':
+            // Assuming products are already sorted by newest by default in data.ts
+            // We can make it more explicit if there's a date field.
+            // For now, we will reverse the original array to simulate newest first.
+            inStockProducts.reverse();
             break;
     }
 
-    return filtered;
-  }, [selectedBrand, selectedMotherCategory, selectedGroup, selectedSubcategory, priceRange, sortBy]);
+    const allSortedProducts = [...inStockProducts, ...outOfStockProducts];
+    
+    const totalPages = Math.ceil(allSortedProducts.length / PRODUCTS_PER_PAGE);
+    
+    const startIndex = (currentPage - 1) * PRODUCTS_PER_PAGE;
+    const endIndex = startIndex + PRODUCTS_PER_PAGE;
+    
+    const paginatedProducts = allSortedProducts.slice(startIndex, endIndex);
+
+    return { paginatedProducts, totalPages };
+  }, [selectedBrand, selectedMotherCategory, selectedGroup, selectedSubcategory, priceRange, sortBy, currentPage]);
 
 
   return (
@@ -224,7 +258,13 @@ export default function ShopPage() {
             </aside>
 
             <main className="lg:col-span-3">
-            <ProductGrid products={filteredProducts} isLoading={loading} />
+              <ProductGrid 
+                products={paginatedProducts} 
+                isLoading={loading} 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={onPageChange}
+              />
             </main>
         </div>
         </div>

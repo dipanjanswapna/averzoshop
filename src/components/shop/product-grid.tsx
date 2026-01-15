@@ -3,16 +3,19 @@
 import { ProductCard } from '@/components/product-card';
 import type { products } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '../ui/button';
+import { PaginationComponent } from './pagination';
 
 type ProductGridProps = {
   products: (typeof products);
   isLoading: boolean;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
 };
 
 const SKELETON_COUNT = 8;
 
-export const ProductGrid = ({ products, isLoading }: ProductGridProps) => {
+export const ProductGrid = ({ products, isLoading, currentPage, totalPages, onPageChange }: ProductGridProps) => {
   if (isLoading) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -38,14 +41,20 @@ export const ProductGrid = ({ products, isLoading }: ProductGridProps) => {
 
   return (
     <div>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {products.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>
-       <div className="mt-12 flex justify-center">
-            <Button variant="outline">Load More</Button>
-       </div>
+      {totalPages > 1 && (
+        <div className="mt-12 flex justify-center">
+            <PaginationComponent
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={onPageChange}
+            />
+        </div>
+      )}
     </div>
   );
 };
