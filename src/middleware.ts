@@ -1,33 +1,33 @@
+
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// মনে রাখবেন: মিডলওয়্যারে firebase-admin বা @/firebase/server ইম্পোর্ট করা যাবে না।
-// কারণ এগুলো Node.js এর ওপর নির্ভরশীল এবং Edge-এ চলে না।
+// This middleware file is designed to be Edge-compatible.
+// Avoid importing Node.js-dependent modules here.
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
-  // ১. পেজ টাইপ চেক করা
+  const idToken = request.cookies.get('firebaseIdToken')?.value;
+
   const isAuthPage = pathname === '/login' || pathname === '/register';
   const isProtectedPage = pathname.startsWith('/dashboard') || pathname.startsWith('/customer');
 
-  // ২. কুকি থেকে টোকেন চেক করা (এটি Edge Runtime-এ নিরাপদ)
-  const idToken = request.cookies.get('firebaseIdToken')?.value;
-
-  // ৩. লজিক: টোকেন না থাকলে এবং প্রোটেক্টড পেজে যেতে চাইলে রিডাইরেক্ট
+  // If the user is not authenticated and tries to access a protected page,
+  // redirect them to the login page.
   if (!idToken && isProtectedPage) {
     const loginUrl = new URL('/login', request.url);
-    // বর্তমানে কোন পেজে যেতে চেয়েছিল সেটি মনে রাখার জন্য searchParams ব্যবহার করা যেতে পারে
+    loginUrl.searchParams.set('redirect_to', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  // ৪. লগইন থাকা অবস্থায় লগইন পেজে গেলে কোনো স্বয়ংক্রিয় রিডাইরেক্ট হবে না।
-  // ব্যবহারকারী "Go to Dashboard" বাটনে ক্লিক করে ড্যাশবোর্ডে যাবেন।
+  // If the user is authenticated and tries to access an auth page (login/register),
+  // let them stay. The login page itself will handle the "Go to Dashboard" logic.
+  // This prevents redirect loops if they land on /login while already having a cookie.
 
   return NextResponse.next();
 }
 
-// কোন কোন পাথে মিডলওয়্যারটি রান হবে সেটি কনফিগার করা
+// Configure which paths the middleware will run on.
 export const config = {
   matcher: ['/dashboard/:path*', '/customer/:path*', '/login', '/register'],
 };
