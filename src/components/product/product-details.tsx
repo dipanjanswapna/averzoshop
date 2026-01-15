@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { SaleTimer } from './sale-timer';
 import { ShareButtons } from './share-buttons';
 import { SizeGuideDialog } from './size-guide-dialog';
+import { useCart } from '@/hooks/use-cart';
 
 
 type Product = (typeof products)[0];
@@ -25,7 +26,7 @@ export function ProductDetails({ product }: { product: Product }) {
   const [showShare, setShowShare] = useState(false);
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
 
-
+  const { addItem } = useCart();
   const { user, firestore } = useAuth();
   const { toast } = useToast();
 
@@ -64,7 +65,7 @@ export function ProductDetails({ product }: { product: Product }) {
   };
 
   const handleAddToCart = () => {
-    // Logic for adding to cart (e.g., update context/local storage)
+    addItem(product);
     toast({
         title: "Added to Bag!",
         description: `${product.name} (x${quantity}) has been added to your bag.`,

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { categoriesData } from '@/lib/categories';
 import { motion, AnimatePresence } from 'framer-motion';
 import debounce from 'lodash/debounce';
+import { useCart } from '@/hooks/use-cart';
 
 
 const NestedAccordion = ({ category, onClose }: { category: any, onClose: () => void }) => {
@@ -120,6 +121,12 @@ export default function AverzoNavbar() {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const { items } = useCart();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   
   useEffect(() => {
     const controlNavbar = () => {
@@ -193,7 +200,11 @@ export default function AverzoNavbar() {
           </Link>
           <div className="relative cursor-pointer">
             <ShoppingBag size={22} className="hover:text-primary transition-colors" />
-            <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center">0</span>
+            {isMounted && items.length > 0 && (
+              <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
+                {items.length}
+              </span>
+            )}
           </div>
         </div>
       </div>

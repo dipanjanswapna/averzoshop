@@ -5,6 +5,9 @@ import Image from 'next/image';
 import { Heart, ShoppingCart, Eye, MapPin } from 'lucide-react';
 import type { products } from '@/lib/data';
 import Link from 'next/link';
+import { Button } from './ui/button';
+import { useCart } from '@/hooks/use-cart';
+import { useToast } from '@/hooks/use-toast';
 
 type Product = (typeof products)[0];
 
@@ -12,6 +15,19 @@ export const ProductCard = ({ product }: { product: Product }) => {
   const discount = product.price < 100 ? 20 : 15;
   const originalPrice = product.price / (1 - discount / 100);
   const stockStatus = product.stock < 10 ? 'Low Stock' : null;
+
+  const { addItem } = useCart();
+  const { toast } = useToast();
+
+  const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addItem(product);
+    toast({
+      title: 'Added to cart',
+      description: `${product.name} has been added to your cart.`,
+    });
+  };
 
   return (
     <Link href={`/product/${product.id}`} className="group relative bg-card border border-border rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 block">
@@ -37,12 +53,12 @@ export const ProductCard = ({ product }: { product: Product }) => {
 
         {/* Hover Actions (Hidden on Mobile, Visible on Desktop Hover) */}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-          <button className="p-2 bg-card rounded-full text-card-foreground hover:bg-primary hover:text-primary-foreground transition-colors">
+          <Button variant="ghost" size="icon" className="p-2 bg-card rounded-full text-card-foreground hover:bg-primary hover:text-primary-foreground transition-colors">
             <Heart size={16} />
-          </button>
-          <button className="p-2 bg-card rounded-full text-card-foreground hover:bg-primary hover:text-primary-foreground transition-colors">
+          </Button>
+          <Button variant="ghost" size="icon" className="p-2 bg-card rounded-full text-card-foreground hover:bg-primary hover:text-primary-foreground transition-colors">
             <Eye size={16} />
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -69,10 +85,10 @@ export const ProductCard = ({ product }: { product: Product }) => {
         </div>
 
         {/* Quick Add Button (Mobile Friendly) */}
-        <button className="w-full mt-2 flex items-center justify-center gap-2 bg-foreground text-background py-2 rounded-lg text-[10px] font-bold hover:bg-primary hover:text-primary-foreground transition-colors">
+        <Button onClick={handleAddToCart} className="w-full mt-2 flex items-center justify-center gap-2 bg-foreground text-background py-2 rounded-lg text-[10px] font-bold hover:bg-primary hover:text-primary-foreground transition-colors">
           <ShoppingCart size={12} />
           ADD TO CART
-        </button>
+        </Button>
       </div>
     </Link>
   );

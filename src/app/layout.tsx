@@ -8,6 +8,7 @@ import LayoutDebugger from '@/components/debug/LayoutDebugger';
 import { usePathname } from 'next/navigation';
 import { MobileBottomNav } from '@/components/mobile-bottom-nav';
 import { Providers } from '@/components/providers';
+import { ToastProvider } from '@/components/ui/toast';
 
 // export const metadata: Metadata = {
 //   title: 'Averzo',
@@ -34,10 +35,12 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Saira:wght@600;700;800&display=swap" rel="stylesheet" />
       </head>
       <body className={cn('font-body antialiased min-h-screen bg-background pb-16 lg:pb-0')}>
-        <Providers>
-          {children}
-          <Toaster />
-        </Providers>
+        <ToastProvider>
+          <Providers>
+            {children}
+            <Toaster />
+          </Providers>
+        </ToastProvider>
         {showMobileNav && <MobileBottomNav />}
         
       </body>
