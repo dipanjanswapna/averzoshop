@@ -2,16 +2,40 @@
 'use client';
 import { useState } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
 import { products } from '@/lib/data';
 import { categoriesData } from '@/lib/categories';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '../ui/label';
 
 const brands = [...new Set(products.map(p => p.group))]; // Example brands from product groups
 
 export const FilterSidebar = ({ isLoading }: { isLoading: boolean }) => {
   const [priceRange, setPriceRange] = useState([50, 500]);
+  
+  const [selectedMotherCategory, setSelectedMotherCategory] = useState<string | null>(null);
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
+
+  const availableGroups = selectedMotherCategory 
+    ? categoriesData.find(cat => cat.mother_name === selectedMotherCategory)?.groups || [] 
+    : [];
+
+  const availableSubcategories = selectedGroup
+    ? availableGroups.find(g => g.group_name === selectedGroup)?.subs || []
+    : [];
+
+  const handleMotherCategoryChange = (value: string) => {
+    setSelectedMotherCategory(value);
+    setSelectedGroup(null);
+    setSelectedSubcategory(null);
+  }
+
+  const handleGroupChange = (value: string) => {
+    setSelectedGroup(value);
+    setSelectedSubcategory(null);
+  }
 
   if (isLoading) {
     return (
@@ -26,79 +50,91 @@ export const FilterSidebar = ({ isLoading }: { isLoading: boolean }) => {
 
   return (
     <div className="space-y-6">
-      {/* Category Filter */}
-      <div>
-        <h3 className="text-lg font-headline font-bold mb-3">Categories</h3>
-        <Accordion type="single" collapsible className="w-full">
-          {categoriesData.map((category, motherIndex) => (
-            <AccordionItem value={`mother-${motherIndex}`} key={motherIndex}>
-              <AccordionTrigger className="font-bold text-sm uppercase">
-                {category.mother_name}
-              </AccordionTrigger>
-              <AccordionContent>
-                <Accordion type="single" collapsible className="w-full pl-4">
-                  {category.groups.map((group, groupIndex) => (
-                    <AccordionItem value={`group-${groupIndex}`} key={groupIndex}>
-                      <AccordionTrigger className="text-xs font-semibold uppercase">
-                        {group.group_name}
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <ul className="space-y-2 pl-4">
-                          {group.subs.map((sub, subIndex) => (
-                            <li key={subIndex} className="flex items-center space-x-2">
-                              <Checkbox id={`${category.mother_name}-${group.group_name}-${sub}`} />
-                              <label htmlFor={`${category.mother_name}-${group.group_name}-${sub}`} className="text-xs text-muted-foreground hover:text-primary cursor-pointer">
-                                {sub}
-                              </label>
-                            </li>
-                          ))}
-                        </ul>
-                      </AccordionContent>
-                    </AccordionItem>
+      <Accordion type="multiple" defaultValue={['category', 'brand', 'price']} className="w-full">
+        {/* Category Filter */}
+        <AccordionItem value="category">
+          <AccordionTrigger className="text-lg font-headline font-bold">Category</AccordionTrigger>
+          <AccordionContent className="space-y-4 pt-2">
+            <div className="grid gap-2">
+              <Label htmlFor="mother-category">Mother Category</Label>
+              <Select onValueChange={handleMotherCategoryChange}>
+                <SelectTrigger id="mother-category">
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categoriesData.map((category, index) => (
+                    <SelectItem key={index} value={category.mother_name}>{category.mother_name}</SelectItem>
                   ))}
-                </Accordion>
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
-      </div>
-
-      {/* Price Range Filter */}
-      <div>
-        <h3 className="text-lg font-headline font-bold mb-3">Price Range</h3>
-        <div className="px-1">
-          <Slider
-            defaultValue={[50]}
-            min={0}
-            max={1000}
-            step={10}
-            value={priceRange}
-            onValueChange={setPriceRange}
-          />
-          <div className="flex justify-between text-xs text-muted-foreground mt-2">
-            <span>${priceRange[0]}</span>
-            <span>${priceRange[1]}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Brand Filter */}
-      <div>
-        <h3 className="text-lg font-headline font-bold mb-3">Brands</h3>
-        <div className="space-y-2">
-          {brands.map((brand, index) => (
-            <div key={index} className="flex items-center space-x-2">
-              <Checkbox id={`brand-${index}`} />
-              <label
-                htmlFor={`brand-${index}`}
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                {brand}
-              </label>
+                </SelectContent>
+              </Select>
             </div>
-          ))}
-        </div>
-      </div>
+            <div className="grid gap-2">
+              <Label htmlFor="group">Group</Label>
+              <Select onValueChange={handleGroupChange} disabled={!selectedMotherCategory}>
+                <SelectTrigger id="group">
+                  <SelectValue placeholder="Select a group" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableGroups.map((group, index) => (
+                     <SelectItem key={index} value={group.group_name}>{group.group_name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="subcategory">Subcategory</Label>
+              <Select onValueChange={setSelectedSubcategory} disabled={!selectedGroup}>
+                <SelectTrigger id="subcategory">
+                  <SelectValue placeholder="Select a subcategory" />
+                </SelectTrigger>
+                <SelectContent>
+                   {availableSubcategories.map((sub, index) => (
+                     <SelectItem key={index} value={sub}>{sub}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* Brand Filter */}
+        <AccordionItem value="brand">
+          <AccordionTrigger className="text-lg font-headline font-bold">Brand</AccordionTrigger>
+          <AccordionContent className="space-y-4 pt-2">
+              <Select>
+                <SelectTrigger id="brand-select">
+                  <SelectValue placeholder="All Brands" />
+                </SelectTrigger>
+                <SelectContent>
+                  {brands.map((brand, index) => (
+                    <SelectItem key={index} value={brand}>{brand}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* Price Range Filter */}
+        <AccordionItem value="price">
+          <AccordionTrigger className="text-lg font-headline font-bold">Price Range</AccordionTrigger>
+          <AccordionContent className="pt-4">
+            <div className="px-1">
+              <Slider
+                defaultValue={[50]}
+                min={0}
+                max={1000}
+                step={10}
+                value={priceRange}
+                onValueChange={setPriceRange}
+              />
+              <div className="flex justify-between text-xs text-muted-foreground mt-2">
+                <span>${priceRange[0]}</span>
+                <span>${priceRange[1]}</span>
+              </div>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </div>
   );
 };
