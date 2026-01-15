@@ -164,7 +164,7 @@ export default function AverzoNavbar() {
     <header className="fixed top-0 left-0 w-full z-[100] bg-background shadow-sm transition-all duration-300">
       
       {/* 1. Primary Master Header (Always Sticky) */}
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4 md:gap-8">
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4 md:gap-8 h-[68px]">
         <div className="flex items-center gap-4">
              <button 
                 onClick={() => setIsDrawerOpen(true)}
@@ -212,7 +212,6 @@ export default function AverzoNavbar() {
 
       {/* 2. Secondary Category Bar (Auto-hides) */}
       <nav 
-        onMouseLeave={() => setActiveMenu(null)}
         className={cn(
           "bg-secondary text-secondary-foreground transition-all duration-300 origin-top",
           "hidden lg:flex",
@@ -225,13 +224,14 @@ export default function AverzoNavbar() {
                 return (
                     <div 
                       key={item.mother_name} 
-                      className="group static"
+                      className="group h-full flex items-center"
                       onMouseEnter={() => setActiveMenu(item.mother_name)}
+                      onMouseLeave={() => setActiveMenu(null)}
                     >
-                      <Link href={motherCategoryPath}>
-                          <button className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-1 hover:text-primary">
+                      <Link href={motherCategoryPath} className="h-full flex items-center">
+                          <span className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-1 hover:text-primary">
                               {item.mother_name} <ChevronDown size={12} />
-                          </button>
+                          </span>
                       </Link>
                     
                       <AnimatePresence>
@@ -241,8 +241,8 @@ export default function AverzoNavbar() {
                               animate="visible"
                               exit="hidden"
                               variants={menuVariants}
-                              className="absolute left-0 right-0 top-full w-full bg-background text-foreground border-t shadow-2xl z-[110]"
-                              style={{ maxHeight: 'calc(100vh - 112px)', overflowY: 'auto' }}
+                              className="absolute left-0 right-0 top-[108px] w-full bg-background text-foreground border-t shadow-2xl z-[110]"
+                              style={{ maxHeight: 'calc(100vh - 108px)', overflowY: 'auto' }}
                             >
                                 <div className="container mx-auto grid grid-cols-5 gap-x-10 gap-y-6 p-10">
                                     {item.groups.map(group => (
@@ -286,5 +286,3 @@ export default function AverzoNavbar() {
     </header>
   );
 }
-
-    
