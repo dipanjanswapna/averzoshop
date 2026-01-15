@@ -3,13 +3,11 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import {
-  ArrowRight,
-} from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { subBrands, products } from '@/lib/data';
+import { subBrands } from '@/lib/data';
 import {
   Carousel,
   CarouselContent,
@@ -19,14 +17,29 @@ import {
 } from '@/components/ui/carousel';
 import Autoplay from "embla-carousel-autoplay";
 import { ProductCard } from '@/components/product-card';
+import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
+import type { Product } from '@/types/product';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const featuredProducts = products.slice(0, 4);
 const heroCarouselImages = PlaceHolderImages.filter(p =>
   p.id.startsWith('hero-carousel-')
 );
 
-
 export default function StoreFrontPage() {
+  const { data: products, isLoading } = useFirestoreQuery<Product>('products');
+
+  const approvedProducts = products?.filter(p => p.status === 'approved' && p.total_stock > 0) || [];
+  const featuredProducts = approvedProducts.slice(0, 4);
+
+  const renderSkeleton = () => (
+    [...Array(4)].map((_, i) => (
+      <div key={i}>
+        <Skeleton className="aspect-square w-full" />
+        <Skeleton className="h-4 mt-2 w-3/4" />
+        <Skeleton className="h-4 mt-1 w-1/2" />
+      </div>
+    ))
+  );
     
   return (
     <>
@@ -106,7 +119,7 @@ export default function StoreFrontPage() {
               </p>
             </div>
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5">
-              {featuredProducts.map(product => (
+              {isLoading ? renderSkeleton() : featuredProducts.map(product => (
                 <ProductCard key={product.id} product={product} />
               ))}
               <Card className="overflow-hidden border-none shadow-md hover:shadow-xl transition-shadow duration-300 group">

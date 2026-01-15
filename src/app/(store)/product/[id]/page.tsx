@@ -1,9 +1,10 @@
 
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useMemo } from 'react';
 import { useParams } from 'next/navigation';
-import { products, frequentlyBoughtTogether } from '@/lib/data';
+import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
+import type { Product } from '@/types/product';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -18,12 +19,48 @@ import { ProductTabs } from '@/components/product/product-tabs';
 import { RelatedProducts } from '@/components/product/related-products';
 import { MobileActionbar } from '@/components/product/mobile-action-bar';
 import { FrequentlyBought } from '@/components/product/frequently-bought';
+import { Skeleton } from '@/components/ui/skeleton';
 
 function ProductPageContent() {
     const params = useParams();
     const { id } = params;
+    const { data: products, isLoading } = useFirestoreQuery<Product>('products');
 
-    const product = products.find((p) => p.id === id);
+    const { product, relatedProducts, frequentlyBoughtTogether } = useMemo(() => {
+        if (!products) return { product: null, relatedProducts: [], frequentlyBoughtTogether: [] };
+        
+        const currentProduct = products.find((p) => p.id === id);
+        
+        if (!currentProduct) return { product: null, relatedProducts: [], frequentlyBoughtTogether: [] };
+
+        const related = products.filter(p => p.status === 'approved' && p.category === currentProduct.category && p.id !== currentProduct.id).slice(0, 10);
+        const frequentlyBought = products.filter(p => p.status === 'approved' && p.isBestSeller && p.id !== currentProduct.id).slice(0, 2);
+
+        return { product: currentProduct, relatedProducts: related, frequentlyBoughtTogether: frequentlyBought };
+    }, [products, id]);
+    
+    if (isLoading) {
+        return (
+            <div className="container py-8">
+                <Skeleton className="h-6 w-1/2 mb-6" />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                    <div>
+                        <Skeleton className="aspect-square w-full rounded-xl" />
+                        <div className="grid grid-cols-5 gap-2 mt-4">
+                            {[...Array(4)].map((_, i) => <Skeleton key={i} className="aspect-square w-full" />)}
+                        </div>
+                    </div>
+                    <div className="space-y-6">
+                        <Skeleton className="h-8 w-3/4" />
+                        <Skeleton className="h-10 w-1/2" />
+                        <Skeleton className="h-12 w-full" />
+                        <Skeleton className="h-12 w-full" />
+                        <Skeleton className="h-24 w-full" />
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     if (!product) {
         return (
@@ -33,8 +70,6 @@ function ProductPageContent() {
             </div>
         );
     }
-    
-    const relatedProducts = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 10);
 
     return (
         <div className="bg-background">
