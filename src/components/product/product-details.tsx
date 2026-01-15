@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Minus, Plus, ShoppingBag } from 'lucide-react';
 import type { products } from '@/lib/data';
 import { TrustBadges } from './trust-badges';
+import Link from 'next/link';
 
 type Product = (typeof products)[0];
 
@@ -23,7 +24,11 @@ export function ProductDetails({ product }: { product: Product }) {
       <div>
         <span className="text-sm font-medium text-primary uppercase">{product.group}</span>
         <h1 className="text-3xl lg:text-4xl font-extrabold font-headline text-foreground mt-1">{product.name}</h1>
-        <p className="text-sm font-medium text-muted-foreground mt-2">{product.brand}</p>
+        <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+            <span>By <Link href="#" className="text-primary font-semibold hover:underline">{product.brand}</Link></span>
+            <span className="h-4 border-l border-border"></span>
+            <span>SKU: {product.id.toUpperCase()}</span>
+        </div>
       </div>
 
       <div className="flex items-center justify-between">
