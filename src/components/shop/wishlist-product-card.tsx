@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from 'next/image';
@@ -22,11 +21,18 @@ export const WishlistProductCard = ({ product }: { product: Product }) => {
   const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    addItem(product);
-    toast({
-      title: 'Added to cart',
-      description: `${product.name} has been added to your cart.`,
-    });
+    
+    const defaultVariant = product.variants?.find(v => v.stock > 0) || product.variants?.[0];
+    if (!defaultVariant) {
+        toast({
+            variant: "destructive",
+            title: 'Product Unavailable',
+            description: 'This product has no available variants.',
+        });
+        return;
+    }
+
+    addItem(product, defaultVariant);
   };
 
   const handleRemoveFromWishlist = async (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -85,4 +91,3 @@ export const WishlistProductCard = ({ product }: { product: Product }) => {
     </div>
   );
 };
-

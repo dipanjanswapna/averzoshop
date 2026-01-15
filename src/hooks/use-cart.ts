@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Product, ProductVariant } from '@/types/product';
@@ -23,9 +22,21 @@ export const useCart = create<CartState>()(
     (set, get) => ({
       items: [],
       addItem: (product, variant, quantity = 1) => {
+        // Defensive check to prevent adding items without a variant
+        if (!variant) {
+          console.error("addItem was called without a variant for product:", product.name);
+          toast({
+            variant: "destructive",
+            title: "An error occurred",
+            description: "Could not add item to cart. Variant information is missing.",
+          });
+          return;
+        }
+
         const currentItems = get().items;
+        // Defensive check for items in cart that might be malformed
         const existingItem = currentItems.find(
-          (item) => item.variant.sku === variant.sku
+          (item) => item.variant && item.variant.sku === variant.sku
         );
 
         let newQuantity = existingItem ? existingItem.quantity + quantity : quantity;
@@ -52,7 +63,8 @@ export const useCart = create<CartState>()(
       },
       removeItem: (variantSku) => {
         set({
-          items: get().items.filter((item) => item.variant.sku !== variantSku),
+          // Defensive check for items in cart that might be malformed
+          items: get().items.filter((item) => item.variant && item.variant.sku !== variantSku),
         });
         toast({
           title: 'Item removed',
@@ -60,7 +72,8 @@ export const useCart = create<CartState>()(
         });
       },
       updateQuantity: (variantSku, quantity) => {
-        const itemToUpdate = get().items.find(item => item.variant.sku === variantSku);
+        // Defensive check for items in cart
+        const itemToUpdate = get().items.find(item => item.variant && item.variant.sku === variantSku);
         if (!itemToUpdate) return;
         
         if (quantity > itemToUpdate.variant.stock) {
@@ -77,7 +90,7 @@ export const useCart = create<CartState>()(
         } else {
           set({
             items: get().items.map((item) =>
-              item.variant.sku === variantSku ? { ...item, quantity } : item
+              item.variant && item.variant.sku === variantSku ? { ...item, quantity } : item
             ),
           });
         }
