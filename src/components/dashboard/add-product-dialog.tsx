@@ -156,7 +156,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
       const { price, compareAtPrice } = values;
       let discount = 0;
       if (compareAtPrice && compareAtPrice > price) {
-          discount = ((compareAtPrice - price) / price) * 100;
+          discount = ((compareAtPrice - price) / compareAtPrice) * 100;
       }
 
       await addDoc(collection(firestore, 'products'), {
@@ -202,11 +202,9 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
     }
   };
 
-  const dialogTitle = userData?.role === 'admin' ? 'Add New Product' : 'Submit Product for Approval';
-  const dialogDescription = userData?.role === 'admin' 
-    ? 'Fill in the details to add a new product directly to the store.'
-    : 'Fill in the details to submit your product. It will be reviewed by an admin.';
-  const submitButtonText = userData?.role === 'admin' ? 'Add Product' : 'Submit for Approval';
+  const dialogTitle = 'Add New Product';
+  const dialogDescription = 'Fill in the details to add a new product to the store.';
+  const submitButtonText = 'Add Product';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
