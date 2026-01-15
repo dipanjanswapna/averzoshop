@@ -7,5 +7,6 @@ export interface UserData {
   role: 'customer' | 'vendor' | 'rider' | 'admin' | 'outlet';
   status: 'pending' | 'approved' | 'rejected';
   wishlist?: string[];
+  outletId?: string;
   createdAt?: string;
 }

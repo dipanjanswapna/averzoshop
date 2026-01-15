@@ -41,6 +41,10 @@
                 "type": "string"
             }
         },
+        "outletId": {
+            "type": "string",
+            "description": "The ID of the outlet this user manages, if applicable."
+        },
         "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -216,3 +220,4 @@
     }
   }
 }
+
