@@ -1,7 +1,12 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, ShoppingCart, User, ChevronDown } from 'lucide-react';
+import {
+  Search,
+  ShoppingCart,
+  User,
+  ChevronDown,
+} from 'lucide-react';
 import AverzoLogo from './averzo-logo';
 import {
   DropdownMenu,
@@ -9,25 +14,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from '@/components/ui/carousel';
-import { Button } from './ui/button';
 
 const menuData: Record<string, React.ReactNode> = {
   "All Categories": (
-    <div className="grid grid-cols-4 gap-x-8 gap-y-6">
+    <div className="grid grid-cols-5 gap-x-8 gap-y-6">
       {[
         "Men's Fashion", "Women's Fashion", "Electronics & Gadgets", "Kids & Baby", 
         "Beauty & Personal Care", "Home & Living", "Health & Wellness", "Gaming & Esports", 
-        "Pet Care", "Sports & Outdoors", "Smart Home & IoT", "Automotive & Biking", 
+        "Pet Essentials", "Sports & Outdoors", "Smart Home & IoT", "Automotive & Biking", 
         "Books & Stationery", "Artisan & Handicrafts", "Travel & Luggage", 
         "Eco-Friendly Living", "Musical Instruments", "Gifts & Celebrations", 
-        "Daily Essentials (Groceries)"
+        "Daily Essentials (Groceries)", "Industrial & Tools"
       ].map((category) => (
         <Link key={category} href="#" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
           {category}
@@ -69,7 +66,7 @@ const menuData: Record<string, React.ReactNode> = {
       </div>
     </>
   ),
-    "Women's Fashion": (
+  "Women's Fashion": (
      <>
       <div className="col-span-1">
         <h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Saree</h4>
@@ -129,6 +126,63 @@ const menuData: Record<string, React.ReactNode> = {
       </div>
     </>
   ),
+    "Eco & Sustainable Living": (
+    <>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Eco Fashion</h4><ul className="space-y-2 text-sm text-muted-foreground font-body"><li className="hover:text-foreground cursor-pointer">Recycled Fabrics</li><li className="hover:text-foreground cursor-pointer">Organic Cotton</li></ul></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Green Gadgets</h4><ul className="space-y-2 text-sm text-muted-foreground font-body"><li className="hover:text-foreground cursor-pointer">Solar Chargers</li><li className="hover:text-foreground cursor-pointer">Energy-Saving Devices</li></ul></div>
+    </>
+  ),
+  "Smart Home & IoT": (
+    <>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Security</h4><ul className="space-y-2 text-sm text-muted-foreground font-body"><li className="hover:text-foreground cursor-pointer">Smart Cams</li><li className="hover:text-foreground cursor-pointer">Door Locks</li><li className="hover:text-foreground cursor-pointer">Sensors</li></ul></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Automation</h4><ul className="space-y-2 text-sm text-muted-foreground font-body"><li className="hover:text-foreground cursor-pointer">Smart Bulbs</li><li className="hover:text-foreground cursor-pointer">Hubs</li><li className="hover:text-foreground cursor-pointer">Plugs</li></ul></div>
+    </>
+  ),
+  "Gaming & Esports": (
+    <>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">PC Gaming</h4><ul className="space-y-2 text-sm text-muted-foreground font-body"><li className="hover:text-foreground cursor-pointer">Graphic Cards</li><li className="hover:text-foreground cursor-pointer">Monitors</li><li className="hover:text-foreground cursor-pointer">RAM</li></ul></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Peripherals</h4><ul className="space-y-2 text-sm text-muted-foreground font-body"><li className="hover:text-foreground cursor-pointer">Keyboards</li><li className="hover:text-foreground cursor-pointer">Mouse</li><li className="hover:text-foreground cursor-pointer">Headsets</li></ul></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Consoles</h4><ul className="space-y-2 text-sm text-muted-foreground font-body"><li className="hover:text-foreground cursor-pointer">PlayStation</li><li className="hover:text-foreground cursor-pointer">Xbox</li><li className="hover:text-foreground cursor-pointer">Nintendo</li></ul></div>
+    </>
+  ),
+  "Aura Grooming": (
+    <>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Skincare</h4><ul className="space-y-2 text-sm text-muted-foreground font-body"><li className="hover:text-foreground cursor-pointer">Cleansers</li><li className="hover:text-foreground cursor-pointer">Serums</li><li className="hover:text-foreground cursor-pointer">Moisturizers</li></ul></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Electronics</h4><ul className="space-y-2 text-sm text-muted-foreground font-body"><li className="hover:text-foreground cursor-pointer">Trimmers</li><li className="hover:text-foreground cursor-pointer">Hair Dryers</li></ul></div>
+    </>
+  ),
+  "Artisan & Handmade": (
+    <>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Decor</h4><ul className="space-y-2 text-sm text-muted-foreground font-body"><li className="hover:text-foreground cursor-pointer">Pottery</li><li className="hover:text-foreground cursor-pointer">Handmade Paintings</li></ul></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Textiles</h4><ul className="space-y-2 text-sm text-muted-foreground font-body"><li className="hover:text-foreground cursor-pointer">Nakshi Kantha</li><li className="hover:text-foreground cursor-pointer">Handwoven Scarves</li></ul></div>
+    </>
+  ),
+  "Baby & Toddler": (
+    <>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Essentials</h4><ul className="space-y-2 text-sm text-muted-foreground font-body"><li className="hover:text-foreground cursor-pointer">Diapers</li><li className="hover:text-foreground cursor-pointer">Baby Food</li></ul></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Gear</h4><ul className="space-y-2 text-sm text-muted-foreground font-body"><li className="hover:text-foreground cursor-pointer">Strollers</li><li className="hover:text-foreground cursor-pointer">Car Seats</li></ul></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Nursery</h4><ul className="space-y-2 text-sm text-muted-foreground font-body"><li className="hover:text-foreground cursor-pointer">Cribs</li><li className="hover:text-foreground cursor-pointer">Monitors</li></ul></div>
+    </>
+  ),
+  "Musical Instruments": (
+    <>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">String</h4><ul className="space-y-2 text-sm text-muted-foreground font-body"><li className="hover:text-foreground cursor-pointer">Guitars</li><li className="hover:text-foreground cursor-pointer">Violins</li></ul></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Keys</h4><ul className="space-y-2 text-sm text-muted-foreground font-body"><li className="hover:text-foreground cursor-pointer">Keyboards</li><li className="hover:text-foreground cursor-pointer">Pianos</li></ul></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Studio</h4><ul className="space-y-2 text-sm text-muted-foreground font-body"><li className="hover:text-foreground cursor-pointer">Microphones</li><li className="hover:text-foreground cursor-pointer">Sound Systems</li></ul></div>
+    </>
+  ),
+  "Safety & Security": (
+    <>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Personal Safety</h4><ul className="space-y-2 text-sm text-muted-foreground font-body"><li className="hover:text-foreground cursor-pointer">Pepper Spray</li><li className="hover:text-foreground cursor-pointer">Safety Alarms</li></ul></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Industrial</h4><ul className="space-y-2 text-sm text-muted-foreground font-body"><li className="hover:text-foreground cursor-pointer">Hard Hats</li><li className="hover:text-foreground cursor-pointer">Safety Goggles</li></ul></div>
+    </>
+  ),
+  "Travel & Luggage": (
+    <>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Bags</h4><ul className="space-y-2 text-sm text-muted-foreground font-body"><li className="hover:text-foreground cursor-pointer">Suitcases</li><li className="hover:text-foreground cursor-pointer">Backpacks</li><li className="hover:text-foreground cursor-pointer">Duffels</li></ul></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Accessories</h4><ul className="space-y-2 text-sm text-muted-foreground font-body"><li className="hover:text-foreground cursor-pointer">Neck Pillows</li><li className="hover:text-foreground cursor-pointer">Adapters</li><li className="hover:text-foreground cursor-pointer">Organizers</li></ul></div>
+    </>
+  ),
   "Kids & Baby": (
     <>
       <div className="col-span-1">
@@ -144,19 +198,86 @@ const menuData: Record<string, React.ReactNode> = {
         <h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Baby Care</h4>
       </div>
     </>
-  )
+  ),
+  "Beauty & Personal Care": (
+    <>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Skincare</h4></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Makeup</h4></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Hair Care</h4></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Fragrance</h4></div>
+    </>
+  ),
+  "Home & Living": (
+    <>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Furniture</h4></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Home Decor</h4></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Kitchen & Dining</h4></div>
+    </>
+  ),
+  "Health & Wellness": (
+    <>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Organic Food</h4></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Gym Supplements</h4></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Personal Care Devices</h4></div>
+    </>
+  ),
+  "Pet Essentials": (
+    <>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Pet Food</h4></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Grooming Kits</h4></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Toys & Accessories</h4></div>
+    </>
+  ),
+  "Sports & Outdoors": (
+    <>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Team Sports</h4></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Outdoor Gear</h4></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Fitness Equipment</h4></div>
+    </>
+  ),
+  "Automotive & Biking": (
+    <>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Bike Accessories</h4></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Helmets & Gear</h4></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Car Gadgets</h4></div>
+    </>
+  ),
+  "Books & Stationery": (
+    <>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Office Supplies</h4></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Hobby & Crafts</h4></div>
+    </>
+  ),
+  "Gifts & Flowers": (
+    <>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Gift Boxes</h4></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Personalized Items</h4></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Flower Bouquets</h4></div>
+    </>
+  ),
+  "Daily Essentials (Groceries)": (
+    <>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Staples</h4></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Snacks & Beverages</h4></div>
+    </>
+  ),
+  "Industrial & Tools": (
+    <>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Hardware Tools</h4></div>
+      <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Safety Gear</h4></div>
+    </>
+  ),
 };
-
 
 const MegaMenu = ({ isOpen, items }: { isOpen: boolean, items?: React.ReactNode }) => {
   if (!isOpen) return null;
 
   return (
     <div
-      className="absolute left-0 right-0 top-full w-full bg-background/80 border-t shadow-2xl z-40 animate-in fade-in slide-in-from-top-2 duration-300 backdrop-blur-sm"
+      className="absolute left-0 right-0 top-full w-screen bg-background/80 border-t shadow-2xl z-40 animate-in fade-in slide-in-from-top-2 duration-300 backdrop-blur-sm"
       style={{
         maxHeight: '70vh',
-        overflowY: 'auto'
+        overflowY: 'auto',
       }}
     >
       <div className="container mx-auto grid grid-cols-4 gap-8 p-10">
@@ -166,56 +287,64 @@ const MegaMenu = ({ isOpen, items }: { isOpen: boolean, items?: React.ReactNode 
   );
 };
 
+
 export function StoreHeader() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
 
-  const allCategories = [
-    "All Categories", "Men's Fashion", "Women's Fashion", "Electronics & Gadgets", "Kids & Baby", 
-    "Beauty & Personal Care", "Home & Living", "Health & Wellness", "Gaming & Esports", 
-    "Pet Care", "Sports & Outdoors", "Smart Home & IoT", "Automotive & Biking", 
-    "Books & Stationery", "Artisan & Handicrafts", "Travel & Luggage", 
-    "Eco-Friendly Living", "Musical Instruments", "Gifts & Celebrations", 
-    "Daily Essentials (Groceries)"
-  ];
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+
+  const allCategories = Object.keys(menuData);
   
   const mainCategories = allCategories.slice(0, 10);
   const moreCategories = allCategories.slice(10);
 
   return (
-    <header className="sticky top-0 w-full bg-background z-50 border-b shadow-sm transition-all overflow-visible">
-      <div className="container mx-auto px-4 lg:px-8">
-        <div className="flex items-center justify-between py-3 gap-6">
-          <Link href="/" className="text-3xl font-black font-saira tracking-tighter text-foreground">
-             <AverzoLogo className="h-8 w-auto" />
-          </Link>
+    <header className="sticky top-0 w-full bg-background z-50 transition-all duration-300 shadow-sm overflow-visible">
+       {/* --- Top Bar --- */}
+      {!isScrolled && (
+        <div className="container mx-auto px-4 lg:px-8">
+            <div className="flex items-center justify-between py-3 gap-6 border-b animate-in fade-in duration-500">
+              <Link href="/" className="text-3xl font-black font-saira tracking-tighter text-foreground">
+                <AverzoLogo className="h-8 w-auto" />
+              </Link>
 
-          <div className="flex-1 max-w-2xl relative hidden md:block">
-            <input
-              type="text"
-              placeholder="Search for products, brands and more..."
-              className="w-full bg-secondary border-none rounded-lg py-2.5 px-6 focus:ring-2 focus:ring-primary outline-none text-sm font-body"
-            />
-            <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-          </div>
+              <div className="flex-1 max-w-2xl relative hidden md:block">
+                <input
+                  type="text"
+                  placeholder="Search for products, brands and more..."
+                  className="w-full bg-secondary border-none rounded-lg py-2.5 px-6 focus:ring-2 focus:ring-primary outline-none text-sm font-body"
+                />
+                <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+              </div>
 
-          <div className="flex items-center gap-4 sm:gap-6 font-bold text-sm text-foreground">
-             <div className="flex-col items-center cursor-pointer hover:text-primary hidden sm:flex">
-              <Search size={20} strokeWidth={2.5} className="md:hidden"/>
-              <span className="text-[10px] uppercase mt-1 md:hidden">Search</span>
+              <div className="flex items-center gap-4 sm:gap-6 font-bold text-sm text-foreground">
+                <div className="flex-col items-center cursor-pointer hover:text-primary hidden sm:flex">
+                  <Search size={20} strokeWidth={2.5} className="md:hidden"/>
+                  <span className="text-[10px] uppercase mt-1 md:hidden">Search</span>
+                </div>
+                <Link href="/login" className="flex flex-col items-center cursor-pointer hover:text-primary">
+                  <User size={20} strokeWidth={2.5} />
+                  <span className="text-[10px] uppercase mt-1">Profile</span>
+                </Link>
+                <Link href="/cart" className="flex flex-col items-center cursor-pointer hover:text-primary relative">
+                  <ShoppingCart size={20} strokeWidth={2.5} />
+                  <span className="text-[10px] uppercase mt-1">Bag</span>
+                  <span className="absolute -top-1 -right-2 bg-primary text-primary-foreground text-[9px] w-4 h-4 rounded-full flex items-center justify-center">0</span>
+                </Link>
+              </div>
             </div>
-            <Link href="/login" className="flex flex-col items-center cursor-pointer hover:text-primary">
-              <User size={20} strokeWidth={2.5} />
-              <span className="text-[10px] uppercase mt-1">Profile</span>
-            </Link>
-            <Link href="/cart" className="flex flex-col items-center cursor-pointer hover:text-primary relative">
-              <ShoppingCart size={20} strokeWidth={2.5} />
-              <span className="text-[10px] uppercase mt-1">Bag</span>
-              <span className="absolute -top-1 -right-2 bg-primary text-primary-foreground text-[9px] w-4 h-4 rounded-full flex items-center justify-center">0</span>
-            </Link>
-          </div>
         </div>
-
-        <nav className="hidden md:flex justify-center items-center gap-6">
+      )}
+      
+      {/* --- Category Bar (Sticky on Scroll) --- */}
+      <nav className={`w-full bg-background transition-all duration-300 ${isScrolled ? "fixed top-0 shadow-md py-2" : "py-0 border-b"}`}>
+        <div className="container mx-auto px-4 lg:px-8 flex justify-center items-center gap-6">
           {mainCategories.map((cat) => (
               <div
                 key={cat}
@@ -238,16 +367,16 @@ export function StoreHeader() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   {moreCategories.map((cat) => (
-                    <DropdownMenuItem key={cat}>
-                        {/* You can add link here if needed */}
+                    <DropdownMenuItem key={cat} onMouseEnter={() => setActiveMenu(cat)} onMouseLeave={() => setActiveMenu(null)}>
                         <span>{cat}</span>
+                         <MegaMenu isOpen={activeMenu === cat} items={menuData[cat]} />
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
-        </nav>
-      </div>
+        </div>
+      </nav>
     </header>
   );
 }
