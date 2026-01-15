@@ -4,7 +4,6 @@
 import { useAuth } from '@/hooks/use-auth';
 import { AdminDashboard } from '@/components/dashboard/admin-dashboard';
 import { Skeleton } from '@/components/ui/skeleton';
-import { VendorDashboard } from '@/components/dashboard/vendor-dashboard';
 
 export default function DashboardPage() {
   const { userData, loading } = useAuth();
@@ -26,11 +25,7 @@ export default function DashboardPage() {
     );
   }
 
-  // Render specific dashboards based on user role
-  if (userData.role === 'vendor') {
-    return <VendorDashboard />;
-  }
-
-  // Default to Admin/Rider dashboard
+  // This page is now only for Admins.
+  // Other roles are redirected by the parent layouts.
   return <AdminDashboard />;
 }

@@ -22,6 +22,7 @@ export default function DashboardLayout({
 }) {
   const { user, userData, loading } = useAuth();
   
+  // This layout is now exclusively for admins.
   const allowedRoles = ['admin'];
 
   if (loading) {
@@ -32,10 +33,12 @@ export default function DashboardLayout({
     );
   }
   
+  // If the user is not logged in, not an admin, or data is not yet available,
+  // the protected layout will handle redirection. This is an extra layer of security.
   if (!user || !userData || !allowedRoles.includes(userData.role)) {
       return (
         <div className="flex h-screen items-center justify-center bg-background text-foreground">
-            <p>Redirecting...</p>
+            <p>Access Denied. Redirecting...</p>
         </div>
       );
   }

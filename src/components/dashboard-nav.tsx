@@ -12,7 +12,6 @@ import {
   Building,
   Tags,
   Settings,
-  Store
 } from 'lucide-react';
 import {
   SidebarMenu,
@@ -22,7 +21,6 @@ import {
 
 const adminNavItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/dashboard/pos', label: 'Point of Sale', icon: Store },
   { href: '/dashboard/products', label: 'Products', icon: Package },
   { href: '/dashboard/orders', label: 'Orders & Delivery', icon: ShoppingCart },
   { href: '/dashboard/users', label: 'Users', icon: Users },
