@@ -1,38 +1,30 @@
-
-'use client';
-
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// This middleware file is designed to be Edge-compatible.
-// Avoid importing Node.js-dependent modules here.
-
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  
   const idToken = request.cookies.get('firebaseIdToken')?.value;
 
+  // প্রোটেক্টেড এবং অথ পেজ নির্ধারণ
   const isAuthPage = pathname === '/login' || pathname === '/register';
   const isProtectedPage = pathname.startsWith('/dashboard') || pathname.startsWith('/customer');
 
-  // If the user is not authenticated and tries to access a protected page,
-  // redirect them to the login page.
+  // ১. লগইন নেই কিন্তু সুরক্ষিত পেজে যাওয়ার চেষ্টা করলে লগইনে পাঠানো
   if (!idToken && isProtectedPage) {
-    const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('redirect_to', pathname);
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // If the user is authenticated and tries to access an auth page (login/register),
-  // redirect them to the main protected route entry. The protected layout will then
-  // handle routing to the correct dashboard (admin vs customer).
+  // ২. লগইন আছে কিন্তু লগইন পেজে যেতে চাইলে ড্যাশবোর্ডে পাঠানো
   if (idToken && isAuthPage) {
+    // এখানে ডিফল্ট ড্যাশবোর্ডে পাঠানো হচ্ছে
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   return NextResponse.next();
 }
 
-// Configure which paths the middleware will run on.
 export const config = {
+  // matcher-এ অবশ্যই /customer যোগ করতে হবে
   matcher: ['/dashboard/:path*', '/customer/:path*', '/login', '/register'],
 };
