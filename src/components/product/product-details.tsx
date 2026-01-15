@@ -8,7 +8,7 @@ import type { products } from '@/lib/data';
 import { TrustBadges } from './trust-badges';
 import Link from 'next/link';
 import { useAuth } from '@/firebase/auth/use-auth.tsx';
-import { doc, updateDoc, arrayUnion, arrayRemove, getFirestore } from 'firebase/firestore';
+import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { SaleTimer } from './sale-timer';
 import { ShareButtons } from './share-buttons';
@@ -62,6 +62,25 @@ export function ProductDetails({ product }: { product: Product }) {
       toast({ variant: "destructive", title: "Could not update wishlist" });
     }
   };
+
+  const handleAddToCart = () => {
+    // Logic for adding to cart (e.g., update context/local storage)
+    toast({
+        title: "Added to Bag!",
+        description: `${product.name} (x${quantity}) has been added to your bag.`,
+    });
+  };
+
+  const handleBuyNow = () => {
+    // Logic for direct checkout
+    console.log(`Proceeding to checkout with ${product.name} (x${quantity})`);
+    // Example: router.push(`/checkout?productId=${product.id}&qty=${quantity}`);
+    toast({
+        title: "Proceeding to Checkout",
+        description: `Redirecting you to the checkout page for ${product.name}.`,
+    });
+  };
+
 
   return (
     <div className="flex flex-col gap-6">
@@ -153,7 +172,7 @@ export function ProductDetails({ product }: { product: Product }) {
             <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => setQuantity(q => q + 1)}><Plus size={14}/></Button>
         </div>
         <div className="flex items-center gap-2 w-full">
-            <Button size="lg" variant="outline" className="w-full">
+            <Button size="lg" variant="outline" className="w-full" onClick={handleAddToCart}>
                 <ShoppingBag size={20} className="mr-2" /> Add to Bag
             </Button>
              <Button variant="ghost" size="icon" onClick={handleWishlistToggle} className={cn("border", isWishlisted ? 'bg-destructive/20 text-destructive border-destructive' : '')}>
@@ -161,7 +180,7 @@ export function ProductDetails({ product }: { product: Product }) {
             </Button>
         </div>
       </div>
-      <Button size="lg" className="w-full">Buy Now</Button>
+      <Button size="lg" className="w-full" onClick={handleBuyNow}>Buy Now</Button>
 
        <div className="border rounded-lg p-4 space-y-3">
             <h4 className="font-bold text-sm">Delivery Options</h4>
