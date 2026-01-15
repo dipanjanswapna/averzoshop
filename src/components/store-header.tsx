@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -143,7 +144,7 @@ const menuData: Record<string, React.ReactNode> = {
       <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Electronics</h4><ul className="space-y-2 text-sm text-muted-foreground font-body"><li className="hover:text-foreground cursor-pointer">Trimmers</li><li className="hover:text-foreground cursor-pointer">Hair Dryers</li></ul></div>
     </div>
   ),
-  "Artisan & Handmade": (
+  "Artisan & Handicrafts": (
     <div className='grid grid-cols-4 gap-x-8'>
       <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Decor</h4><ul className="space-y-2 text-sm text-muted-foreground font-body"><li className="hover:text-foreground cursor-pointer">Pottery</li><li className="hover:text-foreground cursor-pointer">Handmade Paintings</li></ul></div>
       <div className="col-span-1"><h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Textiles</h4><ul className="space-y-2 text-sm text-muted-foreground font-body"><li className="hover:text-foreground cursor-pointer">Nakshi Kantha</li><li className="hover:text-foreground cursor-pointer">Handwoven Scarves</li></ul></div>
@@ -288,38 +289,40 @@ export function StoreHeader() {
   const moreCategories = allCategories.slice(10);
 
   return (
-    <header className="sticky top-0 w-full bg-background z-50 transition-all duration-300 shadow-sm overflow-visible">
+    <header className="w-full bg-background z-50">
        {/* Layer 1: Top Bar (Sticky) */}
-        <div className="container mx-auto px-4 lg:px-8">
-            <div className="flex items-center justify-between py-3 gap-6 border-b">
-              <Link href="/" className="text-3xl font-black font-saira tracking-tighter text-foreground">
-                <AverzoLogo className="h-8 w-auto" />
-              </Link>
+        <div className="sticky top-0 w-full bg-background z-50 transition-all duration-300 shadow-sm overflow-visible">
+            <div className="container mx-auto px-4 lg:px-8">
+                <div className="flex items-center justify-between py-3 gap-6 border-b">
+                <Link href="/" className="text-3xl font-black font-saira tracking-tighter text-foreground">
+                    <AverzoLogo className="h-8 w-auto" />
+                </Link>
 
-              <div className="flex-1 max-w-2xl relative hidden md:block">
-                <input
-                  type="text"
-                  placeholder="Search for products, brands and more..."
-                  className="w-full bg-secondary border-none rounded-lg py-2.5 px-6 focus:ring-2 focus:ring-primary outline-none text-sm font-body"
-                />
-                <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-              </div>
-
-              <div className="flex items-center gap-4 sm:gap-6 font-bold text-sm text-foreground">
-                <div className="flex-col items-center cursor-pointer hover:text-primary hidden sm:flex">
-                  <Search size={20} strokeWidth={2.5} className="md:hidden"/>
-                  <span className="text-[10px] uppercase mt-1 md:hidden">Search</span>
+                <div className="flex-1 max-w-2xl relative hidden md:block">
+                    <input
+                    type="text"
+                    placeholder="Search for products, brands and more..."
+                    className="w-full bg-secondary border-none rounded-lg py-2.5 px-6 focus:ring-2 focus:ring-primary outline-none text-sm font-body"
+                    />
+                    <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
                 </div>
-                <Link href="/login" className="flex flex-col items-center cursor-pointer hover:text-primary">
-                  <User size={20} strokeWidth={2.5} />
-                  <span className="text-[10px] uppercase mt-1">Profile</span>
-                </Link>
-                <Link href="/cart" className="flex flex-col items-center cursor-pointer hover:text-primary relative">
-                  <ShoppingCart size={20} strokeWidth={2.5} />
-                  <span className="text-[10px] uppercase mt-1">Bag</span>
-                  <span className="absolute -top-1 -right-2 bg-primary text-primary-foreground text-[9px] w-4 h-4 rounded-full flex items-center justify-center">0</span>
-                </Link>
-              </div>
+
+                <div className="flex items-center gap-4 sm:gap-6 font-bold text-sm text-foreground">
+                    <div className="flex-col items-center cursor-pointer hover:text-primary hidden sm:flex">
+                    <Search size={20} strokeWidth={2.5} className="md:hidden"/>
+                    <span className="text-[10px] uppercase mt-1 md:hidden">Search</span>
+                    </div>
+                    <Link href="/login" className="flex flex-col items-center cursor-pointer hover:text-primary">
+                    <User size={20} strokeWidth={2.5} />
+                    <span className="text-[10px] uppercase mt-1">Profile</span>
+                    </Link>
+                    <Link href="/cart" className="flex flex-col items-center cursor-pointer hover:text-primary relative">
+                    <ShoppingCart size={20} strokeWidth={2.5} />
+                    <span className="text-[10px] uppercase mt-1">Bag</span>
+                    <span className="absolute -top-1 -right-2 bg-primary text-primary-foreground text-[9px] w-4 h-4 rounded-full flex items-center justify-center">0</span>
+                    </Link>
+                </div>
+                </div>
             </div>
         </div>
       
