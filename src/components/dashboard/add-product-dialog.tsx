@@ -15,7 +15,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from "@/hooks/use-toast";
@@ -255,7 +255,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
             
             {fields.length > 0 && (
               <div className="space-y-2">
-                <Label>Product Variants</Label>
+                <label className="text-sm font-medium">Product Variants</label>
                 <Table>
                   <TableHeader>
                     <TableRow>
