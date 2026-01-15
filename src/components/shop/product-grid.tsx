@@ -15,7 +15,7 @@ const SKELETON_COUNT = 8;
 export const ProductGrid = ({ products, isLoading }: ProductGridProps) => {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {Array.from({ length: SKELETON_COUNT }).map((_, index) => (
           <div key={index} className="space-y-2">
             <Skeleton className="aspect-square w-full" />
@@ -38,7 +38,7 @@ export const ProductGrid = ({ products, isLoading }: ProductGridProps) => {
 
   return (
     <div>
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {products.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
