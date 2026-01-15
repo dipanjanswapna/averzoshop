@@ -1,32 +1,38 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+export const runtime = 'nodejs';
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
-  const isAuthPage = pathname === '/login' || pathname === '/register'
-  const isDashboardRoute =
-    pathname.startsWith('/dashboard') || pathname.startsWith('/customer');
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+import { auth } from '@/firebase/server';
+
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const isAuthPage = pathname === '/login' || pathname === '/register';
 
   const idToken = request.cookies.get('firebaseIdToken')?.value;
 
-  // If the user is not logged in and tries to access a protected route,
-  // redirect them to the login page.
-  if (!idToken && isDashboardRoute) {
+  let decodedToken = null;
+  if (idToken) {
+    try {
+      decodedToken = await auth().verifyIdToken(idToken);
+    } catch (error) {
+      // Invalid token, clear the cookie
+      const response = NextResponse.redirect(new URL('/login', request.url));
+      response.cookies.delete('firebaseIdToken');
+      return response;
+    }
+  }
+
+  if (!decodedToken && pathname.startsWith('/dashboard')) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // If the user is logged in and tries to access an auth page (login/register),
-  // redirect them to their dashboard.
-  if (idToken && isAuthPage) {
-    // A full solution would decode the token to check the role, but that's
-    // not feasible in Edge middleware without external services.
-    // Redirecting to a generic start page is a safe default.
+  if (decodedToken && isAuthPage) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  return NextResponse.next()
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/customer/:path*', '/login', '/register'],
-}
+  matcher: ['/dashboard/:path*', '/login', '/register'],
+};
