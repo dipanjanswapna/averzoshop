@@ -109,4 +109,3 @@ export function ReceiveStockDialog({ open, onOpenChange, challan }: ReceiveStock
         </Dialog>
     );
 }
-
