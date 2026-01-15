@@ -1,7 +1,9 @@
+
 "use client";
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Search, ShoppingBag, Heart, User, Menu, ChevronDown, X } from 'lucide-react';
+
 
 const categoriesData = [
     { name: "Men's Fashion", subs: ["Topwear", "Bottomwear", "Ethnic Wear", "Accessories"] },
@@ -24,6 +26,52 @@ const categoriesData = [
     { name: "Gifts & Celebrations", subs: ["Custom Gift Boxes", "Party Supplies", "Festive Items"] },
     { name: "Daily Essentials (Groceries)", subs: ["Staples", "Snacks", "Beverages"] },
 ];
+
+const MegaMenu = ({ category, isOpen }: { category: any; isOpen: boolean }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div 
+      className="absolute left-0 right-0 top-full w-full bg-white text-zinc-900 border-t shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[110]"
+      style={{
+        maxHeight: 'calc(100vh - 80px)', 
+        overflowY: 'auto' 
+      }}
+    >
+      <div className="container mx-auto grid grid-cols-5 gap-10 p-10">
+        <div className="col-span-1">
+          <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">{category.subs[0] || 'Sub-Category'}</h4>
+          <ul className="space-y-2 text-sm text-muted-foreground font-body">
+            {category.subs.slice(1).map((sub: string) => (
+              <li key={sub} className="hover:text-primary cursor-pointer">{sub}</li>
+            ))}
+          </ul>
+        </div>
+        <div className="col-span-2 flex flex-col items-center border-l border-r px-10">
+           <h4 className="font-bold mb-6 text-xs uppercase">Featured Brands</h4>
+           <div className="flex gap-6">
+              {['Aura Men', 'Aura Women'].map(brand => (
+                <div key={brand} className="text-center group/brand cursor-pointer">
+                  <div className="w-16 h-16 rounded-full bg-muted border-2 border-transparent group-hover/brand:border-primary overflow-hidden transition-all">
+                     <div className="w-full h-full bg-primary/10 flex items-center justify-center text-[10px] font-bold">IMG</div>
+                  </div>
+                  <span className="text-[10px] font-bold mt-2 block uppercase">{brand}</span>
+                </div>
+              ))}
+           </div>
+        </div>
+         <div className="col-span-1">
+          <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">More Options</h4>
+          <ul className="space-y-2 text-sm text-muted-foreground font-body">
+            <li className="hover:text-primary cursor-pointer">New Arrivals</li>
+            <li className="hover:text-primary cursor-pointer">Special Offers</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 
 const MobileSidebar = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -92,40 +140,34 @@ const MobileSidebar = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
 export default function StoreHeader() {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
+  
   useEffect(() => {
     const controlNavbar = () => {
-      if (typeof window !== 'undefined') {
-        if (window.scrollY > 100) { 
-          setIsVisible(false);
-        } else {
-          setIsVisible(true);
-        }
-        setLastScrollY(window.scrollY);
+      if (window.scrollY > 100) { 
+        setIsVisible(false);
+      } else {
+        setIsVisible(true);
       }
+      setLastScrollY(window.scrollY);
     };
 
-    if (typeof window !== 'undefined') {
-      window.addEventListener('scroll', controlNavbar);
-      return () => window.removeEventListener('scroll', controlNavbar);
-    }
+    window.addEventListener('scroll', controlNavbar);
+    return () => window.removeEventListener('scroll', controlNavbar);
   }, [lastScrollY]);
-
-  const mainCategories = categoriesData.slice(0, 7);
-  const moreCategories = categoriesData.slice(7);
 
   return (
     <header className="fixed top-0 left-0 w-full z-[100] bg-background shadow-sm transition-all duration-300">
       
       <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4 md:gap-8">
-        <div className="flex items-center gap-4">
-            <button 
-                onClick={() => setIsDrawerOpen(true)}
-                className="p-2 lg:hidden hover:bg-muted rounded-md transition-colors"
-            >
-                <Menu size={24} />
-            </button>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => setIsDrawerOpen(true)}
+            className="p-2 lg:hidden hover:bg-muted rounded-md transition-colors"
+          >
+            <Menu size={24} />
+          </button>
             <Link href="/" className="text-2xl font-black font-saira tracking-tighter text-foreground">
                 AVERZO<span className="text-primary">.</span>
             </Link>
@@ -152,61 +194,16 @@ export default function StoreHeader() {
       </div>
 
       <nav className={`bg-secondary text-secondary-foreground transition-all duration-300 origin-top hidden lg:flex ${isVisible ? "scale-y-100 opacity-100 h-10" : "scale-y-0 opacity-0 h-0"}`}>
-        <div className="container mx-auto px-4 flex items-center justify-center gap-8 h-full overflow-x-auto whitespace-nowrap">
-          {mainCategories.map((item) => (
-            <div key={item.name} className="group static">
+        <div className="container mx-auto px-4 flex items-center justify-center gap-8 h-full overflow-x-auto whitespace-nowrap no-scrollbar">
+          {categoriesData.map((item) => (
+            <div key={item.name} className="group static" onMouseEnter={() => setActiveMenu(item.name)} onMouseLeave={() => setActiveMenu(null)}>
               <button className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-1 hover:text-primary">
                 {item.name} <ChevronDown size={12} />
               </button>
               
-              <div className="absolute left-0 right-0 top-full w-full bg-background text-foreground border-t shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[110]" style={{ maxHeight: 'calc(100vh - 80px)', overflowY: 'auto' }}>
-                <div className="container mx-auto grid grid-cols-5 gap-10 p-10 max-h-[70vh] overflow-y-auto">
-                  <div className="col-span-1">
-                    <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">{item.subs[0] || 'Sub-Category'}</h4>
-                    <ul className="space-y-2 text-sm text-muted-foreground font-body">
-                      {item.subs.slice(1).map(sub => (
-                        <li key={sub} className="hover:text-primary cursor-pointer">{sub}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="col-span-2 flex flex-col items-center border-l border-r px-10">
-                     <h4 className="font-bold mb-6 text-xs uppercase">Featured Brands</h4>
-                     <div className="flex gap-6">
-                        {['Aura Men', 'Aura Women'].map(brand => (
-                          <div key={brand} className="text-center group/brand cursor-pointer">
-                            <div className="w-16 h-16 rounded-full bg-muted border-2 border-transparent group-hover/brand:border-primary overflow-hidden transition-all">
-                               <div className="w-full h-full bg-primary/10 flex items-center justify-center text-[10px] font-bold">IMG</div>
-                            </div>
-                            <span className="text-[10px] font-bold mt-2 block uppercase">{brand}</span>
-                          </div>
-                        ))}
-                     </div>
-                  </div>
-                   <div className="col-span-1">
-                    <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">More Options</h4>
-                    <ul className="space-y-2 text-sm text-muted-foreground font-body">
-                      <li className="hover:text-primary cursor-pointer">New Arrivals</li>
-                      <li className="hover:text-primary cursor-pointer">Special Offers</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
+              <MegaMenu category={item} isOpen={activeMenu === item.name} />
             </div>
           ))}
-            {moreCategories.length > 0 && (
-                <div className="group static">
-                    <button className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-1 hover:text-primary">
-                        More <ChevronDown size={12} />
-                    </button>
-                    <div className="absolute right-0 top-full w-auto bg-background text-foreground border shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[110] rounded-md mt-1">
-                        <ul className="p-2">
-                            {moreCategories.map(item => (
-                                <li key={item.name} className="px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground rounded-md cursor-pointer">{item.name}</li>
-                            ))}
-                        </ul>
-                    </div>
-                </div>
-            )}
         </div>
       </nav>
 
