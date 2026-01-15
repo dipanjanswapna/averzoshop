@@ -1,9 +1,8 @@
 
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { FilterSidebar } from '@/components/shop/filter-sidebar';
 import { ProductGrid } from '@/components/shop/product-grid';
 import { products } from '@/lib/data';
 import {
@@ -21,16 +20,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { Button } from '@/components/ui/button';
-import { Filter } from 'lucide-react';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Carousel,
   CarouselContent,
@@ -57,34 +46,19 @@ export default function CategoryPage() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const defaultMotherCategory = CATEGORY_NAME;
-
-  const priceRange = useMemo(() => [Number(searchParams.get('min_price') || 0), Number(searchParams.get('max_price') || 1000)], [searchParams]);
-  const selectedBrand = useMemo(() => searchParams.get('brand'), [searchParams]);
-  const selectedMotherCategory = defaultMotherCategory;
-  const selectedGroup = useMemo(() => searchParams.get('group'), [searchParams]);
-  const selectedSubcategory = useMemo(() => searchParams.get('subcategory'), [searchParams]);
   const sortBy = useMemo(() => searchParams.get('sort_by') || 'newest', [searchParams]);
   const currentPage = useMemo(() => Number(searchParams.get('page') || 1), [searchParams]);
 
-  const handleFilterChange = useCallback((key: string, value: string | null) => {
+  const handleSortChange = (value: string | null) => {
     const params = new URLSearchParams(searchParams.toString());
-    if (value) params.set(key, value);
-    else params.delete(key);
+    if (value) {
+      params.set('sort_by', value);
+    } else {
+      params.delete('sort_by');
+    }
     params.delete('page');
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [searchParams, pathname, router]);
-
-  const handlePriceChange = useCallback((newRange: number[]) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (newRange[0] > 0) params.set('min_price', String(newRange[0]));
-    else params.delete('min_price');
-    if (newRange[1] < 1000) params.set('max_price', String(newRange[1]));
-    else params.delete('max_price');
-    params.delete('page');
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [searchParams, pathname, router]);
+  };
 
   const onPageChange = useCallback((page: number) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -95,16 +69,11 @@ export default function CategoryPage() {
   const { paginatedProducts, totalPages } = useMemo(() => {
     let filtered = products.filter(p => {
       const productCategoryName = p.category;
-      return productCategoryName === CATEGORY_NAME || (selectedMotherCategory && categoriesData.find(cat => cat.mother_name === selectedMotherCategory)?.groups.some(g => g.group_name === p.group));
+      return productCategoryName === CATEGORY_NAME || (categoriesData.find(cat => cat.mother_name === CATEGORY_NAME)?.groups.some(g => g.group_name === p.group));
     });
 
     let inStockProducts = filtered.filter(p => p.stock > 0);
     const outOfStockProducts = filtered.filter(p => p.stock === 0);
-
-    if (selectedBrand) inStockProducts = inStockProducts.filter(p => p.group === selectedBrand);
-    if (selectedGroup) inStockProducts = inStockProducts.filter(p => p.group === selectedGroup);
-    if (selectedSubcategory) inStockProducts = inStockProducts.filter(p => p.subcategory === selectedSubcategory);
-    inStockProducts = inStockProducts.filter(p => p.price >= priceRange[0] && p.price <= priceRange[1]);
 
     switch (sortBy) {
       case 'price-asc': inStockProducts.sort((a, b) => a.price - b.price); break;
@@ -118,7 +87,7 @@ export default function CategoryPage() {
     const paginatedProducts = allSortedProducts.slice(startIndex, startIndex + PRODUCTS_PER_PAGE);
 
     return { paginatedProducts, totalPages };
-  }, [selectedBrand, selectedGroup, selectedSubcategory, priceRange, sortBy, selectedMotherCategory, currentPage]);
+  }, [sortBy, currentPage]);
 
   return (
     <div>
@@ -169,36 +138,11 @@ export default function CategoryPage() {
                 <BreadcrumbSeparator />
                 <BreadcrumbItem><BreadcrumbLink href="/shop">Shop</BreadcrumbLink></BreadcrumbItem>
                 <BreadcrumbSeparator />
-                <BreadcrumbItem><BreadcrumbPage>{defaultMotherCategory}</BreadcrumbPage></BreadcrumbItem>
-                {selectedGroup && <><BreadcrumbSeparator /><BreadcrumbItem><BreadcrumbPage>{selectedGroup}</BreadcrumbPage></BreadcrumbItem></>}
-                {selectedSubcategory && <><BreadcrumbSeparator /><BreadcrumbItem><BreadcrumbPage>{selectedSubcategory}</BreadcrumbPage></BreadcrumbItem></>}
+                <BreadcrumbItem><BreadcrumbPage>{CATEGORY_NAME}</BreadcrumbPage></BreadcrumbItem>
               </BreadcrumbList>
             </Breadcrumb>
             <div className="flex items-center gap-4 w-full md:w-auto">
-              <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="outline" className="flex items-center gap-2 lg:hidden"><Filter size={16} /><span>Filter</span></Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-[85%] sm:max-w-sm p-0">
-                  <SheetHeader className="p-4 border-b"><SheetTitle>Filter & Sort</SheetTitle></SheetHeader>
-                  <ScrollArea className="h-[calc(100vh-80px)] overflow-y-auto">
-                    <FilterSidebar 
-                      categories={categoriesData}
-                      priceRange={priceRange as [number, number]} 
-                      onPriceChange={handlePriceChange} 
-                      selectedBrand={selectedBrand} 
-                      onBrandChange={(brand) => handleFilterChange('brand', brand)} 
-                      selectedMotherCategory={selectedMotherCategory} 
-                      onMotherCategoryChange={(cat) => handleFilterChange('mother_category', cat)} 
-                      selectedGroup={selectedGroup} 
-                      onGroupChange={(group) => handleFilterChange('group', group)} 
-                      selectedSubcategory={selectedSubcategory} 
-                      onSubcategoryChange={(sub) => handleFilterChange('subcategory', sub)} 
-                    />
-                  </ScrollArea>
-                </SheetContent>
-              </Sheet>
-              <Select value={sortBy} onValueChange={(value) => handleFilterChange('sort_by', value)}>
+              <Select value={sortBy} onValueChange={(value) => handleSortChange(value)}>
                 <SelectTrigger className="w-full md:w-[220px]"><SelectValue placeholder="Sort by" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="newest">Sort by: Newest</SelectItem>
@@ -210,25 +154,8 @@ export default function CategoryPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            <aside className="hidden lg:block lg:col-span-1">
-              <div className="sticky top-28">
-                <FilterSidebar 
-                  categories={categoriesData}
-                  priceRange={priceRange as [number, number]} 
-                  onPriceChange={handlePriceChange} 
-                  selectedBrand={selectedBrand} 
-                  onBrandChange={(brand) => handleFilterChange('brand', brand)} 
-                  selectedMotherCategory={selectedMotherCategory} 
-                  onMotherCategoryChange={(cat) => handleFilterChange('mother_category', cat)} 
-                  selectedGroup={selectedGroup} 
-                  onGroupChange={(group) => handleFilterChange('group', group)} 
-                  selectedSubcategory={selectedSubcategory} 
-                  onSubcategoryChange={(sub) => handleFilterChange('subcategory', sub)} 
-                />
-              </div>
-            </aside>
-            <main className="lg:col-span-3">
+          <div className="grid grid-cols-1">
+            <main>
               <ProductGrid products={paginatedProducts} isLoading={false} currentPage={currentPage} totalPages={totalPages} onPageChange={onPageChange} />
             </main>
           </div>
