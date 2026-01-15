@@ -23,7 +23,7 @@ import { useFirebase } from '@/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { categoriesData } from '@/lib/categories';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import type { Product } from '@/types/product';
+import type { Product, ProductVariant } from '@/types/product';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Trash2 } from 'lucide-react';
 import { Label } from '../ui/label';
@@ -64,6 +64,16 @@ const formSchema = z.object({
   }).optional(),
 });
 
+const getVariantsAsArray = (variants: any): ProductVariant[] => {
+    if (Array.isArray(variants)) {
+      return variants;
+    }
+    if (typeof variants === 'object' && variants !== null) {
+      return Object.values(variants);
+    }
+    return [];
+};
+
 export function EditProductDialog({ open, onOpenChange, product }: EditProductDialogProps) {
   const { toast } = useToast();
   const { firestore } = useFirebase();
@@ -84,7 +94,7 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
       subcategory: product?.subcategory || '',
       variantSizes: product?.sizes?.join(', ') || '',
       variantColors: product?.colors?.join(', ') || '',
-      variants: (product?.variants || []).map(v => ({
+      variants: getVariantsAsArray(product?.variants).map(v => ({
         ...v,
         compareAtPrice: v.compareAtPrice ?? 0,
       })),
@@ -112,7 +122,7 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
       subcategory: product.subcategory || '',
       variantSizes: product.sizes?.join(', ') || '',
       variantColors: product.colors?.join(', ') || '',
-      variants: (product.variants || []).map(v => ({
+      variants: getVariantsAsArray(product.variants).map(v => ({
         ...v,
         compareAtPrice: v.compareAtPrice ?? 0,
       })),
@@ -183,8 +193,9 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
       }
       
       // Preserve stock from original product object
+      const originalVariantsArray = getVariantsAsArray(product.variants);
       const updatedVariants = values.variants.map(formVariant => {
-          const originalVariant = product.variants.find(v => v.sku === formVariant.sku);
+          const originalVariant = originalVariantsArray.find(v => v.sku === formVariant.sku);
           return {
               ...formVariant,
               stock: originalVariant ? originalVariant.stock : 0, // Preserve stock for existing, 0 for new
