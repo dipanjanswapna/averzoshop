@@ -41,7 +41,7 @@ export function DashboardNav() {
         <SidebarMenuItem key={item.href}>
           <Link href={item.href}>
             <SidebarMenuButton
-              isActive={pathname === item.href}
+              isActive={pathname.startsWith(item.href)}
               tooltip={item.label}
               className="justify-start"
             >
