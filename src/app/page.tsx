@@ -106,6 +106,84 @@ export default function StoreFrontPage() {
               <Link href="#" className="transition-colors hover:text-primary flex items-center gap-1">
                 Kids <ChevronDown size={16}/>
               </Link>
+              <div className="group cursor-pointer">
+                  <span className="hover:text-primary transition-colors flex items-center gap-1">Electronics <ChevronDown size={16}/></span>
+                  <div className="absolute left-0 w-full bg-background shadow-lg border-t hidden group-hover:grid grid-cols-4 gap-x-8 p-10 mt-3 animate-in fade-in slide-in-from-top-2">
+                    <div>
+                      <h4 className="font-bold text-primary mb-3 uppercase font-headline">Mobiles</h4>
+                      <ul className="space-y-2 text-muted-foreground font-body font-normal">
+                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Smartphones</li>
+                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Feature Phones</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-primary mb-3 uppercase font-headline">Laptops</h4>
+                      <ul className="space-y-2 text-muted-foreground font-body font-normal">
+                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Gaming Laptops</li>
+                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Ultrabooks</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-primary mb-3 uppercase font-headline">Featured Brands</h4>
+                      <ul className="space-y-2 text-muted-foreground font-body font-normal">
+                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Samsung</li>
+                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">HP</li>
+                      </ul>
+                    </div>
+                     <div className="bg-muted p-4 rounded-lg flex items-center justify-center">
+                      <Image src={"https://picsum.photos/seed/electronics/300/200"} width={300} height={200} alt="Electronics Ad" className="rounded object-cover" data-ai-hint="electronics gadget" />
+                    </div>
+                  </div>
+              </div>
+
+               <div className="group cursor-pointer">
+                  <span className="hover:text-primary transition-colors flex items-center gap-1">Health & Wellness <ChevronDown size={16}/></span>
+                  <div className="absolute left-0 w-full bg-background shadow-lg border-t hidden group-hover:grid grid-cols-4 gap-x-8 p-10 mt-3 animate-in fade-in slide-in-from-top-2">
+                    <div>
+                      <h4 className="font-bold text-primary mb-3 uppercase font-headline">Supplements</h4>
+                      <ul className="space-y-2 text-muted-foreground font-body font-normal">
+                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Whey Protein</li>
+                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Vitamins</li>
+                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Pre-workout</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-primary mb-3 uppercase font-headline">Fitness Gear</h4>
+                      <ul className="space-y-2 text-muted-foreground font-body font-normal">
+                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Yoga Mat</li>
+                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Resistance Band</li>
+                      </ul>
+                    </div>
+                     <div className="bg-muted p-4 rounded-lg flex items-center justify-center col-span-2">
+                       <Image src={"https://picsum.photos/seed/health/600/200"} width={600} height={200} alt="Health Ad" className="rounded object-cover" data-ai-hint="health fitness" />
+                    </div>
+                  </div>
+              </div>
+                <div className="group cursor-pointer">
+                  <span className="hover:text-primary transition-colors flex items-center gap-1">Pet Care <ChevronDown size={16}/></span>
+                   <div className="absolute left-0 w-full bg-background shadow-lg border-t hidden group-hover:grid grid-cols-4 gap-x-8 p-10 mt-3 animate-in fade-in slide-in-from-top-2">
+                    <div>
+                      <h4 className="font-bold text-primary mb-3 uppercase font-headline">Cat Essentials</h4>
+                      <ul className="space-y-2 text-muted-foreground font-body font-normal">
+                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Cat Food</li>
+                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Litter Box</li>
+                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Toys</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-primary mb-3 uppercase font-headline">Dog Essentials</h4>
+                      <ul className="space-y-2 text-muted-foreground font-body font-normal">
+                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Dog Treats</li>
+                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Leash</li>
+                        <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Shampoo</li>
+                      </ul>
+                    </div>
+                     <div className="bg-muted p-4 rounded-lg flex items-center justify-center col-span-2">
+                       <Image src={"https://picsum.photos/seed/pets/600/200"} width={600} height={200} alt="Pet Care Ad" className="rounded object-cover" data-ai-hint="cute pet" />
+                    </div>
+                  </div>
+                </div>
+
               <Link href="#" className="font-bold text-destructive hover:text-destructive/90">
                 Sale
               </Link>
@@ -185,25 +263,25 @@ export default function StoreFrontPage() {
                 <AverzoLogo className="h-7 w-auto" />
             </div>
             <div className="p-4 flex-1 overflow-y-auto">
-                <Accordion type="single" collapsible className="w-full">
+                <Accordion type="multiple" className="w-full">
                     <AccordionItem value="men">
                         <AccordionTrigger className="font-bold text-base">MEN</AccordionTrigger>
                         <AccordionContent>
-                            <Accordion type="single" collapsible className="w-full pl-4">
+                            <Accordion type="multiple" className="w-full pl-4">
                                 <AccordionItem value="topwear">
-                                    <AccordionTrigger>Topwear (Group)</AccordionTrigger>
+                                    <AccordionTrigger>Topwear</AccordionTrigger>
                                     <AccordionContent className="pl-4">
                                         <ul className="space-y-2 text-muted-foreground">
-                                            <li className="hover:text-foreground"><Link href="#">T-Shirts (Sub-cat)</Link></li>
+                                            <li className="hover:text-foreground"><Link href="#">T-Shirts</Link></li>
                                             <li className="hover:text-foreground"><Link href="#">Casual Shirts</Link></li>
                                         </ul>
                                     </AccordionContent>
                                 </AccordionItem>
                                 <AccordionItem value="bottomwear">
-                                    <AccordionTrigger>Bottomwear (Group)</AccordionTrigger>
+                                    <AccordionTrigger>Bottomwear</AccordionTrigger>
                                     <AccordionContent className="pl-4">
                                         <ul className="space-y-2 text-muted-foreground">
-                                            <li className="hover:text-foreground"><Link href="#">Jeans (Sub-cat)</Link></li>
+                                            <li className="hover:text-foreground"><Link href="#">Jeans</Link></li>
                                             <li className="hover:text-foreground"><Link href="#">Chinos</Link></li>
                                         </ul>
                                     </AccordionContent>
@@ -221,6 +299,54 @@ export default function StoreFrontPage() {
                         <AccordionTrigger className="font-bold text-base">KIDS</AccordionTrigger>
                         <AccordionContent>
                             <p className="text-muted-foreground pl-4">...Kids categories here</p>
+                        </AccordionContent>
+                    </AccordionItem>
+                     <AccordionItem value="electronics">
+                        <AccordionTrigger className="font-bold text-base">ELECTRONICS</AccordionTrigger>
+                        <AccordionContent>
+                             <Accordion type="multiple" className="w-full pl-4">
+                                <AccordionItem value="mobiles">
+                                    <AccordionTrigger>Mobiles</AccordionTrigger>
+                                    <AccordionContent className="pl-4">
+                                        <ul className="space-y-2 text-muted-foreground">
+                                            <li className="hover:text-foreground"><Link href="#">Smartphones</Link></li>
+                                            <li className="hover:text-foreground"><Link href="#">Feature Phones</Link></li>
+                                        </ul>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            </Accordion>
+                        </AccordionContent>
+                    </AccordionItem>
+                     <AccordionItem value="health">
+                        <AccordionTrigger className="font-bold text-base">HEALTH & WELLNESS</AccordionTrigger>
+                        <AccordionContent>
+                            <Accordion type="multiple" className="w-full pl-4">
+                                <AccordionItem value="supplements">
+                                    <AccordionTrigger>Supplements</AccordionTrigger>
+                                    <AccordionContent className="pl-4">
+                                        <ul className="space-y-2 text-muted-foreground">
+                                            <li className="hover:text-foreground"><Link href="#">Whey Protein</Link></li>
+                                            <li className="hover:text-foreground"><Link href="#">Vitamins</Link></li>
+                                        </ul>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            </Accordion>
+                        </AccordionContent>
+                    </AccordionItem>
+                    <AccordionItem value="pet-care">
+                        <AccordionTrigger className="font-bold text-base">PET CARE</AccordionTrigger>
+                        <AccordionContent>
+                           <Accordion type="multiple" className="w-full pl-4">
+                                <AccordionItem value="cat-essentials">
+                                    <AccordionTrigger>Cat Essentials</AccordionTrigger>
+                                    <AccordionContent className="pl-4">
+                                        <ul className="space-y-2 text-muted-foreground">
+                                            <li className="hover:text-foreground"><Link href="#">Cat Food</Link></li>
+                                            <li className="hover:text-foreground"><Link href="#">Litter Box</Link></li>
+                                        </ul>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            </Accordion>
                         </AccordionContent>
                     </AccordionItem>
                 </Accordion>
@@ -485,6 +611,8 @@ export default function StoreFrontPage() {
     </div>
   );
 }
+
+    
 
     
 
