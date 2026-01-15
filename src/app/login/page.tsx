@@ -21,7 +21,7 @@ import {
   signInWithEmailAndPassword,
 } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { doc, getDoc, setDoc, getFirestore, collection, query, limit, getDocs } from 'firebase/firestore';
 
@@ -38,7 +38,7 @@ export default function LoginPage() {
     if (!auth) return;
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // Automatic redirection is disabled. User will click "Go to Dashboard".
+      // Automatic redirection is now handled by the middleware and protected layout.
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -78,7 +78,7 @@ export default function LoginPage() {
         });
       }
       
-      // Automatic redirection is disabled.
+      // Automatic redirection is now handled by middleware and protected layouts
     } catch (error) {
       console.error('Error signing in with Google', error);
       toast({
@@ -105,6 +105,9 @@ export default function LoginPage() {
       router.replace('/dashboard');
     }
   };
+  
+  // The middleware now handles redirection for logged-in users trying to access /login
+  // So, we only need to handle the UI states here.
 
   if (loading) {
     return (
