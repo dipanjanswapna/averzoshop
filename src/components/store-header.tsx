@@ -1,11 +1,9 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Search, ShoppingBag, Heart, User, Menu, ChevronDown, X } from 'lucide-react';
 import Link from 'next/link';
-
+import { Search, ShoppingBag, Heart, User, Menu, ChevronDown, X } from 'lucide-react';
 
 const categoriesData = [
-    { name: "All Categories", subs: ["View All", "New Arrivals", "Special Offers"] },
     { name: "Men's Fashion", subs: ["Topwear", "Bottomwear", "Ethnic Wear", "Accessories"] },
     { name: "Women's Fashion", subs: ["Saree", "Salwar Kameez", "Western Wear", "Bags"] },
     { name: "Electronics & Gadgets", subs: ["Laptops", "Mobiles", "Cameras", "Smart Devices"] },
@@ -27,7 +25,7 @@ const categoriesData = [
     { name: "Daily Essentials (Groceries)", subs: ["Staples", "Snacks", "Beverages"] },
 ];
 
-const MobileSidebar = ({ isOpen, onClose, categories }: {isOpen: boolean, onClose: () => void, categories: typeof categoriesData}) => {
+const MobileSidebar = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   const toggleAccordion = (index: number) => {
@@ -36,16 +34,13 @@ const MobileSidebar = ({ isOpen, onClose, categories }: {isOpen: boolean, onClos
 
   return (
     <>
-      {/* ১. ব্যাকড্রপ: মেনু খুললে পেছনের অংশ ঝাপসা হবে */}
       <div 
-        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] transition-opacity duration-300 ${isOpen ? "opacity-100 visible" : "opacity-0 invisible"}`}
+        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] transition-opacity duration-300 lg:hidden ${isOpen ? "opacity-100 visible" : "opacity-0 invisible"}`}
         onClick={onClose}
       />
 
-      {/* ২. মেইন স্লাইড প্যানেল */}
-      <div className={`fixed top-0 left-0 h-full w-[80%] max-w-[300px] bg-white z-[160] shadow-2xl transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <div className={`fixed top-0 left-0 h-full w-[80%] max-w-[300px] bg-white z-[160] shadow-2xl transform transition-transform duration-300 ease-in-out lg:hidden ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
         
-        {/* ড্রয়ার হেডার */}
         <div className="flex items-center justify-between p-5 border-b bg-zinc-900 text-white">
           <span className="text-xl font-black font-saira uppercase">Averzo.</span>
           <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-full">
@@ -53,10 +48,8 @@ const MobileSidebar = ({ isOpen, onClose, categories }: {isOpen: boolean, onClos
           </button>
         </div>
 
-        {/* ড্রয়ার কন্টেন্ট (Scrollable) */}
         <div className="h-[calc(100vh-70px)] overflow-y-auto pb-10 custom-scrollbar">
           
-          {/* প্রোফাইল কুইক লিঙ্ক */}
           <div className="p-5 border-b flex items-center gap-3">
              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">U</div>
              <div>
@@ -65,10 +58,9 @@ const MobileSidebar = ({ isOpen, onClose, categories }: {isOpen: boolean, onClos
              </div>
           </div>
 
-          {/* অ্যাকর্ডিয়ন মেনু: ২০টি ক্যাটাগরি এখানে থাকবে */}
           <div className="py-2">
             <p className="px-5 py-2 text-[10px] font-black text-zinc-400 uppercase tracking-widest">Categories</p>
-            {categories.map((cat, index) => (
+            {categoriesData.map((cat, index) => (
               <div key={index} className="border-b border-zinc-50">
                 <button 
                   onClick={() => toggleAccordion(index)}
@@ -78,7 +70,6 @@ const MobileSidebar = ({ isOpen, onClose, categories }: {isOpen: boolean, onClos
                   <ChevronDown size={16} className={`transition-transform duration-300 ${openIndex === index ? "rotate-180" : ""}`} />
                 </button>
 
-                {/* সাব-ক্যাটাগরি স্লাইড */}
                 <div className={`overflow-hidden transition-all duration-300 bg-zinc-50 ${openIndex === index ? "max-h-96" : "max-h-0"}`}>
                   <ul className="py-2 px-8 space-y-3">
                     {cat.subs.map((sub, i) => (
@@ -103,7 +94,6 @@ export default function StoreHeader() {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  // Scroll logic for auto-hiding secondary navbar on desktop
   useEffect(() => {
     const controlNavbar = () => {
       if (typeof window !== 'undefined') {
@@ -122,12 +112,14 @@ export default function StoreHeader() {
     }
   }, [lastScrollY]);
 
+  const mainCategories = categoriesData.slice(0, 7);
+  const moreCategories = categoriesData.slice(7);
+
   return (
     <header className="fixed top-0 left-0 w-full z-[100] bg-background shadow-sm transition-all duration-300">
       
-      {/* 1. Primary Master Header (Always Sticky) */}
       <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4 md:gap-8">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
             <button 
                 onClick={() => setIsDrawerOpen(true)}
                 className="p-2 lg:hidden hover:bg-muted rounded-md transition-colors"
@@ -139,7 +131,6 @@ export default function StoreHeader() {
             </Link>
         </div>
 
-        {/* Main Search Bar (Desktop) */}
         <div className="flex-1 max-w-2xl relative hidden md:block">
           <input 
             type="text" 
@@ -151,7 +142,6 @@ export default function StoreHeader() {
           </button>
         </div>
 
-        {/* User Action Icons */}
         <div className="flex items-center gap-5">
           <User size={22} className="cursor-pointer hover:text-primary transition-colors" />
           <div className="relative cursor-pointer">
@@ -161,27 +151,24 @@ export default function StoreHeader() {
         </div>
       </div>
 
-      {/* 2. Secondary Category Bar (Auto-hides on scroll, hidden on mobile) */}
       <nav className={`bg-secondary text-secondary-foreground transition-all duration-300 origin-top hidden lg:flex ${isVisible ? "scale-y-100 opacity-100 h-10" : "scale-y-0 opacity-0 h-0"}`}>
         <div className="container mx-auto px-4 flex items-center justify-center gap-8 h-full overflow-x-auto whitespace-nowrap">
-          {["Men's Fashion", "Women's Fashion", "Kids & Baby", "Electronics", "Grooming", "Home & Living", "Gaming"].map((item) => (
-            <div key={item} className="group static">
+          {mainCategories.map((item) => (
+            <div key={item.name} className="group static">
               <button className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-1 hover:text-primary">
-                {item} <ChevronDown size={12} />
+                {item.name} <ChevronDown size={12} />
               </button>
               
-              {/* 3. Full-width Mega Menu */}
-              <div className="absolute left-0 right-0 top-full w-full bg-background text-foreground border-t shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[110]">
+              <div className="absolute left-0 right-0 top-full w-full bg-background text-foreground border-t shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[110]" style={{ maxHeight: 'calc(100vh - 80px)', overflowY: 'auto' }}>
                 <div className="container mx-auto grid grid-cols-5 gap-10 p-10 max-h-[70vh] overflow-y-auto">
                   <div className="col-span-1">
-                    <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">Topwear</h4>
+                    <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">{item.subs[0] || 'Sub-Category'}</h4>
                     <ul className="space-y-2 text-sm text-muted-foreground font-body">
-                      <li className="hover:text-primary cursor-pointer">Casual Shirts</li>
-                      <li className="hover:text-primary cursor-pointer">Formal Shirts</li>
-                      <li className="hover:text-primary cursor-pointer">T-Shirts</li>
+                      {item.subs.slice(1).map(sub => (
+                        <li key={sub} className="hover:text-primary cursor-pointer">{sub}</li>
+                      ))}
                     </ul>
                   </div>
-                  {/* Brand Zone - Aura Highlight */}
                   <div className="col-span-2 flex flex-col items-center border-l border-r px-10">
                      <h4 className="font-bold mb-6 text-xs uppercase">Featured Brands</h4>
                      <div className="flex gap-6">
@@ -196,24 +183,36 @@ export default function StoreHeader() {
                      </div>
                   </div>
                    <div className="col-span-1">
-                    <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">Bottomwear</h4>
+                    <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">More Options</h4>
                     <ul className="space-y-2 text-sm text-muted-foreground font-body">
-                      <li className="hover:text-primary cursor-pointer">Jeans</li>
-                      <li className="hover:text-primary cursor-pointer">Trousers</li>
+                      <li className="hover:text-primary cursor-pointer">New Arrivals</li>
+                      <li className="hover:text-primary cursor-pointer">Special Offers</li>
                     </ul>
                   </div>
                 </div>
               </div>
             </div>
           ))}
+            {moreCategories.length > 0 && (
+                <div className="group static">
+                    <button className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-1 hover:text-primary">
+                        More <ChevronDown size={12} />
+                    </button>
+                    <div className="absolute right-0 top-full w-auto bg-background text-foreground border shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[110] rounded-md mt-1">
+                        <ul className="p-2">
+                            {moreCategories.map(item => (
+                                <li key={item.name} className="px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground rounded-md cursor-pointer">{item.name}</li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
+            )}
         </div>
       </nav>
 
-       {/* Mobile Drawer Component */}
        <MobileSidebar 
           isOpen={isDrawerOpen} 
           onClose={() => setIsDrawerOpen(false)} 
-          categories={categoriesData} 
         />
     </header>
   );
