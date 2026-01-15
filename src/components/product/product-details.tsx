@@ -1,10 +1,10 @@
 
 'use client';
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Minus, Plus, ShoppingBag, Heart, HelpCircle, MapPin, Share2 } from 'lucide-react';
+import { Minus, Plus, ShoppingBag, Heart, HelpCircle, MapPin, Share2, Printer } from 'lucide-react';
 import type { Product, ProductVariant } from '@/types/product';
 import { TrustBadges } from './trust-badges';
 import Link from 'next/link';
@@ -16,6 +16,8 @@ import { ShareButtons } from './share-buttons';
 import { SizeGuideDialog } from './size-guide-dialog';
 import { useCart } from '@/hooks/use-cart';
 import Barcode from 'react-barcode';
+import { useReactToPrint } from 'react-to-print';
+import { ProductSticker } from './product-sticker';
 
 export function ProductDetails({ product }: { product: Product }) {
   const router = useRouter();
@@ -33,6 +35,12 @@ export function ProductDetails({ product }: { product: Product }) {
   const { addItem } = useCart();
   const { user, firestore, userData } = useAuth();
   const { toast } = useToast();
+  
+  const stickerRef = useRef(null);
+  const handlePrint = useReactToPrint({
+    content: () => stickerRef.current,
+  });
+
 
   const uniqueColors = useMemo(() => [...new Set(product.variants?.map(v => v.color).filter(Boolean))], [product.variants]);
   const uniqueSizes = useMemo(() => [...new Set(product.variants?.map(v => v.size).filter(Boolean))], [product.variants]);
@@ -278,9 +286,22 @@ export function ProductDetails({ product }: { product: Product }) {
               height={50}
               fontSize={14}
              />
+             <Button variant="outline" size="sm" onClick={handlePrint}>
+                <Printer className="mr-2 h-4 w-4" />
+                Print Sticker
+             </Button>
         </div>
        )}
 
+      <div className="hidden">
+        {selectedVariant && (
+          <ProductSticker
+            ref={stickerRef}
+            product={product}
+            variant={selectedVariant}
+          />
+        )}
+      </div>
 
        <div className="border rounded-lg p-4 space-y-3">
             <h4 className="font-bold text-sm">Delivery Options</h4>
