@@ -4,7 +4,7 @@
 import React, { useMemo, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { ProductGrid } from '@/components/shop/product-grid';
-import { products as allProducts, categoriesData } from '@/lib/data';
+import { categoriesData } from '@/lib/data';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -24,6 +24,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
+import type { Product } from '@/types/product';
 
 const PRODUCTS_PER_PAGE = 32;
 
@@ -31,6 +33,7 @@ function ShopPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { data: allProducts, isLoading } = useFirestoreQuery<Product>('products');
 
   const parseQueryParam = (param: string | null, defaultValue: any) => {
     if (!param) return defaultValue;
@@ -94,7 +97,8 @@ function ShopPageContent() {
   }, [router, pathname, searchParams]);
 
   const { paginatedProducts, totalPages } = useMemo(() => {
-    let filtered = [...allProducts];
+    if (!allProducts) return { paginatedProducts: [], totalPages: 0 };
+    let filtered = allProducts.filter(p => p.status === 'approved');
 
     if (initialFilters.mother_category) {
         filtered = filtered.filter(p => p.category === initialFilters.mother_category || categoriesData.find(c => c.mother_name === initialFilters.mother_category)?.groups.some(g => g.group_name === p.group));
@@ -124,8 +128,8 @@ function ShopPageContent() {
         filtered = filtered.filter(p => p.isBundle);
     }
     
-    let inStockProducts = filtered.filter(p => p.stock > 0);
-    const outOfStockProducts = filtered.filter(p => p.stock === 0);
+    let inStockProducts = filtered.filter(p => p.total_stock > 0);
+    const outOfStockProducts = filtered.filter(p => p.total_stock === 0);
 
     switch (initialFilters.sort_by) {
         case 'price-asc':
@@ -136,7 +140,8 @@ function ShopPageContent() {
             break;
         case 'newest':
         default:
-            inStockProducts.sort((a, b) => parseInt(b.id.split('_')[1]) - parseInt(a.id.split('_')[1]));
+            // Assuming createdAt is a string, may need to convert to Date for proper sorting
+            inStockProducts.sort((a:any, b:any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
             break;
     }
 
@@ -146,7 +151,7 @@ function ShopPageContent() {
     const paginatedProducts = allSortedProducts.slice(startIndex, startIndex + PRODUCTS_PER_PAGE);
 
     return { paginatedProducts, totalPages };
-  }, [initialFilters]);
+  }, [initialFilters, allProducts]);
 
   const breadcrumbItems = useMemo(() => {
     const items = [
@@ -233,7 +238,7 @@ function ShopPageContent() {
           <main className="lg:col-span-3">
             <ProductGrid 
               products={paginatedProducts} 
-              isLoading={false} 
+              isLoading={isLoading} 
               currentPage={initialFilters.page}
               totalPages={totalPages}
               onPageChange={onPageChange}

@@ -4,7 +4,9 @@
 import React, { useMemo, useCallback } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { ProductGrid } from '@/components/shop/product-grid';
-import { products, categoriesData } from '@/lib/data';
+import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
+import type { Product } from '@/types/product';
+import { categoriesData } from '@/lib/data';
 import {
   Select,
   SelectContent,
@@ -49,6 +51,7 @@ export default function CategoryPage() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { data: products, isLoading } = useFirestoreQuery<Product>('products');
   
   const parseQueryParam = (param: string | null, defaultValue: any) => {
     if (!param) return defaultValue;
@@ -116,9 +119,11 @@ export default function CategoryPage() {
 
 
   const { paginatedProducts, totalPages } = useMemo(() => {
+    if (!products) return { paginatedProducts: [], totalPages: 0 };
+
     let filtered = products.filter(p => {
       const productCategoryName = p.category;
-      return productCategoryName === CATEGORY_NAME || (categoriesData.find(cat => cat.mother_name === CATEGORY_NAME)?.groups.some(g => g.group_name === p.group));
+      return p.status === 'approved' && (productCategoryName === CATEGORY_NAME || (categoriesData.find(cat => cat.mother_name === CATEGORY_NAME)?.groups.some(g => g.group_name === p.group)));
     });
 
     if (initialFilters.group) {
@@ -146,15 +151,15 @@ export default function CategoryPage() {
         filtered = filtered.filter(p => p.isBundle);
     }
 
-    let inStockProducts = filtered.filter(p => p.stock > 0);
-    const outOfStockProducts = filtered.filter(p => p.stock === 0);
+    let inStockProducts = filtered.filter(p => p.total_stock > 0);
+    const outOfStockProducts = filtered.filter(p => p.total_stock === 0);
 
     switch (initialFilters.sort_by) {
       case 'price-asc': inStockProducts.sort((a, b) => a.price - b.price); break;
       case 'price-desc': inStockProducts.sort((a, b) => b.price - a.price); break;
       case 'newest': 
       default:
-        inStockProducts.sort((a, b) => parseInt(b.id.split('_')[1]) - parseInt(a.id.split('_')[1]));
+        inStockProducts.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         break;
     }
 
@@ -164,7 +169,7 @@ export default function CategoryPage() {
     const paginatedProducts = allSortedProducts.slice(startIndex, startIndex + PRODUCTS_PER_PAGE);
 
     return { paginatedProducts, totalPages };
-  }, [initialFilters]);
+  }, [initialFilters, products]);
 
   return (
     <div>
@@ -254,7 +259,7 @@ export default function CategoryPage() {
               <main className="lg:col-span-3">
                 <ProductGrid 
                     products={paginatedProducts} 
-                    isLoading={false} 
+                    isLoading={isLoading} 
                     currentPage={initialFilters.page}
                     totalPages={totalPages}
                     onPageChange={onPageChange}
