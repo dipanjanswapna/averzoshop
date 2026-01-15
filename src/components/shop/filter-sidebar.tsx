@@ -257,5 +257,3 @@ export const FilterSidebar = ({
     </div>
   );
 };
-
-    
