@@ -8,7 +8,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { createUserWithEmailAndPassword, updateProfile, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -88,15 +88,27 @@ function RegisterPageContent() {
       const user = result.user;
 
       const userDocRef = doc(firestore, 'users', user.uid);
-      await setDoc(userDocRef, {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        photoURL: user.photoURL,
-        role: 'customer',
-        status: 'approved',
-        createdAt: new Date().toISOString(),
-      }, { merge: true });
+      const userDoc = await getDoc(userDocRef);
+
+      if (!userDoc.exists()) {
+        // New user, create document with customer role
+        await setDoc(userDocRef, {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          role: 'customer',
+          status: 'approved',
+          createdAt: new Date().toISOString(),
+        });
+      } else {
+         // Existing user, merge data but don't overwrite role/status
+         await setDoc(userDocRef, {
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+        }, { merge: true });
+      }
+
 
       toast({ title: 'Google Sign-In Successful', description: 'Redirecting...' });
       router.push('/dashboard');
