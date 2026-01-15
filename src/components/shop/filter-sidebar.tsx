@@ -151,7 +151,7 @@ export const FilterSidebar = ({
                       <SelectItem key={index} value={category.mother_name} disabled={count === 0} className={cn(count === 0 && "text-muted-foreground/50")}>
                         <span className="flex justify-between w-full pr-2">
                           <span>{category.mother_name}</span>
-                          <span>{count}</span>
+                          <span>({count})</span>
                         </span>
                       </SelectItem>
                     )
@@ -173,7 +173,7 @@ export const FilterSidebar = ({
                      <SelectItem key={index} value={group.group_name} disabled={count === 0} className={cn(count === 0 && "text-muted-foreground/50")}>
                         <span className="flex justify-between w-full pr-2">
                            <span>{group.group_name}</span>
-                           <span>{count}</span>
+                           <span>({count})</span>
                         </span>
                      </SelectItem>
                     )
@@ -195,7 +195,7 @@ export const FilterSidebar = ({
                      <SelectItem key={index} value={sub} disabled={count === 0} className={cn(count === 0 && "text-muted-foreground/50")}>
                        <span className="flex justify-between w-full pr-2">
                           <span>{sub}</span>
-                          <span>{count}</span>
+                          <span>({count})</span>
                         </span>
                      </SelectItem>
                     )
@@ -222,7 +222,7 @@ export const FilterSidebar = ({
                     <SelectItem key={index} value={brand} disabled={count === 0} className={cn(count === 0 && "text-muted-foreground/50")}>
                       <span className="flex justify-between w-full pr-2">
                           <span>{brand}</span>
-                          <span>{count}</span>
+                          <span>({count})</span>
                         </span>
                     </SelectItem>
                   )})}
