@@ -3,7 +3,7 @@
 
 import { Suspense } from 'react';
 import { useParams } from 'next/navigation';
-import { products } from '@/lib/data';
+import { products, frequentlyBoughtTogether } from '@/lib/data';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -17,6 +17,7 @@ import { ProductDetails } from '@/components/product/product-details';
 import { ProductTabs } from '@/components/product/product-tabs';
 import { RelatedProducts } from '@/components/product/related-products';
 import { MobileActionbar } from '@/components/product/mobile-action-bar';
+import { FrequentlyBought } from '@/components/product/frequently-bought';
 
 function ProductPageContent() {
     const params = useParams();
@@ -33,21 +34,29 @@ function ProductPageContent() {
         );
     }
     
-    const relatedProducts = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 5);
+    const relatedProducts = products.filter(p => p.category === product.category && p.id !== product.id).slice(0, 10);
 
     return (
         <div className="bg-background">
             <div className="container py-8">
-                <Breadcrumb className="mb-6">
+                 <Breadcrumb className="mb-6 overflow-x-auto whitespace-nowrap no-scrollbar">
                     <BreadcrumbList>
                         <BreadcrumbItem>
                             <BreadcrumbLink href="/">Home</BreadcrumbLink>
                         </BreadcrumbItem>
                         <BreadcrumbSeparator />
                         <BreadcrumbItem>
-                             <BreadcrumbLink href={`/shop?mother_category=${encodeURIComponent(product.category)}`}>{product.category}</BreadcrumbLink>
+                            <BreadcrumbLink href={`/shop?mother_category=${encodeURIComponent(product.category)}`}>{product.category}</BreadcrumbLink>
                         </BreadcrumbItem>
                         <BreadcrumbSeparator />
+                         {product.group && (
+                           <>
+                            <BreadcrumbItem>
+                                <BreadcrumbLink href={`/shop?mother_category=${encodeURIComponent(product.category)}&group=${encodeURIComponent(product.group)}`}>{product.group}</BreadcrumbLink>
+                            </BreadcrumbItem>
+                            <BreadcrumbSeparator />
+                           </>
+                        )}
                         <BreadcrumbItem>
                             <BreadcrumbPage className="max-w-48 truncate">{product.name}</BreadcrumbPage>
                         </BreadcrumbItem>
@@ -58,6 +67,10 @@ function ProductPageContent() {
                     <ProductImageGallery product={product} />
                     <ProductDetails product={product} />
                 </div>
+            </div>
+            
+            <div className="container py-12">
+                <FrequentlyBought products={frequentlyBoughtTogether} />
             </div>
 
             <div className="container py-12">
