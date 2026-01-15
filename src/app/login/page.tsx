@@ -33,24 +33,12 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  useEffect(() => {
-    if (!loading && user) {
-      // The middleware will handle redirection if the user is already logged in
-      // but this is a good fallback.
-      if (userData?.role === 'customer') {
-          router.replace('/customer');
-      } else {
-          router.replace('/dashboard');
-      }
-    }
-  }, [user, userData, loading, router]);
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth) return;
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // Redirection is handled by the useEffect above
+      // Automatic redirection is disabled. User will click "Go to Dashboard".
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -90,7 +78,7 @@ export default function LoginPage() {
         });
       }
       
-      // Redirection is handled by the useEffect above
+      // Automatic redirection is disabled.
     } catch (error) {
       console.error('Error signing in with Google', error);
       toast({
@@ -105,8 +93,6 @@ export default function LoginPage() {
     if (!auth) return;
     try {
       await firebaseSignOut(auth);
-      // After signing out, stay on the login page
-      router.push('/login');
     } catch (error) {
       console.error('Error signing out', error);
     }

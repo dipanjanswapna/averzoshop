@@ -1,30 +1,33 @@
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import { auth } from '@/firebase/server';
+// মনে রাখবেন: মিডলওয়্যারে firebase-admin বা @/firebase/server ইম্পোর্ট করা যাবে না।
+// কারণ এগুলো Node.js এর ওপর নির্ভরশীল এবং Edge-এ চলে না।
 
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
-  const isAuthPage = pathname === '/login' || pathname === '/register'
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  
+  // ১. পেজ টাইপ চেক করা
+  const isAuthPage = pathname === '/login' || pathname === '/register';
+  const isProtectedPage = pathname.startsWith('/dashboard') || pathname.startsWith('/customer');
 
+  // ২. কুকি থেকে টোকেন চেক করা (এটি Edge Runtime-এ নিরাপদ)
   const idToken = request.cookies.get('firebaseIdToken')?.value;
 
-  // Since middleware runs on the edge, we can't use firebase-admin to verify the token here.
-  // We'll do a simple check for the cookie's existence.
-  // The actual token verification will happen on pages/layouts that require auth.
-  // Server components can verify it, and client components will use the auth state listener.
-
-  if (!idToken && pathname.startsWith('/dashboard')) {
-    return NextResponse.redirect(new URL('/login', request.url))
+  // ৩. লজিক: টোকেন না থাকলে এবং প্রোটেক্টড পেজে যেতে চাইলে রিডাইরেক্ট
+  if (!idToken && isProtectedPage) {
+    const loginUrl = new URL('/login', request.url);
+    // বর্তমানে কোন পেজে যেতে চেয়েছিল সেটি মনে রাখার জন্য searchParams ব্যবহার করা যেতে পারে
+    return NextResponse.redirect(loginUrl);
   }
 
-  if (idToken && isAuthPage) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
-  }
+  // ৪. লগইন থাকা অবস্থায় লগইন পেজে গেলে কোনো স্বয়ংক্রিয় রিডাইরেক্ট হবে না।
+  // ব্যবহারকারী "Go to Dashboard" বাটনে ক্লিক করে ড্যাশবোর্ডে যাবেন।
 
-  return NextResponse.next()
+  return NextResponse.next();
 }
 
+// কোন কোন পাথে মিডলওয়্যারটি রান হবে সেটি কনফিগার করা
 export const config = {
-  matcher: ['/dashboard/:path*', '/login', '/register'],
-}
+  matcher: ['/dashboard/:path*', '/customer/:path*', '/login', '/register'],
+};
