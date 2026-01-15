@@ -6,6 +6,7 @@ import type { Product } from '@/types/product';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, MoreHorizontal, PackageOpen } from 'lucide-react';
 import { AddProductDialog } from '@/components/dashboard/add-product-dialog';
+import { EditProductDialog } from '@/components/dashboard/edit-product-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +21,8 @@ import { useToast } from '@/hooks/use-toast';
 export default function ProductsPage() {
   const { data: products, isLoading } = useFirestoreQuery<Product>('products');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const { userData } = useAuth();
   const { firestore } = useFirebase();
   const { toast } = useToast();
@@ -41,6 +44,11 @@ export default function ProductsPage() {
         description: 'Could not update product status.',
       });
     }
+  };
+
+  const handleEditClick = (product: Product) => {
+    setSelectedProduct(product);
+    setIsEditDialogOpen(true);
   };
 
 
@@ -113,7 +121,7 @@ export default function ProductsPage() {
                     <DropdownMenuSeparator />
                 </>
             )}
-           <DropdownMenuItem>Edit</DropdownMenuItem>
+           <DropdownMenuItem onClick={() => handleEditClick(product)}>Edit</DropdownMenuItem>
            <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -207,7 +215,7 @@ export default function ProductsPage() {
         </Card>
       </div>
       <AddProductDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} />
+      {selectedProduct && <EditProductDialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} product={selectedProduct} />}
     </>
   );
 }
-
