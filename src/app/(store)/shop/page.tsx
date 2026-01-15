@@ -34,19 +34,12 @@ export default function ShopPage() {
 
   const parseQueryParam = (param: string | null, defaultValue: any) => {
     if (!param) return defaultValue;
-    if (Array.isArray(defaultValue)) {
-        return param.split(',');
+    try {
+      return JSON.parse(param);
+    } catch (e) {
+      return Array.isArray(defaultValue) ? param.split(',') : param;
     }
-    if (typeof defaultValue === 'object' && defaultValue !== null) {
-        try {
-            return JSON.parse(param);
-        } catch (e) {
-            return defaultValue;
-        }
-    }
-    return param;
   };
-
 
   const initialFilters = useMemo(() => ({
     page: Number(searchParams.get('page')) || 1,
@@ -65,26 +58,40 @@ export default function ShopPage() {
   const handleFilterChange = useCallback((filters: Record<string, any>) => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
-      if (value !== null && value !== undefined && value !== '') {
-          if (Array.isArray(value)) {
-              if (value.length > 0) {
-                  params.set(key, value.join(','));
-              }
-          } else if (typeof value === 'object') {
-              params.set(key, JSON.stringify(value));
-          } else {
-              params.set(key, String(value));
-          }
-      }
+        if (value !== null && value !== undefined) {
+            if (Array.isArray(value)) {
+                if (value.length > 0) {
+                    params.set(key, key === 'price_range' ? JSON.stringify(value) : value.join(','));
+                }
+            } else if (String(value).trim() !== '') {
+                params.set(key, String(value));
+            }
+        }
     });
+
+     if(initialFilters.sort_by) {
+      params.set('sort_by', initialFilters.sort_by);
+    }
+    
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [router, pathname]);
+  }, [router, pathname, initialFilters.sort_by]);
 
 
   const handleSortChange = (value: string | null) => {
-    const newFilters = { ...initialFilters, sort_by: value || 'newest' };
-    handleFilterChange(newFilters);
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) {
+      params.set('sort_by', value);
+    } else {
+      params.delete('sort_by');
+    }
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
+
+  const onPageChange = useCallback((page: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', String(page));
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [router, pathname, searchParams]);
 
 
   const { paginatedProducts, totalPages } = useMemo(() => {
@@ -92,7 +99,7 @@ export default function ShopPage() {
 
     // Apply filters
     if (initialFilters.mother_category) {
-        filtered = filtered.filter(p => p.category === initialFilters.mother_category);
+        filtered = filtered.filter(p => p.category === initialFilters.mother_category || categoriesData.find(c => c.mother_name === initialFilters.mother_category)?.groups.some(g => g.group_name === p.group));
     }
     if (initialFilters.group) {
         filtered = filtered.filter(p => p.group === initialFilters.group);
@@ -119,7 +126,6 @@ export default function ShopPage() {
         filtered = filtered.filter(p => p.isBundle);
     }
     
-
     let inStockProducts = filtered.filter(p => p.stock > 0);
     const outOfStockProducts = filtered.filter(p => p.stock === 0);
 
@@ -133,7 +139,6 @@ export default function ShopPage() {
             break;
         case 'newest':
         default:
-            // Assuming higher ID means newer, or add a date field
             inStockProducts.sort((a, b) => parseInt(b.id.split('_')[1]) - parseInt(a.id.split('_')[1]));
             break;
     }
@@ -145,11 +150,6 @@ export default function ShopPage() {
 
     return { paginatedProducts, totalPages };
   }, [initialFilters]);
-
-  const onPageChange = useCallback((page: number) => {
-    const newFilters = { ...initialFilters, page };
-    handleFilterChange(newFilters);
-  }, [initialFilters, handleFilterChange]);
 
   return (
     <div className="bg-secondary">
