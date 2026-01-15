@@ -1,7 +1,6 @@
-
 'use client';
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Minus, Plus, ShoppingBag, Heart, HelpCircle, MapPin, Share2, Printer, Gift, X } from 'lucide-react';
