@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select';
 
 interface FilterSidebarProps {
+  categories: typeof categoriesData;
   onFilterChange: (filters: Record<string, any>) => void;
   initialFilters: Record<string, any>;
 }
@@ -30,7 +31,7 @@ const DISCOUNT_RANGES = [
   { label: '50% & Above', value: '50' },
 ];
 
-export function FilterSidebar({ onFilterChange, initialFilters }: FilterSidebarProps) {
+export function FilterSidebar({ categories, onFilterChange, initialFilters }: FilterSidebarProps) {
   
   const { 
     mother_category, 
@@ -94,18 +95,18 @@ export function FilterSidebar({ onFilterChange, initialFilters }: FilterSidebarP
     handleFilterUpdate(key, newValues);
   };
 
-  const availableGroups = useMemo(() => {
+  const availableGroups = React.useMemo(() => {
     if (!mother_category) return [];
-    const cat = categoriesData.find(c => c.mother_name === mother_category);
+    const cat = categories.find(c => c.mother_name === mother_category);
     return cat ? cat.groups : [];
-  }, [mother_category]);
+  }, [mother_category, categories]);
 
-  const availableSubcategories = useMemo(() => {
+  const availableSubcategories = React.useMemo(() => {
     if (!group) return [];
-    const cat = categoriesData.find(c => c.mother_name === mother_category);
+    const cat = categories.find(c => c.mother_name === mother_category);
     const grp = cat?.groups.find(g => g.group_name === group);
     return grp ? grp.subs : [];
-  }, [group, mother_category]);
+  }, [group, mother_category, categories]);
 
   return (
     <div className="space-y-6">
@@ -121,7 +122,7 @@ export function FilterSidebar({ onFilterChange, initialFilters }: FilterSidebarP
                     <SelectTrigger><SelectValue placeholder="All Categories" /></SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">All Categories</SelectItem>
-                        {categoriesData.map(cat => <SelectItem key={cat.mother_name} value={cat.mother_name}>{cat.mother_name}</SelectItem>)}
+                        {categories.map(cat => <SelectItem key={cat.mother_name} value={cat.mother_name}>{cat.mother_name}</SelectItem>)}
                     </SelectContent>
                 </Select>
             </div>
