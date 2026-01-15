@@ -41,6 +41,10 @@
                 "type": "string"
             }
         },
+        "outletId": {
+            "type": "string",
+            "description": "The ID of the outlet this user manages, if applicable."
+        },
         "createdAt": {
             "type": "string",
             "format": "date-time",
@@ -163,14 +167,21 @@
         "group": { "type": "string" },
         "subcategory": { "type": "string" },
         "price": { "type": "number" },
-        "stock": { "type": "number" },
+        "total_stock": { "type": "number" },
+        "outlet_stocks": {
+          "type": "object",
+          "description": "Stock count per outlet",
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
         "image": { "type": "string", "format": "uri" },
         "brand": { "type": "string" },
         "vendorId": { "type": "string" },
         "status": { "type": "string", "enum": ["pending", "approved", "rejected"]},
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["name", "price", "stock", "vendorId", "status"]
+      "required": ["name", "price", "total_stock", "vendorId", "status"]
     }
   },
   "auth": {
