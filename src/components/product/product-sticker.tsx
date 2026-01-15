@@ -10,9 +10,9 @@ interface ProductStickerProps {
   variant: ProductVariant;
 }
 
-export const ProductSticker = React.forwardRef<HTMLDivElement, ProductStickerProps>(({ product, variant }, ref) => {
+export function ProductSticker({ product, variant }: ProductStickerProps) {
   return (
-    <div ref={ref} className="p-4 border border-dashed border-black w-[300px] font-sans bg-white text-black">
+    <div className="p-4 border border-dashed border-black w-[300px] font-sans bg-white text-black">
       <div className="text-center space-y-1">
         <p className="text-sm font-bold uppercase">{product.brand}</p>
         <p className="text-xs">{product.name}</p>
@@ -35,6 +35,4 @@ export const ProductSticker = React.forwardRef<HTMLDivElement, ProductStickerPro
       </div>
     </div>
   );
-});
-
-ProductSticker.displayName = 'ProductSticker';
+}
