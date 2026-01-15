@@ -22,15 +22,11 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const { user, userData } = useAuth();
-
+  
   // The root protected layout now handles loading and redirection.
   // This layout's only job is to render the admin UI if the user is authorized.
-  
-  // Render the admin dashboard for non-customer roles.
-  // The outer layout ensures that if a customer lands here, they are redirected.
+  // A simple check is still good as a failsafe.
   if (!user || !userData || userData.role === 'customer') {
-      // This state should ideally not be reached due to the root layout's logic,
-      // but it's a good failsafe. A simple message is enough.
       return (
         <div className="flex h-screen items-center justify-center bg-background text-foreground">
             <p>Redirecting...</p>

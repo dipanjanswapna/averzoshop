@@ -11,31 +11,38 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (loading) return; // Wait until auth state is determined
+    // Don't do anything while auth state is loading
+    if (loading) {
+      return;
+    }
 
+    // If not logged in, redirect to login page.
+    // This is a fallback, as middleware should handle this first.
     if (!user) {
-      // This should be handled by middleware, but as a fallback, redirect to login
       router.replace('/login');
       return;
     }
-    
-    // Once userData is loaded, perform role-based redirection
+
+    // Once user data (with role) is loaded, perform role-based redirection.
     if (userData) {
       const isCustomer = userData.role === 'customer';
-      const onAdminDashboard = pathname.startsWith('/dashboard');
-      const onCustomerDashboard = pathname.startsWith('/customer');
+      const onAdminRoute = pathname.startsWith('/dashboard');
+      const onCustomerRoute = pathname.startsWith('/customer');
 
-      if (isCustomer && onAdminDashboard) {
+      // If a customer is on an admin route, redirect them to the customer dashboard.
+      if (isCustomer && onAdminRoute) {
         router.replace('/customer');
-      } else if (!isCustomer && onCustomerDashboard) {
+      } 
+      // If a non-customer is on a customer route, redirect them to the admin dashboard.
+      else if (!isCustomer && onCustomerRoute) {
         router.replace('/dashboard');
       }
     }
-
   }, [user, userData, loading, router, pathname]);
 
-  // While loading auth state or user data, show a full-screen loader
-  if (loading || !userData) {
+  // While loading auth state or user data from Firestore, show a full-screen loader.
+  // This prevents brief flashes of incorrect UI.
+  if (loading || !user || !userData) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background text-foreground">
         <p>Loading user data...</p>
@@ -43,7 +50,7 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // If user and userData are loaded, render the appropriate content
+  // If user and userData are loaded, render the appropriate content.
   return <>{children}</>;
 }
 

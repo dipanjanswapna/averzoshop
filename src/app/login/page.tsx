@@ -32,13 +32,16 @@ export default function LoginPage() {
   const { toast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!auth) return;
+    setIsSubmitting(true);
     try {
       await signInWithEmailAndPassword(auth, email, password);
       // Automatic redirection is now handled by the middleware and protected layout.
+      // This page will show the "Welcome" card after successful login.
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -46,11 +49,14 @@ export default function LoginPage() {
         description: error.message,
       });
       console.error('Error signing in with email and password', error);
+    } finally {
+        setIsSubmitting(false);
     }
   };
 
   const signInWithGoogle = async () => {
     if (!auth || !firestore) return;
+    setIsSubmitting(true);
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
@@ -86,6 +92,8 @@ export default function LoginPage() {
         title: 'Login Failed',
         description: 'Could not sign in with Google. Please try again.',
       });
+    } finally {
+        setIsSubmitting(false);
     }
   };
 
@@ -99,6 +107,7 @@ export default function LoginPage() {
   };
 
   const handleGoToDashboard = () => {
+    // This function will now reliably navigate based on the role.
     if (userData?.role === 'customer') {
       router.replace('/customer');
     } else {
@@ -106,9 +115,6 @@ export default function LoginPage() {
     }
   };
   
-  // The middleware now handles redirection for logged-in users trying to access /login
-  // So, we only need to handle the UI states here.
-
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -129,7 +135,9 @@ export default function LoginPage() {
             <CardDescription>You are already logged in.</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4">
-            <Button onClick={handleGoToDashboard} className="w-full">Go to Dashboard</Button>
+            <Button onClick={handleGoToDashboard} className="w-full" disabled={loading || !userData}>
+                {loading || !userData ? 'Loading...' : 'Go to Dashboard'}
+            </Button>
             <Button variant="outline" onClick={signOut} className="w-full">
               Sign Out
             </Button>
@@ -160,6 +168,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={isSubmitting}
               />
             </div>
             <div className="grid gap-2">
@@ -178,10 +187,11 @@ export default function LoginPage() {
                 required 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={isSubmitting}
               />
             </div>
-            <Button type="submit" className="w-full">
-              Login
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? 'Logging in...' : 'Login'}
             </Button>
           </form>
           <div className="relative my-4">
@@ -198,8 +208,9 @@ export default function LoginPage() {
             variant="outline"
             className="w-full"
             onClick={signInWithGoogle}
+            disabled={isSubmitting}
           >
-            Login with Google
+            {isSubmitting ? 'Please wait...' : 'Login with Google'}
           </Button>
           <div className="mt-4 text-center text-sm">
             Don&apos;t have an account?{' '}
