@@ -14,7 +14,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { FilterSidebar } from '@/components/shop/filter-sidebar';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Filter } from 'lucide-react';
 import {
@@ -183,13 +183,18 @@ export default function ShopPage() {
                         <Filter className="mr-2 h-4 w-4" /> Filters
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-full max-w-sm overflow-y-auto">
-                    <FilterSidebar 
-                      categories={categoriesData} 
-                      products={products}
-                      onFilterChange={handleFilterChange}
-                      initialFilters={initialFilters}
-                    />
+                <SheetContent side="left" className="w-full max-w-sm overflow-y-auto p-0">
+                    <SheetHeader className="p-6 pb-4">
+                      <SheetTitle className="text-xl font-bold font-headline">Filters</SheetTitle>
+                    </SheetHeader>
+                    <div className="p-6 pt-0">
+                      <FilterSidebar 
+                        categories={categoriesData} 
+                        products={products}
+                        onFilterChange={handleFilterChange}
+                        initialFilters={initialFilters}
+                      />
+                    </div>
                 </SheetContent>
             </Sheet>
             <Select value={initialFilters.sort_by} onValueChange={(val) => handleSortChange(val)}>
