@@ -16,9 +16,9 @@ import { useEffect, useState } from 'react';
 
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
-  { href: '/shop', label: 'Shop', icon: ShoppingBag },
-  { href: '#', label: 'Categories', icon: LayoutGrid },
-  { href: '/cart', label: 'Bag', icon: Heart }, // Changed to Heart for wishlist or just a placeholder
+  { href: '/shop', label: 'Shop', icon: LayoutGrid },
+  { href: '/cart', label: 'Bag', icon: ShoppingBag }, 
+  { href: '/wishlist', label: 'Wishlist', icon: Heart },
   { href: '/login', label: 'Profile', icon: User },
 ];
 
