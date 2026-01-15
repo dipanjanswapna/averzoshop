@@ -130,6 +130,8 @@ export default function AverzoNavbar() {
   }, []);
   
   useEffect(() => {
+    if (!isMounted) return;
+
     const controlNavbar = () => {
       if (window.scrollY > 100) { 
         setIsVisible(false);
@@ -143,7 +145,7 @@ export default function AverzoNavbar() {
 
     window.addEventListener('scroll', debouncedControlNavbar);
     return () => window.removeEventListener('scroll', debouncedControlNavbar);
-  }, [lastScrollY]);
+  }, [lastScrollY, isMounted]);
 
   const createQueryString = (params: Record<string, string>) => {
     const searchParams = new URLSearchParams();
