@@ -117,7 +117,7 @@ export default function CategoryPage() {
 
   const { paginatedProducts, totalPages } = useMemo(() => {
     let filtered = products.filter(p => {
-      const productCategoryName = p.category === 'Kids' ? "Kids & Baby" : p.category;
+      const productCategoryName = p.category;
       return productCategoryName === CATEGORY_NAME || (categoriesData.find(cat => cat.mother_name === CATEGORY_NAME)?.groups.some(g => g.group_name === p.group));
     });
 
@@ -230,7 +230,7 @@ export default function CategoryPage() {
                         <SheetTitle className="text-xl font-bold font-headline">Filters</SheetTitle>
                       </SheetHeader>
                       <div className="p-6 pt-0">
-                        <FilterSidebar categories={categoriesData} products={products} onFilterChange={handleFilterChange} initialFilters={initialFilters} />
+                        <FilterSidebar onFilterChange={handleFilterChange} initialFilters={initialFilters} />
                       </div>
                     </SheetContent>
                 </Sheet>
@@ -248,7 +248,7 @@ export default function CategoryPage() {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                <aside className="hidden lg:block lg:col-span-1">
                  <div className="sticky top-28">
-                    <FilterSidebar categories={categoriesData} products={products} onFilterChange={handleFilterChange} initialFilters={initialFilters} />
+                    <FilterSidebar onFilterChange={handleFilterChange} initialFilters={initialFilters} />
                   </div>
                </aside>
               <main className="lg:col-span-3">

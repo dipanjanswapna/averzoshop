@@ -57,7 +57,7 @@ export function FilterSidebar({ onFilterChange, initialFilters }: FilterSidebarP
     return () => {
       clearTimeout(handler);
     };
-  }, [minPrice, maxPrice, price_range, onFilterChange]);
+  }, [minPrice, maxPrice]);
   
   useEffect(() => {
     setMinPrice(price_range[0]);
