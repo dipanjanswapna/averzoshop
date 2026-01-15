@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -20,12 +19,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { useAuth } from '@/hooks/use-auth';
-import type { Order } from '@/types/order';
+import type { Order, OrderStatus } from '@/types/order'; // Import OrderStatus
 import { Skeleton } from '@/components/ui/skeleton';
 import { useFirebase } from '@/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useMemo } from 'react';
+import { Check, Package, Send } from 'lucide-react';
 
 export default function OnlineOrdersPage() {
   const { userData } = useAuth();
@@ -34,8 +34,6 @@ export default function OnlineOrdersPage() {
   
   const outletId = useMemo(() => userData?.outletId, [userData]);
 
-  // We fetch all orders and filter client-side.
-  // For a large-scale app, a query with `where("assignedOutletId", "==", outletId)` would be more efficient.
   const { data: allOrders, isLoading } = useFirestoreQuery<Order>('orders');
   
   const outletOrders = useMemo(() => {
@@ -43,19 +41,19 @@ export default function OnlineOrdersPage() {
     return allOrders.filter(order => order.assignedOutletId === outletId);
   }, [allOrders, outletId]);
 
-  const handleAcceptOrder = async (orderId: string) => {
+  const handleUpdateStatus = async (orderId: string, newStatus: OrderStatus) => {
     if (!firestore) return;
     const orderRef = doc(firestore, 'orders', orderId);
     try {
-        await updateDoc(orderRef, { status: 'preparing' });
-        toast({ title: 'Order Accepted', description: 'The order is now in the preparing queue.' });
+        await updateDoc(orderRef, { status: newStatus });
+        toast({ title: 'Order Updated', description: `Order status changed to ${newStatus}.` });
     } catch (error) {
-        toast({ variant: 'destructive', title: 'Failed to accept order.' });
-        console.error("Error accepting order: ", error);
+        toast({ variant: 'destructive', title: 'Failed to update order.' });
+        console.error("Error updating order: ", error);
     }
   };
 
-  const renderOrderTable = (orders: Order[], status: Order['status']) => (
+  const renderOrderTable = (orders: Order[], status: OrderStatus) => (
     <Table>
       <TableHeader>
         <TableRow>
@@ -84,9 +82,9 @@ export default function OnlineOrdersPage() {
             <TableCell>{order.items.reduce((acc, item) => acc + item.quantity, 0)}</TableCell>
             <TableCell className="text-right">৳{order.totalAmount.toFixed(2)}</TableCell>
             <TableCell className="text-right">
-                {status === 'new' && <Button size="sm" onClick={() => handleAcceptOrder(order.id)}>Accept Order</Button>}
-                {status === 'preparing' && <Button size="sm">Ready to Ship</Button>}
-                {status === 'shipped' && <Button size="sm" variant="outline" disabled>Handed Over</Button>}
+                {status === 'new' && <Button size="sm" onClick={() => handleUpdateStatus(order.id, 'preparing')}><Check className="mr-2 h-4 w-4"/>Accept Order</Button>}
+                {status === 'preparing' && <Button size="sm" onClick={() => handleUpdateStatus(order.id, 'ready_for_pickup')}><Package className="mr-2 h-4 w-4"/>Ready for Pickup</Button>}
+                {status === 'ready_for_pickup' && <Button size="sm" variant="outline" disabled><Send className="mr-2 h-4 w-4"/>Awaiting Rider</Button>}
             </TableCell>
           </TableRow>
         )) : (
@@ -113,7 +111,7 @@ export default function OnlineOrdersPage() {
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="new">New Orders</TabsTrigger>
               <TabsTrigger value="preparing">Preparing</TabsTrigger>
-              <TabsTrigger value="shipped">Shipped</TabsTrigger>
+              <TabsTrigger value="ready_for_pickup">Ready for Pickup</TabsTrigger>
             </TabsList>
             <TabsContent value="new" className="mt-4">
               {renderOrderTable(outletOrders.filter(o => o.status === 'new'), 'new')}
@@ -121,8 +119,8 @@ export default function OnlineOrdersPage() {
              <TabsContent value="preparing" className="mt-4">
               {renderOrderTable(outletOrders.filter(o => o.status === 'preparing'), 'preparing')}
             </TabsContent>
-             <TabsContent value="shipped" className="mt-4">
-              {renderOrderTable(outletOrders.filter(o => o.status === 'shipped'), 'shipped')}
+             <TabsContent value="ready_for_pickup" className="mt-4">
+              {renderOrderTable(outletOrders.filter(o => o.status === 'ready_for_pickup'), 'ready_for_pickup')}
             </TabsContent>
           </Tabs>
         </CardContent>

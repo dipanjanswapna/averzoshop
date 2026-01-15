@@ -1,0 +1,155 @@
+'use client';
+import { useMemo } from 'react';
+import { useAuth } from '@/hooks/use-auth';
+import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
+import { doc, updateDoc } from 'firebase/firestore';
+import { useFirebase } from '@/firebase';
+import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
+import { MapPin, Package, Check, Truck } from 'lucide-react';
+import type { Order, OrderStatus } from '@/types/order';
+
+function DeliveryCard({ order, onAction, actionLabel, actionIcon: Icon, isLoading }: { order: Order, onAction: (orderId: string) => void, actionLabel: string, actionIcon: React.ElementType, isLoading: boolean }) {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="text-base">Order ID: <span className="font-mono">{order.id.substring(0,8)}...</span></CardTitle>
+                <CardDescription>To: {order.shippingAddress.name}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+                <div className="flex items-start gap-2">
+                    <MapPin className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
+                    <span>{order.shippingAddress.address}, {order.shippingAddress.city}</span>
+                </div>
+                 <div className="flex items-center gap-2">
+                    <Package className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    <span>{order.items.reduce((acc, i) => acc + i.quantity, 0)} items</span>
+                </div>
+            </CardContent>
+            <CardFooter>
+                <Button className="w-full" onClick={() => onAction(order.id)} disabled={isLoading}>
+                    <Icon className="mr-2 h-4 w-4" />
+                    {actionLabel}
+                </Button>
+            </CardFooter>
+        </Card>
+    );
+}
+
+export default function RiderDeliveriesPage() {
+    const { user, loading: authLoading } = useAuth();
+    const { firestore } = useFirebase();
+    const { toast } = useToast();
+    const { data: allOrders, isLoading: ordersLoading } = useFirestoreQuery<Order>('orders');
+    
+    const isLoading = authLoading || ordersLoading;
+
+    const availableDeliveries = useMemo(() => {
+        if (!allOrders) return [];
+        return allOrders.filter(o => o.status === 'ready_for_pickup');
+    }, [allOrders]);
+    
+    const myDeliveries = useMemo(() => {
+        if (!allOrders || !user) return [];
+        return allOrders.filter(o => o.riderId === user.uid && o.status === 'out_for_delivery');
+    }, [allOrders, user]);
+
+    const handleAcceptDelivery = async (orderId: string) => {
+        if (!firestore || !user) return;
+        const orderRef = doc(firestore, 'orders', orderId);
+        try {
+            await updateDoc(orderRef, {
+                status: 'out_for_delivery',
+                riderId: user.uid,
+            });
+            toast({ title: "Delivery Accepted!", description: "The order is now in your delivery queue." });
+        } catch (error) {
+            toast({ variant: 'destructive', title: 'Failed to accept delivery.'});
+            console.error("Error accepting delivery:", error);
+        }
+    };
+
+    const handleMarkDelivered = async (orderId: string) => {
+        if (!firestore) return;
+        const orderRef = doc(firestore, 'orders', orderId);
+        try {
+            await updateDoc(orderRef, { status: 'delivered' });
+            toast({ title: "Delivery Complete!", description: "Great job on another successful delivery." });
+        } catch (error) {
+            toast({ variant: 'destructive', title: 'Failed to update status.' });
+            console.error("Error marking delivered:", error);
+        }
+    };
+    
+    const renderSkeleton = () => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(3)].map((_, i) => (
+                <Card key={i}>
+                    <CardHeader><Skeleton className="h-5 w-3/4" /></CardHeader>
+                    <CardContent className="space-y-2">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-1/2" />
+                    </CardContent>
+                    <CardFooter><Skeleton className="h-10 w-full" /></CardFooter>
+                </Card>
+            ))}
+        </div>
+    );
+
+    return (
+         <div className="flex flex-col gap-6">
+            <h1 className="text-3xl font-bold font-headline">My Deliveries</h1>
+            <Tabs defaultValue="available">
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="available">Available for Pickup</TabsTrigger>
+                    <TabsTrigger value="my_deliveries">My Active Deliveries</TabsTrigger>
+                </TabsList>
+                <TabsContent value="available" className="mt-4">
+                     {isLoading ? renderSkeleton() : availableDeliveries.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                           {availableDeliveries.map(order => (
+                               <DeliveryCard 
+                                    key={order.id}
+                                    order={order}
+                                    onAction={handleAcceptDelivery}
+                                    actionLabel="Accept & Pickup"
+                                    actionIcon={Truck}
+                                    isLoading={isLoading}
+                               />
+                           ))}
+                        </div>
+                     ) : (
+                        <div className="text-center py-16 border-2 border-dashed rounded-lg">
+                           <h3 className="text-lg font-semibold">No deliveries available for pickup.</h3>
+                            <p className="text-muted-foreground text-sm">Check back soon!</p>
+                        </div>
+                     )}
+                </TabsContent>
+                <TabsContent value="my_deliveries" className="mt-4">
+                     {isLoading ? renderSkeleton() : myDeliveries.length > 0 ? (
+                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                           {myDeliveries.map(order => (
+                               <DeliveryCard 
+                                    key={order.id}
+                                    order={order}
+                                    onAction={handleMarkDelivered}
+                                    actionLabel="Mark as Delivered"
+                                    actionIcon={Check}
+                                    isLoading={isLoading}
+                               />
+                           ))}
+                         </div>
+                     ) : (
+                        <div className="text-center py-16 border-2 border-dashed rounded-lg">
+                           <h3 className="text-lg font-semibold">You have no active deliveries.</h3>
+                            <p className="text-muted-foreground text-sm">Accept a delivery from the "Available" tab.</p>
+                        </div>
+                     )}
+                </TabsContent>
+            </Tabs>
+         </div>
+    );
+}
