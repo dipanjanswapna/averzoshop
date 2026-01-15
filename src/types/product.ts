@@ -20,4 +20,6 @@ export type Product = {
     flashSale?: {
         endDate: string;
     };
+    vendorId?: string;
+    status?: 'pending' | 'approved' | 'rejected';
 };

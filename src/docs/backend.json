@@ -150,6 +150,26 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["outletId", "soldBy", "items", "totalAmount", "paymentMethod", "createdAt"]
+    },
+    "product": {
+      "title": "Product",
+      "description": "A product sold on the Averzo platform.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "group": { "type": "string" },
+        "subcategory": { "type": "string" },
+        "price": { "type": "number" },
+        "stock": { "type": "number" },
+        "image": { "type": "string", "format": "uri" },
+        "brand": { "type": "string" },
+        "vendorId": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"]},
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "price", "stock", "vendorId", "status"]
     }
   },
   "auth": {
@@ -179,6 +199,12 @@
         "$ref": "#/entities/pos_sale"
       },
       "description": "Logs all point-of-sale transactions from outlets."
+    },
+    "/products/{productId}": {
+      "schema": {
+        "$ref": "#/entities/product"
+      },
+      "description": "Stores all product information for the platform."
     }
   }
 }
