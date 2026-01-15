@@ -1,7 +1,8 @@
 
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { FilterSidebar } from '@/components/shop/filter-sidebar';
 import { ProductGrid } from '@/components/shop/product-grid';
 import { products } from '@/lib/data';
@@ -32,38 +33,76 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function ShopPage() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  
   const [loading, setLoading] = useState(true);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // Filter States
-  const [priceRange, setPriceRange] = useState([0, 1000]);
-  const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
-  const [selectedMotherCategory, setSelectedMotherCategory] = useState<string | null>(null);
-  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
-  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState('newest');
+  const [priceRange, setPriceRange] = useState<[number, number]>([
+    Number(searchParams.get('min_price') || 0),
+    Number(searchParams.get('max_price') || 1000)
+  ]);
+  const [selectedBrand, setSelectedBrand] = useState<string | null>(searchParams.get('brand'));
+  const [selectedMotherCategory, setSelectedMotherCategory] = useState<string | null>(searchParams.get('mother_category'));
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(searchParams.get('group'));
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(searchParams.get('subcategory'));
+  const [sortBy, setSortBy] = useState(searchParams.get('sort_by') || 'newest');
 
-
+  // Sync state from URL
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, []);
+    setPriceRange([Number(searchParams.get('min_price') || 0), Number(searchParams.get('max_price') || 1000)]);
+    setSelectedBrand(searchParams.get('brand'));
+    setSelectedMotherCategory(searchParams.get('mother_category'));
+    setSelectedGroup(searchParams.get('group'));
+    setSelectedSubcategory(searchParams.get('subcategory'));
+    setSortBy(searchParams.get('sort_by') || 'newest');
+    setLoading(false);
+  }, [searchParams]);
+
+  // Update URL from state
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    
+    // Helper to set or remove params
+    const updateParam = (key: string, value: string | null | undefined) => {
+      if (value) {
+        params.set(key, value);
+      } else {
+        params.delete(key);
+      }
+    };
+    
+    updateParam('brand', selectedBrand);
+    updateParam('mother_category', selectedMotherCategory);
+    updateParam('group', selectedGroup);
+    updateParam('subcategory', selectedSubcategory);
+    updateParam('sort_by', sortBy === 'newest' ? null : sortBy);
+
+    if (priceRange[0] > 0) {
+      params.set('min_price', String(priceRange[0]));
+    } else {
+      params.delete('min_price');
+    }
+    if (priceRange[1] < 1000) {
+      params.set('max_price', String(priceRange[1]));
+    } else {
+      params.delete('max_price');
+    }
+
+    // Use router.replace for a smoother experience that doesn't add to browser history
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [selectedBrand, selectedMotherCategory, selectedGroup, selectedSubcategory, priceRange, sortBy, pathname, router, searchParams]);
 
   const filteredProducts = useMemo(() => {
     let filtered = [...products];
 
-    // Filter by Brand
     if (selectedBrand) {
       filtered = filtered.filter(p => p.group === selectedBrand);
     }
     
-    // Filter by Category Hierarchy
-    if (selectedMotherCategory) {
-      // This is a proxy since we don't have mother category in product data
-      // We will filter based on the most specific selection
-    }
     if (selectedGroup) {
        filtered = filtered.filter(p => p.group === selectedGroup);
     }
@@ -71,10 +110,8 @@ export default function ShopPage() {
        filtered = filtered.filter(p => p.subcategory === selectedSubcategory);
     }
 
-    // Filter by Price Range
     filtered = filtered.filter(p => p.price >= priceRange[0] && p.price <= priceRange[1]);
 
-    // Apply Sorting
     switch (sortBy) {
         case 'price-asc':
             filtered.sort((a, b) => a.price - b.price);
@@ -83,9 +120,7 @@ export default function ShopPage() {
             filtered.sort((a, b) => b.price - a.price);
             break;
         case 'newest':
-            // Assuming products are already sorted by newest, or we'd need a date field
             break;
-        // case 'popularity' could be added if there's a rating/sales field
     }
 
     return filtered;
@@ -94,7 +129,6 @@ export default function ShopPage() {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* --- Top Bar: Breadcrumbs & Sorting --- */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
         <Breadcrumb>
           <BreadcrumbList>
@@ -105,10 +139,27 @@ export default function ShopPage() {
             <BreadcrumbItem>
               <BreadcrumbPage>Shop</BreadcrumbPage>
             </BreadcrumbItem>
+             {selectedMotherCategory && <BreadcrumbSeparator />}
+             {selectedMotherCategory && (
+                <BreadcrumbItem>
+                    <BreadcrumbPage>{selectedMotherCategory}</BreadcrumbPage>
+                </BreadcrumbItem>
+             )}
+             {selectedGroup && <BreadcrumbSeparator />}
+             {selectedGroup && (
+                <BreadcrumbItem>
+                    <BreadcrumbPage>{selectedGroup}</BreadcrumbPage>
+                </BreadcrumbItem>
+             )}
+             {selectedSubcategory && <BreadcrumbSeparator />}
+             {selectedSubcategory && (
+                <BreadcrumbItem>
+                    <BreadcrumbPage>{selectedSubcategory}</BreadcrumbPage>
+                </BreadcrumbItem>
+             )}
           </BreadcrumbList>
         </Breadcrumb>
         <div className="flex items-center gap-4 w-full md:w-auto">
-            {/* Mobile Filter Drawer Trigger */}
             <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
                 <SheetTrigger asChild>
                     <Button variant="outline" className="flex items-center gap-2 lg:hidden">
@@ -152,9 +203,7 @@ export default function ShopPage() {
         </div>
       </div>
 
-      {/* --- Main Content: Sidebar + Product Grid --- */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        {/* --- Left Sidebar (Desktop) --- */}
         <aside className="hidden lg:block lg:col-span-1">
           <div className="sticky top-28">
             <FilterSidebar 
@@ -173,7 +222,6 @@ export default function ShopPage() {
           </div>
         </aside>
 
-        {/* --- Central Product Grid --- */}
         <main className="lg:col-span-3">
           <ProductGrid products={filteredProducts} isLoading={loading} />
         </main>
