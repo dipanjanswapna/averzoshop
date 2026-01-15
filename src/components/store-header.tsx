@@ -1,7 +1,6 @@
 
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import {
   Heart,
@@ -12,11 +11,14 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import AverzoLogo from '@/components/averzo-logo';
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Input } from '@/components/ui/input';
+
+const categories = [
+  'MEN', 'WOMEN', 'KIDS', 'ELECTRONICS', 'HEALTH & WELLNESS', 'PET CARE'
+];
 
 export function StoreHeader() {
   return (
@@ -67,44 +69,53 @@ export function StoreHeader() {
           {/* Category Bar */}
           <div className="border-t bg-background">
             <div className="container flex items-center justify-center space-x-4">
-              {['MEN', 'WOMEN', 'KIDS', 'ELECTRONICS', 'HEALTH & WELLNESS', 'PET CARE'].map((category) => (
-                <div key={category} className="group relative cursor-pointer py-2">
+              {categories.map((category) => (
+                <div key={category} className="group relative cursor-pointer py-4">
                   <span className="hover:text-primary transition-colors flex items-center gap-1 font-medium text-sm">
                     {category} <ChevronDown size={16} />
                   </span>
-                  {/* Mega Menu Container */}
-                  <div className="absolute left-0 top-full w-screen max-w-7xl -translate-x-1/2 bg-background shadow-lg border hidden group-hover:block animate-in fade-in slide-in-from-top-2">
-                     <div className="container mx-auto px-4 py-8">
-                        <div className="grid grid-cols-12 gap-8">
-                           {/* Promo Section */}
-                           <div className="col-span-3 bg-secondary rounded-lg p-6">
-                              <AverzoLogo className="h-7 w-auto mb-2" />
-                              <h3 className="font-bold text-xl font-headline">{category}'s Fashion</h3>
-                              <p className="text-muted-foreground mt-2 text-sm">Explore the latest trends in {category.toLowerCase()}'s apparel and accessories.</p>
-                           </div>
-                           {/* Links Section */}
-                           <div className="col-span-6 grid grid-cols-2 gap-8">
-                              <div>
+                  {/* --- Mega Menu --- */}
+                  <div className="absolute left-0 top-full w-screen opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-opacity duration-300 pointer-events-none group-hover:pointer-events-auto transform group-hover:translate-y-0 translate-y-2">
+                     <div className="bg-background shadow-lg border-t mt-0">
+                        <div className="container mx-auto px-4 py-8">
+                           <div className="grid grid-cols-5 gap-8">
+                              {/* Promo Section */}
+                              <div className="col-span-1 bg-secondary rounded-lg p-6">
+                                 <h3 className="font-bold text-lg font-headline">{category}'s Fashion</h3>
+                                 <p className="text-muted-foreground mt-2 text-sm">Explore the latest trends in {category.toLowerCase()}'s apparel and accessories.</p>
+                                  <Button size="sm" className="mt-4">Shop Now</Button>
+                              </div>
+                              {/* Links Section */}
+                              <div className="col-span-1">
                                  <h4 className="font-bold text-primary mb-4 uppercase font-headline text-sm tracking-wider">Topwear</h4>
-                                 <ul className="space-y-2 text-muted-foreground text-sm">
-                                    <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">T-Shirts</li>
-                                    <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Casual Shirts</li>
-                                    <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Polos</li>
+                                 <ul className="space-y-3 text-muted-foreground text-sm">
+                                    <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground font-medium">T-Shirts</li>
+                                    <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground font-medium">Casual Shirts</li>
+                                    <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground font-medium">Polos</li>
+                                    <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground font-medium">Formal Shirts</li>
                                  </ul>
                               </div>
-                              <div>
+                              <div className="col-span-1">
                                  <h4 className="font-bold text-primary mb-4 uppercase font-headline text-sm tracking-wider">Bottomwear</h4>
-                                 <ul className="space-y-2 text-muted-foreground text-sm">
-                                    <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Jeans</li>
-                                    <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground">Chinos</li>
+                                 <ul className="space-y-3 text-muted-foreground text-sm">
+                                    <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground font-medium">Jeans</li>
+                                    <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground font-medium">Chinos</li>
+                                     <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground font-medium">Shorts</li>
                                  </ul>
                               </div>
-                           </div>
-                           {/* Featured Brand Section */}
-                           <div className="col-span-3">
-                              <h4 className="font-bold text-primary mb-4 uppercase font-headline text-sm tracking-wider">Featured Brands</h4>
-                              <div className="bg-muted rounded-lg overflow-hidden">
-                                 <Image src={PlaceHolderImages.find(p => p.id === 'category-men')?.imageUrl || "https://placehold.co/300x200.png"} width={400} height={250} alt="Featured Brand" className="object-cover w-full h-full" data-ai-hint="male fashion" />
+                              <div className="col-span-1">
+                                 <h4 className="font-bold text-primary mb-4 uppercase font-headline text-sm tracking-wider">Footwear</h4>
+                                 <ul className="space-y-3 text-muted-foreground text-sm">
+                                    <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground font-medium">Sneakers</li>
+                                    <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground font-medium">Formal Shoes</li>
+                                 </ul>
+                              </div>
+                               <div className="col-span-1">
+                                 <h4 className="font-bold text-primary mb-4 uppercase font-headline text-sm tracking-wider">Accessories</h4>
+                                 <ul className="space-y-3 text-muted-foreground text-sm">
+                                    <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground font-medium">Watches</li>
+                                    <li className="hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground font-medium">Belts</li>
+                                 </ul>
                               </div>
                            </div>
                         </div>
@@ -251,3 +262,5 @@ export function StoreHeader() {
     </header>
   );
 }
+
+    
