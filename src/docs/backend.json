@@ -99,7 +99,15 @@
         "vendorId": { "type": "string" },
         "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
         "createdAt": { "type": "string", "format": "date-time" },
-        "discount": { "type": "number", "description": "The calculated discount percentage, derived from price and compareAtPrice." }
+        "discount": { "type": "number", "description": "The calculated discount percentage, derived from price and compareAtPrice." },
+        "giftWithPurchase": {
+          "type": "object",
+          "description": "Details of a free gift offered with the product.",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "description": { "type": "string", "description": "A short description of the free gift." }
+          }
+        }
       },
       "required": ["name", "price", "total_stock", "vendorId", "status", "category", "group", "subcategory", "brand", "image", "baseSku", "variants"]
     },

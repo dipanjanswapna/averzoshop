@@ -35,6 +35,10 @@ export type Product = {
     flashSale?: {
         endDate: string;
     };
+    giftWithPurchase?: {
+        enabled: boolean;
+        description: string;
+    };
     vendorId: string;
     status: 'pending' | 'approved' | 'rejected';
     createdAt: any; // Can be Timestamp or string

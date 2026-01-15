@@ -27,6 +27,7 @@ import type { Product } from '@/types/product';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Trash2 } from 'lucide-react';
 import { Label } from '../ui/label';
+import { Switch } from '../ui/switch';
 
 interface EditProductDialogProps {
   open: boolean;
@@ -57,6 +58,10 @@ const formSchema = z.object({
   variantSizes: z.string().optional(),
   variantColors: z.string().optional(),
   variants: z.array(variantSchema).min(1, 'At least one variant is required.'),
+  giftWithPurchase: z.object({
+    enabled: z.boolean().default(false),
+    description: z.string().optional(),
+  }).optional(),
 });
 
 export function EditProductDialog({ open, onOpenChange, product }: EditProductDialogProps) {
@@ -80,6 +85,7 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
       variantSizes: product?.sizes?.join(', ') || '',
       variantColors: product?.colors?.join(', ') || '',
       variants: product?.variants || [],
+      giftWithPurchase: product?.giftWithPurchase || { enabled: false, description: '' },
     },
   });
 
@@ -104,11 +110,13 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
       variantSizes: product.sizes?.join(', ') || '',
       variantColors: product.colors?.join(', ') || '',
       variants: product.variants || [],
+      giftWithPurchase: product.giftWithPurchase || { enabled: false, description: '' },
     });
   }, [product, form]);
 
   const selectedCategory = form.watch('category');
   const selectedGroup = form.watch('group');
+  const giftEnabled = form.watch('giftWithPurchase.enabled');
 
   const availableGroups = useMemo(() => {
     if (!selectedCategory) return [];
@@ -185,6 +193,7 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
         sizes: values.variantSizes ? values.variantSizes.split(',').map(s => s.trim()) : [],
         colors: values.variantColors ? values.variantColors.split(',').map(c => c.trim()) : [],
         variants: values.variants,
+        giftWithPurchase: values.giftWithPurchase || { enabled: false, description: '' },
       });
 
       toast({
@@ -284,6 +293,44 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
               </div>
             )}
              {form.formState.errors.variants && <p className="text-sm font-medium text-destructive">{form.formState.errors.variants.message}</p>}
+            
+            <div className="space-y-4 rounded-lg border p-4">
+                <FormField
+                  control={form.control}
+                  name="giftWithPurchase.enabled"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between">
+                      <div className="space-y-0.5">
+                        <FormLabel>Gift with Purchase</FormLabel>
+                        <FormDescription>
+                          Enable this to offer a free gift with this product.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                {giftEnabled && (
+                  <FormField
+                    control={form.control}
+                    name="giftWithPurchase.description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Gift Description</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Free leather wallet" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+            </div>
             
             <DialogFooter className="pt-8">
               <DialogClose asChild><Button type="button" variant="secondary">Cancel</Button></DialogClose>

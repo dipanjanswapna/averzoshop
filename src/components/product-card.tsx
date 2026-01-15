@@ -2,7 +2,7 @@
 'use client';
 
 import Image from 'next/image';
-import { Heart, ShoppingBag, Eye, MapPin } from 'lucide-react';
+import { Heart, ShoppingBag, Eye, MapPin, Gift } from 'lucide-react';
 import type { Product } from '@/types/product';
 import Link from 'next/link';
 import { Button } from './ui/button';
@@ -54,6 +54,11 @@ export const ProductCard = ({ product }: { product: Product }) => {
           <span className="bg-black/80 text-white text-[9px] font-saira px-2 py-0.5 rounded-full uppercase">{product.group}</span>
           {product.discount > 0 && (
             <span className="bg-primary text-primary-foreground text-[9px] font-bold px-2 py-0.5 rounded-full">{Math.round(product.discount)}% OFF</span>
+          )}
+           {product.giftWithPurchase?.enabled && (
+            <span className="bg-green-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+              <Gift size={10} /> GIFT
+            </span>
           )}
           {stockStatus && (
              <span className="bg-destructive text-destructive-foreground text-[9px] font-bold px-2 py-0.5 rounded-full animate-pulse">{stockStatus}</span>

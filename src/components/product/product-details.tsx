@@ -1,10 +1,10 @@
 
 'use client';
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Minus, Plus, ShoppingBag, Heart, HelpCircle, MapPin, Share2, Printer, X } from 'lucide-react';
+import { Minus, Plus, ShoppingBag, Heart, HelpCircle, MapPin, Share2, Printer, Gift, X } from 'lucide-react';
 import type { Product, ProductVariant } from '@/types/product';
 import { TrustBadges } from './trust-badges';
 import Link from 'next/link';
@@ -20,7 +20,6 @@ import { ProductSticker } from './product-sticker';
 
 export function ProductDetails({ product }: { product: Product }) {
   const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
 
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
@@ -124,7 +123,7 @@ export function ProductDetails({ product }: { product: Product }) {
         window.history.replaceState({ ...window.history.state, as: currentUrl.href, url: currentUrl.href }, '', currentUrl.href);
     }
 
-  }, [selectedColor, selectedSize, product.variants, uniqueColors.length, uniqueSizes.length, pathname]);
+  }, [selectedColor, selectedSize, product.variants, uniqueColors.length, uniqueSizes.length]);
 
   // Check wishlist status
   useEffect(() => {
@@ -219,6 +218,16 @@ export function ProductDetails({ product }: { product: Product }) {
             You save ৳{savings.toFixed(2)}!
          </div>
        )}
+
+      {product.giftWithPurchase?.enabled && product.giftWithPurchase.description && (
+        <div className="bg-green-100 text-green-800 border-l-4 border-green-500 p-4 rounded-md flex items-center gap-4">
+          <Gift size={24} className="flex-shrink-0" />
+          <div>
+            <p className="font-bold">Free Gift with Purchase!</p>
+            <p className="text-sm">{product.giftWithPurchase.description}</p>
+          </div>
+        </div>
+      )}
       
       {uniqueColors.length > 0 && (
         <div className="space-y-3">

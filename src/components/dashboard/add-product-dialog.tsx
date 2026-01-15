@@ -26,6 +26,7 @@ import { categoriesData } from '@/lib/categories';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Trash2 } from 'lucide-react';
+import { Switch } from '../ui/switch';
 
 interface AddProductDialogProps {
   open: boolean;
@@ -55,6 +56,10 @@ const formSchema = z.object({
   variantSizes: z.string().optional(),
   variantColors: z.string().optional(),
   variants: z.array(variantSchema).min(1, 'At least one variant is required.'),
+  giftWithPurchase: z.object({
+    enabled: z.boolean().default(false),
+    description: z.string().optional(),
+  }).optional(),
 });
 
 export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) {
@@ -76,6 +81,10 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
       variantSizes: '',
       variantColors: '',
       variants: [],
+      giftWithPurchase: {
+        enabled: false,
+        description: '',
+      },
     },
   });
 
@@ -86,6 +95,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
 
   const selectedCategory = form.watch('category');
   const selectedGroup = form.watch('group');
+  const giftEnabled = form.watch('giftWithPurchase.enabled');
 
   const availableGroups = useMemo(() => {
     if (!selectedCategory) return [];
@@ -146,7 +156,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
       const { price, compareAtPrice } = values;
       let discount = 0;
       if (compareAtPrice && compareAtPrice > price) {
-          discount = ((compareAtPrice - price) / compareAtPrice) * 100;
+          discount = ((compareAtPrice - price) / price) * 100;
       }
 
       await addDoc(collection(firestore, 'products'), {
@@ -166,6 +176,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
         image: values.image,
         colors: values.variantColors?.split(',').map(s => s.trim()).filter(Boolean) || [],
         sizes: values.variantSizes?.split(',').map(c => c.trim()).filter(Boolean) || [],
+        giftWithPurchase: values.giftWithPurchase || { enabled: false, description: '' },
         vendorId: user.uid,
         status: status,
         createdAt: serverTimestamp(),
@@ -273,8 +284,45 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
                 </Table>
               </div>
             )}
-             {form.formState.errors.variants && <p className="text-sm font-medium text-destructive">{form.formState.errors.variants.message}</p>}
+            {form.formState.errors.variants && <p className="text-sm font-medium text-destructive">{form.formState.errors.variants.message}</p>}
 
+             <div className="space-y-4 rounded-lg border p-4">
+                <FormField
+                  control={form.control}
+                  name="giftWithPurchase.enabled"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between">
+                      <div className="space-y-0.5">
+                        <FormLabel>Gift with Purchase</FormLabel>
+                        <FormDescription>
+                          Enable this to offer a free gift with this product.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                {giftEnabled && (
+                  <FormField
+                    control={form.control}
+                    name="giftWithPurchase.description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Gift Description</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Free leather wallet with this purchase" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+            </div>
 
             <DialogFooter className="pt-8">
               <DialogClose asChild><Button type="button" variant="secondary">Cancel</Button></DialogClose>
