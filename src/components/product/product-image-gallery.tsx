@@ -27,8 +27,7 @@ export function ProductImageGallery({ product }: { product: Product }) {
     <div className="flex flex-col gap-4 sticky top-28">
       <motion.div 
         className={cn(
-          "relative aspect-square w-full rounded-xl overflow-hidden shadow-lg border",
-           isOutOfStock && "grayscale"
+          "relative aspect-square w-full rounded-xl overflow-hidden shadow-lg border"
         )}
         whileHover="hover"
       >
@@ -49,7 +48,7 @@ export function ProductImageGallery({ product }: { product: Product }) {
         </motion.div>
         
         {isOutOfStock && (
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="bg-white text-destructive font-bold text-lg px-6 py-3 rounded-md uppercase tracking-widest -rotate-12 border-2 border-destructive">
               Out of Stock
             </div>
