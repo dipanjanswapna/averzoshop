@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -8,19 +7,75 @@ import {
   ShoppingCart,
   User,
   Menu,
-  ChevronDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import AverzoLogo from '@/components/averzo-logo';
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import { Input } from '@/components/ui/input';
 import { subBrands } from '@/lib/data';
 import Image from 'next/image';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
+
 
 const categories = [
-  { name: 'MEN', href: '#' },
-  { name: 'WOMEN', href: '#' },
+  { 
+    name: 'MEN', 
+    href: '#',
+    promo: {
+        title: "Men's Fashion",
+        description: "Explore the latest trends in men's apparel and accessories.",
+        image: "https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxmYXNoaW9uJTIwbWFsZSUyMG1vZGVsfGVufDB8fHx8MTc2ODQxMTEyN3ww&ixlib=rb-4.1.0&q=80&w=400"
+    },
+    sections: [
+        {
+            title: "Topwear",
+            links: ["T-Shirts", "Casual Shirts", "Polos", "Formal Shirts", "Sweatshirts"]
+        },
+        {
+            title: "Bottomwear",
+            links: ["Jeans", "Chinos", "Shorts", "Trousers"]
+        },
+        {
+            title: "Accessories",
+            links: ["Watches", "Belts", "Wallets", "Sunglasses"]
+        }
+    ]
+  },
+  { 
+    name: 'WOMEN', 
+    href: '#',
+    promo: {
+        title: "Women's Fashion",
+        description: "Discover elegant styles for every occasion.",
+        image: "https://images.unsplash.com/photo-1496302662116-35cc4f36df92?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxmYXNoaW9uJTIwd29tYW58ZW58MHx8fHwxNzY4MzI1OTY4fDA&ixlib=rb-4.1.0&q=80&w=400"
+    },
+     sections: [
+        {
+            title: "Ethnic & Fusion Wear",
+            links: ["Kurtas & Suits", "Sarees", "Lehengas", "Ethnic Dresses"]
+        },
+        {
+            title: "Western Wear",
+            links: ["Dresses", "Tops & T-shirts", "Jeans & Jeggings", "Skirts & Shorts"]
+        },
+        {
+            title: "Footwear & Bags",
+            links: ["Flats & Heels", "Handbags", "Sling Bags", "Clutches"]
+        }
+    ]
+  },
   { name: 'KIDS', href: '#' },
   { name: 'ELECTRONICS', href: '#' },
   { name: 'HEALTH & WELLNESS', href: '#' },
@@ -36,12 +91,6 @@ export function StoreHeader() {
           {/* Top Bar */}
           <div className="container flex h-16 items-center justify-between">
             <div className="flex items-center gap-4">
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="mr-2">
-                  <Menu className="h-6 w-6" />
-                  <span className="sr-only">Open Menu</span>
-                </Button>
-              </SheetTrigger>
               <Link href="/" className="flex items-center space-x-2">
                 <AverzoLogo className="h-7 w-auto" />
               </Link>
@@ -86,85 +135,71 @@ export function StoreHeader() {
                   </Link>
 
                   {/* --- Mega Menu --- */}
-                  <div className="absolute left-0 top-full w-screen max-w-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform group-hover:translate-y-0 -translate-y-2">
-                     <div className="absolute left-0 w-full mt-px">
-                       <div className="bg-background/80 shadow-lg border-t backdrop-blur-md">
-                          <div className="container mx-auto px-4 py-8">
-                             <div className="grid grid-cols-6 gap-8">
-                                {/* Promo Section */}
-                                <div className="col-span-1 rounded-lg p-6 flex flex-col justify-between">
-                                   <div>
-                                     <h3 className="font-bold text-xl font-headline text-primary">{category.name}'S FASHION</h3>
-                                     <p className="text-muted-foreground mt-2 text-sm">Explore the latest trends in {category.name.toLowerCase()}'s apparel and accessories.</p>
-                                   </div>
-                                    <Button size="sm" className="mt-4 w-full">Shop Now</Button>
-                                </div>
-                                
-                                {/* Links Columns */}
-                                <div className="col-span-1">
-                                   <h4 className="font-bold text-primary mb-4 uppercase font-headline text-sm tracking-wider">Topwear</h4>
-                                   <ul className="space-y-3 text-sm">
-                                      <li className="text-muted-foreground hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground font-medium">T-Shirts</li>
-                                      <li className="text-muted-foreground hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground font-medium">Casual Shirts</li>
-                                      <li className="text-muted-foreground hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground font-medium">Polos</li>
-                                      <li className="text-muted-foreground hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground font-medium">Formal Shirts</li>
-                                      <li className="text-muted-foreground hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground font-medium">Sweatshirts</li>
-                                   </ul>
-                                </div>
-                                <div className="col-span-1">
-                                   <h4 className="font-bold text-primary mb-4 uppercase font-headline text-sm tracking-wider">Bottomwear</h4>
-                                   <ul className="space-y-3 text-sm">
-                                      <li className="text-muted-foreground hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground font-medium">Jeans</li>
-                                      <li className="text-muted-foreground hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground font-medium">Chinos</li>
-                                       <li className="text-muted-foreground hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground font-medium">Shorts</li>
-                                       <li className="text-muted-foreground hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground font-medium">Trousers</li>
-                                   </ul>
-                                </div>
-                                <div className="col-span-1">
-                                   <h4 className="font-bold text-primary mb-4 uppercase font-headline text-sm tracking-wider">Accessories</h4>
-                                   <ul className="space-y-3 text-sm">
-                                      <li className="text-muted-foreground hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground font-medium">Watches</li>
-                                      <li className="text-muted-foreground hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground font-medium">Belts</li>
-                                      <li className="text-muted-foreground hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground font-medium">Wallets</li>
-                                      <li className="text-muted-foreground hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground font-medium">Sunglasses</li>
-                                   </ul>
-                                </div>
+                  {category.sections && (
+                     <div className="absolute left-0 top-full w-screen max-w-none opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform group-hover:translate-y-0 -translate-y-2">
+                        <div className="absolute left-0 w-full mt-px">
+                            <div className="bg-background/80 shadow-lg border-t backdrop-blur-md">
+                                <div className="container mx-auto px-4 py-8">
+                                    <div className="grid grid-cols-6 gap-8">
+                                        
+                                        {/* Promo Section */}
+                                        <div className="col-span-2 rounded-lg p-6 flex flex-col justify-between">
+                                            <div>
+                                                <h3 className="font-bold text-2xl font-headline text-primary uppercase">{category.promo?.title}</h3>
+                                                <p className="text-muted-foreground mt-2 text-sm font-body">{category.promo?.description}</p>
+                                            </div>
+                                            <Button size="sm" className="mt-4 w-fit">Shop Now</Button>
+                                        </div>
+                                        
+                                        {/* Links Columns */}
+                                        {category.sections.map(section => (
+                                            <div key={section.title} className="col-span-1">
+                                                <h4 className="font-bold text-primary mb-4 uppercase font-headline text-sm tracking-wider">{section.title}</h4>
+                                                <ul className="space-y-3 text-sm">
+                                                    {section.links.map(link => (
+                                                        <li key={link} className="text-muted-foreground hover:translate-x-1 transition-transform cursor-pointer hover:text-foreground font-medium font-body">{link}</li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        ))}
 
-                                {/* Featured Brands */}
-                                <div className="col-span-1">
-                                   <h4 className="font-bold text-primary mb-4 uppercase font-headline text-sm tracking-wider">Featured Brands</h4>
-                                   <div className="space-y-4">
-                                      {subBrands.slice(0, 3).map(brand => (
-                                          <div key={brand.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-secondary/50 cursor-pointer">
-                                              <AverzoLogo className="h-5 w-auto flex-shrink-0"/>
-                                              <div>
-                                                  <p className="font-semibold text-sm">{brand.name}</p>
-                                              </div>
-                                          </div>
-                                      ))}
-                                   </div>
+                                        {/* Featured Brands & Promo Image */}
+                                        <div className="col-span-2 grid grid-cols-1 gap-6">
+                                             <div>
+                                               <h4 className="font-bold text-primary mb-4 uppercase font-headline text-sm tracking-wider">Featured Brands</h4>
+                                               <div className="grid grid-cols-3 gap-4">
+                                                  {subBrands.slice(0, 3).map(brand => (
+                                                      <div key={brand.id} className="flex flex-col items-center text-center gap-2 cursor-pointer group/brand">
+                                                          <Avatar className="h-16 w-16 border-2 border-transparent group-hover/brand:border-primary transition-colors">
+                                                            <AvatarImage src={`https://picsum.photos/seed/${brand.id}/100/100`} alt={brand.name} />
+                                                            <AvatarFallback>{brand.name.charAt(0)}</AvatarFallback>
+                                                          </Avatar>
+                                                          <p className="font-semibold text-xs font-body">{brand.name}</p>
+                                                      </div>
+                                                  ))}
+                                               </div>
+                                            </div>
+                                             <div className="relative w-full h-full rounded-lg overflow-hidden bg-secondary min-h-[150px]">
+                                                {category.promo?.image && (
+                                                  <Image
+                                                    src={category.promo.image}
+                                                    alt="Ad campaign"
+                                                    layout="fill"
+                                                    objectFit="cover"
+                                                  />
+                                                )}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent p-4 flex flex-col justify-end">
+                                                    <p className="text-white font-bold text-lg font-headline">New Arrivals</p>
+                                                    <p className="text-white/80 text-sm font-body">Up to 30% off</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-
-                                {/* Promo Image */}
-                                <div className="col-span-1">
-                                  <div className="relative w-full h-full rounded-lg overflow-hidden bg-secondary">
-                                      <Image
-                                        src="https://images.unsplash.com/photo-1552374196-c4e7ffc6e126?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxmYXNoaW9uJTIwbWFsZSUyMG1vZGVsfGVufDB8fHx8MTc2ODQxMTEyN3ww&ixlib=rb-4.1.0&q=80&w=400"
-                                        alt="Ad campaign"
-                                        layout="fill"
-                                        objectFit="cover"
-                                      />
-                                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent p-4 flex flex-col justify-end">
-                                          <p className="text-white font-bold text-lg">New Arrivals</p>
-                                          <p className="text-white/80 text-sm">Up to 30% off</p>
-                                      </div>
-                                  </div>
-                                </div>
-                             </div>
-                          </div>
-                       </div>
+                            </div>
+                        </div>
                     </div>
-                  </div>
+                  )}
 
                 </div>
               ))}
@@ -206,91 +241,31 @@ export function StoreHeader() {
             </div>
             <div className="p-4 flex-1 overflow-y-auto">
               <Accordion type="multiple" className="w-full">
-                <AccordionItem value="men">
-                  <AccordionTrigger className="font-bold text-base">MEN</AccordionTrigger>
-                  <AccordionContent>
-                    <Accordion type="multiple" className="w-full pl-4">
-                      <AccordionItem value="topwear">
-                        <AccordionTrigger>Topwear</AccordionTrigger>
-                        <AccordionContent className="pl-4">
-                          <ul className="space-y-2 text-muted-foreground">
-                            <li className="hover:text-foreground"><Link href="#">T-Shirts</Link></li>
-                            <li className="hover:text-foreground"><Link href="#">Casual Shirts</Link></li>
-                          </ul>
+                {categories.map(category => (
+                    <AccordionItem value={category.name.toLowerCase()} key={category.name}>
+                        <AccordionTrigger className="font-bold text-base uppercase">{category.name}</AccordionTrigger>
+                        <AccordionContent>
+                           {category.sections ? (
+                             <Accordion type="multiple" className="w-full pl-4">
+                                {category.sections.map(section => (
+                                    <AccordionItem value={`${category.name.toLowerCase()}-${section.title.toLowerCase()}`} key={section.title}>
+                                        <AccordionTrigger>{section.title}</AccordionTrigger>
+                                        <AccordionContent className="pl-4">
+                                        <ul className="space-y-2 text-muted-foreground">
+                                            {section.links.map(link => (
+                                                 <li key={link} className="hover:text-foreground"><Link href="#">{link}</Link></li>
+                                            ))}
+                                        </ul>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                ))}
+                            </Accordion>
+                           ) : (
+                             <p className="text-muted-foreground pl-4">No sub-categories available.</p>
+                           )}
                         </AccordionContent>
-                      </AccordionItem>
-                      <AccordionItem value="bottomwear">
-                        <AccordionTrigger>Bottomwear</AccordionTrigger>
-                        <AccordionContent className="pl-4">
-                          <ul className="space-y-2 text-muted-foreground">
-                            <li className="hover:text-foreground"><Link href="#">Jeans</Link></li>
-                            <li className="hover:text-foreground"><Link href="#">Chinos</Link></li>
-                          </ul>
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="women">
-                  <AccordionTrigger className="font-bold text-base">WOMEN</AccordionTrigger>
-                  <AccordionContent>
-                    <p className="text-muted-foreground pl-4">...Women categories here</p>
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="kids">
-                  <AccordionTrigger className="font-bold text-base">KIDS</AccordionTrigger>
-                  <AccordionContent>
-                    <p className="text-muted-foreground pl-4">...Kids categories here</p>
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="electronics">
-                  <AccordionTrigger className="font-bold text-base">ELECTRONICS</AccordionTrigger>
-                  <AccordionContent>
-                    <Accordion type="multiple" className="w-full pl-4">
-                      <AccordionItem value="mobiles">
-                        <AccordionTrigger>Mobiles</AccordionTrigger>
-                        <AccordionContent className="pl-4">
-                          <ul className="space-y-2 text-muted-foreground">
-                            <li className="hover:text-foreground"><Link href="#">Smartphones</Link></li>
-                            <li className="hover:text-foreground"><Link href="#">Feature Phones</Link></li>
-                          </ul>
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="health">
-                  <AccordionTrigger className="font-bold text-base">HEALTH &amp; WELLNESS</AccordionTrigger>
-                  <AccordionContent>
-                    <Accordion type="multiple" className="w-full pl-4">
-                      <AccordionItem value="supplements">
-                        <AccordionTrigger>Supplements</AccordionTrigger>
-                        <AccordionContent className="pl-4">
-                          <ul className="space-y-2 text-muted-foreground">
-                            <li className="hover:text-foreground"><Link href="#">Whey Protein</Link></li>
-                            <li className="hover:text-foreground"><Link href="#">Vitamins</Link></li>
-                          </ul>
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-                  </AccordionContent>
-                </AccordionItem>
-                <AccordionItem value="pet-care">
-                  <AccordionTrigger className="font-bold text-base">PET CARE</AccordionTrigger>
-                  <AccordionContent>
-                    <Accordion type="multiple" className="w-full pl-4">
-                      <AccordionItem value="cat-essentials">
-                        <AccordionTrigger>Cat Essentials</AccordionTrigger>
-                        <AccordionContent className="pl-4">
-                          <ul className="space-y-2 text-muted-foreground">
-                            <li className="hover:text-foreground"><Link href="#">Cat Food</Link></li>
-                            <li className="hover:text-foreground"><Link href="#">Litter Box</Link></li>
-                          </ul>
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-                  </AccordionContent>
-                </AccordionItem>
+                    </AccordionItem>
+                ))}
               </Accordion>
               <div className="mt-6 border-t pt-6">
                 <Link href="#" className="font-bold text-base text-destructive">SALE</Link>

@@ -17,9 +17,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        body: ['Roboto', 'Noto Sans', 'sans-serif'],
+        body: ['Noto Sans', 'sans-serif'],
         headline: ['Saira', 'sans-serif'],
-        code: ['monospace'],
       },
       colors: {
         background: 'hsl(var(--background))',
