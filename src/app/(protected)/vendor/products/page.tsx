@@ -74,7 +74,7 @@ export default function VendorProductsPage() {
                           product.status === 'pending' ? 'secondary' : 'destructive'
                         } className={`capitalize ${
                           product.status === 'approved' ? 'bg-green-100 text-green-800' :
-                          product.status === 'pending' ? 'bg-amber-100 text-amber-800' :
+                          product.status === 'pending' ? 'bg-orange-100 text-orange-800' :
                           'bg-red-100 text-red-800'
                         }`}>
                           {product.status}
