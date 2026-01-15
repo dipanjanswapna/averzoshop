@@ -84,7 +84,7 @@ function OrderTable({ orders }: { orders: typeof import('@/lib/data').orders }) 
                 {order.status}
               </Badge>
             </TableCell>
-            <TableCell className="text-right">${order.total.toFixed(2)}</TableCell>
+            <TableCell className="text-right">৳{order.total.toFixed(2)}</TableCell>
           </TableRow>
         ))}
         {orders.length === 0 && (

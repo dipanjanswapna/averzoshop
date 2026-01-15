@@ -148,8 +148,8 @@ export function FilterSidebar({ categories, products, onFilterChange, initialFil
               minStepsBetweenThumbs={1}
             />
             <div className="flex justify-between text-sm text-muted-foreground">
-              <span>₹{price_range[0]}</span>
-              <span>₹{price_range[1]}</span>
+              <span>৳{price_range[0]}</span>
+              <span>৳{price_range[1]}</span>
             </div>
           </AccordionContent>
         </AccordionItem>

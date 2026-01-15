@@ -52,8 +52,8 @@ export const ProductCard = ({ product }: { product: Product }) => {
         
         {/* Price Section */}
         <div className="flex items-baseline gap-2 mt-1">
-          <span className="text-base font-bold text-primary font-roboto">${product.price.toFixed(2)}</span>
-          <span className="text-[10px] text-muted-foreground line-through">${originalPrice.toFixed(2)}</span>
+          <span className="text-base font-bold text-primary font-roboto">৳{product.price.toFixed(2)}</span>
+          <span className="text-[10px] text-muted-foreground line-through">৳{originalPrice.toFixed(2)}</span>
         </div>
 
         {/* Phygital Indicator & Rating */}
