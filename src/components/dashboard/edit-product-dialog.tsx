@@ -26,6 +26,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import type { Product } from '@/types/product';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Trash2 } from 'lucide-react';
+import { Label } from '../ui/label';
 
 interface EditProductDialogProps {
   open: boolean;
@@ -64,18 +65,18 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: product.name,
-      description: product.description,
-      basePrice: product.price,
-      baseSku: product.baseSku,
-      brand: product.brand,
-      image: product.image,
-      category: product.category,
-      group: product.group,
-      subcategory: product.subcategory,
-      variantSizes: product.sizes.join(', '),
-      variantColors: product.colors.join(', '),
-      variants: product.variants || [],
+      name: product?.name || '',
+      description: product?.description || '',
+      basePrice: product?.price || 0,
+      baseSku: product?.baseSku || '',
+      brand: product?.brand || '',
+      image: product?.image || '',
+      category: product?.category || '',
+      group: product?.group || '',
+      subcategory: product?.subcategory || '',
+      variantSizes: product?.sizes?.join(', ') || '',
+      variantColors: product?.colors?.join(', ') || '',
+      variants: product?.variants || [],
     },
   });
 
@@ -87,17 +88,17 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
 
   useEffect(() => {
     form.reset({
-      name: product.name,
-      description: product.description,
-      basePrice: product.price,
-      baseSku: product.baseSku,
-      brand: product.brand,
-      image: product.image,
-      category: product.category,
-      group: product.group,
-      subcategory: product.subcategory,
-      variantSizes: product.sizes.join(', '),
-      variantColors: product.colors.join(', '),
+      name: product.name || '',
+      description: product.description || '',
+      basePrice: product.price || 0,
+      baseSku: product.baseSku || '',
+      brand: product.brand || '',
+      image: product.image || '',
+      category: product.category || '',
+      group: product.group || '',
+      subcategory: product.subcategory || '',
+      variantSizes: product.sizes?.join(', ') || '',
+      variantColors: product.colors?.join(', ') || '',
       variants: product.variants || [],
     });
   }, [product, form]);
