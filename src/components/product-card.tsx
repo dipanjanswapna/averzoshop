@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 
 export const ProductCard = ({ product }: { product: Product }) => {
   const finalPrice = product.price;
-  const originalPrice = product.discount > 0 ? product.price / (1 - product.discount / 100) : product.price;
+  const originalPrice = product.compareAtPrice;
   
   const stock = product.total_stock;
   const stockStatus = stock > 0 && stock < 10 ? 'Low Stock' : null;
@@ -53,7 +53,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
         <div className="absolute top-2 left-2 flex flex-col gap-1">
           <span className="bg-black/80 text-white text-[9px] font-saira px-2 py-0.5 rounded-full uppercase">{product.group}</span>
           {product.discount > 0 && (
-            <span className="bg-primary text-primary-foreground text-[9px] font-bold px-2 py-0.5 rounded-full">{product.discount}% OFF</span>
+            <span className="bg-primary text-primary-foreground text-[9px] font-bold px-2 py-0.5 rounded-full">{Math.round(product.discount)}% OFF</span>
           )}
           {stockStatus && (
              <span className="bg-destructive text-destructive-foreground text-[9px] font-bold px-2 py-0.5 rounded-full animate-pulse">{stockStatus}</span>
@@ -79,7 +79,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
         {/* Price Section */}
         <div className="flex items-baseline gap-2 mt-1">
           <span className="text-base font-bold text-primary font-roboto">৳{finalPrice.toFixed(2)}</span>
-          {product.discount > 0 && (
+          {originalPrice && originalPrice > finalPrice && (
             <span className="text-[10px] text-muted-foreground line-through">৳{originalPrice.toFixed(2)}</span>
           )}
         </div>

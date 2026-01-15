@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "user": {
@@ -72,7 +71,8 @@
         "category": { "type": "string" },
         "group": { "type": "string" },
         "subcategory": { "type": "string" },
-        "price": { "type": "number", "description": "Base price of the product." },
+        "price": { "type": "number", "description": "The final selling price of the product." },
+        "compareAtPrice": { "type": "number", "description": "The original price (MRP) to show a discount." },
         "baseSku": { "type": "string", "description": "The base Stock Keeping Unit for the product." },
         "total_stock": { "type": "number", "description": "Aggregated stock from all variants." },
         "variants": {
@@ -85,7 +85,8 @@
               "color": { "type": "string" },
               "size": { "type": "string" },
               "stock": { "type": "number" },
-              "price": { "type": "number", "description": "Price specific to this variant, if different from base price." }
+              "price": { "type": "number", "description": "Price specific to this variant." },
+              "compareAtPrice": { "type": "number", "description": "The original price (MRP) for this specific variant." }
             },
             "required": ["sku", "stock", "price"]
           }
@@ -98,11 +99,11 @@
         "vendorId": { "type": "string" },
         "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
         "createdAt": { "type": "string", "format": "date-time" },
-        "discount": { "type": "number", "description": "Discount percentage for the product." }
+        "discount": { "type": "number", "description": "The calculated discount percentage, derived from price and compareAtPrice." }
       },
       "required": ["name", "price", "total_stock", "vendorId", "status", "category", "group", "subcategory", "brand", "image", "baseSku", "variants"]
     },
-    "question": {
+     "question": {
       "title": "Question",
       "description": "A customer question about a product.",
       "type": "object",

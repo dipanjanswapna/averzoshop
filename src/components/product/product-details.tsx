@@ -136,11 +136,12 @@ export function ProductDetails({ product }: { product: Product }) {
   }, [userData, product.id]);
 
   const displayPrice = selectedVariant ? selectedVariant.price : product.price;
-  const originalPrice = displayPrice / (1 - (product.discount || 0) / 100);
+  const originalPrice = selectedVariant ? selectedVariant.compareAtPrice : product.compareAtPrice;
+  const savings = originalPrice && originalPrice > displayPrice ? originalPrice - displayPrice : 0;
+  
   const stock = selectedVariant ? selectedVariant.stock : 0;
   const stockStatus = stock > 10 ? 'In Stock' : stock > 0 ? `Only ${stock} left!` : 'Out of Stock';
   const stockColor = stock > 10 ? 'text-green-600' : stock > 0 ? 'text-orange-600' : 'text-destructive';
-  const savings = originalPrice - displayPrice;
 
   const handleWishlistToggle = async () => {
     if (!user || !firestore) {
@@ -204,7 +205,7 @@ export function ProductDetails({ product }: { product: Product }) {
       <div className="flex items-center justify-between">
          <div className="flex items-baseline gap-3">
           <span className="text-3xl font-bold text-primary font-roboto">৳{displayPrice.toFixed(2)}</span>
-          {product.discount > 0 && (
+          {originalPrice && originalPrice > displayPrice && (
              <span className="text-lg text-muted-foreground line-through font-roboto">৳{originalPrice.toFixed(2)}</span>
           )}
         </div>
@@ -293,7 +294,7 @@ export function ProductDetails({ product }: { product: Product }) {
         </div>
        )}
 
-      <div className="printable-area">
+      <div className="hidden printable-area">
         {selectedVariant && (
           <ProductSticker
             ref={stickerRef}

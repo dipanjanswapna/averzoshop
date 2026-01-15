@@ -6,6 +6,7 @@ export type ProductVariant = {
     size?: string;
     stock: number;
     price: number;
+    compareAtPrice?: number;
 };
 
 export type Product = {
@@ -16,6 +17,7 @@ export type Product = {
     group: string;
     subcategory: string;
     price: number; // Base price
+    compareAtPrice?: number;
     baseSku: string;
     total_stock: number;
     variants: ProductVariant[];
