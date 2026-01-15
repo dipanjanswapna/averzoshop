@@ -24,11 +24,11 @@ export default function CustomerDashboardLayout({
   const { user, userData } = useAuth();
   
   // The root protected layout now handles the main loading and redirection logic.
-  // This layout just needs to render the customer UI.
+  // This layout just needs to render the customer UI if the user is authorized.
   if (!user || !userData || userData.role !== 'customer') {
      return (
           <div className="flex h-screen items-center justify-center bg-background text-foreground">
-              <p>Access Denied or loading...</p>
+              <p>Redirecting...</p>
           </div>
       )
   }

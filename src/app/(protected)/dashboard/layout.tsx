@@ -30,10 +30,10 @@ export default function DashboardLayout({
   // The outer layout ensures that if a customer lands here, they are redirected.
   if (!user || !userData || userData.role === 'customer') {
       // This state should ideally not be reached due to the root layout's logic,
-      // but it's a good failsafe.
+      // but it's a good failsafe. A simple message is enough.
       return (
         <div className="flex h-screen items-center justify-center bg-background text-foreground">
-            <p>Access Denied. You are being redirected.</p>
+            <p>Redirecting...</p>
         </div>
       );
   }

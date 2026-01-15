@@ -14,7 +14,7 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
     if (loading) return; // Wait until auth state is determined
 
     if (!user) {
-      // This should be handled by middleware, but as a fallback
+      // This should be handled by middleware, but as a fallback, redirect to login
       router.replace('/login');
       return;
     }
@@ -43,6 +43,7 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // If user and userData are loaded, render the appropriate content
   return <>{children}</>;
 }
 

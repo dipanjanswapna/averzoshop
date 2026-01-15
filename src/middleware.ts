@@ -6,25 +6,25 @@ export function middleware(request: NextRequest) {
   
   const idToken = request.cookies.get('firebaseIdToken')?.value;
 
-  // প্রোটেক্টেড এবং অথ পেজ নির্ধারণ
+  // Define protected and auth pages
   const isAuthPage = pathname === '/login' || pathname === '/register';
-  const isProtectedPage = pathname.startsWith('/dashboard') || pathname.startsWith('/customer');
+  const isProtectedRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/customer');
 
-  // ১. লগইন নেই কিন্তু সুরক্ষিত পেজে যাওয়ার চেষ্টা করলে লগইনে পাঠানো
-  if (!idToken && isProtectedPage) {
+  // 1. If user is not logged in and tries to access a protected page, redirect to login
+  if (!idToken && isProtectedRoute) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // ২. লগইন আছে কিন্তু লগইন পেজে যেতে চাইলে ড্যাশবোর্ডে পাঠানো
+  // 2. If user is logged in and tries to access an auth page, redirect to the main dashboard entry
   if (idToken && isAuthPage) {
-    // এখানে ডিফল্ট ড্যাশবোর্ডে পাঠানো হচ্ছে
+    // The main protected layout will handle role-based redirection from here.
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   return NextResponse.next();
 }
 
+// Apply middleware to all protected and auth routes
 export const config = {
-  // matcher-এ অবশ্যই /customer যোগ করতে হবে
   matcher: ['/dashboard/:path*', '/customer/:path*', '/login', '/register'],
 };

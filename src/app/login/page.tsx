@@ -100,9 +100,9 @@ export default function LoginPage() {
 
   const handleGoToDashboard = () => {
     if (userData?.role === 'customer') {
-      router.push('/customer');
+      router.replace('/customer');
     } else {
-      router.push('/dashboard');
+      router.replace('/dashboard');
     }
   };
 
