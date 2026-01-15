@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from 'next/image';
@@ -6,8 +5,6 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { subBrands } from '@/lib/data';
 import {
   Carousel,
   CarouselContent,
@@ -43,32 +40,10 @@ export default function StoreFrontPage() {
     
   return (
     <>
-        <section className="py-8 md:py-16">
+        <section className="pb-8 md:pb-16">
           <div className="container">
-            {/* --- Story Circles --- */}
-            <div className="flex space-x-4 overflow-x-auto pb-4 md:justify-center">
-              {subBrands.map(brand => (
-                <Link
-                  href="#"
-                  key={brand.id}
-                  className="flex flex-col items-center space-y-2 flex-shrink-0"
-                >
-                  <Avatar className="h-16 w-16 border-2 border-primary">
-                    <AvatarImage
-                      src={`https://picsum.photos/seed/${brand.id}/100/100`}
-                      alt={brand.name}
-                    />
-                    <AvatarFallback>{brand.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <span className="text-xs font-medium font-body">
-                    {brand.name}
-                  </span>
-                </Link>
-              ))}
-            </div>
-
             {/* --- Hero Carousel --- */}
-            <div className="mt-8">
+            <div>
               <Carousel
                 opts={{
                   align: 'start',
