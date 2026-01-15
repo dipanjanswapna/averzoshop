@@ -3,19 +3,10 @@
 import { ProductCard } from '@/components/product-card';
 import type { products } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Pagination,
-  PaginationContent,
-  PaginationEllipsis,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from '@/components/ui/pagination';
 import { Button } from '../ui/button';
 
 type ProductGridProps = {
-  products: typeof products;
+  products: (typeof products);
   isLoading: boolean;
 };
 
@@ -40,7 +31,7 @@ export const ProductGrid = ({ products, isLoading }: ProductGridProps) => {
     return (
       <div className="flex flex-col items-center justify-center h-96 border-2 border-dashed rounded-lg">
         <h3 className="text-xl font-bold">No Products Found</h3>
-        <p className="text-muted-foreground">Try adjusting your filters.</p>
+        <p className="text-muted-foreground">Try adjusting your filters or clearing them.</p>
       </div>
     );
   }
