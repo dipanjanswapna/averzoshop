@@ -8,10 +8,12 @@ import { PlusCircle } from 'lucide-react';
 import { ProductCard } from '@/components/product-card';
 import { AddProductDialog } from '@/components/dashboard/add-product-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/hooks/use-auth';
 
 export default function ProductsPage() {
   const { data: products, isLoading } = useFirestoreQuery<Product>('products');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const { userData } = useAuth();
 
   const renderSkeleton = () => (
     [...Array(6)].map((_, i) => (
@@ -22,6 +24,14 @@ export default function ProductsPage() {
       </div>
     ))
   );
+  
+  if (userData?.role !== 'admin') {
+    return (
+        <div className="flex items-center justify-center h-full">
+            <p>You do not have permission to view this page.</p>
+        </div>
+    )
+  }
 
   return (
     <>

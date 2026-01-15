@@ -98,13 +98,20 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
     }
   };
 
+  const dialogTitle = userData?.role === 'admin' ? 'Add New Product' : 'Submit Product for Approval';
+  const dialogDescription = userData?.role === 'admin' 
+    ? 'Fill in the details to add a new product directly to the store.'
+    : 'Fill in the details to submit your product. It will be reviewed by an admin.';
+  const submitButtonText = userData?.role === 'admin' ? 'Add Product' : 'Submit for Approval';
+
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Add New Product</DialogTitle>
+          <DialogTitle>{dialogTitle}</DialogTitle>
           <DialogDescription>
-            Fill in the details to list a new product. It will be reviewed by an admin.
+            {dialogDescription}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -149,7 +156,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
             
             <DialogFooter>
               <DialogClose asChild><Button type="button" variant="secondary">Cancel</Button></DialogClose>
-              <Button type="submit" disabled={isLoading}>{isLoading ? 'Submitting...' : 'Submit for Approval'}</Button>
+              <Button type="submit" disabled={isLoading}>{isLoading ? 'Submitting...' : submitButtonText}</Button>
             </DialogFooter>
           </form>
         </Form>

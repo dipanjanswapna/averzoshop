@@ -92,10 +92,14 @@ export function VendorDashboard() {
                         </TableCell>
                         <TableCell className="font-medium">{product.name}</TableCell>
                         <TableCell>
-                          <Badge variant={
+                           <Badge variant={
                             product.status === 'approved' ? 'default' :
                             product.status === 'pending' ? 'secondary' : 'destructive'
-                          } className="capitalize">
+                          } className={`capitalize ${
+                            product.status === 'approved' ? 'bg-green-100 text-green-800' :
+                            product.status === 'pending' ? 'bg-amber-100 text-amber-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
                             {product.status}
                           </Badge>
                         </TableCell>
