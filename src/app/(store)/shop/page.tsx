@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { ProductGrid } from '@/components/shop/product-grid';
 import { products, categoriesData } from '@/lib/data';
@@ -34,17 +34,17 @@ export default function ShopPage() {
 
   const parseQueryParam = (param: string | null, defaultValue: any) => {
     if (!param) return defaultValue;
-    try {
-        const parsed = JSON.parse(param);
-        // Handle case where a simple string like "Nike" is parsed, which is valid JSON
-        if (Array.isArray(defaultValue) && !Array.isArray(parsed)) {
-            return [String(parsed)];
-        }
-        return parsed;
-    } catch (e) {
-        // Fallback for non-JSON string values (e.g., brand=Nike)
-        return Array.isArray(defaultValue) ? param.split(',') : param;
+    if (Array.isArray(defaultValue)) {
+        return param.split(',');
     }
+    if (typeof defaultValue === 'object' && defaultValue !== null) {
+        try {
+            return JSON.parse(param);
+        } catch (e) {
+            return defaultValue;
+        }
+    }
+    return param;
   };
 
 
@@ -65,38 +65,25 @@ export default function ShopPage() {
   const handleFilterChange = useCallback((filters: Record<string, any>) => {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([key, value]) => {
-        if (value !== null && value !== undefined) {
-            if (Array.isArray(value)) {
-                if (value.length > 0) {
-                    // For price_range, stringify the array. For others, join by comma.
-                    if(key === 'price_range') {
-                        params.set(key, JSON.stringify(value));
-                    } else {
-                        params.set(key, value.join(','));
-                    }
-                }
-            } else if (String(value).trim() !== '') {
-                params.set(key, String(value));
-            }
-        }
+      if (value !== null && value !== undefined && value !== '') {
+          if (Array.isArray(value)) {
+              if (value.length > 0) {
+                  params.set(key, value.join(','));
+              }
+          } else if (typeof value === 'object') {
+              params.set(key, JSON.stringify(value));
+          } else {
+              params.set(key, String(value));
+          }
+      }
     });
-
-    // Always keep sort_by if it exists
-    if(initialFilters.sort_by) {
-      params.set('sort_by', initialFilters.sort_by);
-    }
-    
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [router, pathname, initialFilters.sort_by]);
+  }, [router, pathname]);
+
 
   const handleSortChange = (value: string | null) => {
-    const params = new URLSearchParams(searchParams.toString());
-    if (value) {
-      params.set('sort_by', value);
-    } else {
-      params.delete('sort_by');
-    }
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    const newFilters = { ...initialFilters, sort_by: value || 'newest' };
+    handleFilterChange(newFilters);
   };
 
 
@@ -160,10 +147,9 @@ export default function ShopPage() {
   }, [initialFilters]);
 
   const onPageChange = useCallback((page: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('page', String(page));
-    router.push(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [router, pathname, searchParams]);
+    const newFilters = { ...initialFilters, page };
+    handleFilterChange(newFilters);
+  }, [initialFilters, handleFilterChange]);
 
   return (
     <div className="bg-secondary">
@@ -183,9 +169,9 @@ export default function ShopPage() {
                         <Filter className="mr-2 h-4 w-4" /> Filters
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-full max-w-sm overflow-y-auto p-0">
+                 <SheetContent side="left" className="w-full max-w-sm overflow-y-auto p-0">
                     <SheetHeader className="p-6 pb-4">
-                      <SheetTitle className="text-xl font-bold font-headline">Filters</SheetTitle>
+                        <SheetTitle className="text-xl font-bold font-headline">Filters</SheetTitle>
                     </SheetHeader>
                     <div className="p-6 pt-0">
                       <FilterSidebar 
