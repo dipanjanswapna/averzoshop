@@ -1,10 +1,9 @@
-
 'use client';
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Minus, Plus, ShoppingBag, Heart, HelpCircle, MapPin, Share2, Printer, Gift, X } from 'lucide-react';
+import { Minus, Plus, ShoppingBag, Heart, HelpCircle, MapPin, Share2, Printer, Gift, X, Store } from 'lucide-react';
 import type { Product, ProductVariant } from '@/types/product';
 import { TrustBadges } from './trust-badges';
 import Link from 'next/link';
@@ -17,6 +16,7 @@ import { SizeGuideDialog } from './size-guide-dialog';
 import { useCart } from '@/hooks/use-cart';
 import Barcode from 'react-barcode';
 import { ProductSticker } from './product-sticker';
+import { StoreAvailabilityDialog } from './store-availability-dialog';
 
 export function ProductDetails({ product }: { product: Product }) {
   const router = useRouter();
@@ -29,6 +29,7 @@ export function ProductDetails({ product }: { product: Product }) {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
+  const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(false);
 
   const { addItem } = useCart();
   const { user, firestore, userData } = useAuth();
@@ -312,21 +313,32 @@ export function ProductDetails({ product }: { product: Product }) {
           </div>
          )}
 
-         <div className="border rounded-lg p-4 space-y-3">
-              <h4 className="font-bold text-sm">Delivery Options</h4>
-              <div className="flex items-center gap-2">
-                  <MapPin size={16} className="text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">Dhaka, Bangladesh</span>
-              </div>
-              <div className="flex items-center gap-2">
-                  <input type="text" placeholder="Enter Pincode" className="text-sm border-b focus:outline-none focus:border-primary" />
-                  <button className="text-primary font-bold text-sm">Check</button>
-              </div>
-              <p className="text-xs text-muted-foreground">Estimated delivery by: <span className="font-bold text-foreground">{(new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span></p>
-         </div>
+         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t pt-6">
+             <div className="border rounded-lg p-4 space-y-3">
+                  <h4 className="font-bold text-sm">Delivery Options</h4>
+                  <div className="flex items-center gap-2">
+                      <MapPin size={16} className="text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">Dhaka, Bangladesh</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                      <input type="text" placeholder="Enter Pincode" className="text-sm border-b focus:outline-none focus:border-primary" />
+                      <button className="text-primary font-bold text-sm">Check</button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Estimated delivery by: <span className="font-bold text-foreground">{(new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span></p>
+             </div>
+             <div className="border rounded-lg p-4 space-y-3 flex flex-col justify-center items-center text-center">
+                 <Store className="h-8 w-8 text-muted-foreground" />
+                  <h4 className="font-bold text-sm">In-Store Availability</h4>
+                  <p className="text-xs text-muted-foreground">Check if this product is available at a store near you.</p>
+                  <Button variant="outline" size="sm" className="mt-2" onClick={() => setIsAvailabilityOpen(true)}>
+                    Check Stores
+                  </Button>
+             </div>
+        </div>
 
         <TrustBadges />
         <SizeGuideDialog open={isSizeGuideOpen} onOpenChange={setIsSizeGuideOpen} />
+        <StoreAvailabilityDialog open={isAvailabilityOpen} onOpenChange={setIsAvailabilityOpen} product={product} />
 
       </div>
     </>
