@@ -1,3 +1,5 @@
+
+'use client';
 import Image from 'next/image';
 import {
   Card,
@@ -24,11 +26,22 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
 export default function UsersPage() {
+  const handleApprove = (email: string) => {
+    console.log(`Approving ${email}`);
+    // Here you would typically update the user's status in Firestore
+  };
+
+  const handleReject = (email: string) => {
+    console.log(`Rejecting ${email}`);
+     // Here you would typically update the user's status in Firestore
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
@@ -49,6 +62,7 @@ export default function UsersPage() {
               <TableRow>
                 <TableHead>User</TableHead>
                 <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead className="hidden md:table-cell">Last Login</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
@@ -70,7 +84,12 @@ export default function UsersPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">{user.role}</Badge>
+                    <Badge variant="outline" className="capitalize">{user.role}</Badge>
+                  </TableCell>
+                  <TableCell>
+                     <Badge variant={user.status === 'Approved' ? 'default' : 'secondary'} className={user.status === 'Approved' ? 'bg-green-500/20 text-green-700' : 'bg-orange-500/20 text-orange-700'}>
+                        {user.status}
+                    </Badge>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">{user.lastLogin}</TableCell>
                   <TableCell>
@@ -85,7 +104,19 @@ export default function UsersPage() {
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuItem>Edit</DropdownMenuItem>
                         <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">Suspend</DropdownMenuItem>
+                         {user.status === 'Pending' && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleApprove(user.email)} className="text-green-600 focus:bg-green-50 focus:text-green-700">
+                              Approve
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleReject(user.email)} className="text-destructive focus:bg-destructive/10 focus:text-destructive">
+                              Reject
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem className="text-destructive focus:text-destructive">Suspend</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>

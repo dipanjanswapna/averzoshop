@@ -1,3 +1,4 @@
+
 import { PlaceHolderImages } from './placeholder-images';
 
 export const products = [
@@ -104,6 +105,7 @@ export const users = [
     name: "Olivia Martin",
     email: "olivia.martin@email.com",
     role: "Admin",
+    status: "Approved",
     lastLogin: "2 hours ago",
     image: PlaceHolderImages.find(p => p.id === 'avatar-1')?.imageUrl,
   },
@@ -111,6 +113,7 @@ export const users = [
     name: "Jackson Lee",
     email: "jackson.lee@email.com",
     role: "Customer",
+    status: "Approved",
     lastLogin: "1 day ago",
     image: PlaceHolderImages.find(p => p.id === 'avatar-2')?.imageUrl,
   },
@@ -118,6 +121,7 @@ export const users = [
     name: "Isabella Nguyen",
     email: "isabella.nguyen@email.com",
     role: "Vendor",
+    status: "Pending",
     lastLogin: "5 hours ago",
     image: PlaceHolderImages.find(p => p.id === 'avatar-3')?.imageUrl,
   },
@@ -125,6 +129,7 @@ export const users = [
     name: "William Kim",
     email: "will@email.com",
     role: "Customer",
+    status: "Approved",
     lastLogin: "3 days ago",
     image: "https://picsum.photos/seed/avatar4/100/100",
   },
@@ -132,6 +137,7 @@ export const users = [
     name: "Sofia Davis",
     email: "sofia.davis@email.com",
     role: "Rider",
+    status: "Pending",
     lastLogin: "30 minutes ago",
     image: "https://picsum.photos/seed/avatar5/100/100",
   },

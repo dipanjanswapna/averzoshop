@@ -17,14 +17,14 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import AverzoLogo from '@/components/averzo-logo';
 import { FirebaseClientProvider, useFirebase } from '@/firebase';
-
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   email: z.string().email({ message: 'Invalid email address.' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
+  role: z.enum(['customer', 'vendor', 'rider'], { required_error: 'Please select a role.' }),
 });
-
 
 function RegisterPageContent() {
   const [loading, setLoading] = useState(false);
@@ -38,6 +38,7 @@ function RegisterPageContent() {
       name: '',
       email: '',
       password: '',
+      role: 'customer',
     },
   });
 
@@ -52,20 +53,23 @@ function RegisterPageContent() {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
 
-      // Update user profile
       await updateProfile(user, { displayName: values.name });
 
-      // Create user document in Firestore
       const userDocRef = doc(firestore, 'users', user.uid);
+      
+      const status = values.role === 'customer' ? 'approved' : 'pending';
+
       await setDoc(userDocRef, {
         uid: user.uid,
         email: user.email,
         displayName: values.name,
-        role: 'customer' // Default role for new sign-ups
+        role: values.role,
+        status: status,
+        createdAt: new Date().toISOString(),
       });
 
-      toast({ title: 'Registration Successful', description: 'Redirecting to your dashboard...' });
-      router.push('/dashboard');
+      toast({ title: 'Registration Successful', description: 'Redirecting to login...' });
+      router.push('/login');
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Registration Failed', description: error.message });
     } finally {
@@ -83,17 +87,18 @@ function RegisterPageContent() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // Create user document in Firestore if it doesn't exist
       const userDocRef = doc(firestore, 'users', user.uid);
       await setDoc(userDocRef, {
         uid: user.uid,
         email: user.email,
         displayName: user.displayName,
         photoURL: user.photoURL,
-        role: 'customer' // Default role
+        role: 'customer',
+        status: 'approved',
+        createdAt: new Date().toISOString(),
       }, { merge: true });
 
-      toast({ title: 'Google Sign-In Successful', description: 'Redirecting to your dashboard...' });
+      toast({ title: 'Google Sign-In Successful', description: 'Redirecting...' });
       router.push('/dashboard');
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Google Sign-In Failed', description: error.message });
@@ -111,7 +116,7 @@ function RegisterPageContent() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-               <FormField
+              <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
@@ -146,6 +151,28 @@ function RegisterPageContent() {
                     <FormControl>
                       <Input type="password" placeholder="••••••••" {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Register as</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a role" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="customer">Customer</SelectItem>
+                        <SelectItem value="vendor">Vendor</SelectItem>
+                        <SelectItem value="rider">Rider</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

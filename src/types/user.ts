@@ -4,6 +4,8 @@ export interface UserData {
   email: string | null;
   displayName: string | null;
   photoURL: string | null;
-  role: string;
+  role: 'customer' | 'vendor' | 'rider' | 'admin' | 'outlet';
+  status: 'pending' | 'approved' | 'rejected';
   wishlist?: string[];
+  createdAt?: string;
 }
