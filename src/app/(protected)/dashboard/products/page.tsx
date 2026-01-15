@@ -12,12 +12,37 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { doc, updateDoc } from 'firebase/firestore';
+import { useFirebase } from '@/firebase';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ProductsPage() {
   const { data: products, isLoading } = useFirestoreQuery<Product>('products');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { userData } = useAuth();
+  const { firestore } = useFirebase();
+  const { toast } = useToast();
+
+  const handleStatusChange = async (productId: string, newStatus: 'approved' | 'rejected') => {
+    if (!firestore) return;
+    const productRef = doc(firestore, 'products', productId);
+    try {
+      await updateDoc(productRef, { status: newStatus });
+      toast({
+        title: 'Product status updated',
+        description: `Product has been ${newStatus}.`,
+      });
+    } catch (error) {
+      console.error('Error updating product status:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Update failed',
+        description: 'Could not update product status.',
+      });
+    }
+  };
+
 
   const renderSkeleton = () => (
     [...Array(5)].map((_, i) => (
@@ -103,7 +128,11 @@ export default function ProductsPage() {
                             <DropdownMenuContent align="end">
                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                 {product.status === 'pending' && (
-                                    <DropdownMenuItem className="text-green-600">Approve</DropdownMenuItem>
+                                    <>
+                                        <DropdownMenuItem onClick={() => handleStatusChange(product.id, 'approved')} className="text-green-600 focus:text-green-700">Approve</DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => handleStatusChange(product.id, 'rejected')} className="text-destructive focus:text-destructive">Reject</DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                    </>
                                 )}
                                <DropdownMenuItem>Edit</DropdownMenuItem>
                                <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
