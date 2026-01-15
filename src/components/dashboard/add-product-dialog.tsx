@@ -54,21 +54,21 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (!firestore || !user) {
+    if (!firestore || !user || !userData) {
         toast({ variant: "destructive", title: "Authentication error", description: "You must be logged in to add a product." });
         return;
     }
     setIsLoading(true);
     try {
       // Admin added products are auto-approved. Vendor products are pending.
-      const status = userData?.role === 'admin' ? 'approved' : 'pending';
+      const status = userData.role === 'admin' ? 'approved' : 'pending';
       
       await addDoc(collection(firestore, 'products'), {
         ...values,
-        vendorId: user.uid,
+        vendorId: user.uid, // Always tag the product with the creator's UID
         status: status,
         createdAt: serverTimestamp(),
-        // Dummy values for now
+        // Dummy values for now - these should be part of the form later
         group: 'Topwear',
         subcategory: 'T-Shirts',
         image: `https://picsum.photos/seed/${Math.random()}/400/400`,
