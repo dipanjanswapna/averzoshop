@@ -2,7 +2,8 @@
 'use client';
 
 import { useAuth } from '@/hooks/use-auth';
-import { products } from '@/lib/data';
+import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
+import type { Product } from '@/types/product';
 import { WishlistProductCard } from '@/components/shop/wishlist-product-card';
 import { Heart, User } from 'lucide-react';
 import Link from 'next/link';
@@ -10,7 +11,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function MyWishlistPage() {
-  const { user, userData, loading } = useAuth();
+  const { user, userData, loading: authLoading } = useAuth();
+  const { data: allProducts, isLoading: productsLoading } = useFirestoreQuery<Product>('products');
+
+  const loading = authLoading || productsLoading;
 
   if (loading) {
     return <div className="container py-20 text-center">Loading wishlist...</div>;
@@ -29,7 +33,7 @@ export default function MyWishlistPage() {
     );
   }
 
-  const wishlistProducts = products.filter(p => userData?.wishlist?.includes(p.id));
+  const wishlistProducts = allProducts?.filter(p => userData?.wishlist?.includes(p.id)) || [];
 
   return (
     <div className="flex flex-col gap-6">
