@@ -89,7 +89,7 @@ export default function StoreFrontPage() {
                   {heroCarouselImages.map((image, index) => (
                     <CarouselItem key={index}>
                       <Link href={image.link || '#'}>
-                        <div className="relative w-full aspect-[4/1] rounded-lg overflow-hidden">
+                        <div className="relative w-full aspect-[21/9] md:aspect-[4/1] rounded-lg overflow-hidden">
                           <Image
                             src={image.imageUrl}
                             alt={image.description}
@@ -122,7 +122,7 @@ export default function StoreFrontPage() {
                 Don't miss out on these limited-time offers.
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5">
               {featuredProducts.map(product => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -186,3 +186,5 @@ export default function StoreFrontPage() {
       </>
   );
 }
+
+    

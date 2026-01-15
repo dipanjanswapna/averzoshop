@@ -37,19 +37,19 @@ export function StoreHeader() {
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <Sheet>
         <div className="container">
-          {/* Desktop Header */}
+          {/* Desktop & Tablet Header */}
           <div className="hidden h-16 items-center md:flex">
-            <Link href="/" className="mr-4 flex items-center space-x-2">
+            <Link href="/" className="mr-2 flex items-center space-x-2">
               <AverzoLogo className="h-7 w-auto" />
             </Link>
             <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="mr-4">
+                <Button variant="ghost" size="icon" className="mr-2">
                     <Menu className="h-6 w-6" />
                     <span className="sr-only">Open Menu</span>
                 </Button>
             </SheetTrigger>
             
-            <div className="flex-1 px-12">
+            <div className="flex-1 px-4 lg:px-8">
               <Carousel
                 opts={{
                   align: 'start',
@@ -60,9 +60,9 @@ export function StoreHeader() {
                 <CarouselContent className="-ml-2">
                   <CarouselItem className="basis-auto pl-2">
                     <div className="group relative cursor-pointer p-2">
-                        <span className="hover:text-primary transition-colors flex items-center gap-1 font-medium">MEN <ChevronDown size={16}/></span>
+                        <span className="hover:text-primary transition-colors flex items-center gap-1 font-medium text-sm lg:text-base">MEN <ChevronDown size={16}/></span>
                         {/* Mega Menu Container */}
-                        <div className="absolute left-0 top-full w-[100vw] max-w-7xl -translate-x-1/4 bg-background shadow-lg border-t hidden group-hover:grid grid-cols-4 gap-x-8 p-10 animate-in fade-in slide-in-from-top-2">
+                        <div className="absolute left-0 top-full w-full max-w-7xl bg-background shadow-lg border-t hidden group-hover:grid grid-cols-4 gap-x-8 p-10 animate-in fade-in slide-in-from-top-2">
                           <div>
                             <h4 className="font-bold text-primary mb-3 uppercase font-headline">Topwear (Group)</h4>
                             <ul className="space-y-2 text-muted-foreground font-body font-normal">
@@ -95,17 +95,17 @@ export function StoreHeader() {
                   </CarouselItem>
                   <CarouselItem className="basis-auto pl-2">
                      <div className="group relative cursor-pointer p-2">
-                      <span className="hover:text-primary transition-colors flex items-center gap-1 font-medium">Women <ChevronDown size={16}/></span>
+                      <span className="hover:text-primary transition-colors flex items-center gap-1 font-medium text-sm lg:text-base">Women <ChevronDown size={16}/></span>
                     </div>
                   </CarouselItem>
                   <CarouselItem className="basis-auto pl-2">
                      <div className="group relative cursor-pointer p-2">
-                      <span className="hover:text-primary transition-colors flex items-center gap-1 font-medium">Kids <ChevronDown size={16}/></span>
+                      <span className="hover:text-primary transition-colors flex items-center gap-1 font-medium text-sm lg:text-base">Kids <ChevronDown size={16}/></span>
                     </div>
                   </CarouselItem>
                   <CarouselItem className="basis-auto pl-2">
                      <div className="group relative cursor-pointer p-2">
-                        <span className="hover:text-primary transition-colors flex items-center gap-1 font-medium">Electronics <ChevronDown size={16}/></span>
+                        <span className="hover:text-primary transition-colors flex items-center gap-1 font-medium text-sm lg:text-base">Electronics <ChevronDown size={16}/></span>
                          <div className="absolute left-0 top-full w-full bg-background shadow-lg border-t hidden group-hover:grid grid-cols-4 gap-x-8 p-10 animate-in fade-in slide-in-from-top-2">
                           <div>
                             <h4 className="font-bold text-primary mb-3 uppercase font-headline">Mobiles</h4>
@@ -136,7 +136,7 @@ export function StoreHeader() {
                   </CarouselItem>
                   <CarouselItem className="basis-auto pl-2">
                      <div className="group relative cursor-pointer p-2">
-                        <span className="hover:text-primary transition-colors flex items-center gap-1 font-medium">Health &amp; Wellness <ChevronDown size={16}/></span>
+                        <span className="hover:text-primary transition-colors flex items-center gap-1 font-medium text-sm lg:text-base">Health &amp; Wellness <ChevronDown size={16}/></span>
                         <div className="absolute left-0 top-full w-full bg-background shadow-lg border-t hidden group-hover:grid grid-cols-4 gap-x-8 p-10 animate-in fade-in slide-in-from-top-2">
                           <div>
                             <h4 className="font-bold text-primary mb-3 uppercase font-headline">Supplements</h4>
@@ -161,7 +161,7 @@ export function StoreHeader() {
                   </CarouselItem>
                   <CarouselItem className="basis-auto pl-2">
                      <div className="group relative cursor-pointer p-2">
-                        <span className="hover:text-primary transition-colors flex items-center gap-1 font-medium">Pet Care <ChevronDown size={16}/></span>
+                        <span className="hover:text-primary transition-colors flex items-center gap-1 font-medium text-sm lg:text-base">Pet Care <ChevronDown size={16}/></span>
                          <div className="absolute left-0 top-full w-full bg-background shadow-lg border-t hidden group-hover:grid grid-cols-4 gap-x-8 p-10 animate-in fade-in slide-in-from-top-2">
                           <div>
                             <h4 className="font-bold text-primary mb-3 uppercase font-headline">Cat Essentials</h4>
@@ -192,8 +192,8 @@ export function StoreHeader() {
             </div>
 
 
-            <div className="flex flex-1 items-center justify-end space-x-2">
-              <div className="w-full flex-1 max-w-xs">
+            <div className="flex flex-1 items-center justify-end space-x-1 lg:space-x-2">
+              <div className="w-full flex-1 max-w-xs hidden lg:block">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -203,6 +203,10 @@ export function StoreHeader() {
                   />
                 </div>
               </div>
+              <Button variant="ghost" size="icon" className="lg:hidden">
+                <Search className="h-5 w-5" />
+                <span className="sr-only">Search</span>
+              </Button>
                <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon">
@@ -215,7 +219,7 @@ export function StoreHeader() {
                   <DropdownMenuItem>Track Order</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <nav className="flex items-center space-x-1">
+              <nav className="flex items-center space-x-0 lg:space-x-1">
                 <Link href="/login">
                   <Button variant="ghost" className="flex flex-col h-auto p-1 items-center space-y-1">
                     <User className="h-5 w-5" />
@@ -368,3 +372,5 @@ export function StoreHeader() {
     </header>
   );
 }
+
+    
