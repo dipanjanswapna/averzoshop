@@ -40,7 +40,7 @@ export function FilterSidebar({ categories, products, onFilterChange, initialFil
     mother_category, 
     group, 
     subcategory,
-    price_range = [0, 2000],
+    price_range = [0, 5000],
     brands = [],
     colors = [],
     sizes = [],
@@ -143,12 +143,13 @@ export function FilterSidebar({ categories, products, onFilterChange, initialFil
             <Slider
               value={price_range}
               onValueCommit={(value) => handleFilterUpdate('price_range', value)}
-              max={2000}
-              step={10}
+              max={5000}
+              step={100}
+              minStepsBetweenThumbs={1}
             />
             <div className="flex justify-between text-sm text-muted-foreground">
-              <span>${price_range[0]}</span>
-              <span>${price_range[1]}</span>
+              <span>₹{price_range[0]}</span>
+              <span>₹{price_range[1]}</span>
             </div>
           </AccordionContent>
         </AccordionItem>

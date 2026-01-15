@@ -35,7 +35,14 @@ export default function ShopPage() {
   const parseQueryParam = (param: string | null, defaultValue: any) => {
     if (!param) return defaultValue;
     try {
-      return JSON.parse(param);
+      // For price_range, parse it as JSON
+      if (param.startsWith('[') && param.endsWith(']')) {
+        const parsed = JSON.parse(param);
+        if (Array.isArray(parsed) && parsed.length === 2 && typeof parsed[0] === 'number' && typeof parsed[1] === 'number') {
+          return parsed;
+        }
+      }
+      return Array.isArray(defaultValue) ? param.split(',') : param;
     } catch (e) {
       return Array.isArray(defaultValue) ? param.split(',') : param;
     }
@@ -50,7 +57,7 @@ export default function ShopPage() {
     brands: parseQueryParam(searchParams.get('brands'), []),
     colors: parseQueryParam(searchParams.get('colors'), []),
     sizes: parseQueryParam(searchParams.get('sizes'), []),
-    price_range: parseQueryParam(searchParams.get('price_range'), [0, 2000]),
+    price_range: parseQueryParam(searchParams.get('price_range'), [0, 5000]),
     discount: searchParams.get('discount') || null,
     is_bundle: searchParams.get('is_bundle') === 'true' || false,
   }), [searchParams]);
