@@ -2,12 +2,11 @@
 'use client';
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { products } from '@/lib/data';
+import type { Product } from '@/types/product';
 import { ProductReviews } from './product-reviews';
 import { Button } from '../ui/button';
 import { AskQuestionDialog } from './ask-question-dialog';
-
-type Product = (typeof products)[0];
+import { Table, TableBody, TableCell, TableRow } from '../ui/table';
 
 const questionsAndAnswers = [
   {
@@ -31,17 +30,43 @@ export function ProductTabs({ product }: { product: Product }) {
                 <TabsTrigger value="qa">Q&A</TabsTrigger>
             </TabsList>
             <TabsContent value="description" className="py-6 text-sm text-muted-foreground prose max-w-none">
-                <p>This is a detailed description of the {product.name}. It's a high-quality product from {product.brand}, perfect for your needs. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
-                <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+                <p>{product.description || "No description available for this product."}</p>
             </TabsContent>
             <TabsContent value="specifications" className="py-6">
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li><strong className="text-foreground w-24 inline-block">Category:</strong> {product.category}</li>
-                    <li><strong className="text-foreground w-24 inline-block">Group:</strong> {product.group}</li>
-                    <li><strong className="text-foreground w-24 inline-block">Brand:</strong> {product.brand}</li>
-                    {product.colors.length > 0 && <li><strong className="text-foreground w-24 inline-block">Colors:</strong> {product.colors.join(', ')}</li>}
-                    {product.sizes.length > 0 && <li><strong className="text-foreground w-24 inline-block">Sizes:</strong> {product.sizes.join(', ')}</li>}
-                </ul>
+                <Table className="text-sm">
+                  <TableBody>
+                    {product.brand && (
+                      <TableRow>
+                        <TableCell className="font-semibold text-foreground w-1/4">Brand</TableCell>
+                        <TableCell className="text-muted-foreground">{product.brand}</TableCell>
+                      </TableRow>
+                    )}
+                    {product.category && (
+                       <TableRow>
+                        <TableCell className="font-semibold text-foreground">Category</TableCell>
+                        <TableCell className="text-muted-foreground">{product.category}</TableCell>
+                      </TableRow>
+                    )}
+                     {product.group && (
+                       <TableRow>
+                        <TableCell className="font-semibold text-foreground">Group</TableCell>
+                        <TableCell className="text-muted-foreground">{product.group}</TableCell>
+                      </TableRow>
+                    )}
+                    {product.subcategory && (
+                       <TableRow>
+                        <TableCell className="font-semibold text-foreground">Subcategory</TableCell>
+                        <TableCell className="text-muted-foreground">{product.subcategory}</TableCell>
+                      </TableRow>
+                    )}
+                     {product.baseSku && (
+                       <TableRow>
+                        <TableCell className="font-semibold text-foreground">Base SKU</TableCell>
+                        <TableCell className="text-muted-foreground">{product.baseSku}</TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
             </TabsContent>
             <TabsContent value="reviews" className="py-6">
                 <ProductReviews />
