@@ -65,7 +65,7 @@ export default function ProductsPage() {
                   <TableHead>Name</TableHead>
                   <TableHead>Vendor</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Stock</TableHead>
+                  <TableHead>Total Stock</TableHead>
                   <TableHead className="text-right">Price</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -91,7 +91,7 @@ export default function ProductsPage() {
                             {product.status}
                           </Badge>
                         </TableCell>
-                        <TableCell>{product.stock}</TableCell>
+                        <TableCell>{product.total_stock}</TableCell>
                         <TableCell className="text-right">৳{product.price.toFixed(2)}</TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>

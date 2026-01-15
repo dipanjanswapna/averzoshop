@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -11,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Search, PlusCircle, MinusCircle, XCircle, ShoppingCart } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useFirebase } from '@/firebase';
-import { collection, addDoc, serverTimestamp, doc, runTransaction, DocumentReference } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, runTransaction, DocumentReference, increment } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 interface CartItem extends Product {
@@ -21,7 +22,7 @@ interface CartItem extends Product {
 export default function POSPage() {
     const { data: products, isLoading: productsLoading } = useFirestoreQuery<Product>('products');
     const { firestore } = useFirebase();
-    const { user } = useAuth();
+    const { user, userData } = useAuth();
     const { toast } = useToast();
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -30,26 +31,45 @@ export default function POSPage() {
 
     const filteredProducts = useMemo(() => {
         if (!products) return [];
-        if (!searchTerm) return products;
-        return products.filter(p =>
+        const outletId = userData?.outletId || "Dhanmondi Outlet"; // Use user's outlet or a default for now
+        
+        const productsWithStockInOutlet = products.filter(p => p.outlet_stocks && p.outlet_stocks[outletId] > 0);
+
+        if (!searchTerm) return productsWithStockInOutlet;
+
+        return productsWithStockInOutlet.filter(p =>
             p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             p.id.toLowerCase().includes(searchTerm.toLowerCase())
         );
-    }, [products, searchTerm]);
+    }, [products, searchTerm, userData]);
 
     const addToCart = (product: Product) => {
         setCart(currentCart => {
             const existingItem = currentCart.find(item => item.id === product.id);
             if (existingItem) {
-                return currentCart.map(item =>
-                    item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-                );
+                // Check against outlet stock
+                const outletId = userData?.outletId || "Dhanmondi Outlet";
+                if(existingItem.quantity < product.outlet_stocks[outletId]) {
+                    return currentCart.map(item =>
+                        item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+                    );
+                } else {
+                    toast({ variant: "destructive", title: "Stock limit reached" });
+                    return currentCart;
+                }
             }
             return [...currentCart, { ...product, quantity: 1 }];
         });
     };
     
     const updateQuantity = (productId: string, quantity: number) => {
+        const product = products?.find(p => p.id === productId);
+        const outletId = userData?.outletId || "Dhanmondi Outlet";
+        if (product && quantity > product.outlet_stocks[outletId]) {
+            toast({ variant: "destructive", title: "Stock limit reached" });
+            return;
+        }
+
         if (quantity <= 0) {
             setCart(cart.filter(item => item.id !== productId));
         } else {
@@ -68,14 +88,13 @@ export default function POSPage() {
         if (cart.length === 0 || !firestore || !user) return;
         setIsProcessing(true);
 
+        const outletId = userData?.outletId || "Dhanmondi Outlet"; 
+
         try {
             await runTransaction(firestore, async (transaction) => {
-                // For simplicity, using a hardcoded outletId. In a real app, this would be dynamic.
-                const outletId = "Dhanmondi Outlet"; 
-
                 // 1. Create a new sale document
                 const saleRef = collection(firestore, "pos_sales");
-                await addDoc(saleRef, {
+                addDoc(saleRef, { // Not awaiting this as it doesn't need to be part of the transaction logic
                     outletId: outletId,
                     soldBy: user.uid,
                     items: cart.map(item => ({
@@ -91,18 +110,23 @@ export default function POSPage() {
 
                 // 2. Update stock for each product in the cart
                 for (const item of cart) {
-                    const productRef = doc(firestore, 'products', item.id) as DocumentReference<Product>;
+                    const productRef = doc(firestore, 'products', item.id);
                     const productDoc = await transaction.get(productRef);
 
                     if (!productDoc.exists()) {
                         throw new Error(`Product ${item.name} not found!`);
                     }
 
-                    const newStock = productDoc.data()!.stock - item.quantity;
-                    if (newStock < 0) {
-                        throw new Error(`Not enough stock for ${item.name}.`);
+                    const currentOutletStock = productDoc.data()?.outlet_stocks?.[outletId] || 0;
+                    if (currentOutletStock < item.quantity) {
+                         throw new Error(`Not enough stock for ${item.name} in this outlet.`);
                     }
-                    transaction.update(productRef, { stock: newStock });
+
+                    // Use FieldValue for atomic updates
+                    transaction.update(productRef, {
+                        [`outlet_stocks.${outletId}`]: increment(-item.quantity),
+                        total_stock: increment(-item.quantity)
+                    });
                 }
             });
 
@@ -129,7 +153,7 @@ export default function POSPage() {
             {/* Product Selection Column */}
             <Card className="flex flex-col">
                 <CardHeader>
-                    <CardTitle>Point of Sale (POS)</CardTitle>
+                    <CardTitle>Point of Sale (POS) - {userData?.outletId || "Dhanmondi Outlet"}</CardTitle>
                     <div className="relative mt-2">
                         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -147,10 +171,12 @@ export default function POSPage() {
                                 Array.from({ length: 8 }).map((_, i) => <div key={i} className="bg-muted animate-pulse rounded-lg aspect-square" />)
                             ) : (
                                 filteredProducts.map(product => (
-                                    <button key={product.id} onClick={() => addToCart(product)} className="border rounded-lg p-2 text-center hover:bg-accent transition-colors disabled:opacity-50" disabled={product.stock <= 0}>
+                                    <button key={product.id} onClick={() => addToCart(product)} className="border rounded-lg p-2 text-center hover:bg-accent transition-colors disabled:opacity-50" disabled={(product.outlet_stocks?.[userData?.outletId || "Dhanmondi Outlet"] || 0) <= 0}>
                                         <p className="text-sm font-semibold truncate">{product.name}</p>
                                         <p className="text-xs text-muted-foreground">৳{product.price.toFixed(2)}</p>
-                                        <p className={`text-xs font-bold ${product.stock > 0 ? 'text-green-600' : 'text-destructive'}`}>{product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}</p>
+                                        <p className={`text-xs font-bold ${(product.outlet_stocks?.[userData?.outletId || "Dhanmondi Outlet"] || 0) > 0 ? 'text-green-600' : 'text-destructive'}`}>
+                                            {(product.outlet_stocks?.[userData?.outletId || "Dhanmondi Outlet"] || 0) > 0 ? `${product.outlet_stocks?.[userData?.outletId || "Dhanmondi Outlet"]} in stock` : 'Out of stock'}
+                                        </p>
                                     </button>
                                 ))
                             )}

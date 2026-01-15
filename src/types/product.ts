@@ -6,7 +6,8 @@ export type Product = {
     group: string;
     subcategory: string;
     price: number;
-    stock: number;
+    total_stock: number;
+    outlet_stocks: { [key: string]: number };
     image: string;
     brand: string;
     colors: string[];

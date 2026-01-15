@@ -32,7 +32,7 @@ const formSchema = z.object({
   name: z.string().min(3, { message: 'Product name must be at least 3 characters.' }),
   category: z.string().min(3, { message: 'Category is required.' }),
   price: z.coerce.number().min(0, { message: 'Price must be a positive number.' }),
-  stock: z.coerce.number().int().min(0, { message: 'Stock must be a positive integer.' }),
+  stock: z.coerce.number().int().min(0, { message: 'Initial stock must be a positive integer.' }),
   description: z.string().optional(),
 });
 
@@ -64,7 +64,12 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
       const status = userData.role === 'admin' ? 'approved' : 'pending';
       
       await addDoc(collection(firestore, 'products'), {
-        ...values,
+        name: values.name,
+        category: values.category,
+        price: values.price,
+        description: values.description,
+        total_stock: values.stock, // Initial stock is the total stock
+        outlet_stocks: {}, // Starts with no stock in any specific outlet
         vendorId: user.uid, // Always tag the product with the creator's UID
         status: status,
         createdAt: serverTimestamp(),
@@ -140,7 +145,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
                 )} />
                 <FormField control={form.control} name="stock" render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Stock</FormLabel>
+                      <FormLabel>Initial Total Stock</FormLabel>
                       <FormControl><Input type="number" placeholder="100" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>

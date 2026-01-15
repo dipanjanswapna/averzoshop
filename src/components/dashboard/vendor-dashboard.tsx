@@ -77,7 +77,7 @@ export function VendorDashboard() {
                     <TableHead className="hidden w-[100px] sm:table-cell">Image</TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Stock</TableHead>
+                    <TableHead>Total Stock</TableHead>
                     <TableHead className="text-right">Price</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -103,7 +103,7 @@ export function VendorDashboard() {
                             {product.status}
                           </Badge>
                         </TableCell>
-                        <TableCell>{product.stock}</TableCell>
+                        <TableCell>{product.total_stock}</TableCell>
                         <TableCell className="text-right">৳{product.price.toFixed(2)}</TableCell>
                       </TableRow>
                     ))
