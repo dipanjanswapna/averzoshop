@@ -51,36 +51,39 @@ export const FilterSidebar = ({
       brand: new Map<string, number>(),
     };
 
-    const baseFilteredProducts = products.filter(p => p.price >= priceRange[0] && p.price <= priceRange[1]);
-    const brandFilteredProducts = selectedBrand ? baseFilteredProducts.filter(p => p.group === selectedBrand) : baseFilteredProducts;
-    
-    // Count for brands
-    baseFilteredProducts.forEach(p => {
+    // Base filtering for counts
+    const baseFiltered = products.filter(p => p.price >= priceRange[0] && p.price <= priceRange[1]);
+
+    // Count brands without category filters
+    baseFiltered.forEach(p => {
         if(p.group) counts.brand.set(p.group, (counts.brand.get(p.group) || 0) + 1);
     });
 
-    // Count for categories
+    // Determine filtered products for category counts
+    let categoryFiltered = baseFiltered;
+    if(selectedBrand) {
+        categoryFiltered = categoryFiltered.filter(p => p.group === selectedBrand);
+    }
+    
+    // Count categories, groups, and subs based on brand filter (if any)
     categoriesData.forEach(cat => {
       let motherCount = 0;
-      cat.groups.forEach(group => {
-        let groupCount = 0;
-        group.subs.forEach(sub => {
-          const subCount = brandFilteredProducts.filter(p => 
-              (p.group === group.group_name || p.category === cat.mother_name.split(' ')[0]) && 
-              p.subcategory === sub
-          ).length;
-          counts.sub.set(sub, subCount);
-          groupCount += subCount;
-        });
-        const groupProductsCount = brandFilteredProducts.filter(p => p.group === group.group_name).length;
-        counts.group.set(group.group_name, groupProductsCount);
-        motherCount += groupProductsCount;
-      });
-      const motherProductsCount = brandFilteredProducts.filter(p => {
+      const motherCategoryProducts = categoryFiltered.filter(p => {
         const productCategory = p.category === "Men" ? "Men's Fashion" : (p.category === "Women" ? "Women's Fashion" : p.category);
         return productCategory === cat.mother_name || cat.groups.some(g => g.group_name === p.group);
-      }).length;
-      counts.mother.set(cat.mother_name, motherProductsCount);
+      });
+      motherCount = motherCategoryProducts.length;
+      counts.mother.set(cat.mother_name, motherCount);
+
+      cat.groups.forEach(group => {
+        const groupProducts = motherCategoryProducts.filter(p => p.group === group.group_name);
+        counts.group.set(group.group_name, groupProducts.length);
+        
+        group.subs.forEach(sub => {
+          const subCount = groupProducts.filter(p => p.subcategory === sub).length;
+          counts.sub.set(sub, subCount);
+        });
+      });
     });
 
     return counts;
@@ -94,10 +97,12 @@ export const FilterSidebar = ({
   }, [selectedMotherCategory]);
 
   const availableSubcategories = React.useMemo(() => {
-    if (!selectedGroup) return [];
-    const group = availableGroups.find(g => g.group_name === selectedGroup);
+    if (!selectedGroup || !selectedMotherCategory) return [];
+    const category = categoriesData.find(cat => cat.mother_name === selectedMotherCategory);
+    const group = category?.groups.find(g => g.group_name === selectedGroup);
     return group?.subs || [];
-  }, [selectedGroup, availableGroups]);
+  }, [selectedGroup, selectedMotherCategory]);
+
 
   const handleMotherCategoryChange = (value: string) => {
     const newValue = value === 'all' ? null : value;
