@@ -27,51 +27,6 @@ const categoriesData = [
     { name: "Daily Essentials (Groceries)", subs: ["Staples", "Snacks", "Beverages"] },
 ];
 
-const MegaMenu = ({ category, isOpen }: { category: any; isOpen: boolean }) => {
-  if (!isOpen) return null;
-
-  return (
-    <div 
-      className="absolute left-0 right-0 top-full w-full bg-white text-zinc-900 border-t shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[110]"
-      style={{
-        maxHeight: 'calc(100vh - 80px)', 
-        overflowY: 'auto' 
-      }}
-    >
-      <div className="container mx-auto grid grid-cols-5 gap-10 p-10">
-        <div className="col-span-1">
-          <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">{category.subs[0] || 'Sub-Category'}</h4>
-          <ul className="space-y-2 text-sm text-muted-foreground font-body">
-            {category.subs.slice(1).map((sub: string) => (
-              <li key={sub} className="hover:text-primary cursor-pointer">{sub}</li>
-            ))}
-          </ul>
-        </div>
-        <div className="col-span-2 flex flex-col items-center border-l border-r px-10">
-           <h4 className="font-bold mb-6 text-xs uppercase">Featured Brands</h4>
-           <div className="flex gap-6">
-              {['Aura Men', 'Aura Women'].map(brand => (
-                <div key={brand} className="text-center group/brand cursor-pointer">
-                  <div className="w-16 h-16 rounded-full bg-muted border-2 border-transparent group-hover/brand:border-primary overflow-hidden transition-all">
-                     <div className="w-full h-full bg-primary/10 flex items-center justify-center text-[10px] font-bold">IMG</div>
-                  </div>
-                  <span className="text-[10px] font-bold mt-2 block uppercase">{brand}</span>
-                </div>
-              ))}
-           </div>
-        </div>
-         <div className="col-span-1">
-          <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">More Options</h4>
-          <ul className="space-y-2 text-sm text-muted-foreground font-body">
-            <li className="hover:text-primary cursor-pointer">New Arrivals</li>
-            <li className="hover:text-primary cursor-pointer">Special Offers</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 
 const MobileSidebar = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -137,10 +92,9 @@ const MobileSidebar = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
 };
 
 
-export default function StoreHeader() {
+export default function AverzoNavbar() {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-  const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   
   useEffect(() => {
@@ -196,12 +150,46 @@ export default function StoreHeader() {
       <nav className={`bg-secondary text-secondary-foreground transition-all duration-300 origin-top hidden lg:flex ${isVisible ? "scale-y-100 opacity-100 h-10" : "scale-y-0 opacity-0 h-0"}`}>
         <div className="container mx-auto px-4 flex items-center justify-center gap-8 h-full overflow-x-auto whitespace-nowrap no-scrollbar">
           {categoriesData.map((item) => (
-            <div key={item.name} className="group static" onMouseEnter={() => setActiveMenu(item.name)} onMouseLeave={() => setActiveMenu(null)}>
+            <div key={item.name} className="group static">
               <button className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-1 hover:text-primary">
                 {item.name} <ChevronDown size={12} />
               </button>
               
-              <MegaMenu category={item} isOpen={activeMenu === item.name} />
+              <div 
+                className="absolute left-0 right-0 top-full w-full bg-white text-zinc-900 border-t shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[110]"
+                style={{ maxHeight: '70vh', overflowY: 'auto' }}
+              >
+                <div className="container mx-auto grid grid-cols-5 gap-10 p-10">
+                  <div className="col-span-1">
+                    <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">{item.subs[0] || 'Sub-Category'}</h4>
+                    <ul className="space-y-2 text-sm text-muted-foreground font-body">
+                      {item.subs.slice(1).map((sub: string) => (
+                        <li key={sub} className="hover:text-primary cursor-pointer">{sub}</li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="col-span-2 flex flex-col items-center border-l border-r px-10">
+                     <h4 className="font-bold mb-6 text-xs uppercase">Featured Brands</h4>
+                     <div className="flex gap-6">
+                        {['Aura Men', 'Aura Women'].map(brand => (
+                          <div key={brand} className="text-center group/brand cursor-pointer">
+                            <div className="w-16 h-16 rounded-full bg-muted border-2 border-transparent group-hover/brand:border-primary overflow-hidden transition-all">
+                               <div className="w-full h-full bg-primary/10 flex items-center justify-center text-[10px] font-bold">IMG</div>
+                            </div>
+                            <span className="text-[10px] font-bold mt-2 block uppercase">{brand}</span>
+                          </div>
+                        ))}
+                     </div>
+                  </div>
+                   <div className="col-span-1">
+                    <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">More Options</h4>
+                    <ul className="space-y-2 text-sm text-muted-foreground font-body">
+                      <li className="hover:text-primary cursor-pointer">New Arrivals</li>
+                      <li className="hover:text-primary cursor-pointer">Special Offers</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
             </div>
           ))}
         </div>

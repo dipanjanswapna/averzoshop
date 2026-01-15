@@ -1,5 +1,5 @@
 
-import StoreHeader from '@/components/store-header';
+import AverzoNavbar from '@/components/store-header';
 import Link from 'next/link';
 
 export default function StoreLayout({
@@ -11,7 +11,7 @@ export default function StoreLayout({
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground font-body">
-      <StoreHeader />
+      <AverzoNavbar />
       <main className="flex-1" style={{ paddingTop: headerHeight }}>{children}</main>
       {/* --- Desktop Footer --- */}
       <footer className="bg-secondary text-secondary-foreground hidden lg:block">
