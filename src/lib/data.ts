@@ -100,49 +100,6 @@ export const orders = [
   },
 ];
 
-export const users = [
-  {
-    name: "Olivia Martin",
-    email: "olivia.martin@email.com",
-    role: "Admin",
-    status: "Approved",
-    lastLogin: "2 hours ago",
-    image: PlaceHolderImages.find(p => p.id === 'avatar-1')?.imageUrl,
-  },
-  {
-    name: "Jackson Lee",
-    email: "jackson.lee@email.com",
-    role: "Customer",
-    status: "Approved",
-    lastLogin: "1 day ago",
-    image: PlaceHolderImages.find(p => p.id === 'avatar-2')?.imageUrl,
-  },
-  {
-    name: "Isabella Nguyen",
-    email: "isabella.nguyen@email.com",
-    role: "Vendor",
-    status: "Pending",
-    lastLogin: "5 hours ago",
-    image: PlaceHolderImages.find(p => p.id === 'avatar-3')?.imageUrl,
-  },
-    {
-    name: "William Kim",
-    email: "will@email.com",
-    role: "Customer",
-    status: "Approved",
-    lastLogin: "3 days ago",
-    image: "https://picsum.photos/seed/avatar4/100/100",
-  },
-  {
-    name: "Sofia Davis",
-    email: "sofia.davis@email.com",
-    role: "Rider",
-    status: "Pending",
-    lastLogin: "30 minutes ago",
-    image: "https://picsum.photos/seed/avatar5/100/100",
-  },
-];
-
 export const subBrands = [
   { id: 'sb_1', name: 'Aura Men', description: 'Modern apparel for men.' },
   { id: 'sb_2', name: 'Aura Women', description: 'Elegant and stylish women\'s fashion.' },
