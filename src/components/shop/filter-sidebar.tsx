@@ -10,35 +10,38 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '../ui/label';
 import { cn } from '@/lib/utils';
 
-const brands = [...new Set(products.map(p => p.group))]; // Example brands from product groups
-
 interface FilterSidebarProps {
-  isLoading: boolean;
   priceRange: number[];
-  setPriceRange: (value: number[]) => void;
+  onPriceChange: (value: number[]) => void;
   selectedBrand: string | null;
-  setSelectedBrand: (value: string | null) => void;
+  onBrandChange: (value: string | null) => void;
   selectedMotherCategory: string | null;
-  setSelectedMotherCategory: (value: string | null) => void;
+  onMotherCategoryChange: (value: string | null) => void;
   selectedGroup: string | null;
-  setSelectedGroup: (value: string | null) => void;
+  onGroupChange: (value: string | null) => void;
   selectedSubcategory: string | null;
-  setSelectedSubcategory: (value: string | null) => void;
+  onSubcategoryChange: (value: string | null) => void;
 }
 
 export const FilterSidebar = ({
-  isLoading,
   priceRange,
-  setPriceRange,
+  onPriceChange,
   selectedBrand,
-  setSelectedBrand,
+  onBrandChange,
   selectedMotherCategory,
-  setSelectedMotherCategory,
+  onMotherCategoryChange,
   selectedGroup,
-  setSelectedGroup,
+  onGroupChange,
   selectedSubcategory,
-  setSelectedSubcategory,
+  onSubcategoryChange,
 }: FilterSidebarProps) => {
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    setIsLoading(false);
+  }, [])
+
+  const brands = React.useMemo(() => [...new Set(products.map(p => p.group))], []);
 
   const productCounts = React.useMemo(() => {
     const counts = {
@@ -98,24 +101,24 @@ export const FilterSidebar = ({
 
   const handleMotherCategoryChange = (value: string) => {
     const newValue = value === 'all' ? null : value;
-    setSelectedMotherCategory(newValue);
-    setSelectedGroup(null);
-    setSelectedSubcategory(null);
+    onMotherCategoryChange(newValue);
+    onGroupChange(null);
+    onSubcategoryChange(null);
   }
 
   const handleGroupChange = (value: string) => {
     const newValue = value === 'all' ? null : value;
-    setSelectedGroup(newValue);
-    setSelectedSubcategory(null);
+    onGroupChange(newValue);
+    onSubcategoryChange(null);
   }
   
   const handleBrandChange = (value: string) => {
-    setSelectedBrand(value === 'all' ? null : value);
+    onBrandChange(value === 'all' ? null : value);
   };
   
   const handleSubcategoryChange = (value: string) => {
     const newValue = value === 'all' ? null : value;
-    setSelectedSubcategory(newValue);
+    onSubcategoryChange(newValue);
   }
 
 
@@ -241,7 +244,7 @@ export const FilterSidebar = ({
                 max={1000}
                 step={10}
                 value={priceRange}
-                onValueChange={setPriceRange}
+                onValueChange={onPriceChange}
               />
               <div className="flex justify-between text-xs text-muted-foreground mt-2">
                 <span>${priceRange[0]}</span>
@@ -254,3 +257,5 @@ export const FilterSidebar = ({
     </div>
   );
 };
+
+    
