@@ -102,6 +102,21 @@
           "description": "The operational status of the outlet.",
           "enum": ["Active", "Inactive"]
         },
+        "managerId": {
+          "type": "string",
+          "description": "The UID of the user managing this outlet."
+        },
+        "inventory": {
+          "type": "array",
+          "description": "List of products and their stock levels at this outlet.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "productId": { "type": "string" },
+              "stock": { "type": "number" }
+            }
+          }
+        },
         "createdAt": {
           "type": "string",
           "format": "date-time",
@@ -109,6 +124,53 @@
         }
       },
       "required": ["name", "location", "status"]
+    },
+    "pos_sale": {
+      "title": "POS Sale",
+      "description": "Represents a single point-of-sale transaction at an outlet.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "The unique ID of the sale." },
+        "outletId": { "type": "string", "description": "The ID of the outlet where the sale occurred." },
+        "soldBy": { "type": "string", "description": "The UID of the sales assistant who made the sale." },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "productId": { "type": "string" },
+              "productName": { "type": "string" },
+              "quantity": { "type": "number" },
+              "price": { "type": "number" }
+            },
+            "required": ["productId", "productName", "quantity", "price"]
+          }
+        },
+        "totalAmount": { "type": "number" },
+        "paymentMethod": { "type": "string", "enum": ["cash", "card", "mobile"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["outletId", "soldBy", "items", "totalAmount", "paymentMethod", "createdAt"]
+    },
+    "product": {
+      "title": "Product",
+      "description": "A product sold on the Averzo platform.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "group": { "type": "string" },
+        "subcategory": { "type": "string" },
+        "price": { "type": "number" },
+        "stock": { "type": "number" },
+        "image": { "type": "string", "format": "uri" },
+        "brand": { "type": "string" },
+        "vendorId": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"]},
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "price", "stock", "vendorId", "status"]
     }
   },
   "auth": {
@@ -132,6 +194,18 @@
         "$ref": "#/entities/outlet"
       },
       "description": "Stores information about physical store locations (outlets)."
+    },
+    "/pos_sales/{saleId}": {
+      "schema": {
+        "$ref": "#/entities/pos_sale"
+      },
+      "description": "Logs all point-of-sale transactions from outlets."
+    },
+    "/products/{productId}": {
+      "schema": {
+        "$ref": "#/entities/product"
+      },
+      "description": "Stores all product information for the platform."
     }
   }
 }

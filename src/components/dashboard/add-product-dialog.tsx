@@ -39,7 +39,7 @@ const formSchema = z.object({
 export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) {
   const { toast } = useToast();
   const { firestore } = useFirebase();
-  const { user } = useAuth();
+  const { user, userData } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -60,25 +60,30 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
     }
     setIsLoading(true);
     try {
+      // Admin added products are auto-approved. Vendor products are pending.
+      const status = userData?.role === 'admin' ? 'approved' : 'pending';
+      
       await addDoc(collection(firestore, 'products'), {
         ...values,
         vendorId: user.uid,
-        status: 'pending', // Products need admin approval
+        status: status,
         createdAt: serverTimestamp(),
         // Dummy values for now
         group: 'Topwear',
         subcategory: 'T-Shirts',
-        image: 'https://picsum.photos/seed/product/400/400',
+        image: `https://picsum.photos/seed/${Math.random()}/400/400`,
         brand: 'Averzo',
         colors: [],
         sizes: [],
         discount: 0,
         isBundle: false,
       });
+
       toast({
-        title: "Product Submitted!",
-        description: `${values.name} has been submitted for approval.`,
+        title: status === 'approved' ? "Product Added!" : "Product Submitted!",
+        description: status === 'approved' ? `${values.name} is now live.` : `${values.name} has been submitted for approval.`,
       });
+      
       form.reset();
       onOpenChange(false);
     } catch (error) {
