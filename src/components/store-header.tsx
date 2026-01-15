@@ -6,7 +6,13 @@ import Link from 'next/link';
 import { Search, ShoppingCart, User, ChevronDown } from 'lucide-react';
 import AverzoLogo from './averzo-logo';
 import { cn } from '@/lib/utils';
-import { subBrands, products } from '@/lib/data';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
 
 const menuData: Record<string, React.ReactNode> = {
   "All Categories": (
@@ -285,8 +291,6 @@ export function StoreHeader() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
   const allCategories = Object.keys(menuData);
-  const mainCategories = allCategories.slice(0, 10);
-  const moreCategories = allCategories.slice(10);
 
   return (
     <header className="w-full bg-background z-50">
@@ -328,58 +332,33 @@ export function StoreHeader() {
       
       {/* Layer 2: Category Bar */}
       <nav className="w-full bg-background border-b">
-        <div className="container mx-auto px-4 lg:px-8 flex justify-center items-center gap-6">
-          {mainCategories.map((cat) => (
-              <div
-                key={cat}
-                className="relative group py-3"
-                onMouseEnter={() => setActiveMenu(cat)}
-                onMouseLeave={() => setActiveMenu(null)}
-              >
-                <button className="flex items-center gap-1 text-[12px] font-bold tracking-wider hover:text-primary transition-colors uppercase font-saira">
-                  {cat}
-                </button>
-                <MegaMenu isOpen={activeMenu === cat} items={menuData[cat]} />
-              </div>
-            ))}
-             {moreCategories.length > 0 && (
-              <div
-                className="relative group py-3"
-                onMouseEnter={() => setActiveMenu("More")}
-                onMouseLeave={() => setActiveMenu(null)}
-              >
-                 <button className="flex items-center gap-1 text-[12px] font-bold tracking-wider hover:text-primary transition-colors uppercase font-saira">
-                    More <ChevronDown size={14} />
-                  </button>
-                <div
-                  className={cn("absolute top-full left-1/2 -translate-x-1/2 w-56 bg-background border shadow-xl rounded-md p-2 z-40 transition-opacity duration-300", 
-                  activeMenu === 'More' ? 'opacity-100 visible' : 'opacity-0 invisible'
-                  )}
-                >
-                  <div className='flex flex-col gap-1'>
-                  {moreCategories.map((cat) => (
-                     <div key={cat} className="relative group/moreitem">
-                        <button 
-                           onMouseEnter={() => setActiveMenu(cat)}
-                           className="w-full text-left flex items-center justify-between text-sm p-2 rounded-md hover:bg-muted"
+        <div className="container mx-auto px-4 lg:px-8">
+            <Carousel
+                opts={{
+                    align: 'start',
+                    dragFree: true,
+                }}
+                className="w-full"
+            >
+                <CarouselContent className="-ml-4">
+                {allCategories.map((cat) => (
+                    <CarouselItem key={cat} className="pl-4 basis-auto">
+                        <div
+                            className="relative group py-3"
+                            onMouseEnter={() => setActiveMenu(cat)}
+                            onMouseLeave={() => setActiveMenu(null)}
                         >
-                           {cat}
-                           <ChevronDown size={14} className='-rotate-90'/>
-                        </button>
-                        <div 
-                           className={cn("absolute top-0 -right-2 transform translate-x-full w-auto bg-background p-4 rounded-md shadow-2xl border",
-                           activeMenu === cat ? 'block' : 'hidden'
-                           )}
-                           style={{minWidth: '600px'}}
-                         >
-                           {menuData[cat]}
+                            <button className="flex items-center gap-1 text-[12px] font-bold tracking-wider hover:text-primary transition-colors uppercase font-saira whitespace-nowrap">
+                            {cat}
+                            </button>
+                            <MegaMenu isOpen={activeMenu === cat} items={menuData[cat]} />
                         </div>
-                     </div>
-                  ))}
-                  </div>
-                </div>
-              </div>
-            )}
+                    </CarouselItem>
+                ))}
+                </CarouselContent>
+                <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-8 bg-background/50 backdrop-blur-sm" />
+                <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-8 bg-background/50 backdrop-blur-sm" />
+            </Carousel>
         </div>
       </nav>
     </header>
