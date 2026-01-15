@@ -1,6 +1,7 @@
 
 'use client';
 import { useState, useMemo, useEffect } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Minus, Plus, ShoppingBag, Heart, HelpCircle, MapPin, Share2 } from 'lucide-react';
@@ -14,8 +15,13 @@ import { SaleTimer } from './sale-timer';
 import { ShareButtons } from './share-buttons';
 import { SizeGuideDialog } from './size-guide-dialog';
 import { useCart } from '@/hooks/use-cart';
+import Barcode from 'react-barcode';
 
 export function ProductDetails({ product }: { product: Product }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
@@ -25,30 +31,60 @@ export function ProductDetails({ product }: { product: Product }) {
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
 
   const { addItem } = useCart();
-  const { user, firestore } = useAuth();
+  const { user, firestore, userData } = useAuth();
   const { toast } = useToast();
 
   const uniqueColors = useMemo(() => [...new Set(product.variants?.map(v => v.color).filter(Boolean))], [product.variants]);
   const uniqueSizes = useMemo(() => [...new Set(product.variants?.map(v => v.size).filter(Boolean))], [product.variants]);
   
+  // Effect to set initial selections from URL or defaults
   useEffect(() => {
+    const skuFromUrl = searchParams.get('sku');
+    if (skuFromUrl) {
+      const variantFromSku = product.variants?.find(v => v.sku === skuFromUrl);
+      if (variantFromSku) {
+        setSelectedColor(variantFromSku.color || uniqueColors[0] || null);
+        setSelectedSize(variantFromSku.size || uniqueSizes[0] || null);
+        return;
+      }
+    }
+
     if (uniqueColors.length > 0 && !selectedColor) {
       setSelectedColor(uniqueColors[0]);
     }
     if (uniqueSizes.length > 0 && !selectedSize) {
       setSelectedSize(uniqueSizes[0]);
     }
-  }, [uniqueColors, uniqueSizes, selectedColor, selectedSize]);
+  }, [product.variants, searchParams, uniqueColors, uniqueSizes, selectedColor, selectedSize]);
 
+  // Effect to update the selected variant and URL
   useEffect(() => {
     const variant = product.variants?.find(v => {
       const colorMatch = uniqueColors.length === 0 || v.color === selectedColor;
       const sizeMatch = uniqueSizes.length === 0 || v.size === selectedSize;
       return colorMatch && sizeMatch;
     }) || null;
+    
     setSelectedVariant(variant);
     setQuantity(1);
-  }, [selectedColor, selectedSize, product.variants, uniqueColors.length, uniqueSizes.length]);
+
+    // Update URL with SKU
+    if (variant) {
+      const newUrl = `${pathname}?sku=${variant.sku}`;
+      // Using replaceState to avoid adding to browser history for every selection
+      window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
+    }
+
+  }, [selectedColor, selectedSize, product.variants, uniqueColors.length, uniqueSizes.length, pathname]);
+
+  // Check wishlist status
+  useEffect(() => {
+    if (userData?.wishlist?.includes(product.id)) {
+      setIsWishlisted(true);
+    } else {
+      setIsWishlisted(false);
+    }
+  }, [userData, product.id]);
 
   const displayPrice = selectedVariant ? selectedVariant.price : product.price;
   const originalPrice = displayPrice / (1 - (product.discount || 0) / 100);
@@ -71,7 +107,7 @@ export function ProductDetails({ product }: { product: Product }) {
         await updateDoc(userWishlistRef, { wishlist: arrayUnion(product.id) });
         toast({ title: "Added to wishlist" });
       }
-      setIsWishlisted(!isWishlisted);
+      // State will update via the useEffect listening to userData
     } catch (error) {
       console.error("Error updating wishlist:", error);
       toast({ variant: "destructive", title: "Could not update wishlist" });
@@ -92,8 +128,7 @@ export function ProductDetails({ product }: { product: Product }) {
       return;
     }
     addItem(product, selectedVariant, quantity);
-    toast({ title: "Proceeding to Checkout", description: "Redirecting you to the checkout page." });
-    // router.push('/checkout');
+    router.push('/checkout');
   };
 
   return (
@@ -181,6 +216,19 @@ export function ProductDetails({ product }: { product: Product }) {
         </div>
       </div>
       <Button size="lg" className="w-full" onClick={handleBuyNow} disabled={!selectedVariant || stock <= 0}>Buy Now</Button>
+
+       {selectedVariant && (
+        <div className="border rounded-lg p-4 space-y-3 flex flex-col items-center">
+            <h4 className="font-bold text-sm">Product Variant SKU</h4>
+             <Barcode 
+              value={selectedVariant.sku}
+              width={2}
+              height={50}
+              fontSize={14}
+             />
+        </div>
+       )}
+
 
        <div className="border rounded-lg p-4 space-y-3">
             <h4 className="font-bold text-sm">Delivery Options</h4>
