@@ -238,14 +238,14 @@ export default function AverzoNavbar() {
                                           animate={{ opacity: 1, x: 0 }}
                                         >
                                             <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">
-                                                <Link href={`/shop?${createQueryString({ mother_category: item.mother_name, group: group.group_name })}`}>
+                                                <Link href={`/shop?${createQueryString({ mother_category: item.mother_name, group: group.group_name })}`} className="truncate block">
                                                 {group.group_name}
                                                 </Link>
                                             </h4>
                                             <ul className="space-y-2 text-sm text-muted-foreground font-body">
                                             {group.subs.map(sub => (
                                                 <li key={sub} className="hover:text-primary cursor-pointer">
-                                                    <Link href={`/shop?${createQueryString({ mother_category: item.mother_name, group: group.group_name, subcategory: sub })}`}>
+                                                    <Link href={`/shop?${createQueryString({ mother_category: item.mother_name, group: group.group_name, subcategory: sub })}`} className="truncate block">
                                                         {sub}
                                                     </Link>
                                                 </li>

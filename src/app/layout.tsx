@@ -39,7 +39,7 @@ export default function RootLayout({
           <Toaster />
         </Providers>
         {showMobileNav && <MobileBottomNav />}
-        <LayoutDebugger />
+        
       </body>
     </html>
   );
