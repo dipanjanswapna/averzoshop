@@ -163,6 +163,7 @@
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
+        "description": { "type": "string" },
         "category": { "type": "string" },
         "group": { "type": "string" },
         "subcategory": { "type": "string" },
@@ -177,11 +178,19 @@
         },
         "image": { "type": "string", "format": "uri" },
         "brand": { "type": "string" },
+        "colors": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "sizes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
         "vendorId": { "type": "string" },
         "status": { "type": "string", "enum": ["pending", "approved", "rejected"]},
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["name", "price", "total_stock", "vendorId", "status"]
+      "required": ["name", "price", "total_stock", "vendorId", "status", "category", "group", "subcategory", "brand", "image"]
     }
   },
   "auth": {
@@ -220,4 +229,3 @@
     }
   }
 }
-
