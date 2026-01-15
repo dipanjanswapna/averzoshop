@@ -29,7 +29,9 @@ interface AddOutletDialogProps {
 
 const formSchema = z.object({
   outletName: z.string().min(3, { message: 'Outlet name must be at least 3 characters.' }),
-  location: z.string().min(5, { message: 'Location is required.' }),
+  address: z.string().min(5, { message: 'Address is required.' }),
+  latitude: z.coerce.number(),
+  longitude: z.coerce.number(),
   managerName: z.string().min(2, { message: 'Manager name is required.' }),
   managerEmail: z.string().email({ message: 'A valid email is required.' }),
   managerPassword: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
@@ -44,7 +46,9 @@ export function AddOutletDialog({ open, onOpenChange }: AddOutletDialogProps) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       outletName: '',
-      location: '',
+      address: '',
+      latitude: 0,
+      longitude: 0,
       managerName: '',
       managerEmail: '',
       managerPassword: '',
@@ -62,7 +66,11 @@ export function AddOutletDialog({ open, onOpenChange }: AddOutletDialogProps) {
         // 1. Create the outlet document to get an ID
         const outletRef = await addDoc(collection(firestore, 'outlets'), {
             name: values.outletName,
-            location: values.location,
+            location: {
+                address: values.address,
+                lat: values.latitude,
+                lng: values.longitude,
+            },
             status: 'Active',
             createdAt: serverTimestamp(),
         });
@@ -112,7 +120,7 @@ export function AddOutletDialog({ open, onOpenChange }: AddOutletDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Add New Outlet</DialogTitle>
           <DialogDescription>
@@ -129,13 +137,29 @@ export function AddOutletDialog({ open, onOpenChange }: AddOutletDialogProps) {
                   <FormMessage />
                 </FormItem>
             )} />
-            <FormField control={form.control} name="location" render={({ field }) => (
+            <FormField control={form.control} name="address" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Location</FormLabel>
+                  <FormLabel>Full Address</FormLabel>
                   <FormControl><Input placeholder="e.g., House 12, Road 5, Banani, Dhaka" {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
             )} />
+            <div className="grid grid-cols-2 gap-4">
+                <FormField control={form.control} name="latitude" render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Latitude</FormLabel>
+                    <FormControl><Input type="number" step="any" placeholder="23.7937" {...field} /></FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )} />
+                 <FormField control={form.control} name="longitude" render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Longitude</FormLabel>
+                    <FormControl><Input type="number" step="any" placeholder="90.4066" {...field} /></FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )} />
+            </div>
 
             <h4 className="text-sm font-bold text-muted-foreground pt-4 border-t">Manager Account Details</h4>
              <FormField control={form.control} name="managerName" render={({ field }) => (
@@ -177,4 +201,3 @@ export function AddOutletDialog({ open, onOpenChange }: AddOutletDialogProps) {
     </Dialog>
   );
 }
-

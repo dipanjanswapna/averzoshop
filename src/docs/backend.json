@@ -37,10 +37,17 @@
       "properties": {
         "id": { "type": "string", "description": "The outlet's unique ID." },
         "name": { "type": "string", "description": "The name of the outlet." },
-        "location": { "type": "string", "description": "The physical address of the outlet." },
+        "location": { 
+          "type": "object",
+          "properties": {
+            "address": { "type": "string" },
+            "lat": { "type": "number" },
+            "lng": { "type": "number" }
+          },
+          "description": "The physical address and coordinates of the outlet."
+        },
         "status": { "type": "string", "description": "The operational status of the outlet.", "enum": ["Active", "Inactive"] },
         "managerId": { "type": "string", "description": "The UID of the user managing this outlet." },
-        "inventory": { "type": "array", "description": "List of products and their stock levels at this outlet.", "items": { "type": "object", "properties": { "productId": { "type": "string" }, "stock": { "type": "number" } } } },
         "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the outlet was added." }
       },
       "required": ["name", "location", "status"]
@@ -53,7 +60,20 @@
         "id": { "type": "string", "description": "The unique ID of the sale." },
         "outletId": { "type": "string", "description": "The ID of the outlet where the sale occurred." },
         "soldBy": { "type": "string", "description": "The UID of the sales assistant who made the sale." },
-        "items": { "type": "array", "items": { "type": "object", "properties": { "productId": { "type": "string" }, "productName": { "type": "string" }, "quantity": { "type": "number" }, "price": { "type": "number" }, "required": ["productId", "productName", "quantity", "price"] } } },
+        "items": { 
+          "type": "array", 
+          "items": { 
+            "type": "object", 
+            "properties": { 
+              "productId": { "type": "string" }, 
+              "productName": { "type": "string" },
+              "variantSku": { "type": "string" },
+              "quantity": { "type": "number" }, 
+              "price": { "type": "number" }
+            },
+            "required": ["productId", "productName", "variantSku", "quantity", "price"]
+          } 
+        },
         "totalAmount": { "type": "number" },
         "paymentMethod": { "type": "string", "enum": ["cash", "card", "mobile"] },
         "createdAt": { "type": "string", "format": "date-time" }
@@ -111,7 +131,7 @@
       },
       "required": ["name", "price", "total_stock", "vendorId", "status", "category", "group", "subcategory", "brand", "image", "baseSku", "variants"]
     },
-     "question": {
+    "question": {
       "title": "Question",
       "description": "A customer question about a product.",
       "type": "object",
@@ -127,6 +147,32 @@
         "answeredAt": { "type": "string", "format": "date-time" }
       },
       "required": ["productId", "questionText", "askedByUid", "askedByName", "createdAt"]
+    },
+    "stock_request": {
+      "title": "Stock Request",
+      "description": "A request from a vendor to supply stock to an outlet.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "vendorId": { "type": "string" },
+        "outletId": { "type": "string" },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "productId": { "type": "string" },
+              "productName": { "type": "string" },
+              "quantity": { "type": "number" }
+            },
+            "required": ["productId", "productName", "quantity"]
+          }
+        },
+        "totalQuantity": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "approved", "shipped", "received", "rejected"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["vendorId", "outletId", "items", "totalQuantity", "status", "createdAt"]
     }
   },
   "auth": {
@@ -138,6 +184,7 @@
     "/outlets/{outletId}": { "schema": { "$ref": "#/entities/outlet" }, "description": "Stores information about physical store locations (outlets)." },
     "/pos_sales/{saleId}": { "schema": { "$ref": "#/entities/pos_sale" }, "description": "Logs all point-of-sale transactions from outlets." },
     "/products/{productId}": { "schema": { "$ref": "#/entities/product" }, "description": "Stores all product information for the platform." },
-    "/products/{productId}/questions/{questionId}": { "schema": { "$ref": "#/entities/question"}, "description": "Stores customer questions and answers for a specific product."}
+    "/products/{productId}/questions/{questionId}": { "schema": { "$ref": "#/entities/question"}, "description": "Stores customer questions and answers for a specific product."},
+    "/stock_requests/{requestId}": { "schema": { "$ref": "#/entities/stock_request" }, "description": "Tracks stock movement requests from vendors to outlets." }
   }
 }
