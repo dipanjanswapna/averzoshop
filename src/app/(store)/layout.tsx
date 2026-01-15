@@ -1,5 +1,4 @@
 
-import AverzoLogo from '@/components/averzo-logo';
 import StoreHeader from '@/components/store-header';
 import Link from 'next/link';
 
@@ -8,16 +7,20 @@ export default function StoreLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const headerHeight = '112px'; // Approximate height of the sticky header
+
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground font-body">
       <StoreHeader />
-      <main className="flex-1 pt-[112px]">{children}</main>
+      <main className="flex-1" style={{ paddingTop: headerHeight }}>{children}</main>
       {/* --- Desktop Footer --- */}
       <footer className="bg-secondary text-secondary-foreground hidden lg:block">
         <div className="container py-12">
           <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
             <div>
-              <AverzoLogo className="h-7 w-auto" />
+              <div className="text-2xl font-black font-saira tracking-tighter text-foreground">
+                AVERZO<span className="text-primary">.</span>
+              </div>
               <p className="mt-4 text-sm text-muted-foreground font-body">
                 The future of fashion and retail.
               </p>

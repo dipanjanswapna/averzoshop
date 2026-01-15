@@ -1,119 +1,145 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import { Search, ShoppingBag, Heart, User, Menu, ChevronDown, X } from 'lucide-react';
 import Link from 'next/link';
-import { Search, ShoppingBag, Heart, User, Menu, ChevronDown } from 'lucide-react';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 
-const allCategories = [
-    { name: "All Categories" },
-    { name: "Men's Fashion" },
-    { name: "Women's Fashion" },
-    { name: "Electronics & Gadgets" },
-    { name: "Kids & Baby" },
-    { name: "Beauty & Personal Care" },
-    { name: "Home & Living" },
-    { name: "Health & Wellness" },
-    { name: "Gaming & Esports" },
-    { name: "Pet Care" },
-    { name: "Sports & Outdoors" },
-    { name: "Smart Home & IoT" },
-    { name: "Automotive & Biking" },
-    { name: "Books & Stationery" },
-    { name: "Artisan & Handicrafts" },
-    { name: "Travel & Luggage" },
-    { name: "Eco-Friendly Living" },
-    { name: "Musical Instruments" },
-    { name: "Gifts & Celebrations" },
-    { name: "Daily Essentials (Groceries)" },
-  ];
-  
-const MegaMenuContent = ({ categoryName }: { categoryName: string }) => {
-    // In a real app, this data would come from a CMS or API based on the categoryName
-    const groups = {
-      "Men's Fashion": ['Topwear', 'Bottomwear', 'Ethnic Wear', 'Footwear', 'Accessories'],
-      "Women's Fashion": ['Saree', 'Salwar Kameez', 'Western Wear', 'Bags & Accessories', 'Jewellery'],
-      "Electronics & Gadgets": ['Laptops', 'Mobiles', 'Cameras', 'Smart Devices', 'Audio'],
-      "Default": ['Sub-Category 1', 'Sub-Category 2', 'Sub-Category 3', 'Sub-Category 4', 'Sub-Category 5']
-    };
-  
-    const subcategories = groups[categoryName as keyof typeof groups] || groups.Default;
-  
-    return (
-      <div className="absolute left-0 right-0 top-full w-full bg-background text-foreground border-t shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[110]">
-        <div className="container mx-auto grid grid-cols-5 gap-10 p-10 max-h-[70vh] overflow-y-auto">
-          {/* Example Columns */}
-          <div className="col-span-1">
-            <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">{subcategories[0]}</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground font-body">
-              <li className="hover:text-primary cursor-pointer">Casual Shirts</li>
-              <li className="hover:text-primary cursor-pointer">Formal Shirts</li>
-              <li className="hover:text-primary cursor-pointer">T-Shirts</li>
-              <li className="hover:text-primary cursor-pointer">Polos</li>
-            </ul>
-          </div>
-          <div className="col-span-1">
-            <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">{subcategories[1]}</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground font-body">
-              <li className="hover:text-primary cursor-pointer">Jeans</li>
-              <li className="hover:text-primary cursor-pointer">Trousers</li>
-              <li className="hover:text-primary cursor-pointer">Shorts</li>
-            </ul>
-          </div>
-           {/* ব্র্যান্ড জোন - Aura Highlight */}
-           <div className="col-span-2 flex flex-col items-center border-l border-r px-10">
-             <h4 className="font-bold mb-6 text-xs uppercase">Featured Brands</h4>
-             <div className="flex gap-6">
-                {['Aura Men', 'Aura Women'].map(brand => (
-                  <div key={brand} className="text-center group/brand cursor-pointer">
-                    <div className="w-16 h-16 rounded-full bg-muted border-2 border-transparent group-hover/brand:border-primary overflow-hidden transition-all">
-                       <div className="w-full h-full bg-primary/10 flex items-center justify-center text-[10px] font-bold">IMG</div>
-                    </div>
-                    <span className="text-[10px] font-bold mt-2 block uppercase">{brand}</span>
-                  </div>
-                ))}
+
+const categoriesData = [
+    { name: "All Categories", subs: ["View All", "New Arrivals", "Special Offers"] },
+    { name: "Men's Fashion", subs: ["Topwear", "Bottomwear", "Ethnic Wear", "Accessories"] },
+    { name: "Women's Fashion", subs: ["Saree", "Salwar Kameez", "Western Wear", "Bags"] },
+    { name: "Electronics & Gadgets", subs: ["Laptops", "Mobiles", "Cameras", "Smart Devices"] },
+    { name: "Kids & Baby", subs: ["Clothing", "Toys", "Baby Care Essentials"] },
+    { name: "Beauty & Personal Care", subs: ["Skincare", "Makeup", "Haircare", "Fragrances"] },
+    { name: "Home & Living", subs: ["Furniture", "Decor", "Kitchenware", "Bedding"] },
+    { name: "Health & Wellness", subs: ["Gym Equipment", "Supplements", "Organic Food"] },
+    { name: "Gaming & Esports", subs: ["Gaming PCs", "Consoles", "Chairs", "Accessories"] },
+    { name: "Pet Care", subs: ["Pet Food", "Grooming", "Toys & Accessories"] },
+    { name: "Sports & Outdoors", subs: ["Sports Gear", "Gym Wear", "Camping Kits"] },
+    { name: "Smart Home & IoT", subs: ["Smart Lighting", "Security Cameras", "Home Automation"] },
+    { name: "Automotive & Biking", subs: ["Helmets", "Bike Accessories", "Car Gadgets"] },
+    { name: "Books & Stationery", subs: ["Academic Books", "Fiction", "Office Supplies"] },
+    { name: "Artisan & Handicrafts", subs: ["Handmade Crafts", "Traditional Art"] },
+    { name: "Travel & Luggage", subs: ["Travel Bags", "Trolleys", "Travel Accessories"] },
+    { name: "Eco-Friendly Living", subs: ["Sustainable Fashion", "Recycled Products", "Solar Devices"] },
+    { name: "Musical Instruments", subs: ["Guitars", "Keyboards", "Sound Systems"] },
+    { name: "Gifts & Celebrations", subs: ["Custom Gift Boxes", "Party Supplies", "Festive Items"] },
+    { name: "Daily Essentials (Groceries)", subs: ["Staples", "Snacks", "Beverages"] },
+];
+
+const MobileSidebar = ({ isOpen, onClose, categories }: {isOpen: boolean, onClose: () => void, categories: typeof categoriesData}) => {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  const toggleAccordion = (index: number) => {
+    setOpenIndex(openIndex === index ? null : index);
+  };
+
+  return (
+    <>
+      {/* ১. ব্যাকড্রপ: মেনু খুললে পেছনের অংশ ঝাপসা হবে */}
+      <div 
+        className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] transition-opacity duration-300 ${isOpen ? "opacity-100 visible" : "opacity-0 invisible"}`}
+        onClick={onClose}
+      />
+
+      {/* ২. মেইন স্লাইড প্যানেল */}
+      <div className={`fixed top-0 left-0 h-full w-[80%] max-w-[300px] bg-white z-[160] shadow-2xl transform transition-transform duration-300 ease-in-out ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        
+        {/* ড্রয়ার হেডার */}
+        <div className="flex items-center justify-between p-5 border-b bg-zinc-900 text-white">
+          <span className="text-xl font-black font-saira uppercase">Averzo.</span>
+          <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-full">
+            <X size={24} />
+          </button>
+        </div>
+
+        {/* ড্রয়ার কন্টেন্ট (Scrollable) */}
+        <div className="h-[calc(100vh-70px)] overflow-y-auto pb-10 custom-scrollbar">
+          
+          {/* প্রোফাইল কুইক লিঙ্ক */}
+          <div className="p-5 border-b flex items-center gap-3">
+             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">U</div>
+             <div>
+               <p className="text-xs font-bold text-zinc-800">Welcome, User</p>
+               <p className="text-[10px] text-zinc-500">Login to your account</p>
              </div>
           </div>
-           <div className="col-span-1">
-            <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">{subcategories[2]}</h4>
-            <ul className="space-y-2 text-sm text-muted-foreground font-body">
-              <li className="hover:text-primary cursor-pointer">Kurtas</li>
-              <li className="hover:text-primary cursor-pointer">Sherwanis</li>
-            </ul>
+
+          {/* অ্যাকর্ডিয়ন মেনু: ২০টি ক্যাটাগরি এখানে থাকবে */}
+          <div className="py-2">
+            <p className="px-5 py-2 text-[10px] font-black text-zinc-400 uppercase tracking-widest">Categories</p>
+            {categories.map((cat, index) => (
+              <div key={index} className="border-b border-zinc-50">
+                <button 
+                  onClick={() => toggleAccordion(index)}
+                  className="w-full flex items-center justify-between py-4 px-5 text-sm font-bold text-zinc-700 hover:text-primary transition-colors"
+                >
+                  {cat.name}
+                  <ChevronDown size={16} className={`transition-transform duration-300 ${openIndex === index ? "rotate-180" : ""}`} />
+                </button>
+
+                {/* সাব-ক্যাটাগরি স্লাইড */}
+                <div className={`overflow-hidden transition-all duration-300 bg-zinc-50 ${openIndex === index ? "max-h-96" : "max-h-0"}`}>
+                  <ul className="py-2 px-8 space-y-3">
+                    {cat.subs.map((sub, i) => (
+                      <li key={i} className="text-xs font-semibold text-zinc-500 hover:text-primary cursor-pointer">
+                        {sub}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
-    );
-  };
-  
+    </>
+  );
+};
+
+
 export default function StoreHeader() {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  // স্ক্রল লজিক: নিচের দিকে স্ক্রল করলে সেকেন্ডারি বার হাইড হবে
+  // Scroll logic for auto-hiding secondary navbar on desktop
   useEffect(() => {
     const controlNavbar = () => {
-      if (window.scrollY > 100) { 
-        setIsVisible(false); // স্ক্রল ১০০ পিক্সেল পার হলে হাইড হবে
-      } else {
-        setIsVisible(true); // উপরে থাকলে শো করবে
+      if (typeof window !== 'undefined') {
+        if (window.scrollY > 100) { 
+          setIsVisible(false);
+        } else {
+          setIsVisible(true);
+        }
+        setLastScrollY(window.scrollY);
       }
-      setLastScrollY(window.scrollY);
     };
 
-    window.addEventListener('scroll', controlNavbar);
-    return () => window.removeEventListener('scroll', controlNavbar);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('scroll', controlNavbar);
+      return () => window.removeEventListener('scroll', controlNavbar);
+    }
   }, [lastScrollY]);
 
   return (
     <header className="fixed top-0 left-0 w-full z-[100] bg-background shadow-sm transition-all duration-300">
       
-      {/* ১. প্রাইমারি মাস্টার হেডার (সবসময় Sticky থাকবে) */}
+      {/* 1. Primary Master Header (Always Sticky) */}
       <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4 md:gap-8">
-        <div className="text-2xl font-black font-saira tracking-tighter text-foreground">
-          AVERZO<span className="text-primary">.</span>
+        <div className="flex items-center gap-3">
+            <button 
+                onClick={() => setIsDrawerOpen(true)}
+                className="p-2 lg:hidden hover:bg-muted rounded-md transition-colors"
+            >
+                <Menu size={24} />
+            </button>
+            <Link href="/" className="text-2xl font-black font-saira tracking-tighter text-foreground">
+                AVERZO<span className="text-primary">.</span>
+            </Link>
         </div>
 
-        {/* মেইন সার্চ বার */}
+        {/* Main Search Bar (Desktop) */}
         <div className="flex-1 max-w-2xl relative hidden md:block">
           <input 
             type="text" 
@@ -125,30 +151,70 @@ export default function StoreHeader() {
           </button>
         </div>
 
-        {/* ইউজার অ্যাকশন আইকন */}
+        {/* User Action Icons */}
         <div className="flex items-center gap-5">
           <User size={22} className="cursor-pointer hover:text-primary transition-colors" />
           <div className="relative cursor-pointer">
-            <ShoppingBag size={22} />
+            <ShoppingBag size={22} className="hover:text-primary transition-colors" />
             <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center">0</span>
           </div>
         </div>
       </div>
 
-      {/* ২. সেকেন্ডারি ক্যাটাগরি বার (এটি হাইড হবে) */}
-      <nav className={`bg-secondary text-secondary-foreground transition-all duration-300 origin-top ${isVisible ? "scale-y-100 opacity-100 h-10" : "scale-y-0 opacity-0 h-0"}`}>
+      {/* 2. Secondary Category Bar (Auto-hides on scroll, hidden on mobile) */}
+      <nav className={`bg-secondary text-secondary-foreground transition-all duration-300 origin-top hidden lg:flex ${isVisible ? "scale-y-100 opacity-100 h-10" : "scale-y-0 opacity-0 h-0"}`}>
         <div className="container mx-auto px-4 flex items-center justify-center gap-8 h-full overflow-x-auto whitespace-nowrap">
-          {["Men's Fashion", "Women's Fashion", "Kids & Baby", "Electronics & Gadgets", "Grooming", "Home & Living"].map((item) => (
+          {["Men's Fashion", "Women's Fashion", "Kids & Baby", "Electronics", "Grooming", "Home & Living", "Gaming"].map((item) => (
             <div key={item} className="group static">
               <button className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-1 hover:text-primary">
                 {item} <ChevronDown size={12} />
               </button>
               
-              <MegaMenuContent categoryName={item} />
+              {/* 3. Full-width Mega Menu */}
+              <div className="absolute left-0 right-0 top-full w-full bg-background text-foreground border-t shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[110]">
+                <div className="container mx-auto grid grid-cols-5 gap-10 p-10 max-h-[70vh] overflow-y-auto">
+                  <div className="col-span-1">
+                    <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">Topwear</h4>
+                    <ul className="space-y-2 text-sm text-muted-foreground font-body">
+                      <li className="hover:text-primary cursor-pointer">Casual Shirts</li>
+                      <li className="hover:text-primary cursor-pointer">Formal Shirts</li>
+                      <li className="hover:text-primary cursor-pointer">T-Shirts</li>
+                    </ul>
+                  </div>
+                  {/* Brand Zone - Aura Highlight */}
+                  <div className="col-span-2 flex flex-col items-center border-l border-r px-10">
+                     <h4 className="font-bold mb-6 text-xs uppercase">Featured Brands</h4>
+                     <div className="flex gap-6">
+                        {['Aura Men', 'Aura Women'].map(brand => (
+                          <div key={brand} className="text-center group/brand cursor-pointer">
+                            <div className="w-16 h-16 rounded-full bg-muted border-2 border-transparent group-hover/brand:border-primary overflow-hidden transition-all">
+                               <div className="w-full h-full bg-primary/10 flex items-center justify-center text-[10px] font-bold">IMG</div>
+                            </div>
+                            <span className="text-[10px] font-bold mt-2 block uppercase">{brand}</span>
+                          </div>
+                        ))}
+                     </div>
+                  </div>
+                   <div className="col-span-1">
+                    <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">Bottomwear</h4>
+                    <ul className="space-y-2 text-sm text-muted-foreground font-body">
+                      <li className="hover:text-primary cursor-pointer">Jeans</li>
+                      <li className="hover:text-primary cursor-pointer">Trousers</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
             </div>
           ))}
         </div>
       </nav>
+
+       {/* Mobile Drawer Component */}
+       <MobileSidebar 
+          isOpen={isDrawerOpen} 
+          onClose={() => setIsDrawerOpen(false)} 
+          categories={categoriesData} 
+        />
     </header>
   );
 }
