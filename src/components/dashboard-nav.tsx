@@ -21,23 +21,61 @@ import {
   SidebarMenuButton,
 } from '@/components/ui/sidebar';
 
-const allNavItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'outlet', 'vendor', 'rider'] },
-  { href: '/dashboard/pos', label: 'Point of Sale', icon: Store, roles: ['admin', 'outlet'] },
-  { href: '/dashboard/products', label: 'Products', icon: Package, roles: ['admin'] },
-  { href: '/dashboard/orders', label: 'Orders & Delivery', icon: ShoppingCart, roles: ['admin', 'rider'] },
-  { href: '/dashboard/users', label: 'Users', icon: Users, roles: ['admin'] },
-  { href: '/dashboard/vendors', label: 'Vendors', icon: Truck, roles: ['admin', 'vendor'] },
-  { href: '/dashboard/sub-brands', label: 'Sub-Brands', icon: Tags, roles: ['admin'] },
-  { href: '/dashboard/outlets', label: 'Offline Outlets', icon: Building, roles: ['admin', 'outlet'] },
+const adminNavItems = [
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/dashboard/pos', label: 'Point of Sale', icon: Store },
+  { href: '/dashboard/products', label: 'Products', icon: Package },
+  { href: '/dashboard/orders', label: 'Orders & Delivery', icon: ShoppingCart },
+  { href: '/dashboard/users', label: 'Users', icon: Users },
+  { href: '/dashboard/vendors', label: 'Vendors', icon: Truck },
+  { href: '/dashboard/sub-brands', label: 'Sub-Brands', icon: Tags },
+  { href: '/dashboard/outlets', label: 'Offline Outlets', icon: Building },
 ];
+
+const outletNavItems = [
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/dashboard/pos', label: 'Point of Sale', icon: Store },
+    { href: '/dashboard/products', label: 'Products', icon: Package },
+    { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart },
+];
+
+const vendorNavItems = [
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/dashboard/products', label: 'My Products', icon: Package },
+    { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart },
+];
+
+const riderNavItems = [
+    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { href: '/dashboard/orders', label: 'My Deliveries', icon: Truck },
+];
+
 
 export function DashboardNav() {
   const pathname = usePathname();
   const { userData } = useAuth();
   const userRole = userData?.role;
 
-  const navItems = allNavItems.filter(item => userRole && item.roles.includes(userRole));
+  let navItems = [];
+
+  switch (userRole) {
+    case 'admin':
+      navItems = adminNavItems;
+      break;
+    case 'outlet':
+      navItems = outletNavItems;
+      break;
+    case 'vendor':
+        navItems = vendorNavItems;
+        break;
+    case 'rider':
+        navItems = riderNavItems;
+        break;
+    default:
+      navItems = [];
+      break;
+  }
+  
 
   return (
     <SidebarMenu>
