@@ -84,7 +84,6 @@ export function ProductDetails({ product }: { product: Product }) {
       return;
     }
     addItem(product, selectedVariant, quantity);
-    toast({ title: "Added to Bag!", description: `${product.name} (${selectedVariant.sku}) has been added.` });
   };
 
   const handleBuyNow = () => {

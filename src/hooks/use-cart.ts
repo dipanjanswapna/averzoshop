@@ -36,7 +36,7 @@ export const useCart = create<CartState>()(
         
         toast({
           title: 'Added to cart',
-          description: `${product.name} (${variant.sku}) has been added to your cart.`,
+          description: `${product.name} (${variant.size || ''} ${variant.color || ''}) has been added.`,
         });
       },
       removeItem: (variantSku) => {
