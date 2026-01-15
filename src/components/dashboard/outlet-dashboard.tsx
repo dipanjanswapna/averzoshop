@@ -16,12 +16,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { DollarSign, Package, ShoppingCart, Users } from 'lucide-react';
+import { DollarSign, Package, ShoppingCart } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface PosSale {
   id: string;
