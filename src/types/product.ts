@@ -1,6 +1,5 @@
 
 
-
 export type ProductVariant = {
     sku: string;
     color?: string;
@@ -36,4 +35,5 @@ export type Product = {
     };
     vendorId: string;
     status: 'pending' | 'approved' | 'rejected';
+    createdAt: any; // Can be Timestamp or string
 };

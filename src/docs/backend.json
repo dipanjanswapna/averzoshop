@@ -97,7 +97,8 @@
         "sizes": { "type": "array", "items": { "type": "string" } },
         "vendorId": { "type": "string" },
         "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "createdAt": { "type": "string", "format": "date-time" },
+        "discount": { "type": "number", "description": "Discount percentage for the product." }
       },
       "required": ["name", "price", "total_stock", "vendorId", "status", "category", "group", "subcategory", "brand", "image", "baseSku", "variants"]
     },

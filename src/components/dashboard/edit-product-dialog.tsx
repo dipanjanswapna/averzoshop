@@ -52,6 +52,7 @@ const formSchema = z.object({
   baseSku: z.string().min(1, { message: 'Base SKU is required.' }),
   brand: z.string().min(2, { message: 'Brand is required.' }),
   image: z.string().url({ message: 'Please enter a valid image URL.' }),
+  discount: z.coerce.number().min(0).max(100).optional().default(0),
   variantSizes: z.string().optional(),
   variantColors: z.string().optional(),
   variants: z.array(variantSchema).min(1, 'At least one variant is required.'),
@@ -74,6 +75,7 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
       category: product?.category || '',
       group: product?.group || '',
       subcategory: product?.subcategory || '',
+      discount: product?.discount || 0,
       variantSizes: product?.sizes?.join(', ') || '',
       variantColors: product?.colors?.join(', ') || '',
       variants: product?.variants || [],
@@ -97,6 +99,7 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
       category: product.category || '',
       group: product.group || '',
       subcategory: product.subcategory || '',
+      discount: product.discount || 0,
       variantSizes: product.sizes?.join(', ') || '',
       variantColors: product.colors?.join(', ') || '',
       variants: product.variants || [],
@@ -172,6 +175,7 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
         image: values.image,
         sizes: values.variantSizes ? values.variantSizes.split(',').map(s => s.trim()) : [],
         colors: values.variantColors ? values.variantColors.split(',').map(c => c.trim()) : [],
+        discount: values.discount || 0,
         variants: values.variants,
       });
 
@@ -225,9 +229,10 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
                  <FormField control={form.control} name="brand" render={({ field }) => (<FormItem><FormLabel>Brand</FormLabel><FormControl><Input placeholder="e.g., Averzo Basics" {...field} /></FormControl><FormMessage /></FormItem>)} />
                  <FormField control={form.control} name="image" render={({ field }) => (<FormItem><FormLabel>Image URL</FormLabel><FormControl><Input placeholder="https://example.com/image.jpg" {...field} /></FormControl><FormMessage /></FormItem>)} />
             </div>
-             <div className="grid grid-cols-2 gap-4">
+             <div className="grid grid-cols-3 gap-4">
                 <FormField control={form.control} name="basePrice" render={({ field }) => (<FormItem><FormLabel>Base Price (৳)</FormLabel><FormControl><Input type="number" placeholder="999" {...field} /></FormControl><FormMessage /></FormItem>)} />
                 <FormField control={form.control} name="baseSku" render={({ field }) => (<FormItem><FormLabel>Base SKU</FormLabel><FormControl><Input placeholder="AV-TSH-001" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField control={form.control} name="discount" render={({ field }) => (<FormItem><FormLabel>Discount (%)</FormLabel><FormControl><Input type="number" placeholder="0" {...field} /></FormControl><FormMessage /></FormItem>)} />
             </div>
 
             <div className="space-y-4 rounded-lg border p-4">

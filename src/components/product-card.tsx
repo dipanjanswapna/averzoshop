@@ -2,19 +2,19 @@
 'use client';
 
 import Image from 'next/image';
-import { Heart, ShoppingCart, Eye, MapPin } from 'lucide-react';
-import type { products } from '@/lib/data';
+import { Heart, ShoppingBag, Eye, MapPin } from 'lucide-react';
+import type { Product } from '@/types/product';
 import Link from 'next/link';
 import { Button } from './ui/button';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
 
-type Product = (typeof products)[0];
-
 export const ProductCard = ({ product }: { product: Product }) => {
-  const discount = product.price < 100 ? 20 : 15;
-  const originalPrice = product.price / (1 - discount / 100);
-  const stockStatus = product.stock < 10 ? 'Low Stock' : null;
+  const finalPrice = product.price;
+  const originalPrice = product.discount > 0 ? product.price / (1 - product.discount / 100) : product.price;
+  
+  const stock = product.total_stock;
+  const stockStatus = stock > 0 && stock < 10 ? 'Low Stock' : null;
 
   const { addItem } = useCart();
   const { toast } = useToast();
@@ -22,11 +22,18 @@ export const ProductCard = ({ product }: { product: Product }) => {
   const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    addItem(product);
-    toast({
-      title: 'Added to cart',
-      description: `${product.name} has been added to your cart.`,
-    });
+    
+    const defaultVariant = product.variants?.find(v => v.stock > 0) || product.variants?.[0];
+    if (!defaultVariant) {
+        toast({
+          variant: "destructive",
+          title: 'Product Unavailable',
+          description: 'This product has no available variants.',
+        });
+        return;
+    }
+
+    addItem(product, defaultVariant);
   };
 
   return (
@@ -44,8 +51,10 @@ export const ProductCard = ({ product }: { product: Product }) => {
         
         {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
-          <span className="bg-black/80 text-white text-[9px] font-saira px-2 py-0.5 rounded-full uppercase">{product.category}</span>
-          <span className="bg-primary text-primary-foreground text-[9px] font-bold px-2 py-0.5 rounded-full">{discount}% OFF</span>
+          <span className="bg-black/80 text-white text-[9px] font-saira px-2 py-0.5 rounded-full uppercase">{product.group}</span>
+          {product.discount > 0 && (
+            <span className="bg-primary text-primary-foreground text-[9px] font-bold px-2 py-0.5 rounded-full">{product.discount}% OFF</span>
+          )}
           {stockStatus && (
              <span className="bg-destructive text-destructive-foreground text-[9px] font-bold px-2 py-0.5 rounded-full animate-pulse">{stockStatus}</span>
           )}
@@ -64,13 +73,15 @@ export const ProductCard = ({ product }: { product: Product }) => {
 
       {/* Content Section */}
       <div className="p-2.5 bg-card text-card-foreground">
-        <h4 className="text-muted-foreground text-[9px] font-roboto uppercase tracking-wider">{product.group}</h4>
+        <h4 className="text-muted-foreground text-[9px] font-roboto uppercase tracking-wider">{product.brand}</h4>
         <h3 className="text-xs font-noto font-semibold truncate">{product.name}</h3>
         
         {/* Price Section */}
         <div className="flex items-baseline gap-2 mt-1">
-          <span className="text-base font-bold text-primary font-roboto">৳{product.price.toFixed(2)}</span>
-          <span className="text-[10px] text-muted-foreground line-through">৳{originalPrice.toFixed(2)}</span>
+          <span className="text-base font-bold text-primary font-roboto">৳{finalPrice.toFixed(2)}</span>
+          {product.discount > 0 && (
+            <span className="text-[10px] text-muted-foreground line-through">৳{originalPrice.toFixed(2)}</span>
+          )}
         </div>
 
         {/* Phygital Indicator & Rating */}
@@ -85,9 +96,15 @@ export const ProductCard = ({ product }: { product: Product }) => {
         </div>
 
         {/* Quick Add Button (Mobile Friendly) */}
-        <Button onClick={handleAddToCart} className="w-full mt-2 flex items-center justify-center gap-2 bg-foreground text-background py-2 rounded-lg text-[10px] font-bold hover:bg-primary hover:text-primary-foreground transition-colors">
-          <ShoppingCart size={12} />
-          ADD TO CART
+        <Button onClick={handleAddToCart} className="w-full mt-2 flex items-center justify-center gap-2 bg-foreground text-background py-2 rounded-lg text-[10px] font-bold hover:bg-primary hover:text-primary-foreground transition-colors" disabled={stock <= 0}>
+          {stock > 0 ? (
+            <>
+              <ShoppingCart size={12} />
+              ADD TO CART
+            </>
+          ) : (
+            'Out of Stock'
+          )}
         </Button>
       </div>
     </Link>
