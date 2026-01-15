@@ -7,20 +7,21 @@ import { ProductReviews } from './product-reviews';
 import { Button } from '../ui/button';
 import { AskQuestionDialog } from './ask-question-dialog';
 import { Table, TableBody, TableCell, TableRow } from '../ui/table';
+import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
+import { Skeleton } from '../ui/skeleton';
 
-const questionsAndAnswers = [
-  {
-    question: "Is this t-shirt true to size?",
-    answer: "Yes, most customers find that it fits true to size. We recommend checking the size guide for exact measurements.",
-  },
-  {
-    question: "What is the material composition?",
-    answer: "This t-shirt is made of 100% premium combed cotton for a soft and comfortable feel.",
-  }
-];
+interface Question {
+    id: string;
+    questionText: string;
+    answerText?: string;
+    askedByName: string;
+    createdAt: { toDate: () => Date };
+}
 
 export function ProductTabs({ product }: { product: Product }) {
   const [isQuestionDialogOpen, setIsQuestionDialogOpen] = useState(false);
+  const { data: questions, isLoading: isLoadingQuestions } = useFirestoreQuery<Question>(`products/${product.id}/questions`);
+
     return (
         <Tabs defaultValue="description" className="w-full">
             <TabsList className="w-full justify-start md:grid md:grid-cols-4 md:w-full overflow-x-auto whitespace-nowrap no-scrollbar">
@@ -76,15 +77,28 @@ export function ProductTabs({ product }: { product: Product }) {
                 <Button onClick={() => setIsQuestionDialogOpen(true)}>Ask a Question</Button>
               </div>
               <div className="space-y-4">
-                {questionsAndAnswers.map((item, index) => (
-                  <div key={index} className="border-b pb-4">
-                    <p className="font-bold text-foreground">Q: {item.question}</p>
-                    <p className="text-muted-foreground mt-1">A: {item.answer}</p>
-                  </div>
-                ))}
-                 {questionsAndAnswers.length === 0 && <p className="text-muted-foreground text-center">No questions have been asked yet.</p>}
+                {isLoadingQuestions ? (
+                    <div className="space-y-4">
+                        <Skeleton className="h-16 w-full" />
+                        <Skeleton className="h-16 w-full" />
+                    </div>
+                ) : questions && questions.length > 0 ? (
+                    questions.map((item) => (
+                        <div key={item.id} className="border-b pb-4">
+                            <p className="font-bold text-foreground">Q: {item.questionText}</p>
+                            <p className="text-xs text-muted-foreground">Asked by {item.askedByName} on {item.createdAt.toDate().toLocaleDateString()}</p>
+                            {item.answerText ? (
+                                <p className="text-muted-foreground mt-2 pl-4 border-l-2 border-primary">A: {item.answerText}</p>
+                            ) : (
+                                <p className="text-muted-foreground mt-2 pl-4 text-sm">A: This question has not been answered yet.</p>
+                            )}
+                        </div>
+                    ))
+                ) : (
+                    <p className="text-muted-foreground text-center py-8">No questions have been asked yet. Be the first!</p>
+                )}
               </div>
-              <AskQuestionDialog open={isQuestionDialogOpen} onOpenChange={setIsQuestionDialogOpen} />
+              <AskQuestionDialog open={isQuestionDialogOpen} onOpenChange={setIsQuestionDialogOpen} productId={product.id} />
             </TabsContent>
         </Tabs>
     );
