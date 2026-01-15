@@ -11,7 +11,10 @@ export function CartSummary() {
   const { items } = useCart();
 
   const subtotal = items.reduce(
-    (acc, item) => acc + item.variant.price * item.quantity,
+    (acc, item) => {
+        if (!item.variant) return acc;
+        return acc + item.variant.price * item.quantity;
+    },
     0
   );
 

@@ -46,15 +46,15 @@ export default function CartPage() {
                     </BreadcrumbList>
                 </Breadcrumb>
                 <h1 className="text-3xl md:text-4xl font-extrabold font-headline tracking-tight mt-4">
-                    Your Shopping Bag ({items.length})
+                    Your Shopping Bag ({items.filter(item => item.variant).length})
                 </h1>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                 <div className="lg:col-span-2 bg-background p-6 rounded-xl shadow-md">
                     <div className="space-y-6">
-                    {items.map((item) => (
-                        <CartItem key={item.product.id} item={item} />
+                    {items.map((item, index) => (
+                        <CartItem key={item.variant?.sku || `${item.product.id}-${index}`} item={item} />
                     ))}
                     </div>
                 </div>
