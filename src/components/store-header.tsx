@@ -37,8 +37,8 @@ export function StoreHeader() {
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <Sheet>
         <div className="container">
-          {/* Desktop & Tablet Header */}
-          <div className="hidden h-16 items-center md:flex">
+          {/* Desktop Header */}
+          <div className="hidden h-16 items-center lg:flex">
             <Link href="/" className="mr-2 flex items-center space-x-2">
               <AverzoLogo className="h-7 w-auto" />
             </Link>
@@ -238,8 +238,8 @@ export function StoreHeader() {
             </div>
           </div>
 
-          {/* Mobile Header */}
-          <div className="flex h-14 items-center justify-between px-4 md:hidden">
+          {/* Mobile & Tablet Header */}
+          <div className="flex h-14 items-center justify-between px-4 lg:hidden">
               <SheetTrigger asChild>
                   <Button variant="ghost" size="icon">
                       <Menu className="h-6 w-6" />
@@ -372,5 +372,7 @@ export function StoreHeader() {
     </header>
   );
 }
+
+    
 
     

@@ -143,8 +143,8 @@ export default function StoreFrontPage() {
         </section>
       
 
-      {/* --- Mobile Bottom Navigation --- */}
-      <nav className="fixed bottom-0 z-50 w-full border-t bg-background md:hidden">
+      {/* --- Mobile & Tablet Bottom Navigation --- */}
+      <nav className="fixed bottom-0 z-50 w-full border-t bg-background lg:hidden">
         <div className="grid h-16 grid-cols-5">
           <Link
             href="/"
@@ -186,5 +186,7 @@ export default function StoreFrontPage() {
       </>
   );
 }
+
+    
 
     

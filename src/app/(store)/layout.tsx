@@ -14,7 +14,7 @@ export default function StoreLayout({
       <StoreHeader />
       <main className="flex-1">{children}</main>
       {/* --- Desktop Footer --- */}
-      <footer className="bg-secondary text-secondary-foreground hidden md:block">
+      <footer className="bg-secondary text-secondary-foreground hidden lg:block">
         <div className="container py-12">
           <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
             <div>
@@ -127,3 +127,5 @@ export default function StoreLayout({
     </div>
   );
 }
+
+    
