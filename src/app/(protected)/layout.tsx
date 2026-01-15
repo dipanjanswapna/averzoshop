@@ -4,9 +4,12 @@ import { FirebaseClientProvider } from '@/firebase';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
+import { signOut as firebaseSignOut } from 'firebase/auth';
+import { Button } from '@/components/ui/button';
+
 
 function ProtectedContent({ children }: { children: React.ReactNode }) {
-  const { user, userData, loading } = useAuth();
+  const { user, userData, loading, auth } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -21,10 +24,7 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
     }
 
     if (userData) {
-      // If user's account is pending, don't allow access to dashboards
       if (userData.status !== 'approved') {
-        // You might want to redirect to a specific "pending approval" page
-        // For now, we'll just prevent further navigation and show a message.
         return;
       }
 
@@ -40,6 +40,13 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
     }
   }, [user, userData, loading, router, pathname]);
 
+  const handleLogout = async () => {
+    if (auth) {
+      await firebaseSignOut(auth);
+      router.replace('/login');
+    }
+  };
+
   if (loading || !user) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background text-foreground">
@@ -54,6 +61,7 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
         <div className="text-center">
             <h1 className="text-2xl font-bold">Account Pending Approval</h1>
             <p className="text-muted-foreground">Your account is currently under review. We'll notify you once it's approved.</p>
+            <Button onClick={handleLogout} variant="outline" className="mt-6">Logout</Button>
         </div>
       </div>
     )
