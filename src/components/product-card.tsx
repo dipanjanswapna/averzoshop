@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from 'next/image';
@@ -104,7 +103,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
         <Button onClick={handleAddToCart} className="w-full mt-2 flex items-center justify-center gap-2 bg-foreground text-background py-2 rounded-lg text-[10px] font-bold hover:bg-primary hover:text-primary-foreground transition-colors" disabled={stock <= 0}>
           {stock > 0 ? (
             <>
-              <ShoppingCart size={12} />
+              <ShoppingBag size={12} />
               ADD TO CART
             </>
           ) : (
