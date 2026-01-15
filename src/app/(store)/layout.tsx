@@ -1,5 +1,6 @@
 
 
+import { MobileBottomNav } from '@/components/mobile-bottom-nav';
 import AverzoNavbar from '@/components/store-header';
 import Link from 'next/link';
 
@@ -134,6 +135,7 @@ export default function StoreLayout({
           </div>
         </div>
       </footer>
+      <MobileBottomNav />
     </div>
   );
 }

@@ -5,23 +5,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import {
   ArrowRight,
-  Heart,
-  Search,
-  ShoppingCart,
-  User,
-  Menu,
-  Home,
-  LayoutGrid,
-  ShoppingBag,
-  ChevronDown,
-  MoreHorizontal
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import AverzoLogo from '@/components/averzo-logo';
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { subBrands, products } from '@/lib/data';
 import {
@@ -32,15 +18,6 @@ import {
   CarouselPrevious,
 } from '@/components/ui/carousel';
 import { ProductCard } from '@/components/product-card';
-import React, { useState } from 'react';
-import { cn } from '@/lib/utils';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 
 const featuredProducts = products.slice(0, 4);
 const heroCarouselImages = PlaceHolderImages.filter(p =>
@@ -141,52 +118,6 @@ export default function StoreFrontPage() {
             </div>
           </div>
         </section>
-      
-
-      {/* --- Mobile & Tablet Bottom Navigation --- */}
-      <nav className="fixed bottom-0 z-50 w-full border-t bg-background lg:hidden">
-        <div className="grid h-16 grid-cols-5">
-          <Link
-            href="/"
-            className="flex flex-col items-center justify-center gap-1 text-primary"
-          >
-            <Home className="h-6 w-6" />
-            <span className="text-xs font-medium">Home</span>
-          </Link>
-          <Link
-            href="/shop"
-            className="flex flex-col items-center justify-center gap-1 text-muted-foreground"
-          >
-            <ShoppingBag className="h-6 w-6" />
-            <span className="text-xs font-medium">Shop</span>
-          </Link>
-          <Link
-            href="#"
-            className="flex flex-col items-center justify-center gap-1 text-muted-foreground"
-          >
-            <LayoutGrid className="h-6 w-6" />
-            <span className="text-xs font-medium">Categories</span>
-          </Link>
-          <Link
-            href="#"
-            className="flex flex-col items-center justify-center gap-1 text-muted-foreground"
-          >
-            <ShoppingCart className="h-6 w-6" />
-            <span className="text-xs font-medium">Bag</span>
-          </Link>
-          <Link
-            href="/login"
-            className="flex flex-col items-center justify-center gap-1 text-muted-foreground"
-          >
-            <User className="h-6 w-6" />
-            <span className="text-xs font-medium">Profile</span>
-          </Link>
-        </div>
-      </nav>
       </>
   );
 }
-
-    
-
-    
