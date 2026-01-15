@@ -118,8 +118,6 @@ const MobileSidebar = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
 
 
 export default function AverzoNavbar() {
-  const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const { items } = useCart();
@@ -129,24 +127,6 @@ export default function AverzoNavbar() {
     setIsMounted(true);
   }, []);
   
-  useEffect(() => {
-    if (!isMounted) return;
-
-    const controlNavbar = () => {
-      if (window.scrollY > 100) { 
-        setIsVisible(false);
-      } else {
-        setIsVisible(true);
-      }
-      setLastScrollY(window.scrollY);
-    };
-
-    const debouncedControlNavbar = debounce(controlNavbar, 100);
-
-    window.addEventListener('scroll', debouncedControlNavbar);
-    return () => window.removeEventListener('scroll', debouncedControlNavbar);
-  }, [lastScrollY, isMounted]);
-
   const createQueryString = (params: Record<string, string>) => {
     const searchParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
@@ -216,8 +196,7 @@ export default function AverzoNavbar() {
       <nav 
         className={cn(
           "bg-secondary text-secondary-foreground transition-all duration-300 origin-top",
-          "hidden lg:flex",
-          isVisible ? "scale-y-100 opacity-100 h-10" : "scale-y-0 opacity-0 h-0"
+          "hidden lg:flex h-10"
       )}>
         <div className="w-full overflow-x-auto whitespace-nowrap no-scrollbar">
             <div className="container mx-auto px-4 flex items-center gap-8 h-full">
@@ -226,7 +205,7 @@ export default function AverzoNavbar() {
                 return (
                     <div 
                       key={item.mother_name} 
-                      className="group h-full flex items-center"
+                      className="group relative h-full flex items-center"
                       onMouseEnter={() => setActiveMenu(item.mother_name)}
                       onMouseLeave={() => setActiveMenu(null)}
                     >
@@ -243,7 +222,7 @@ export default function AverzoNavbar() {
                               animate="visible"
                               exit="hidden"
                               variants={menuVariants}
-                              className="absolute left-0 right-0 top-[108px] w-full bg-background text-foreground border-t shadow-2xl z-[110]"
+                              className="absolute left-0 right-0 top-full w-full bg-background text-foreground border-t shadow-2xl z-[110]"
                               style={{ maxHeight: 'calc(100vh - 108px)', overflowY: 'auto' }}
                             >
                                 <div className="container mx-auto grid grid-cols-5 gap-x-10 gap-y-6 p-10">
