@@ -149,13 +149,6 @@ export const subBrands = [
   { id: 'sb_3', name: 'Aura Kids', description: 'Fun and comfortable clothing for children.' },
 ];
 
-export const vendors = [
-    { id: 'ven_1', name: 'Fashion Forward Inc.', contact: 'contact@ffi.com', status: 'Active' },
-    { id: 'ven_2', name: 'Textile Masters', contact: 'sales@textilemasters.com', status: 'Active' },
-    { id: 'ven_3', name: 'Accessory Alchemists', contact: 'info@accessoryalchemists.dev', status: 'Inactive' },
-];
-
-
 export const activeDeliveries = [
   {
     deliveryId: 'DEL-101',
