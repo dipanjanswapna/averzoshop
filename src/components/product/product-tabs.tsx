@@ -1,4 +1,3 @@
-
 'use client';
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -9,18 +8,57 @@ import { AskQuestionDialog } from './ask-question-dialog';
 import { Table, TableBody, TableCell, TableRow } from '../ui/table';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { Skeleton } from '../ui/skeleton';
+import { useAuth } from '@/hooks/use-auth';
+import { useFirebase } from '@/firebase';
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { Textarea } from '../ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 
 interface Question {
     id: string;
     questionText: string;
     answerText?: string;
     askedByName: string;
-    createdAt: { toDate: () => Date };
+    createdAt: { toDate: () => Date } | null;
+    answeredByUid?: string;
+    answeredAt?: { toDate: () => Date };
 }
 
 export function ProductTabs({ product }: { product: Product }) {
   const [isQuestionDialogOpen, setIsQuestionDialogOpen] = useState(false);
   const { data: questions, isLoading: isLoadingQuestions } = useFirestoreQuery<Question>(`products/${product.id}/questions`);
+  const { user, userData } = useAuth();
+  const { firestore } = useFirebase();
+  const { toast } = useToast();
+
+  const [answers, setAnswers] = useState<{ [key: string]: string }>({});
+  const [isSubmitting, setIsSubmitting] = useState<string | null>(null);
+
+  const handleAnswerSubmit = async (questionId: string) => {
+    const answerText = answers[questionId];
+    if (!firestore || !user || !answerText || !answerText.trim()) {
+        toast({ variant: 'destructive', title: 'Answer cannot be empty.' });
+        return;
+    }
+
+    setIsSubmitting(questionId);
+    const questionRef = doc(firestore, `products/${product.id}/questions`, questionId);
+    
+    try {
+        await updateDoc(questionRef, {
+            answerText,
+            answeredByUid: user.uid,
+            answeredAt: serverTimestamp(),
+        });
+        toast({ title: 'Answer submitted!' });
+        setAnswers(prev => ({ ...prev, [questionId]: '' }));
+    } catch (error) {
+        console.error("Error submitting answer:", error);
+        toast({ variant: 'destructive', title: 'Failed to submit answer.' });
+    } finally {
+        setIsSubmitting(null);
+    }
+  };
 
     return (
         <Tabs defaultValue="description" className="w-full">
@@ -79,18 +117,41 @@ export function ProductTabs({ product }: { product: Product }) {
               <div className="space-y-4">
                 {isLoadingQuestions ? (
                     <div className="space-y-4">
-                        <Skeleton className="h-16 w-full" />
-                        <Skeleton className="h-16 w-full" />
+                        <Skeleton className="h-24 w-full" />
+                        <Skeleton className="h-24 w-full" />
                     </div>
                 ) : questions && questions.length > 0 ? (
                     questions.map((item) => (
                         <div key={item.id} className="border-b pb-4">
                             <p className="font-bold text-foreground">Q: {item.questionText}</p>
-                            <p className="text-xs text-muted-foreground">Asked by {item.askedByName} on {item.createdAt.toDate().toLocaleDateString()}</p>
+                            <p className="text-xs text-muted-foreground">Asked by {item.askedByName} on {item.createdAt ? item.createdAt.toDate().toLocaleDateString() : '...'}</p>
+                            
                             {item.answerText ? (
-                                <p className="text-muted-foreground mt-2 pl-4 border-l-2 border-primary">A: {item.answerText}</p>
+                                <div className="mt-2 pl-4 border-l-2 border-primary bg-muted/50 p-3 rounded-r-lg">
+                                  <p className="font-bold text-sm">A: {item.answerText}</p>
+                                  {item.answeredAt && (
+                                    <p className="text-xs text-muted-foreground mt-1">Answered on {item.answeredAt.toDate().toLocaleDateString()}</p>
+                                  )}
+                                </div>
                             ) : (
-                                <p className="text-muted-foreground mt-2 pl-4 text-sm">A: This question has not been answered yet.</p>
+                                userData?.role === 'admin' ? (
+                                    <div className="mt-2 pl-4 space-y-2">
+                                        <Textarea 
+                                            placeholder="Write your answer..." 
+                                            value={answers[item.id] || ''}
+                                            onChange={(e) => setAnswers(prev => ({ ...prev, [item.id]: e.target.value }))}
+                                        />
+                                        <Button 
+                                            size="sm" 
+                                            onClick={() => handleAnswerSubmit(item.id)}
+                                            disabled={isSubmitting === item.id || !(answers[item.id] || '').trim()}
+                                        >
+                                            {isSubmitting === item.id ? 'Submitting...' : 'Submit Answer'}
+                                        </Button>
+                                    </div>
+                                ) : (
+                                  <p className="text-muted-foreground mt-2 pl-4 text-sm">A: This question has not been answered yet.</p>
+                                )
                             )}
                         </div>
                     ))
