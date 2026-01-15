@@ -175,14 +175,24 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
     setIsLoading(true);
     try {
       const productRef = doc(firestore, 'products', product.id);
-      const totalStock = values.variants.reduce((sum, v) => sum + v.stock, 0);
-
+      
       const { price, compareAtPrice } = values;
       let discount = 0;
       if (compareAtPrice && compareAtPrice > price) {
           discount = ((compareAtPrice - price) / compareAtPrice) * 100;
       }
       
+      // Preserve stock from original product object
+      const updatedVariants = values.variants.map(formVariant => {
+          const originalVariant = product.variants.find(v => v.sku === formVariant.sku);
+          return {
+              ...formVariant,
+              stock: originalVariant ? originalVariant.stock : 0, // Preserve stock for existing, 0 for new
+          };
+      });
+
+      const totalStock = updatedVariants.reduce((sum, v) => sum + v.stock, 0);
+
       await updateDoc(productRef, {
         name: values.name,
         description: values.description,
@@ -191,15 +201,15 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
         subcategory: values.subcategory,
         price: values.price,
         compareAtPrice: values.compareAtPrice || null,
-        discount: Math.round(discount),
         baseSku: values.baseSku,
-        total_stock: totalStock,
         brand: values.brand,
         image: values.image,
         sizes: values.variantSizes ? values.variantSizes.split(',').map(s => s.trim()) : [],
         colors: values.variantColors ? values.variantColors.split(',').map(c => c.trim()) : [],
-        variants: values.variants,
         giftWithPurchase: values.giftWithPurchase || { enabled: false, description: '' },
+        discount: Math.round(discount),
+        variants: updatedVariants,
+        total_stock: totalStock,
       });
 
       toast({
@@ -226,7 +236,7 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
         <DialogHeader>
           <DialogTitle>Edit Product</DialogTitle>
           <DialogDescription>
-            Update the details for this product.
+            Update the details for this product. Stock is managed via logistics.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -288,7 +298,21 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
                         <TableCell>{form.getValues(`variants.${index}.color`) || 'N/A'}</TableCell>
                         <TableCell>{form.getValues(`variants.${index}.size`) || 'N/A'}</TableCell>
                         <TableCell><FormField control={form.control} name={`variants.${index}.sku`} render={({ field }) => (<Input {...field} />)} /></TableCell>
-                        <TableCell><FormField control={form.control} name={`variants.${index}.stock`} render={({ field }) => (<Input type="number" {...field} />)} /></TableCell>
+                        <TableCell>
+                          <FormField
+                            control={form.control}
+                            name={`variants.${index}.stock`}
+                            render={({ field }) => (
+                              <Input
+                                type="number"
+                                {...field}
+                                readOnly
+                                disabled
+                                className="bg-muted cursor-not-allowed"
+                              />
+                            )}
+                          />
+                        </TableCell>
                         <TableCell><FormField control={form.control} name={`variants.${index}.price`} render={({ field }) => (<Input type="number" {...field} />)} /></TableCell>
                         <TableCell><FormField control={form.control} name={`variants.${index}.compareAtPrice`} render={({ field }) => (<Input type="number" {...field} />)} /></TableCell>
                         <TableCell><Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button></TableCell>

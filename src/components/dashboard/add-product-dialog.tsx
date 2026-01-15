@@ -151,7 +151,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
     setIsLoading(true);
     try {
       const status = userData.role === 'admin' ? 'approved' : 'pending';
-      const totalStock = values.variants.reduce((sum, v) => sum + v.stock, 0);
+      const totalStock = 0; // Always 0 on creation
       
       const { price, compareAtPrice } = values;
       let discount = 0;
@@ -170,7 +170,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
         discount: Math.round(discount),
         baseSku: values.baseSku,
         total_stock: totalStock,
-        variants: values.variants,
+        variants: values.variants.map(v => ({...v, stock: 0})), // Ensure stock is 0
         outlet_stocks: {},
         brand: values.brand,
         image: values.image,
@@ -272,7 +272,15 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
                         <TableCell>{field.color || 'N/A'}</TableCell>
                         <TableCell>{field.size || 'N/A'}</TableCell>
                         <TableCell><FormField control={form.control} name={`variants.${index}.sku`} render={({ field }) => (<Input {...field} />)} /></TableCell>
-                        <TableCell><FormField control={form.control} name={`variants.${index}.stock`} render={({ field }) => (<Input type="number" {...field} />)} /></TableCell>
+                        <TableCell>
+                            <Input
+                                type="number"
+                                value={0}
+                                readOnly
+                                disabled
+                                className="bg-muted cursor-not-allowed"
+                            />
+                        </TableCell>
                         <TableCell><FormField control={form.control} name={`variants.${index}.price`} render={({ field }) => (<Input type="number" {...field} />)} /></TableCell>
                         <TableCell><FormField control={form.control} name={`variants.${index}.compareAtPrice`} render={({ field }) => (<Input type="number" {...field} />)} /></TableCell>
                         <TableCell><Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button></TableCell>
