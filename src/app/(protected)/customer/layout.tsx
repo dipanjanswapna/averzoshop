@@ -15,20 +15,42 @@ import AverzoLogo from '@/components/averzo-logo';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
 
 export default function CustomerDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { user, userData } = useAuth();
+  const { user, userData, loading } = useAuth();
+  const router = useRouter();
   
-  if (!user || !userData || userData.role !== 'customer') {
+  if (loading) {
+    return (
+        <div className="flex h-screen items-center justify-center bg-background text-foreground">
+            <p>Loading customer dashboard...</p>
+        </div>
+    )
+  }
+
+  // This is a crucial check. If the user data is loaded and the role is NOT customer,
+  // we redirect them. The main protected layout will catch this and send them to /dashboard.
+  if (!user || (userData && userData.role !== 'customer')) {
      return (
           <div className="flex h-screen items-center justify-center bg-background text-foreground">
               <p>Redirecting...</p>
           </div>
       )
+  }
+
+  // If still loading or role is not yet confirmed, we can show a loader.
+  // Once loading is false and the role is 'customer', the main content will render.
+  if (!userData) {
+     return (
+        <div className="flex h-screen items-center justify-center bg-background text-foreground">
+            <p>Verifying customer account...</p>
+        </div>
+    );
   }
 
   return (
