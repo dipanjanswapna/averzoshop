@@ -83,7 +83,9 @@ function LoginPageContent() {
         email: user.email,
         displayName: user.displayName,
         photoURL: user.photoURL,
-        role: 'customer'
+        role: 'customer',
+        status: 'approved',
+        createdAt: new Date().toISOString(),
       }, { merge: true });
 
       toast({ title: 'Google Sign-In Successful', description: 'Redirecting...' });
