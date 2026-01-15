@@ -28,7 +28,7 @@ export function useFirestoreQuery<T>(collectionName: string): UseFirestoreQuery<
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const documents: T[] = [];
       querySnapshot.forEach((doc) => {
-        documents.push({ id: doc.id, ...doc.data() } as T);
+        documents.push({ ...doc.data(), id: doc.id } as T);
       });
       setData(documents);
       setIsLoading(false);
