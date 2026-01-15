@@ -4,7 +4,9 @@
 import React, { useMemo, useCallback } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { ProductGrid } from '@/components/shop/product-grid';
-import { products, categoriesData } from '@/lib/data';
+import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
+import type { Product } from '@/types/product';
+import { categoriesData } from '@/lib/data';
 import {
   Select,
   SelectContent,
@@ -50,20 +52,15 @@ export default function MensFashionPage() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { data: products, isLoading } = useFirestoreQuery<Product>('products');
   
   const parseQueryParam = (param: string | null, defaultValue: any) => {
     if (!param) return defaultValue;
-    if (Array.isArray(defaultValue)) {
-        return param.split(',');
+    try {
+      return JSON.parse(param);
+    } catch (e) {
+      return Array.isArray(defaultValue) ? param.split(',') : param;
     }
-    if (typeof defaultValue === 'object' && defaultValue !== null) {
-        try {
-            return JSON.parse(param);
-        } catch (e) {
-            return defaultValue;
-        }
-    }
-    return param;
   };
 
   const initialFilters = useMemo(() => ({
@@ -75,7 +72,7 @@ export default function MensFashionPage() {
     brands: parseQueryParam(searchParams.get('brands'), []),
     colors: parseQueryParam(searchParams.get('colors'), []),
     sizes: parseQueryParam(searchParams.get('sizes'), []),
-    price_range: parseQueryParam(searchParams.get('price_range'), [0, 2000]),
+    price_range: parseQueryParam(searchParams.get('price_range'), [0, 5000]),
     discount: searchParams.get('discount') || null,
     is_bundle: searchParams.get('is_bundle') === 'true' || false,
   }), [searchParams]);
@@ -86,10 +83,8 @@ export default function MensFashionPage() {
       if (value !== null && value !== undefined && value !== '') {
           if (Array.isArray(value)) {
               if (value.length > 0) {
-                  params.set(key, value.join(','));
+                 params.set(key, key === 'price_range' ? JSON.stringify(value) : value.join(','));
               }
-          } else if (typeof value === 'object') {
-              params.set(key, JSON.stringify(value));
           } else {
               params.set(key, String(value));
           }
@@ -110,7 +105,11 @@ export default function MensFashionPage() {
   }, [initialFilters, handleFilterChange]);
 
   const { paginatedProducts, totalPages } = useMemo(() => {
-    let filtered = products.filter(p => p.category === "Men" || (p.group && categoriesData.find(cat => cat.mother_name === CATEGORY_NAME)?.groups.some(g => g.group_name === p.group)));
+    if (!products) return { paginatedProducts: [], totalPages: 0 };
+    
+    let filtered = products.filter(p => {
+      return p.status === 'approved' && (p.category === "Men" || (categoriesData.find(cat => cat.mother_name === CATEGORY_NAME)?.groups.some(g => g.group_name === p.group)));
+    });
 
     // Apply filters from URL
     if (initialFilters.group) {
@@ -120,13 +119,13 @@ export default function MensFashionPage() {
         filtered = filtered.filter(p => p.subcategory === initialFilters.subcategory);
     }
     if (initialFilters.brands.length > 0) {
-        filtered = filtered.filter(p => initialFilters.brands.includes(p.brand));
+        filtered = filtered.filter(p => p.brand && initialFilters.brands.includes(p.brand));
     }
     if (initialFilters.colors.length > 0) {
-        filtered = filtered.filter(p => p.colors.some(color => initialFilters.colors.includes(color)));
+        filtered = filtered.filter(p => p.colors && p.colors.some(color => initialFilters.colors.includes(color)));
     }
     if (initialFilters.sizes.length > 0) {
-        filtered = filtered.filter(p => p.sizes.some(size => initialFilters.sizes.includes(size)));
+        filtered = filtered.filter(p => p.sizes && p.sizes.some(size => initialFilters.sizes.includes(size)));
     }
     if (initialFilters.price_range) {
         filtered = filtered.filter(p => p.price >= initialFilters.price_range[0] && p.price <= initialFilters.price_range[1]);
@@ -139,15 +138,15 @@ export default function MensFashionPage() {
     }
 
 
-    let inStockProducts = filtered.filter(p => p.stock > 0);
-    const outOfStockProducts = filtered.filter(p => p.stock === 0);
+    let inStockProducts = filtered.filter(p => p.total_stock > 0);
+    const outOfStockProducts = filtered.filter(p => p.total_stock === 0);
 
     switch (initialFilters.sort_by) {
         case 'price-asc': inStockProducts.sort((a, b) => a.price - b.price); break;
         case 'price-desc': inStockProducts.sort((a, b) => b.price - a.price); break;
         case 'newest':
         default:
-             inStockProducts.sort((a, b) => parseInt(b.id.split('_')[1]) - parseInt(a.id.split('_')[1]));
+             inStockProducts.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
              break;
     }
 
@@ -157,7 +156,7 @@ export default function MensFashionPage() {
     const paginatedProducts = allSortedProducts.slice(startIndex, startIndex + PRODUCTS_PER_PAGE);
 
     return { paginatedProducts, totalPages };
-  }, [initialFilters]);
+  }, [initialFilters, products]);
 
   return (
     <div>
@@ -221,7 +220,7 @@ export default function MensFashionPage() {
                         <SheetTitle className="text-xl font-bold font-headline">Filters</SheetTitle>
                       </SheetHeader>
                       <div className="p-6 pt-0">
-                       <FilterSidebar categories={categoriesData} products={products} onFilterChange={handleFilterChange} initialFilters={initialFilters} />
+                       <FilterSidebar categories={categoriesData} onFilterChange={handleFilterChange} initialFilters={initialFilters} />
                       </div>
                     </SheetContent>
                 </Sheet>
@@ -239,13 +238,13 @@ export default function MensFashionPage() {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                <aside className="hidden lg:block lg:col-span-1">
                  <div className="sticky top-28">
-                    <FilterSidebar categories={categoriesData} products={products} onFilterChange={handleFilterChange} initialFilters={initialFilters} />
+                    <FilterSidebar categories={categoriesData} onFilterChange={handleFilterChange} initialFilters={initialFilters} />
                   </div>
                </aside>
               <main className="lg:col-span-3">
                  <ProductGrid 
                     products={paginatedProducts} 
-                    isLoading={false} 
+                    isLoading={isLoading} 
                     currentPage={initialFilters.page}
                     totalPages={totalPages}
                     onPageChange={onPageChange}
