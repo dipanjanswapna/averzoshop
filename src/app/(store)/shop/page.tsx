@@ -199,7 +199,8 @@ function ShopPageContent() {
                         <SheetTitle className="text-xl font-bold font-headline">Filters</SheetTitle>
                     </SheetHeader>
                     <div className="p-6 pt-0">
-                      <FilterSidebar 
+                      <FilterSidebar
+                        categories={categoriesData}
                         onFilterChange={handleFilterChange}
                         initialFilters={initialFilters}
                       />
@@ -222,7 +223,8 @@ function ShopPageContent() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <aside className="hidden lg:block lg:col-span-1">
             <div className="sticky top-28">
-              <FilterSidebar 
+              <FilterSidebar
+                categories={categoriesData}
                 onFilterChange={handleFilterChange}
                 initialFilters={initialFilters}
               />

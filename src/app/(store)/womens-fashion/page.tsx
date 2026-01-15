@@ -222,7 +222,7 @@ export default function CategoryPage() {
                         <SheetTitle className="text-xl font-bold font-headline">Filters</SheetTitle>
                       </SheetHeader>
                       <div className="p-6 pt-0">
-                        <FilterSidebar onFilterChange={handleFilterChange} initialFilters={initialFilters} />
+                        <FilterSidebar categories={categoriesData} onFilterChange={handleFilterChange} initialFilters={initialFilters} />
                       </div>
                     </SheetContent>
                 </Sheet>
@@ -240,7 +240,7 @@ export default function CategoryPage() {
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                <aside className="hidden lg:block lg:col-span-1">
                  <div className="sticky top-28">
-                    <FilterSidebar onFilterChange={handleFilterChange} initialFilters={initialFilters} />
+                    <FilterSidebar categories={categoriesData} onFilterChange={handleFilterChange} initialFilters={initialFilters} />
                   </div>
                </aside>
               <main className="lg:col-span-3">
