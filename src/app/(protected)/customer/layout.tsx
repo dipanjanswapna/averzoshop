@@ -9,7 +9,6 @@ import {
   SidebarInset,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { DashboardNav } from '@/components/dashboard-nav';
 import { CustomerNav } from '@/components/customer-nav';
 import { UserNav } from '@/components/user-nav';
 import AverzoLogo from '@/components/averzo-logo';
@@ -19,7 +18,7 @@ import { useAuth } from '@/firebase/auth/use-auth.tsx';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
-export default function DashboardLayout({
+export default function CustomerDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -32,14 +31,7 @@ export default function DashboardLayout({
       router.push('/login');
     }
   }, [user, loading, router]);
-
-  useEffect(() => {
-    if (userData?.role === 'customer') {
-      router.replace('/customer');
-    }
-  }, [userData, router]);
-
-
+  
   if (loading || !user) {
     return (
         <div className="flex h-screen items-center justify-center bg-sidebar text-sidebar-foreground">
@@ -47,17 +39,16 @@ export default function DashboardLayout({
         </div>
     );
   }
-
-  // Render a different layout for customers, or redirect them
-  if (userData?.role === 'customer') {
-    // This will be momentarily visible while redirecting
-     return (
-        <div className="flex h-screen items-center justify-center bg-background text-foreground">
-            <p>Redirecting to your dashboard...</p>
-        </div>
-    );
-  }
   
+  // If the user is not a customer, redirect them away
+  if (userData && userData.role !== 'customer') {
+      return (
+          <div className="flex h-screen items-center justify-center bg-background text-foreground">
+              <p>You do not have access to this page. Redirecting...</p>
+          </div>
+      )
+  }
+
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon" className="border-r border-sidebar-border">
@@ -65,7 +56,7 @@ export default function DashboardLayout({
           <AverzoLogo className="h-8 w-auto" />
         </SidebarHeader>
         <SidebarContent className="p-2">
-           <DashboardNav />
+          <CustomerNav />
         </SidebarContent>
       </Sidebar>
       <SidebarInset className="bg-sidebar">
@@ -77,7 +68,7 @@ export default function DashboardLayout({
                   <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     type="search"
-                    placeholder="Search the dashboard..."
+                    placeholder="Search your account..."
                     className="w-full appearance-none bg-card pl-8 md:w-2/3 lg:w-1/3 text-card-foreground"
                   />
                 </div>
