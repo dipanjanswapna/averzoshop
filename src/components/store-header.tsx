@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Search, ShoppingBag, Heart, User, Menu, ChevronDown, X } from 'lucide-react';
+import { Search, ShoppingBag, Heart, User, Menu, ChevronDown, X, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
@@ -8,52 +8,97 @@ import { cn } from '@/lib/utils';
 // New structured data for categories, groups, and sub-categories
 const categoriesData = [
     {
-      name: "Men's Fashion",
+      mother_name: "Men's Fashion",
       groups: [
-        { name: "Topwear", subs: ["T-Shirts", "Casual Shirts", "Formal Shirts", "Polo Shirts", "Sweatshirts"] },
-        { name: "Bottomwear", subs: ["Jeans", "Trousers", "Shorts", "Track Pants"] },
-        { name: "Ethnic Wear", subs: ["Kurtas", "Sherwanis", "Jackets"] },
-        { name: "Footwear", subs: ["Casual Shoes", "Formal Shoes", "Sneakers", "Sandals"] },
-        { name: "Accessories", subs: ["Watches", "Belts", "Wallets", "Sunglasses"] },
+        { group_name: "Topwear", subs: ["T-Shirts", "Casual Shirts", "Formal Shirts", "Polo Shirts", "Sweatshirts"] },
+        { group_name: "Bottomwear", subs: ["Jeans", "Trousers", "Shorts", "Track Pants"] },
+        { group_name: "Ethnic Wear", subs: ["Kurtas", "Sherwanis", "Jackets"] },
+        { group_name: "Footwear", subs: ["Casual Shoes", "Formal Shoes", "Sneakers", "Sandals"] },
+        { group_name: "Accessories", subs: ["Watches", "Belts", "Wallets", "Sunglasses"] },
       ]
     },
     {
-      name: "Women's Fashion",
+      mother_name: "Women's Fashion",
       groups: [
-        { name: "Indian & Fusion Wear", subs: ["Sarees", "Kurtis", "Salwar Kameez", "Lehengas"] },
-        { name: "Western Wear", subs: ["Dresses", "Tops", "Jeans", "Skirts"] },
-        { name: "Lingerie & Sleepwear", subs: ["Bras", "Briefs", "Nightwear"] },
-        { name: "Footwear", subs: ["Flats", "Heels", "Boots", "Sneakers"] },
-        { name: "Accessories", subs: ["Handbags", "Jewellery", "Sunglasses"] },
+        { group_name: "Indian & Fusion Wear", subs: ["Sarees", "Kurtis", "Salwar Kameez", "Lehengas"] },
+        { group_name: "Western Wear", subs: ["Dresses", "Tops", "Jeans", "Skirts"] },
+        { group_name: "Lingerie & Sleepwear", subs: ["Bras", "Briefs", "Nightwear"] },
+        { group_name: "Footwear", subs: ["Flats", "Heels", "Boots", "Sneakers"] },
+        { group_name: "Accessories", subs: ["Handbags", "Jewellery", "Sunglasses"] },
       ]
     },
-    { name: "Electronics & Gadgets", groups: [ { name: "Mobiles & Laptops", subs: ["Laptops", "Mobiles", "Tablets"] }, { name: "Cameras & Drones", subs: ["DSLR", "Drones", "GoPro"] } ] },
-    { name: "Kids & Baby", groups: [ { name: "Clothing", subs: ["Boys", "Girls", "Infants"] }, { name: "Toys", subs: ["Action", "Educational"] } ]  },
-    { name: "Beauty & Personal Care", groups: [ { name: "Skincare", subs: ["Face Wash", "Moisturizer"] }, { name: "Makeup", subs: ["Lipstick", "Foundation"] } ]  },
-    { name: "Home & Living", groups: [ { name: "Decor", subs: ["Wall Art", "Lamps"] }, { name: "Kitchen", subs: ["Cookware", "Appliances"] } ]  },
-    { name: "Health & Wellness", groups: [ { name: "Supplements", subs: ["Vitamins", "Protein"] }, { name: "Gym Gear", subs: ["Weights", "Mats"] } ]  },
-    { name: "Gaming & Esports", groups: [ { name: "Hardware", subs: ["Gaming PCs", "Consoles", "Chairs"] }, { name: "Accessories", subs: ["Headsets", "Keyboards"] } ]  },
-    { name: "Pet Care", groups: [ { name: "Food", subs: ["Dog Food", "Cat Food"] }, { name: "Grooming", subs: ["Shampoos", "Brushes"] } ]  },
-    { name: "Sports & Outdoors", groups: [ { name: "Cricket", subs: ["Bats", "Balls"] }, { name: "Camping", subs: ["Tents", "Backpacks"] } ]  },
-    { name: "Smart Home & IoT", groups: [ { name: "Lighting", subs: ["Smart Bulbs", "LED Strips"] }, { name: "Security", subs: ["Cameras", "Sensors"] } ]  },
-    { name: "Automotive & Biking", groups: [ { name: "Helmets", subs: ["Full-face", "Open-face"] }, { name: "Accessories", subs: ["Gloves", "Jackets"] } ]  },
-    { name: "Books & Stationery", groups: [ { name: "Books", subs: ["Fiction", "Academic"] }, { name: "Stationery", subs: ["Pens", "Notebooks"] } ]  },
-    { name: "Artisan & Handicrafts", groups: [ { name: "Decor", subs: ["Paintings", "Sculptures"] }, { name: "Crafts", subs: ["Pottery", "Woodwork"] } ]  },
-    { name: "Travel & Luggage", groups: [ { name: "Bags", subs: ["Trolleys", "Backpacks"] }, { name: "Accessories", subs: ["Neck Pillows", "Locks"] } ]  },
-    { name: "Eco-Friendly Living", groups: [ { name: "Fashion", subs: ["Sustainable", "Recycled"] }, { name: "Home", subs: ["Solar", "Compost"] } ]  },
-    { name: "Musical Instruments", groups: [ { name: "String", subs: ["Guitars", "Keyboards"] }, { name: "Percussion", subs: ["Drums", "Cajons"] } ]  },
-    { name: "Gifts & Celebrations", groups: [ { name: "Gifts", subs: ["Gift Boxes", "Cards"] }, { name: "Party", subs: ["Balloons", "Decorations"] } ]  },
-    { name: "Daily Essentials (Groceries)", groups: [ { name: "Staples", subs: ["Rice", "Flour"] }, { name: "Snacks", subs: ["Chips", "Biscuits"] } ]  },
+    { mother_name: "Electronics & Gadgets", groups: [ { group_name: "Mobiles & Laptops", subs: ["Laptops", "Mobiles", "Tablets"] }, { group_name: "Cameras & Drones", subs: ["DSLR", "Drones", "GoPro"] } ] },
+    { mother_name: "Kids & Baby", groups: [ { group_name: "Clothing", subs: ["Boys", "Girls", "Infants"] }, { group_name: "Toys", subs: ["Action", "Educational"] } ]  },
+    { mother_name: "Beauty & Personal Care", groups: [ { group_name: "Skincare", subs: ["Face Wash", "Moisturizer"] }, { group_name: "Makeup", subs: ["Lipstick", "Foundation"] } ]  },
+    { mother_name: "Home & Living", groups: [ { group_name: "Decor", subs: ["Wall Art", "Lamps"] }, { group_name: "Kitchen", subs: ["Cookware", "Appliances"] } ]  },
+    { mother_name: "Health & Wellness", groups: [ { group_name: "Supplements", subs: ["Vitamins", "Protein"] }, { group_name: "Gym Gear", subs: ["Weights", "Mats"] } ]  },
+    { mother_name: "Gaming & Esports", groups: [ { group_name: "Hardware", subs: ["Gaming PCs", "Consoles", "Chairs"] }, { group_name: "Accessories", subs: ["Headsets", "Keyboards"] } ]  },
+    { mother_name: "Pet Care", groups: [ { group_name: "Food", subs: ["Dog Food", "Cat Food"] }, { group_name: "Grooming", subs: ["Shampoos", "Brushes"] } ]  },
+    { mother_name: "Sports & Outdoors", groups: [ { group_name: "Cricket", subs: ["Bats", "Balls"] }, { group_name: "Camping", subs: ["Tents", "Backpacks"] } ]  },
+    { mother_name: "Smart Home & IoT", groups: [ { group_name: "Lighting", subs: ["Smart Bulbs", "LED Strips"] }, { group_name: "Security", subs: ["Cameras", "Sensors"] } ]  },
+    { mother_name: "Automotive & Biking", groups: [ { group_name: "Helmets", subs: ["Full-face", "Open-face"] }, { group_name: "Accessories", subs: ["Gloves", "Jackets"] } ]  },
+    { mother_name: "Books & Stationery", groups: [ { group_name: "Books", subs: ["Fiction", "Academic"] }, { group_name: "Stationery", subs: ["Pens", "Notebooks"] } ]  },
+    { mother_name: "Artisan & Handicrafts", groups: [ { group_name: "Decor", subs: ["Paintings", "Sculptures"] }, { group_name: "Crafts", subs: ["Pottery", "Woodwork"] } ]  },
+    { mother_name: "Travel & Luggage", groups: [ { group_name: "Bags", subs: ["Trolleys", "Backpacks"] }, { group_name: "Accessories", subs: ["Neck Pillows", "Locks"] } ]  },
+    { mother_name: "Eco-Friendly Living", groups: [ { group_name: "Fashion", subs: ["Sustainable", "Recycled"] }, { group_name: "Home", subs: ["Solar", "Compost"] } ]  },
+    { mother_name: "Musical Instruments", groups: [ { group_name: "String", subs: ["Guitars", "Keyboards"] }, { group_name: "Percussion", subs: ["Drums", "Cajons"] } ]  },
+    { mother_name: "Gifts & Celebrations", groups: [ { group_name: "Gifts", subs: ["Gift Boxes", "Cards"] }, { group_name: "Party", subs: ["Balloons", "Decorations"] } ]  },
+    { mother_name: "Daily Essentials (Groceries)", groups: [ { group_name: "Staples", subs: ["Rice", "Flour"] }, { group_name: "Snacks", subs: ["Chips", "Biscuits"] } ]  },
 ];
 
+const NestedAccordion = ({ category, onClose }: { category: any, onClose: () => void }) => {
+  const [isMotherOpen, setIsMotherOpen] = useState(false);
+  const [openGroupIndex, setOpenGroupIndex] = useState<number | null>(null);
 
-const MobileSidebar = ({ isOpen, onClose, categories }: { isOpen: boolean, onClose: () => void, categories: typeof categoriesData }) => {
-  const [openIndex, setOpenIndex] = useState<number | null>(null);
-
-  const toggleAccordion = (index: number) => {
-    setOpenIndex(openIndex === index ? null : index);
+  // Group accordion toggle korar logic
+  const toggleGroup = (index: number) => {
+    setOpenGroupIndex(openGroupIndex === index ? null : index);
   };
 
+  return (
+    <div className="border-b border-gray-100">
+      {/* ১. Mother Category (e.g., Men's Fashion) */}
+      <button 
+        onClick={() => setIsMotherOpen(!isMotherOpen)}
+        className="w-full flex items-center justify-between py-4 px-5 text-sm font-bold text-zinc-800 hover:bg-gray-50"
+      >
+        <span className="uppercase tracking-wide">{category.mother_name}</span>
+        <ChevronDown size={18} className={`transition-transform duration-300 ${isMotherOpen ? "rotate-180 text-primary" : ""}`} />
+      </button>
+
+      {/* ২. Group Level (e.g., TOPWEAR, BOTTOMWEAR) */}
+      <div className={`overflow-hidden transition-all duration-300 ${isMotherOpen ? "max-h-[1000px] bg-zinc-50" : "max-h-0"}`}>
+        {category.groups.map((group: any, idx: number) => (
+          <div key={idx} className="border-t border-white">
+            <button 
+              onClick={() => toggleGroup(idx)}
+              className="w-full flex items-center justify-between py-3 px-8 text-[11px] font-black text-zinc-500 uppercase tracking-widest"
+            >
+              {group.group_name}
+              <ChevronRight size={14} className={`transition-transform ${openGroupIndex === idx ? "rotate-90 text-primary" : ""}`} />
+            </button>
+
+            {/* ৩. Sub-category Level (e.g., T-Shirts, Casual Shirts) */}
+            <ul className={`overflow-hidden transition-all duration-300 ${openGroupIndex === idx ? "max-h-96 pb-3" : "max-h-0"}`}>
+              {group.subs.map((sub: string, sIdx: number) => (
+                <li 
+                  key={sIdx} 
+                  onClick={onClose}
+                  className="pl-12 pr-5 py-2 text-xs font-semibold text-gray-600 hover:text-primary cursor-pointer active:bg-primary/10"
+                >
+                  {sub}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+
+const MobileSidebar = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
   return (
     <>
       {/* Backdrop */}
@@ -66,56 +111,30 @@ const MobileSidebar = ({ isOpen, onClose, categories }: { isOpen: boolean, onClo
       <div className={`fixed top-0 left-0 h-full w-[80%] max-w-[300px] bg-white z-[160] shadow-2xl transform transition-transform duration-300 ease-in-out lg:hidden ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
         
         {/* Drawer Header */}
-        <div className="flex items-center justify-between p-5 border-b bg-zinc-900 text-white">
-          <span className="text-xl font-black font-saira uppercase">AVERZO.</span>
+        <div className="flex items-center justify-between p-5 border-b bg-foreground text-background">
+          <span className="text-xl font-black font-saira uppercase">Averzo.</span>
           <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-full">
             <X size={24} />
           </button>
         </div>
 
         {/* Drawer Content (Scrollable) */}
-        <div className="h-[calc(100vh-70px)] overflow-y-auto pb-10 custom-scrollbar">
+        <div className="h-[calc(100vh-70px)] overflow-y-auto pb-10">
           
           {/* Profile Quick Link */}
           <div className="p-5 border-b flex items-center gap-3">
              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">U</div>
              <div>
-               <p className="text-xs font-bold text-zinc-800">Welcome, User</p>
-               <p className="text-[10px] text-zinc-500">Login to your account</p>
+               <p className="text-xs font-bold text-foreground">Welcome, User</p>
+               <p className="text-[10px] text-muted-foreground">Login to your account</p>
              </div>
           </div>
 
           {/* Accordion Menu */}
           <div className="py-2">
-            <p className="px-5 py-2 text-[10px] font-black text-zinc-400 uppercase tracking-widest">Categories</p>
-            {categories.map((cat, index) => (
-              <div key={index} className="border-b border-zinc-50">
-                <button 
-                  onClick={() => toggleAccordion(index)}
-                  className="w-full flex items-center justify-between py-4 px-5 text-sm font-bold text-zinc-700 hover:text-primary transition-colors"
-                >
-                  {cat.name}
-                  <ChevronDown size={16} className={`transition-transform duration-300 ${openIndex === index ? "rotate-180" : ""}`} />
-                </button>
-
-                {/* Sub-category slide */}
-                <div className={`overflow-hidden transition-all duration-300 bg-zinc-50 ${openIndex === index ? "max-h-96" : "max-h-0"}`}>
-                    <div className="py-2 px-8 space-y-3">
-                        {cat.groups.map((group, groupIndex) => (
-                            <div key={groupIndex} className="pt-2">
-                                <p className="font-bold text-xs text-zinc-800 uppercase">{group.name}</p>
-                                <ul className="pt-2 space-y-2">
-                                {group.subs.map((sub, i) => (
-                                    <li key={i} className="text-xs font-semibold text-zinc-500 hover:text-primary cursor-pointer">
-                                        {sub}
-                                    </li>
-                                ))}
-                                </ul>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-              </div>
+            <p className="px-5 py-2 text-[10px] font-black text-muted-foreground uppercase tracking-widest">All Categories</p>
+            {categoriesData.map((cat, index) => (
+              <NestedAccordion key={index} category={cat} onClose={onClose} />
             ))}
           </div>
         </div>
@@ -150,7 +169,7 @@ export default function AverzoNavbar() {
       {/* 1. Primary Master Header (Always Sticky) */}
       <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4 md:gap-8">
         <div className="flex items-center gap-3">
-            <button 
+             <button 
                 onClick={() => setIsDrawerOpen(true)}
                 className="p-2 lg:hidden hover:bg-muted rounded-md transition-colors"
             >
@@ -192,9 +211,9 @@ export default function AverzoNavbar() {
         <div className="w-full overflow-x-auto whitespace-nowrap no-scrollbar">
             <div className="container mx-auto px-4 flex items-center gap-8 h-full">
             {categoriesData.map((item) => (
-                <div key={item.name} className="group static">
+                <div key={item.mother_name} className="group static">
                 <button className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-1 hover:text-primary">
-                    {item.name} <ChevronDown size={12} />
+                    {item.mother_name} <ChevronDown size={12} />
                 </button>
                 
                 {/* 3. Full-width Mega Menu */}
@@ -207,8 +226,8 @@ export default function AverzoNavbar() {
                 >
                     <div className="container mx-auto grid grid-cols-5 gap-x-10 gap-y-6 p-10">
                         {item.groups.map(group => (
-                            <div key={group.name} className="col-span-1">
-                                <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">{group.name}</h4>
+                            <div key={group.group_name} className="col-span-1">
+                                <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">{group.group_name}</h4>
                                 <ul className="space-y-2 text-sm text-muted-foreground font-body">
                                 {group.subs.map(sub => (
                                     <li key={sub} className="hover:text-primary cursor-pointer">{sub}</li>
@@ -227,7 +246,6 @@ export default function AverzoNavbar() {
        <MobileSidebar 
           isOpen={isDrawerOpen} 
           onClose={() => setIsDrawerOpen(false)} 
-          categories={categoriesData}
         />
     </header>
   );
