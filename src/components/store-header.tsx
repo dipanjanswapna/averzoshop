@@ -120,11 +120,19 @@ const MobileSidebar = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
 export default function AverzoNavbar() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
   const { items } = useCart();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
+    
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 0);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
   
   const createQueryString = (params: Record<string, string>) => {
@@ -222,7 +230,7 @@ export default function AverzoNavbar() {
                               animate="visible"
                               exit="hidden"
                               variants={menuVariants}
-                              className="absolute left-0 right-0 top-full w-full bg-background text-foreground border-t shadow-2xl z-[110]"
+                              className="absolute top-full left-1/2 -translate-x-1/2 w-screen bg-background text-foreground border-t shadow-2xl z-[110]"
                               style={{ maxHeight: 'calc(100vh - 108px)', overflowY: 'auto' }}
                             >
                                 <div className="container mx-auto grid grid-cols-5 gap-x-10 gap-y-6 p-10">
