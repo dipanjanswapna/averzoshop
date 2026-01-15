@@ -1,7 +1,7 @@
 
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, 'useState', 'useEffect', 'useMemo' } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { FilterSidebar } from '@/components/shop/filter-sidebar';
 import { ProductGrid } from '@/components/shop/product-grid';
@@ -149,6 +149,12 @@ export default function MensFashionPage() {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="text-center my-8 md:my-12">
+        <h1 className="text-4xl md:text-5xl font-extrabold font-headline tracking-tight">
+          Men's Fashion
+        </h1>
+      </div>
+
       {/* --- Hero Carousel --- */}
       <div className="mb-8">
         <Carousel
@@ -186,15 +192,6 @@ export default function MensFashionPage() {
             <CarouselNext className="static -translate-y-0" />
           </div>
         </Carousel>
-      </div>
-
-      <div className="text-center my-8 md:my-12">
-        <h1 className="text-4xl md:text-5xl font-extrabold font-headline tracking-tight">
-          Men's Fashion
-        </h1>
-        <p className="mt-4 text-lg text-muted-foreground max-w-2xl mx-auto">
-          Discover the latest trends and timeless classics. From sharp suits to casual essentials, find your perfect look here.
-        </p>
       </div>
 
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
