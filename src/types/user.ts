@@ -8,5 +8,6 @@ export interface UserData {
   status: 'pending' | 'approved' | 'rejected';
   wishlist?: string[];
   outletId?: string;
+  assignedOutlets?: string[];
   createdAt?: string;
 }

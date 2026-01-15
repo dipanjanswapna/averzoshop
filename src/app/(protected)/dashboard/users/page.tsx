@@ -37,6 +37,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
+import { ManageVendorOutletsDialog } from '@/components/dashboard/manage-vendor-outlets-dialog';
 
 export default function UsersPage() {
   const { firestore } = useFirebase();
@@ -45,6 +46,8 @@ export default function UsersPage() {
   
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [isManageOutletsOpen, setIsManageOutletsOpen] = useState(false);
+  const [selectedVendor, setSelectedVendor] = useState<UserData | null>(null);
 
   const handleStatusChange = async (uid: string, newStatus: 'approved' | 'rejected') => {
     if (!firestore) return;
@@ -63,6 +66,11 @@ export default function UsersPage() {
         description: 'Could not update user status.',
       });
     }
+  };
+
+  const handleManageOutletsClick = (vendor: UserData) => {
+    setSelectedVendor(vendor);
+    setIsManageOutletsOpen(true);
   };
 
   const filteredUsers = useMemo(() => {
@@ -109,6 +117,7 @@ export default function UsersPage() {
   );
 
   return (
+    <>
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <h1 className="text-3xl font-bold font-headline">Users</h1>
@@ -205,6 +214,14 @@ export default function UsersPage() {
                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
                               <DropdownMenuItem>Edit</DropdownMenuItem>
                               <DropdownMenuItem>View Details</DropdownMenuItem>
+                               {user.role === 'vendor' && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem onClick={() => handleManageOutletsClick(user)}>
+                                    Manage Assigned Outlets
+                                  </DropdownMenuItem>
+                                </>
+                              )}
                               {user.status === 'pending' && (
                                 <>
                                   <DropdownMenuSeparator />
@@ -275,6 +292,14 @@ export default function UsersPage() {
                                     <DropdownMenuContent align="end">
                                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                     <DropdownMenuItem>Edit</DropdownMenuItem>
+                                     {user.role === 'vendor' && (
+                                        <>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem onClick={() => handleManageOutletsClick(user)}>
+                                            Manage Assigned Outlets
+                                        </DropdownMenuItem>
+                                        </>
+                                    )}
                                     {user.status === 'pending' && (
                                         <>
                                         <DropdownMenuSeparator />
@@ -306,5 +331,13 @@ export default function UsersPage() {
         </CardContent>
       </Card>
     </div>
+    {selectedVendor && (
+      <ManageVendorOutletsDialog
+          open={isManageOutletsOpen}
+          onOpenChange={setIsManageOutletsOpen}
+          vendor={selectedVendor}
+      />
+    )}
+    </>
   );
 }
