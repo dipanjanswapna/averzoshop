@@ -23,7 +23,7 @@ const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   email: z.string().email({ message: 'Invalid email address.' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
-  role: z.enum(['customer', 'vendor', 'rider'], { required_error: 'Please select a role.' }),
+  role: z.enum(['customer', 'vendor', 'rider', 'admin'], { required_error: 'Please select a role.' }),
 });
 
 function RegisterPageContent() {
@@ -57,7 +57,7 @@ function RegisterPageContent() {
 
       const userDocRef = doc(firestore, 'users', user.uid);
       
-      const status = values.role === 'customer' ? 'approved' : 'pending';
+      const status = values.role === 'customer' || values.role === 'admin' ? 'approved' : 'pending';
 
       await setDoc(userDocRef, {
         uid: user.uid,
