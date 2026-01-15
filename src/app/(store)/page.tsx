@@ -17,6 +17,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
+import Autoplay from "embla-carousel-autoplay";
 import { ProductCard } from '@/components/product-card';
 
 const featuredProducts = products.slice(0, 4);
@@ -60,6 +61,11 @@ export default function StoreFrontPage() {
                   align: 'start',
                   loop: true,
                 }}
+                plugins={[
+                    Autoplay({
+                      delay: 4000,
+                    }),
+                ]}
                 className="w-full"
               >
                 <CarouselContent>
@@ -106,7 +112,7 @@ export default function StoreFrontPage() {
               <Card className="overflow-hidden border-none shadow-md hover:shadow-xl transition-shadow duration-300 group">
                 <CardContent className="p-0">
                   <div className="relative aspect-square w-full bg-muted flex items-center justify-center">
-                    <Link href="#" className="flex flex-col items-center">
+                    <Link href="/shop" className="flex flex-col items-center">
                       <ArrowRight className="h-8 w-8 text-primary" />
                       <span className="font-bold text-primary mt-2">
                         View All
