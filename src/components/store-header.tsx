@@ -1,9 +1,8 @@
-
 "use client";
 import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
 import { Search, ShoppingBag, Heart, User, Menu, ChevronDown, X } from 'lucide-react';
-
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 const categoriesData = [
     { name: "Men's Fashion", subs: ["Topwear", "Bottomwear", "Ethnic Wear", "Accessories"] },
@@ -37,22 +36,27 @@ const MobileSidebar = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
 
   return (
     <>
+      {/* Backdrop */}
       <div 
         className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] transition-opacity duration-300 lg:hidden ${isOpen ? "opacity-100 visible" : "opacity-0 invisible"}`}
         onClick={onClose}
       />
 
+      {/* Main Slide Panel */}
       <div className={`fixed top-0 left-0 h-full w-[80%] max-w-[300px] bg-white z-[160] shadow-2xl transform transition-transform duration-300 ease-in-out lg:hidden ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
         
+        {/* Drawer Header */}
         <div className="flex items-center justify-between p-5 border-b bg-zinc-900 text-white">
-          <span className="text-xl font-black font-saira uppercase">Averzo.</span>
+          <span className="text-xl font-black font-saira uppercase">AVERZO.</span>
           <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-full">
             <X size={24} />
           </button>
         </div>
 
+        {/* Drawer Content (Scrollable) */}
         <div className="h-[calc(100vh-70px)] overflow-y-auto pb-10 custom-scrollbar">
           
+          {/* Profile Quick Link */}
           <div className="p-5 border-b flex items-center gap-3">
              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">U</div>
              <div>
@@ -61,6 +65,7 @@ const MobileSidebar = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
              </div>
           </div>
 
+          {/* Accordion Menu */}
           <div className="py-2">
             <p className="px-5 py-2 text-[10px] font-black text-zinc-400 uppercase tracking-widest">Categories</p>
             {categoriesData.map((cat, index) => (
@@ -73,6 +78,7 @@ const MobileSidebar = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
                   <ChevronDown size={16} className={`transition-transform duration-300 ${openIndex === index ? "rotate-180" : ""}`} />
                 </button>
 
+                {/* Sub-category slide */}
                 <div className={`overflow-hidden transition-all duration-300 bg-zinc-50 ${openIndex === index ? "max-h-96" : "max-h-0"}`}>
                   <ul className="py-2 px-8 space-y-3">
                     {cat.subs.map((sub, i) => (
@@ -114,19 +120,21 @@ export default function AverzoNavbar() {
   return (
     <header className="fixed top-0 left-0 w-full z-[100] bg-background shadow-sm transition-all duration-300">
       
+      {/* 1. Primary Master Header (Always Sticky) */}
       <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4 md:gap-8">
         <div className="flex items-center gap-3">
-          <button 
-            onClick={() => setIsDrawerOpen(true)}
-            className="p-2 lg:hidden hover:bg-muted rounded-md transition-colors"
-          >
-            <Menu size={24} />
-          </button>
+            <button 
+                onClick={() => setIsDrawerOpen(true)}
+                className="p-2 lg:hidden hover:bg-muted rounded-md transition-colors"
+            >
+                <Menu size={24} />
+            </button>
             <Link href="/" className="text-2xl font-black font-saira tracking-tighter text-foreground">
                 AVERZO<span className="text-primary">.</span>
             </Link>
         </div>
 
+        {/* Main Search Bar */}
         <div className="flex-1 max-w-2xl relative hidden md:block">
           <input 
             type="text" 
@@ -138,6 +146,7 @@ export default function AverzoNavbar() {
           </button>
         </div>
 
+        {/* User Action Icons */}
         <div className="flex items-center gap-5">
           <User size={22} className="cursor-pointer hover:text-primary transition-colors" />
           <div className="relative cursor-pointer">
@@ -147,17 +156,26 @@ export default function AverzoNavbar() {
         </div>
       </div>
 
-      <nav className={`bg-secondary text-secondary-foreground transition-all duration-300 origin-top hidden lg:flex ${isVisible ? "scale-y-100 opacity-100 h-10" : "scale-y-0 opacity-0 h-0"}`}>
-        <div className="container mx-auto px-4 flex items-center justify-center gap-8 h-full overflow-x-auto whitespace-nowrap no-scrollbar">
+      {/* 2. Secondary Category Bar (Auto-hides) */}
+      <nav className={cn(
+          "bg-secondary text-secondary-foreground transition-all duration-300 origin-top",
+          "lg:flex",
+          isVisible ? "scale-y-100 opacity-100 h-10" : "scale-y-0 opacity-0 h-0"
+      )}>
+        <div className="container mx-auto px-4 flex items-center gap-8 h-full overflow-x-auto whitespace-nowrap no-scrollbar">
           {categoriesData.map((item) => (
             <div key={item.name} className="group static">
               <button className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-1 hover:text-primary">
                 {item.name} <ChevronDown size={12} />
               </button>
               
+              {/* 3. Full-width Mega Menu */}
               <div 
-                className="absolute left-0 right-0 top-full w-full bg-white text-zinc-900 border-t shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[110]"
-                style={{ maxHeight: '70vh', overflowY: 'auto' }}
+                className="absolute left-0 right-0 top-full w-full bg-background text-foreground border-t shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[110]"
+                style={{ 
+                  maxHeight: 'calc(100vh - 112px)', 
+                  overflowY: 'auto' 
+                }}
               >
                 <div className="container mx-auto grid grid-cols-5 gap-10 p-10">
                   <div className="col-span-1">
@@ -168,6 +186,7 @@ export default function AverzoNavbar() {
                       ))}
                     </ul>
                   </div>
+                  {/* Brand Zone */}
                   <div className="col-span-2 flex flex-col items-center border-l border-r px-10">
                      <h4 className="font-bold mb-6 text-xs uppercase">Featured Brands</h4>
                      <div className="flex gap-6">
@@ -181,12 +200,15 @@ export default function AverzoNavbar() {
                         ))}
                      </div>
                   </div>
-                   <div className="col-span-1">
-                    <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">More Options</h4>
-                    <ul className="space-y-2 text-sm text-muted-foreground font-body">
-                      <li className="hover:text-primary cursor-pointer">New Arrivals</li>
-                      <li className="hover:text-primary cursor-pointer">Special Offers</li>
-                    </ul>
+                  {/* Promotional Banner */}
+                  <div className="col-span-2">
+                    <div className="relative h-full bg-secondary rounded-xl p-6 overflow-hidden flex flex-col justify-center border">
+                        <h3 className="text-2xl font-black text-primary font-saira leading-tight">SUMMER <br/> COLLECTION</h3>
+                        <p className="text-xs text-muted-foreground mt-2 max-w-[200px]">Explore the latest trends for the summer season.</p>
+                        <button className="mt-4 bg-primary text-primary-foreground font-bold py-2 px-6 rounded-lg text-xs w-max hover:bg-foreground transition-colors">
+                        SHOP NOW
+                        </button>
+                    </div>
                   </div>
                 </div>
               </div>
