@@ -4,30 +4,49 @@ import { Search, ShoppingBag, Heart, User, Menu, ChevronDown, X } from 'lucide-r
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 
+// New structured data for categories, groups, and sub-categories
 const categoriesData = [
-    { name: "Men's Fashion", subs: ["Topwear", "Bottomwear", "Ethnic Wear", "Accessories"] },
-    { name: "Women's Fashion", subs: ["Saree", "Salwar Kameez", "Western Wear", "Bags"] },
-    { name: "Electronics & Gadgets", subs: ["Laptops", "Mobiles", "Cameras", "Smart Devices"] },
-    { name: "Kids & Baby", subs: ["Clothing", "Toys", "Baby Care Essentials"] },
-    { name: "Beauty & Personal Care", subs: ["Skincare", "Makeup", "Haircare", "Fragrances"] },
-    { name: "Home & Living", subs: ["Furniture", "Decor", "Kitchenware", "Bedding"] },
-    { name: "Health & Wellness", subs: ["Gym Equipment", "Supplements", "Organic Food"] },
-    { name: "Gaming & Esports", subs: ["Gaming PCs", "Consoles", "Chairs", "Accessories"] },
-    { name: "Pet Care", subs: ["Pet Food", "Grooming", "Toys & Accessories"] },
-    { name: "Sports & Outdoors", subs: ["Sports Gear", "Gym Wear", "Camping Kits"] },
-    { name: "Smart Home & IoT", subs: ["Smart Lighting", "Security Cameras", "Home Automation"] },
-    { name: "Automotive & Biking", subs: ["Helmets", "Bike Accessories", "Car Gadgets"] },
-    { name: "Books & Stationery", subs: ["Academic Books", "Fiction", "Office Supplies"] },
-    { name: "Artisan & Handicrafts", subs: ["Handmade Crafts", "Traditional Art"] },
-    { name: "Travel & Luggage", subs: ["Travel Bags", "Trolleys", "Travel Accessories"] },
-    { name: "Eco-Friendly Living", subs: ["Sustainable Fashion", "Recycled Products", "Solar Devices"] },
-    { name: "Musical Instruments", subs: ["Guitars", "Keyboards", "Sound Systems"] },
-    { name: "Gifts & Celebrations", subs: ["Custom Gift Boxes", "Party Supplies", "Festive Items"] },
-    { name: "Daily Essentials (Groceries)", subs: ["Staples", "Snacks", "Beverages"] },
+    {
+      name: "Men's Fashion",
+      groups: [
+        { name: "Topwear", subs: ["T-Shirts", "Casual Shirts", "Formal Shirts", "Polo Shirts", "Sweatshirts"] },
+        { name: "Bottomwear", subs: ["Jeans", "Trousers", "Shorts", "Track Pants"] },
+        { name: "Ethnic Wear", subs: ["Kurtas", "Sherwanis", "Jackets"] },
+        { name: "Footwear", subs: ["Casual Shoes", "Formal Shoes", "Sneakers", "Sandals"] },
+        { name: "Accessories", subs: ["Watches", "Belts", "Wallets", "Sunglasses"] },
+      ]
+    },
+    {
+      name: "Women's Fashion",
+      groups: [
+        { name: "Indian & Fusion Wear", subs: ["Sarees", "Kurtis", "Salwar Kameez", "Lehengas"] },
+        { name: "Western Wear", subs: ["Dresses", "Tops", "Jeans", "Skirts"] },
+        { name: "Lingerie & Sleepwear", subs: ["Bras", "Briefs", "Nightwear"] },
+        { name: "Footwear", subs: ["Flats", "Heels", "Boots", "Sneakers"] },
+        { name: "Accessories", subs: ["Handbags", "Jewellery", "Sunglasses"] },
+      ]
+    },
+    { name: "Electronics & Gadgets", groups: [ { name: "Mobiles & Laptops", subs: ["Laptops", "Mobiles", "Tablets"] }, { name: "Cameras & Drones", subs: ["DSLR", "Drones", "GoPro"] } ] },
+    { name: "Kids & Baby", groups: [ { name: "Clothing", subs: ["Boys", "Girls", "Infants"] }, { name: "Toys", subs: ["Action", "Educational"] } ]  },
+    { name: "Beauty & Personal Care", groups: [ { name: "Skincare", subs: ["Face Wash", "Moisturizer"] }, { name: "Makeup", subs: ["Lipstick", "Foundation"] } ]  },
+    { name: "Home & Living", groups: [ { name: "Decor", subs: ["Wall Art", "Lamps"] }, { name: "Kitchen", subs: ["Cookware", "Appliances"] } ]  },
+    { name: "Health & Wellness", groups: [ { name: "Supplements", subs: ["Vitamins", "Protein"] }, { name: "Gym Gear", subs: ["Weights", "Mats"] } ]  },
+    { name: "Gaming & Esports", groups: [ { name: "Hardware", subs: ["Gaming PCs", "Consoles", "Chairs"] }, { name: "Accessories", subs: ["Headsets", "Keyboards"] } ]  },
+    { name: "Pet Care", groups: [ { name: "Food", subs: ["Dog Food", "Cat Food"] }, { name: "Grooming", subs: ["Shampoos", "Brushes"] } ]  },
+    { name: "Sports & Outdoors", groups: [ { name: "Cricket", subs: ["Bats", "Balls"] }, { name: "Camping", subs: ["Tents", "Backpacks"] } ]  },
+    { name: "Smart Home & IoT", groups: [ { name: "Lighting", subs: ["Smart Bulbs", "LED Strips"] }, { name: "Security", subs: ["Cameras", "Sensors"] } ]  },
+    { name: "Automotive & Biking", groups: [ { name: "Helmets", subs: ["Full-face", "Open-face"] }, { name: "Accessories", subs: ["Gloves", "Jackets"] } ]  },
+    { name: "Books & Stationery", groups: [ { name: "Books", subs: ["Fiction", "Academic"] }, { name: "Stationery", subs: ["Pens", "Notebooks"] } ]  },
+    { name: "Artisan & Handicrafts", groups: [ { name: "Decor", subs: ["Paintings", "Sculptures"] }, { name: "Crafts", subs: ["Pottery", "Woodwork"] } ]  },
+    { name: "Travel & Luggage", groups: [ { name: "Bags", subs: ["Trolleys", "Backpacks"] }, { name: "Accessories", subs: ["Neck Pillows", "Locks"] } ]  },
+    { name: "Eco-Friendly Living", groups: [ { name: "Fashion", subs: ["Sustainable", "Recycled"] }, { name: "Home", subs: ["Solar", "Compost"] } ]  },
+    { name: "Musical Instruments", groups: [ { name: "String", subs: ["Guitars", "Keyboards"] }, { name: "Percussion", subs: ["Drums", "Cajons"] } ]  },
+    { name: "Gifts & Celebrations", groups: [ { name: "Gifts", subs: ["Gift Boxes", "Cards"] }, { name: "Party", subs: ["Balloons", "Decorations"] } ]  },
+    { name: "Daily Essentials (Groceries)", groups: [ { name: "Staples", subs: ["Rice", "Flour"] }, { name: "Snacks", subs: ["Chips", "Biscuits"] } ]  },
 ];
 
 
-const MobileSidebar = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+const MobileSidebar = ({ isOpen, onClose, categories }: { isOpen: boolean, onClose: () => void, categories: typeof categoriesData }) => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   const toggleAccordion = (index: number) => {
@@ -68,7 +87,7 @@ const MobileSidebar = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
           {/* Accordion Menu */}
           <div className="py-2">
             <p className="px-5 py-2 text-[10px] font-black text-zinc-400 uppercase tracking-widest">Categories</p>
-            {categoriesData.map((cat, index) => (
+            {categories.map((cat, index) => (
               <div key={index} className="border-b border-zinc-50">
                 <button 
                   onClick={() => toggleAccordion(index)}
@@ -80,13 +99,20 @@ const MobileSidebar = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
 
                 {/* Sub-category slide */}
                 <div className={`overflow-hidden transition-all duration-300 bg-zinc-50 ${openIndex === index ? "max-h-96" : "max-h-0"}`}>
-                  <ul className="py-2 px-8 space-y-3">
-                    {cat.subs.map((sub, i) => (
-                      <li key={i} className="text-xs font-semibold text-zinc-500 hover:text-primary cursor-pointer">
-                        {sub}
-                      </li>
-                    ))}
-                  </ul>
+                    <div className="py-2 px-8 space-y-3">
+                        {cat.groups.map((group, groupIndex) => (
+                            <div key={groupIndex} className="pt-2">
+                                <p className="font-bold text-xs text-zinc-800 uppercase">{group.name}</p>
+                                <ul className="pt-2 space-y-2">
+                                {group.subs.map((sub, i) => (
+                                    <li key={i} className="text-xs font-semibold text-zinc-500 hover:text-primary cursor-pointer">
+                                        {sub}
+                                    </li>
+                                ))}
+                                </ul>
+                            </div>
+                        ))}
+                    </div>
                 </div>
               </div>
             ))}
@@ -159,67 +185,48 @@ export default function AverzoNavbar() {
       {/* 2. Secondary Category Bar (Auto-hides) */}
       <nav className={cn(
           "bg-secondary text-secondary-foreground transition-all duration-300 origin-top",
-          "lg:flex",
+          "hidden lg:flex",
           isVisible ? "scale-y-100 opacity-100 h-10" : "scale-y-0 opacity-0 h-0"
       )}>
-        <div className="container mx-auto px-4 flex items-center gap-8 h-full overflow-x-auto whitespace-nowrap no-scrollbar">
-          {categoriesData.map((item) => (
-            <div key={item.name} className="group static">
-              <button className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-1 hover:text-primary">
-                {item.name} <ChevronDown size={12} />
-              </button>
-              
-              {/* 3. Full-width Mega Menu */}
-              <div 
-                className="absolute left-0 right-0 top-full w-full bg-background text-foreground border-t shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[110]"
-                style={{ 
-                  maxHeight: 'calc(100vh - 112px)', 
-                  overflowY: 'auto' 
-                }}
-              >
-                <div className="container mx-auto grid grid-cols-5 gap-10 p-10">
-                  <div className="col-span-1">
-                    <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">{item.subs[0] || 'Sub-Category'}</h4>
-                    <ul className="space-y-2 text-sm text-muted-foreground font-body">
-                      {item.subs.slice(1).map((sub: string) => (
-                        <li key={sub} className="hover:text-primary cursor-pointer">{sub}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  {/* Brand Zone */}
-                  <div className="col-span-2 flex flex-col items-center border-l border-r px-10">
-                     <h4 className="font-bold mb-6 text-xs uppercase">Featured Brands</h4>
-                     <div className="flex gap-6">
-                        {['Aura Men', 'Aura Women'].map(brand => (
-                          <div key={brand} className="text-center group/brand cursor-pointer">
-                            <div className="w-16 h-16 rounded-full bg-muted border-2 border-transparent group-hover/brand:border-primary overflow-hidden transition-all">
-                               <div className="w-full h-full bg-primary/10 flex items-center justify-center text-[10px] font-bold">IMG</div>
+        <div className="w-full overflow-x-auto whitespace-nowrap no-scrollbar">
+            <div className="container mx-auto px-4 flex items-center gap-8 h-full">
+            {categoriesData.map((item) => (
+                <div key={item.name} className="group static">
+                <button className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-1 hover:text-primary">
+                    {item.name} <ChevronDown size={12} />
+                </button>
+                
+                {/* 3. Full-width Mega Menu */}
+                <div 
+                    className="absolute left-0 right-0 top-full w-full bg-background text-foreground border-t shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[110]"
+                    style={{ 
+                    maxHeight: 'calc(100vh - 112px)', 
+                    overflowY: 'auto' 
+                    }}
+                >
+                    <div className="container mx-auto grid grid-cols-5 gap-x-10 gap-y-6 p-10">
+                        {item.groups.map(group => (
+                            <div key={group.name} className="col-span-1">
+                                <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">{group.name}</h4>
+                                <ul className="space-y-2 text-sm text-muted-foreground font-body">
+                                {group.subs.map(sub => (
+                                    <li key={sub} className="hover:text-primary cursor-pointer">{sub}</li>
+                                ))}
+                                </ul>
                             </div>
-                            <span className="text-[10px] font-bold mt-2 block uppercase">{brand}</span>
-                          </div>
                         ))}
-                     </div>
-                  </div>
-                  {/* Promotional Banner */}
-                  <div className="col-span-2">
-                    <div className="relative h-full bg-secondary rounded-xl p-6 overflow-hidden flex flex-col justify-center border">
-                        <h3 className="text-2xl font-black text-primary font-saira leading-tight">SUMMER <br/> COLLECTION</h3>
-                        <p className="text-xs text-muted-foreground mt-2 max-w-[200px]">Explore the latest trends for the summer season.</p>
-                        <button className="mt-4 bg-primary text-primary-foreground font-bold py-2 px-6 rounded-lg text-xs w-max hover:bg-foreground transition-colors">
-                        SHOP NOW
-                        </button>
                     </div>
-                  </div>
                 </div>
-              </div>
+                </div>
+            ))}
             </div>
-          ))}
         </div>
       </nav>
 
        <MobileSidebar 
           isOpen={isDrawerOpen} 
           onClose={() => setIsDrawerOpen(false)} 
+          categories={categoriesData}
         />
     </header>
   );
