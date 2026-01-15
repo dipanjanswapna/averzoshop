@@ -3,6 +3,7 @@ import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import LayoutDebugger from '@/components/debug/LayoutDebugger';
 
 export const metadata: Metadata = {
   title: 'Averzo',
@@ -28,6 +29,7 @@ export default function RootLayout({
           {children}
           <Toaster />
         </FirebaseClientProvider>
+        <LayoutDebugger />
       </body>
     </html>
   );
