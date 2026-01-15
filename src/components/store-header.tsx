@@ -16,6 +16,16 @@ const NestedAccordion = ({ category, onClose }: { category: any, onClose: () => 
     setOpenGroupIndex(openGroupIndex === index ? null : index);
   };
 
+  const createQueryString = (params: Record<string, string>) => {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value) {
+        searchParams.set(key, value);
+      }
+    });
+    return searchParams.toString();
+  };
+
   return (
     <div className="border-b border-gray-100">
       {/* ১. Mother Category (e.g., Men's Fashion) */}
@@ -47,7 +57,7 @@ const NestedAccordion = ({ category, onClose }: { category: any, onClose: () => 
                   onClick={onClose}
                   className="pl-12 pr-5 py-2 text-xs font-semibold text-gray-600 hover:text-primary cursor-pointer active:bg-primary/10"
                 >
-                  <Link href="/shop">{sub}</Link>
+                  <Link href={`/shop?${createQueryString({ mother_category: category.mother_name, group: group.group_name, subcategory: sub })}`}>{sub}</Link>
                 </li>
               ))}
             </ul>
@@ -124,6 +134,16 @@ export default function AverzoNavbar() {
     return () => window.removeEventListener('scroll', controlNavbar);
   }, [lastScrollY]);
 
+  const createQueryString = (params: Record<string, string>) => {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value) {
+        searchParams.set(key, value);
+      }
+    });
+    return searchParams.toString();
+  };
+
   return (
     <header className="fixed top-0 left-0 w-full z-[100] bg-background shadow-sm transition-all duration-300">
       
@@ -180,9 +200,11 @@ export default function AverzoNavbar() {
             <div className="px-4 flex items-center gap-8 h-full">
             {categoriesData.map((item) => (
                 <div key={item.mother_name} className="group static">
-                <button className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-1 hover:text-primary">
-                    {item.mother_name} <ChevronDown size={12} />
-                </button>
+                 <Link href={`/shop?${createQueryString({ mother_category: item.mother_name })}`}>
+                    <button className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-1 hover:text-primary">
+                        {item.mother_name} <ChevronDown size={12} />
+                    </button>
+                 </Link>
                 
                 {/* 3. Full-width Mega Menu */}
                 <div 
@@ -195,10 +217,18 @@ export default function AverzoNavbar() {
                     <div className="container mx-auto grid grid-cols-5 gap-x-10 gap-y-6 p-10">
                         {item.groups.map(group => (
                             <div key={group.group_name} className="col-span-1">
-                                <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">{group.group_name}</h4>
+                                <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">
+                                    <Link href={`/shop?${createQueryString({ mother_category: item.mother_name, group: group.group_name })}`}>
+                                     {group.group_name}
+                                    </Link>
+                                </h4>
                                 <ul className="space-y-2 text-sm text-muted-foreground font-body">
                                 {group.subs.map(sub => (
-                                    <li key={sub} className="hover:text-primary cursor-pointer"><Link href="/shop">{sub}</Link></li>
+                                    <li key={sub} className="hover:text-primary cursor-pointer">
+                                        <Link href={`/shop?${createQueryString({ mother_category: item.mother_name, group: group.group_name, subcategory: sub })}`}>
+                                            {sub}
+                                        </Link>
+                                    </li>
                                 ))}
                                 </ul>
                             </div>

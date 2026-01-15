@@ -39,22 +39,28 @@ export const FilterSidebar = ({
   setSelectedSubcategory,
 }: FilterSidebarProps) => {
 
-  const availableGroups = selectedMotherCategory 
-    ? categoriesData.find(cat => cat.mother_name === selectedMotherCategory)?.groups || [] 
-    : [];
+  const availableGroups = React.useMemo(() => {
+    if (!selectedMotherCategory) return [];
+    const category = categoriesData.find(cat => cat.mother_name === selectedMotherCategory);
+    return category?.groups || [];
+  }, [selectedMotherCategory]);
 
-  const availableSubcategories = selectedGroup
-    ? availableGroups.find(g => g.group_name === selectedGroup)?.subs || []
-    : [];
+  const availableSubcategories = React.useMemo(() => {
+    if (!selectedGroup) return [];
+    const group = availableGroups.find(g => g.group_name === selectedGroup);
+    return group?.subs || [];
+  }, [selectedGroup, availableGroups]);
 
   const handleMotherCategoryChange = (value: string) => {
-    setSelectedMotherCategory(value === 'all' ? null : value);
+    const newValue = value === 'all' ? null : value;
+    setSelectedMotherCategory(newValue);
     setSelectedGroup(null);
     setSelectedSubcategory(null);
   }
 
   const handleGroupChange = (value: string) => {
-    setSelectedGroup(value === 'all' ? null : value);
+    const newValue = value === 'all' ? null : value;
+    setSelectedGroup(newValue);
     setSelectedSubcategory(null);
   }
   
@@ -63,7 +69,8 @@ export const FilterSidebar = ({
   };
   
   const handleSubcategoryChange = (value: string) => {
-    setSelectedSubcategory(value === 'all' ? null : value);
+    const newValue = value === 'all' ? null : value;
+    setSelectedSubcategory(newValue);
   }
 
 
