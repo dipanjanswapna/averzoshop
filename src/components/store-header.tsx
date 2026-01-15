@@ -91,8 +91,8 @@ const NavItem = ({ category, children }: { category: typeof categories[0], child
         </Link>
 
         {category.sections && (
-            <div className="absolute left-0 right-0 top-full w-full bg-background/90 border-t shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-40 backdrop-blur-sm">
-                <div className="container mx-auto grid grid-cols-6 gap-8 p-10">
+            <div className="absolute left-0 top-full w-screen bg-background/90 border-t shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-40 backdrop-blur-sm">
+                <div className="container mx-auto grid grid-cols-4 gap-8 p-10">
                     {children}
                 </div>
             </div>
@@ -161,24 +161,9 @@ export function StoreHeader() {
                                 </ul>
                             </div>
                         ))}
-                        
-                        <div className="col-span-1 border-l pl-8">
-                           <h4 className="font-bold text-primary mb-4 uppercase font-headline text-sm tracking-wider">Featured Brands</h4>
-                           <div className="grid grid-cols-3 gap-4">
-                              {subBrands.slice(0, 3).map(brand => (
-                                  <Link href="#" key={brand.id} className="flex flex-col items-center text-center gap-2 group/brand">
-                                      <Avatar className="h-14 w-14 border-2 border-transparent group-hover/brand:border-primary transition-colors">
-                                        <AvatarImage src={`https://picsum.photos/seed/${brand.id}/100/100`} alt={brand.name} />
-                                        <AvatarFallback>{brand.name.charAt(0)}</AvatarFallback>
-                                      </Avatar>
-                                      <p className="font-semibold text-xs font-body text-muted-foreground group-hover/brand:text-foreground">{brand.name}</p>
-                                  </Link>
-                              ))}
-                           </div>
-                        </div>
 
                         {/* Promo Section */}
-                        <div className="col-span-2">
+                        <div className="col-span-1">
                             <div className="relative w-full h-full rounded-lg overflow-hidden bg-secondary min-h-[150px]">
                                 {category.promo?.image && (
                                     <Image
