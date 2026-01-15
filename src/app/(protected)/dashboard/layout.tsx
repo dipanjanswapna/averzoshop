@@ -10,7 +10,6 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { DashboardNav } from '@/components/dashboard-nav';
-import { CustomerNav } from '@/components/customer-nav';
 import { UserNav } from '@/components/user-nav';
 import AverzoLogo from '@/components/averzo-logo';
 import { Search } from 'lucide-react';
@@ -28,18 +27,22 @@ export default function DashboardLayout({
   const router = useRouter();
 
   useEffect(() => {
+    // If not loading and no user is found, redirect to login.
+    // This is a fallback, as middleware should handle this.
     if (!loading && !user) {
       router.push('/login');
     }
   }, [user, loading, router]);
 
   useEffect(() => {
+    // Once user data is loaded, check their role.
     if (userData?.role === 'customer') {
       router.replace('/customer');
     }
   }, [userData, router]);
 
 
+  // Initial loading state for the entire dashboard
   if (loading || !user) {
     return (
         <div className="flex h-screen items-center justify-center bg-sidebar text-sidebar-foreground">
@@ -48,9 +51,9 @@ export default function DashboardLayout({
     );
   }
 
-  // Render a different layout for customers, or redirect them
+  // If the user is a customer, they should not see the admin dashboard.
+  // Show a redirecting message while Next.js router handles the `replace`.
   if (userData?.role === 'customer') {
-    // This will be momentarily visible while redirecting
      return (
         <div className="flex h-screen items-center justify-center bg-background text-foreground">
             <p>Redirecting to your dashboard...</p>
@@ -58,6 +61,7 @@ export default function DashboardLayout({
     );
   }
   
+  // Render the admin dashboard for non-customer roles.
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon" className="border-r border-sidebar-border">
