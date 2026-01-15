@@ -1,6 +1,4 @@
 
-import { StoreHeader } from '@/components/store-header';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import AverzoLogo from '@/components/averzo-logo';
 import Link from 'next/link';
 
@@ -11,7 +9,6 @@ export default function StoreLayout({
 }>) {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground font-body">
-      <StoreHeader />
       <main className="flex-1">{children}</main>
       {/* --- Desktop Footer --- */}
       <footer className="bg-secondary text-secondary-foreground hidden lg:block">
@@ -127,5 +124,3 @@ export default function StoreLayout({
     </div>
   );
 }
-
-    
