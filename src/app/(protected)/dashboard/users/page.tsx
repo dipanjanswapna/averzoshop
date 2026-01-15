@@ -18,7 +18,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, MoreHorizontal, Mail, Search, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Mail, Search, CheckCircle, XCircle, Clock, Users } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
