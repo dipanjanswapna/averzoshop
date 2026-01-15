@@ -1,11 +1,12 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Search, ShoppingBag, User, Menu, ChevronDown, X, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { categoriesData } from '@/lib/categories';
 import { motion, AnimatePresence } from 'framer-motion';
+import debounce from 'lodash/debounce';
 
 
 const NestedAccordion = ({ category, onClose }: { category: any, onClose: () => void }) => {
@@ -130,8 +131,10 @@ export default function AverzoNavbar() {
       setLastScrollY(window.scrollY);
     };
 
-    window.addEventListener('scroll', controlNavbar);
-    return () => window.removeEventListener('scroll', controlNavbar);
+    const debouncedControlNavbar = debounce(controlNavbar, 100);
+
+    window.addEventListener('scroll', debouncedControlNavbar);
+    return () => window.removeEventListener('scroll', debouncedControlNavbar);
   }, [lastScrollY]);
 
   const createQueryString = (params: Record<string, string>) => {
