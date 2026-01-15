@@ -39,7 +39,6 @@ function LoginPageContent() {
   });
 
   useEffect(() => {
-    // If user and userData are loaded, redirect them.
     if (!authLoading && user && userData) {
       if (userData.role === 'customer') {
         router.replace('/customer');
@@ -78,27 +77,25 @@ function LoginPageContent() {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
 
-      // Create user document in Firestore if it doesn't exist
       const userDocRef = doc(firestore, 'users', user.uid);
       await setDoc(userDocRef, {
         uid: user.uid,
         email: user.email,
         displayName: user.displayName,
         photoURL: user.photoURL,
-        role: 'customer' // Default role for new sign-ups
-      }, { merge: true }); // Merge to avoid overwriting existing data if user logs in differently
+        role: 'customer'
+      }, { merge: true });
 
-      toast({ title: 'Google Sign-In Successful', description: 'Redirecting to your dashboard...' });
-       // The useEffect will handle the redirection.
+      toast({ title: 'Google Sign-In Successful', description: 'Redirecting...' });
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Google Sign-In Failed', description: error.message });
     }
   };
   
-   if (authLoading || (user && userData)) {
+  if (authLoading || (user && userData)) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
-        <p>Loading...</p>
+        <p>Redirecting to your dashboard...</p>
       </div>
     );
   }

@@ -23,9 +23,6 @@ export default function DashboardLayout({
 }) {
   const { user, userData } = useAuth();
   
-  // The root protected layout now handles loading and redirection.
-  // This layout's only job is to render the admin UI if the user is authorized.
-  // A simple check is still good as a failsafe.
   if (!user || !userData || userData.role === 'customer') {
       return (
         <div className="flex h-screen items-center justify-center bg-background text-foreground">

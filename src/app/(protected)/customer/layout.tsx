@@ -23,8 +23,6 @@ export default function CustomerDashboardLayout({
 }) {
   const { user, userData } = useAuth();
   
-  // The root protected layout now handles the main loading and redirection logic.
-  // This layout just needs to render the customer UI if the user is authorized.
   if (!user || !userData || userData.role !== 'customer') {
      return (
           <div className="flex h-screen items-center justify-center bg-background text-foreground">
@@ -33,7 +31,6 @@ export default function CustomerDashboardLayout({
       )
   }
 
-  // Render the customer dashboard
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon" className="border-r border-sidebar-border">
