@@ -2,6 +2,7 @@
 export const categoriesData = [
     {
       mother_name: "Men's Fashion",
+      path: "/mens-fashion",
       groups: [
         { group_name: "Topwear", subs: ["T-Shirts", "Casual Shirts", "Formal Shirts", "Polo Shirts", "Sweatshirts"] },
         { group_name: "Bottomwear", subs: ["Jeans", "Trousers", "Shorts", "Track Pants"] },

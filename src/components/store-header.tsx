@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Search, ShoppingBag, Heart, User, Menu, ChevronDown, X, ChevronRight } from 'lucide-react';
+import { Search, ShoppingBag, User, Menu, ChevronDown, X, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,6 @@ const NestedAccordion = ({ category, onClose }: { category: any, onClose: () => 
   const [isMotherOpen, setIsMotherOpen] = useState(false);
   const [openGroupIndex, setOpenGroupIndex] = useState<number | null>(null);
 
-  // Group accordion toggle korar logic
   const toggleGroup = (index: number) => {
     setOpenGroupIndex(openGroupIndex === index ? null : index);
   };
@@ -26,18 +25,19 @@ const NestedAccordion = ({ category, onClose }: { category: any, onClose: () => 
     return searchParams.toString();
   };
 
+  const motherCategoryPath = category.path || `/shop?${createQueryString({ mother_category: category.mother_name })}`;
+
+
   return (
     <div className="border-b border-gray-100">
-      {/* ১. Mother Category (e.g., Men's Fashion) */}
       <button 
         onClick={() => setIsMotherOpen(!isMotherOpen)}
         className="w-full flex items-center justify-between py-4 px-5 text-sm font-bold text-zinc-800 hover:bg-gray-50"
       >
-        <span className="uppercase tracking-wide">{category.mother_name}</span>
+        <Link href={motherCategoryPath} onClick={onClose} className="uppercase tracking-wide">{category.mother_name}</Link>
         <ChevronDown size={18} className={`transition-transform duration-300 ${isMotherOpen ? "rotate-180 text-primary" : ""}`} />
       </button>
 
-      {/* ২. Group Level (e.g., TOPWEAR, BOTTOMWEAR) */}
       <div className={`overflow-hidden transition-all duration-300 ${isMotherOpen ? "max-h-[1000px] bg-zinc-50" : "max-h-0"}`}>
         {category.groups.map((group: any, idx: number) => (
           <div key={idx} className="border-t border-white">
@@ -45,11 +45,9 @@ const NestedAccordion = ({ category, onClose }: { category: any, onClose: () => 
               onClick={() => toggleGroup(idx)}
               className="w-full flex items-center justify-between py-3 px-8 text-[11px] font-black text-zinc-500 uppercase tracking-widest"
             >
-              {group.group_name}
+              <Link href={`/shop?${createQueryString({ mother_category: category.mother_name, group: group.group_name })}`} onClick={onClose}>{group.group_name}</Link>
               <ChevronRight size={14} className={`transition-transform ${openGroupIndex === idx ? "rotate-90 text-primary" : ""}`} />
             </button>
-
-            {/* ৩. Sub-category Level (e.g., T-Shirts, Casual Shirts) */}
             <ul className={`overflow-hidden transition-all duration-300 ${openGroupIndex === idx ? "max-h-96 pb-3" : "max-h-0"}`}>
               {group.subs.map((sub: string, sIdx: number) => (
                 <li 
@@ -197,46 +195,48 @@ export default function AverzoNavbar() {
           isVisible ? "scale-y-100 opacity-100 h-10" : "scale-y-0 opacity-0 h-0"
       )}>
         <div className="w-full overflow-x-auto whitespace-nowrap no-scrollbar">
-            <div className="px-4 flex items-center gap-8 h-full">
-            {categoriesData.map((item) => (
-                <div key={item.mother_name} className="group static">
-                 <Link href={`/shop?${createQueryString({ mother_category: item.mother_name })}`}>
-                    <button className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-1 hover:text-primary">
-                        {item.mother_name} <ChevronDown size={12} />
-                    </button>
-                 </Link>
-                
-                {/* 3. Full-width Mega Menu */}
-                <div 
-                    className="absolute left-0 right-0 top-full w-full bg-background text-foreground border-t shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[110]"
-                    style={{ 
-                    maxHeight: 'calc(100vh - 112px)', 
-                    overflowY: 'auto' 
-                    }}
-                >
-                    <div className="container mx-auto grid grid-cols-5 gap-x-10 gap-y-6 p-10">
-                        {item.groups.map(group => (
-                            <div key={group.group_name} className="col-span-1">
-                                <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">
-                                    <Link href={`/shop?${createQueryString({ mother_category: item.mother_name, group: group.group_name })}`}>
-                                     {group.group_name}
-                                    </Link>
-                                </h4>
-                                <ul className="space-y-2 text-sm text-muted-foreground font-body">
-                                {group.subs.map(sub => (
-                                    <li key={sub} className="hover:text-primary cursor-pointer">
-                                        <Link href={`/shop?${createQueryString({ mother_category: item.mother_name, group: group.group_name, subcategory: sub })}`}>
-                                            {sub}
+            <div className="container mx-auto px-4 flex items-center gap-8 h-full">
+            {categoriesData.map((item) => {
+                const motherCategoryPath = item.path || `/shop?${createQueryString({ mother_category: item.mother_name })}`;
+                return (
+                    <div key={item.mother_name} className="group static">
+                    <Link href={motherCategoryPath}>
+                        <button className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-1 hover:text-primary">
+                            {item.mother_name} <ChevronDown size={12} />
+                        </button>
+                    </Link>
+                    
+                    <div 
+                        className="absolute left-0 right-0 top-full w-full bg-background text-foreground border-t shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[110]"
+                        style={{ 
+                        maxHeight: 'calc(100vh - 112px)', 
+                        overflowY: 'auto' 
+                        }}
+                    >
+                        <div className="container mx-auto grid grid-cols-5 gap-x-10 gap-y-6 p-10">
+                            {item.groups.map(group => (
+                                <div key={group.group_name} className="col-span-1">
+                                    <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">
+                                        <Link href={`/shop?${createQueryString({ mother_category: item.mother_name, group: group.group_name })}`}>
+                                        {group.group_name}
                                         </Link>
-                                    </li>
-                                ))}
-                                </ul>
-                            </div>
-                        ))}
+                                    </h4>
+                                    <ul className="space-y-2 text-sm text-muted-foreground font-body">
+                                    {group.subs.map(sub => (
+                                        <li key={sub} className="hover:text-primary cursor-pointer">
+                                            <Link href={`/shop?${createQueryString({ mother_category: item.mother_name, group: group.group_name, subcategory: sub })}`}>
+                                                {sub}
+                                            </Link>
+                                        </li>
+                                    ))}
+                                    </ul>
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                </div>
-                </div>
-            ))}
+                    </div>
+                )
+            })}
             </div>
         </div>
       </nav>
