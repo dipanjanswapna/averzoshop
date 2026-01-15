@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -29,7 +30,7 @@ export function VendorNav() {
         <SidebarMenuItem key={item.href}>
           <Link href={item.href}>
             <SidebarMenuButton
-              isActive={pathname.startsWith(item.href)}
+              isActive={pathname === item.href || (item.href !== '/vendor/dashboard' && pathname.startsWith(item.href))}
               tooltip={item.label}
               className="justify-start"
             >
