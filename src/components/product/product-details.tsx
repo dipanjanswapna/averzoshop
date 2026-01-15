@@ -91,7 +91,7 @@ export function ProductDetails({ product }: { product: Product }) {
                 <Button variant="ghost" size="icon" onClick={() => setShowShare(!showShare)}>
                     <Share2 size={20} />
                 </Button>
-                {showShare && <ShareButtons url={window.location.href} />}
+                {showShare && <ShareButtons url={typeof window !== 'undefined' ? window.location.href : ''} />}
             </div>
          </div>
         <h1 className="text-3xl lg:text-4xl font-extrabold font-headline text-foreground mt-1">{product.name}</h1>
