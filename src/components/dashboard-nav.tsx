@@ -11,7 +11,8 @@ import {
   Truck,
   Building,
   Tags,
-  Settings
+  Settings,
+  Store
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import {
@@ -22,6 +23,7 @@ import {
 
 const allNavItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['admin', 'outlet', 'vendor', 'rider'] },
+  { href: '/dashboard/pos', label: 'Point of Sale', icon: Store, roles: ['admin', 'outlet'] },
   { href: '/dashboard/products', label: 'Products', icon: Package, roles: ['admin'] },
   { href: '/dashboard/orders', label: 'Orders & Delivery', icon: ShoppingCart, roles: ['admin', 'rider'] },
   { href: '/dashboard/users', label: 'Users', icon: Users, roles: ['admin'] },

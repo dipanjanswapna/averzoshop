@@ -41,7 +41,6 @@ export default function RootLayout({
           </Providers>
         </ToastProvider>
         {showMobileNav && <MobileBottomNav />}
-        
       </body>
     </html>
   );
