@@ -15,40 +15,20 @@ import AverzoLogo from '@/components/averzo-logo';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/firebase/auth/use-auth.tsx';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 
 export default function CustomerDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { user, userData, loading } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    // The middleware already protects this route.
-    // This is an additional client-side check.
-    if (!loading && !user) {
-      router.push('/login');
-    }
-  }, [user, loading, router]);
+  const { user, userData } = useAuth();
   
-  // While checking auth state, show a loading indicator.
-  if (loading || !user) {
-    return (
-        <div className="flex h-screen items-center justify-center bg-sidebar text-sidebar-foreground">
-            <p>Loading...</p>
-        </div>
-    );
-  }
-  
-  // If a non-customer somehow lands here, redirect them.
-  if (userData && userData.role !== 'customer') {
-      router.replace('/dashboard'); // Redirect to the main dashboard
-      return (
+  // The root protected layout now handles the main loading and redirection logic.
+  // This layout just needs to render the customer UI.
+  if (!user || !userData || userData.role !== 'customer') {
+     return (
           <div className="flex h-screen items-center justify-center bg-background text-foreground">
-              <p>Access Denied. Redirecting...</p>
+              <p>Access Denied or loading...</p>
           </div>
       )
   }

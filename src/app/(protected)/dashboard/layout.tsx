@@ -15,47 +15,29 @@ import AverzoLogo from '@/components/averzo-logo';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/firebase/auth/use-auth.tsx';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { user, userData, loading } = useAuth();
-  const router = useRouter();
+  const { user, userData } = useAuth();
 
-  useEffect(() => {
-    // Once user data is loaded, check their role.
-    // If the user is a customer, they should not be on the admin dashboard.
-    // The middleware now handles the initial redirection, but this is a failsafe.
-    if (!loading && userData?.role === 'customer') {
-      router.replace('/customer');
-    }
-  }, [userData, loading, router]);
-
-
-  // Initial loading state for the entire dashboard
-  if (loading || !user) {
-    return (
-        <div className="flex h-screen items-center justify-center bg-sidebar text-sidebar-foreground">
-            <p>Loading...</p>
-        </div>
-    );
-  }
-
-  // If the user is a customer, they should not see the admin dashboard.
-  // Show a redirecting message while Next.js router handles the `replace`.
-  if (userData?.role === 'customer') {
-     return (
-        <div className="flex h-screen items-center justify-center bg-background text-foreground">
-            <p>Redirecting to your dashboard...</p>
-        </div>
-    );
-  }
+  // The root protected layout now handles loading and redirection.
+  // This layout's only job is to render the admin UI if the user is authorized.
   
   // Render the admin dashboard for non-customer roles.
+  // The outer layout ensures that if a customer lands here, they are redirected.
+  if (!user || !userData || userData.role === 'customer') {
+      // This state should ideally not be reached due to the root layout's logic,
+      // but it's a good failsafe.
+      return (
+        <div className="flex h-screen items-center justify-center bg-background text-foreground">
+            <p>Access Denied. You are being redirected.</p>
+        </div>
+      );
+  }
+  
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon" className="border-r border-sidebar-border">

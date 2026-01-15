@@ -1,4 +1,6 @@
 
+'use client';
+
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
@@ -21,8 +23,8 @@ export function middleware(request: NextRequest) {
   }
 
   // If the user is authenticated and tries to access an auth page (login/register),
-  // redirect them to the main dashboard. The dashboard layout will then handle
-  // routing to the correct dashboard (admin vs customer).
+  // redirect them to the main protected route entry. The protected layout will then
+  // handle routing to the correct dashboard (admin vs customer).
   if (idToken && isAuthPage) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
