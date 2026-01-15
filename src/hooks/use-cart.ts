@@ -2,7 +2,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { products } from '@/lib/data';
-import { useToast } from './use-toast';
+import { toast } from './use-toast';
 
 type Product = (typeof products)[0];
 
@@ -24,7 +24,6 @@ export const useCart = create<CartState>()(
     (set, get) => ({
       items: [],
       addItem: (product) => {
-        const { toast } = useToast.getState();
         const currentItems = get().items;
         const existingItem = currentItems.find(
           (item) => item.product.id === product.id
@@ -49,7 +48,7 @@ export const useCart = create<CartState>()(
         set({
           items: get().items.filter((item) => item.product.id !== productId),
         });
-        useToast.getState().toast({
+        toast({
           title: 'Item removed',
           description: 'The item has been removed from your cart.',
         });
