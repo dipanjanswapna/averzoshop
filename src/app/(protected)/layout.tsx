@@ -1,7 +1,7 @@
 
 'use client';
 import { FirebaseClientProvider } from '@/firebase';
-import { useAuth } from '@/firebase/auth/use-auth.tsx';
+import { useAuth } from '@/hooks/use-auth';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 

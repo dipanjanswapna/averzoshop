@@ -7,7 +7,7 @@ import { Minus, Plus, ShoppingBag, Heart, HelpCircle, MapPin, Share2 } from 'luc
 import type { products } from '@/lib/data';
 import { TrustBadges } from './trust-badges';
 import Link from 'next/link';
-import { useAuth } from '@/firebase/auth/use-auth.tsx';
+import { useAuth } from '@/hooks/use-auth';
 import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { SaleTimer } from './sale-timer';

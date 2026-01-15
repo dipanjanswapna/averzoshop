@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { FirebaseProvider, type FirebaseProviderProps } from './provider';
 import { initializeFirebase } from '.';
-import { AuthProvider } from './auth/use-auth.tsx';
+import { AuthProvider } from '@/hooks/use-auth';
 
 export function FirebaseClientProvider({
   children,

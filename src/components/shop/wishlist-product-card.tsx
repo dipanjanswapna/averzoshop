@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { Button } from '../ui/button';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/firebase/auth/use-auth.tsx';
+import { useAuth } from '@/hooks/use-auth';
 import { doc, updateDoc, arrayRemove } from 'firebase/firestore';
 
 

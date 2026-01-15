@@ -1,6 +1,6 @@
 
 'use client';
-import { useAuth } from '@/firebase/auth/use-auth.tsx';
+import { useAuth } from '@/hooks/use-auth';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';

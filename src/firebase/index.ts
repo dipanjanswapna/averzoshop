@@ -21,5 +21,5 @@ export function initializeFirebase() {
 }
 
 export * from './provider';
-export * from './auth/use-auth.tsx';
+export * from '@/hooks/use-auth';
 export { FirebaseClientProvider } from './client-provider';

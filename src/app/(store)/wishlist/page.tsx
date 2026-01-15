@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useAuth } from '@/firebase/auth/use-auth.tsx';
+import { useAuth } from '@/hooks/use-auth';
 import { products } from '@/lib/data';
 import { WishlistProductCard } from '@/components/shop/wishlist-product-card';
 import { Heart, User } from 'lucide-react';
