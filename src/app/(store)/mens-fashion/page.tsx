@@ -149,6 +149,45 @@ export default function MensFashionPage() {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* --- Hero Carousel --- */}
+      <div className="mb-8">
+        <Carousel
+          opts={{
+            align: 'start',
+            loop: true,
+          }}
+          plugins={[
+            Autoplay({
+              delay: 4000,
+            }),
+          ]}
+          className="w-full"
+        >
+          <CarouselContent>
+            {heroCarouselImages.map((image, index) => (
+              <CarouselItem key={index}>
+                <Link href={image.link || '#'}>
+                  <div className="relative w-full aspect-[21/9] md:aspect-[4/1] rounded-lg overflow-hidden">
+                    <Image
+                      src={image.imageUrl}
+                      alt={image.description}
+                      data-ai-hint={image.imageHint}
+                      fill
+                      className="object-cover"
+                      priority={index === 0}
+                    />
+                  </div>
+                </Link>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4">
+            <CarouselPrevious className="static -translate-y-0" />
+            <CarouselNext className="static -translate-y-0" />
+          </div>
+        </Carousel>
+      </div>
+
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
         <Breadcrumb>
           <BreadcrumbList>
@@ -161,110 +200,77 @@ export default function MensFashionPage() {
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-                <BreadcrumbPage>{defaultMotherCategory}</BreadcrumbPage>
+              <BreadcrumbPage>{defaultMotherCategory}</BreadcrumbPage>
             </BreadcrumbItem>
-             {selectedGroup && <BreadcrumbSeparator />}
-             {selectedGroup && (
-                <BreadcrumbItem>
-                    <BreadcrumbPage>{selectedGroup}</BreadcrumbPage>
-                </BreadcrumbItem>
-             )}
-             {selectedSubcategory && <BreadcrumbSeparator />}
-             {selectedSubcategory && (
-                <BreadcrumbItem>
-                    <BreadcrumbPage>{selectedSubcategory}</BreadcrumbPage>
-                </BreadcrumbItem>
-             )}
+            {selectedGroup && <BreadcrumbSeparator />}
+            {selectedGroup && (
+              <BreadcrumbItem>
+                <BreadcrumbPage>{selectedGroup}</BreadcrumbPage>
+              </BreadcrumbItem>
+            )}
+            {selectedSubcategory && <BreadcrumbSeparator />}
+            {selectedSubcategory && (
+              <BreadcrumbItem>
+                <BreadcrumbPage>{selectedSubcategory}</BreadcrumbPage>
+              </BreadcrumbItem>
+            )}
           </BreadcrumbList>
         </Breadcrumb>
         <div className="flex items-center gap-4 w-full md:w-auto">
-            <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-                <SheetTrigger asChild>
-                    <Button variant="outline" className="flex items-center gap-2 lg:hidden">
-                        <Filter size={16} />
-                        <span>Filter</span>
-                    </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-[85%] sm:max-w-sm p-0">
-                    <SheetHeader className="p-4 border-b">
-                        <SheetTitle>Filter & Sort</SheetTitle>
-                    </SheetHeader>
-                    <ScrollArea className="h-[calc(100vh-80px)] overflow-y-auto">
-                       <FilterSidebar 
-                         isLoading={loading}
-                         priceRange={priceRange}
-                         setPriceRange={setPriceRange}
-                         selectedBrand={selectedBrand}
-                         setSelectedBrand={setSelectedBrand}
-                         selectedMotherCategory={selectedMotherCategory}
-                         setSelectedMotherCategory={setSelectedMotherCategory}
-                         selectedGroup={selectedGroup}
-                         setSelectedGroup={setSelectedGroup}
-                         selectedSubcategory={selectedSubcategory}
-                         setSelectedSubcategory={setSelectedSubcategory}
-                       />
-                    </ScrollArea>
-                </SheetContent>
-            </Sheet>
+          <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                className="flex items-center gap-2 lg:hidden"
+              >
+                <Filter size={16} />
+                <span>Filter</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[85%] sm:max-w-sm p-0">
+              <SheetHeader className="p-4 border-b">
+                <SheetTitle>Filter & Sort</SheetTitle>
+              </SheetHeader>
+              <ScrollArea className="h-[calc(100vh-80px)] overflow-y-auto">
+                <FilterSidebar
+                  isLoading={loading}
+                  priceRange={priceRange}
+                  setPriceRange={setPriceRange}
+                  selectedBrand={selectedBrand}
+                  setSelectedBrand={setSelectedBrand}
+                  selectedMotherCategory={selectedMotherCategory}
+                  setSelectedMotherCategory={setSelectedMotherCategory}
+                  selectedGroup={selectedGroup}
+                  setSelectedGroup={setSelectedGroup}
+                  selectedSubcategory={selectedSubcategory}
+                  setSelectedSubcategory={setSelectedSubcategory}
+                />
+              </ScrollArea>
+            </SheetContent>
+          </Sheet>
 
-            <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-full md:w-[220px]">
-                <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                <SelectItem value="newest">Sort by: Newest</SelectItem>
-                <SelectItem value="popularity">Sort by: Popularity</SelectItem>
-                <SelectItem value="price-asc">Sort by: Price Low to High</SelectItem>
-                <SelectItem value="price-desc">Sort by: Price High to Low</SelectItem>
-                </SelectContent>
-            </Select>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-full md:w-[220px]">
+              <SelectValue placeholder="Sort by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="newest">Sort by: Newest</SelectItem>
+              <SelectItem value="popularity">Sort by: Popularity</SelectItem>
+              <SelectItem value="price-asc">
+                Sort by: Price Low to High
+              </SelectItem>
+              <SelectItem value="price-desc">
+                Sort by: Price High to Low
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
-
-       {/* --- Hero Carousel --- */}
-       <div className="mb-8">
-            <Carousel
-            opts={{
-                align: 'start',
-                loop: true,
-            }}
-            plugins={[
-                Autoplay({
-                    delay: 4000,
-                }),
-            ]}
-            className="w-full"
-            >
-            <CarouselContent>
-                {heroCarouselImages.map((image, index) => (
-                <CarouselItem key={index}>
-                    <Link href={image.link || '#'}>
-                    <div className="relative w-full aspect-[21/9] md:aspect-[4/1] rounded-lg overflow-hidden">
-                        <Image
-                        src={image.imageUrl}
-                        alt={image.description}
-                        data-ai-hint={image.imageHint}
-                        fill
-                        className="object-cover"
-                        priority={index === 0}
-                        />
-                    </div>
-                    </Link>
-                </CarouselItem>
-                ))}
-            </CarouselContent>
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4">
-                <CarouselPrevious className="static -translate-y-0" />
-                <CarouselNext className="static -translate-y-0" />
-            </div>
-            </Carousel>
-        </div>
-
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <aside className="hidden lg:block lg:col-span-1">
           <div className="sticky top-28">
-            <FilterSidebar 
+            <FilterSidebar
               isLoading={loading}
               priceRange={priceRange}
               setPriceRange={setPriceRange}
