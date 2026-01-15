@@ -240,7 +240,7 @@ export default function ShopPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
             <aside className="hidden lg:block lg:col-span-1">
-            <div className="sticky top-28">
+              <div className="sticky top-28">
                 <FilterSidebar 
                 isLoading={loading}
                 priceRange={priceRange}
@@ -254,7 +254,7 @@ export default function ShopPage() {
                 selectedSubcategory={selectedSubcategory}
                 setSelectedSubcategory={setSelectedSubcategory}
                 />
-            </div>
+              </div>
             </aside>
 
             <main className="lg:col-span-3">
