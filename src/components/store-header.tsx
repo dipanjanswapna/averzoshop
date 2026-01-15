@@ -29,9 +29,17 @@ import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { cn } from '@/lib/utils';
 import React from 'react';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
+
 
 const categories = [
-  {
+    {
     name: 'All Categories',
     href: '#',
     featured: true,
@@ -283,8 +291,6 @@ const categories = [
   },
 ];
 
-const visibleCategories = categories.slice(0, 8);
-const moreCategories = categories.slice(8);
 
 const NavItem = ({
   category,
@@ -295,7 +301,7 @@ const NavItem = ({
     <Link
       href={category.href}
       className={cn(
-        'flex items-center gap-1 py-4 font-saira font-bold text-sm uppercase text-foreground hover:text-primary transition-colors',
+        'flex items-center gap-1 py-4 font-saira font-bold text-sm uppercase text-foreground hover:text-primary transition-colors whitespace-nowrap',
         category.featured && 'text-primary'
       )}
     >
@@ -341,45 +347,6 @@ const NavItem = ({
   </div>
 );
 
-const MoreDropdown = () => (
-    <div className="group static">
-      <button
-        className="flex items-center gap-1 py-4 font-saira font-bold text-sm uppercase text-foreground hover:text-primary transition-colors"
-      >
-        More <ChevronDown className="h-4 w-4" />
-      </button>
-      <div className="absolute left-0 top-full w-screen bg-background/80 border-t shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-40 backdrop-blur-sm">
-        <div className="container mx-auto p-10">
-          <div className="grid grid-cols-5 gap-x-8 gap-y-4">
-            {moreCategories.map((category) => (
-               <div key={category.name} className="col-span-1">
-                 <h4 className="font-bold text-primary mb-4 uppercase font-saira text-sm tracking-wider">
-                   {category.name}
-                 </h4>
-                 <ul className="space-y-3 text-sm font-noto">
-                   {category.sections?.flatMap(s => s.links).slice(0,4).map(link => (
-                     <li key={link}>
-                       <Link
-                         href="#"
-                         className="text-muted-foreground hover:text-foreground hover:translate-x-1 transition-transform cursor-pointer block font-medium"
-                       >
-                         {link}
-                       </Link>
-                     </li>
-                   ))}
-                   { (category.sections?.flatMap(s => s.links).length || 0) > 4 &&
-                    <li>
-                        <Link href="#" className="text-primary font-bold text-xs">View All</Link>
-                    </li>
-                   }
-                 </ul>
-               </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 
 export function StoreHeader() {
   return (
@@ -422,12 +389,25 @@ export function StoreHeader() {
             </nav>
           </div>
           {/* Category Bar */}
-          <div className="border-t bg-background">
-            <div className="container flex h-14 items-center justify-center space-x-6">
-              {visibleCategories.map(category => (
-                <NavItem key={category.name} category={category} />
-              ))}
-              {moreCategories.length > 0 && <MoreDropdown />}
+          <div className="border-t bg-background/80 backdrop-blur-sm">
+            <div className="container relative flex h-14 items-center justify-center">
+              <Carousel
+                opts={{
+                  align: 'start',
+                  dragFree: true,
+                }}
+                className="w-full"
+              >
+                <CarouselContent className="-ml-4">
+                  {categories.map((category, index) => (
+                    <CarouselItem key={index} className="basis-auto pl-4">
+                        <NavItem category={category} />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <CarouselPrevious className="absolute left-[-50px] top-1/2 -translate-y-1/2" />
+                <CarouselNext className="absolute right-[-50px] top-1/2 -translate-y-1/2" />
+              </Carousel>
             </div>
           </div>
         </div>
