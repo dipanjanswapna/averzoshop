@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
 import type { products, categoriesData as categoriesDataType } from '@/lib/data';
 import {
   Select,
@@ -47,6 +47,28 @@ export function FilterSidebar({ categories, products, onFilterChange, initialFil
     discount,
     is_bundle = false,
   } = initialFilters;
+
+  const [minPrice, setMinPrice] = useState(price_range[0]);
+  const [maxPrice, setMaxPrice] = useState(price_range[1]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      // Only update if the price has actually changed
+      if (minPrice !== price_range[0] || maxPrice !== price_range[1]) {
+        handleFilterUpdate('price_range', [minPrice, maxPrice]);
+      }
+    }, 500); // 500ms debounce delay
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [minPrice, maxPrice]);
+  
+  useEffect(() => {
+    setMinPrice(price_range[0]);
+    setMaxPrice(price_range[1]);
+  }, [price_range]);
+
 
   const handleFilterUpdate = (key: string, value: any) => {
     const newFilters = { ...initialFilters, [key]: value, page: 1 };
@@ -140,16 +162,27 @@ export function FilterSidebar({ categories, products, onFilterChange, initialFil
         <AccordionItem value="price">
           <AccordionTrigger className="text-lg font-semibold">Price</AccordionTrigger>
           <AccordionContent className="pt-4 space-y-4">
-            <Slider
-              value={price_range}
-              onValueCommit={(value) => handleFilterUpdate('price_range', value)}
-              max={5000}
-              step={100}
-              minStepsBetweenThumbs={1}
-            />
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>৳{price_range[0]}</span>
-              <span>৳{price_range[1]}</span>
+             <div className="flex items-center gap-4">
+                <div className="relative w-full">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">৳</span>
+                    <Input 
+                        type="number"
+                        placeholder="Min"
+                        value={minPrice}
+                        onChange={(e) => setMinPrice(Number(e.target.value))}
+                        className="pl-7"
+                    />
+                </div>
+                 <div className="relative w-full">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">৳</span>
+                    <Input 
+                        type="number"
+                        placeholder="Max"
+                        value={maxPrice}
+                        onChange={(e) => setMaxPrice(Number(e.target.value))}
+                        className="pl-7"
+                    />
+                </div>
             </div>
           </AccordionContent>
         </AccordionItem>
