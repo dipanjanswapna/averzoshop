@@ -154,6 +154,13 @@ export default function StoreFrontPage() {
             <span className="text-xs font-medium">Home</span>
           </Link>
           <Link
+            href="/shop"
+            className="flex flex-col items-center justify-center gap-1 text-muted-foreground"
+          >
+            <ShoppingBag className="h-6 w-6" />
+            <span className="text-xs font-medium">Shop</span>
+          </Link>
+          <Link
             href="#"
             className="flex flex-col items-center justify-center gap-1 text-muted-foreground"
           >
@@ -162,13 +169,6 @@ export default function StoreFrontPage() {
           </Link>
           <Link
             href="#"
-            className="flex flex-col items-center justify-center gap-1 text-muted-foreground"
-          >
-            <ShoppingBag className="h-6 w-6" />
-            <span className="text-xs font-medium">Brands</span>
-          </Link>
-          <Link
-            href="/dashboard/orders"
             className="flex flex-col items-center justify-center gap-1 text-muted-foreground"
           >
             <ShoppingCart className="h-6 w-6" />

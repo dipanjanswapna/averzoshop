@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, ShoppingBag, Heart, User, Menu, ChevronDown, X, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 
 // New structured data for categories, groups, and sub-categories
@@ -46,6 +47,7 @@ const categoriesData = [
     { mother_name: "Daily Essentials (Groceries)", groups: [ { group_name: "Staples", subs: ["Rice", "Flour"] }, { group_name: "Snacks", subs: ["Chips", "Biscuits"] } ]  },
 ];
 
+
 const NestedAccordion = ({ category, onClose }: { category: any, onClose: () => void }) => {
   const [isMotherOpen, setIsMotherOpen] = useState(false);
   const [openGroupIndex, setOpenGroupIndex] = useState<number | null>(null);
@@ -86,7 +88,7 @@ const NestedAccordion = ({ category, onClose }: { category: any, onClose: () => 
                   onClick={onClose}
                   className="pl-12 pr-5 py-2 text-xs font-semibold text-gray-600 hover:text-primary cursor-pointer active:bg-primary/10"
                 >
-                  {sub}
+                  <Link href="/shop">{sub}</Link>
                 </li>
               ))}
             </ul>
@@ -168,7 +170,7 @@ export default function AverzoNavbar() {
       
       {/* 1. Primary Master Header (Always Sticky) */}
       <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4 md:gap-8">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
              <button 
                 onClick={() => setIsDrawerOpen(true)}
                 className="p-2 lg:hidden hover:bg-muted rounded-md transition-colors"
@@ -178,6 +180,11 @@ export default function AverzoNavbar() {
             <Link href="/" className="text-2xl font-black font-saira tracking-tighter text-foreground">
                 AVERZO<span className="text-primary">.</span>
             </Link>
+            <div className="hidden lg:block">
+                <Link href="/shop">
+                    <Button variant="ghost" className="font-bold">Shop</Button>
+                </Link>
+            </div>
         </div>
 
         {/* Main Search Bar */}
@@ -194,7 +201,9 @@ export default function AverzoNavbar() {
 
         {/* User Action Icons */}
         <div className="flex items-center gap-5">
-          <User size={22} className="cursor-pointer hover:text-primary transition-colors" />
+          <Link href="/login">
+            <User size={22} className="cursor-pointer hover:text-primary transition-colors" />
+          </Link>
           <div className="relative cursor-pointer">
             <ShoppingBag size={22} className="hover:text-primary transition-colors" />
             <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center">0</span>
@@ -230,7 +239,7 @@ export default function AverzoNavbar() {
                                 <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">{group.group_name}</h4>
                                 <ul className="space-y-2 text-sm text-muted-foreground font-body">
                                 {group.subs.map(sub => (
-                                    <li key={sub} className="hover:text-primary cursor-pointer">{sub}</li>
+                                    <li key={sub} className="hover:text-primary cursor-pointer"><Link href="/shop">{sub}</Link></li>
                                 ))}
                                 </ul>
                             </div>
