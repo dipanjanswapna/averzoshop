@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -282,35 +283,37 @@ export function ProductDetails({ product }: { product: Product }) {
           </div>
         )}
         
-        {isOutOfStock ? (
-          <div className="flex w-full items-center gap-4 pt-4">
-            <Button size="lg" disabled className="flex-1">
-              Out of Stock
-            </Button>
-            <Button variant="outline" size="icon" className="h-12 w-12" onClick={handleWishlistToggle}>
-                <Heart size={20} className={cn(isWishlisted ? 'text-destructive fill-destructive' : 'text-foreground')} />
-            </Button>
-          </div>
-        ) : (
-          <>
-            <div className="flex flex-col sm:flex-row items-center gap-4">
-              <div className="flex items-center border border-border rounded-md w-fit">
-                  <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => setQuantity(q => Math.max(1, q - 1))}><Minus size={14}/></Button>
-                  <span className="w-10 text-center font-bold">{quantity}</span>
-                  <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => setQuantity(q => q + 1)} disabled={quantity >= stock}><Plus size={14}/></Button>
-              </div>
-              <div className="flex items-center gap-2 w-full">
-                  <Button size="lg" variant="outline" className="w-full" onClick={handleAddToCart}>
-                      <ShoppingBag size={20} className="mr-2" /> Add to Bag
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={handleWishlistToggle} className={cn("border", isWishlisted ? 'bg-destructive/20 text-destructive border-destructive' : '')}>
-                      <Heart size={20} className={cn(isWishlisted ? 'fill-current' : '')} />
-                  </Button>
-              </div>
+        <div className="pt-4">
+          {isOutOfStock ? (
+            <div className="flex w-full items-center gap-4">
+              <Button size="lg" disabled className="flex-1">
+                Out of Stock
+              </Button>
+              <Button variant="outline" size="icon" className="h-12 w-12" onClick={handleWishlistToggle}>
+                  <Heart size={20} className={cn(isWishlisted ? 'text-destructive fill-destructive' : 'text-foreground')} />
+              </Button>
             </div>
-            <Button size="lg" className="w-full" onClick={handleBuyNow}>Buy Now</Button>
-          </>
-        )}
+          ) : (
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                <div className="flex items-center border border-border rounded-md w-fit">
+                    <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => setQuantity(q => Math.max(1, q - 1))}><Minus size={14}/></Button>
+                    <span className="w-10 text-center font-bold">{quantity}</span>
+                    <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => setQuantity(q => q + 1)} disabled={quantity >= stock}><Plus size={14}/></Button>
+                </div>
+                <div className="flex items-center gap-2 w-full">
+                    <Button size="lg" variant="outline" className="w-full" onClick={handleAddToCart}>
+                        <ShoppingBag size={20} className="mr-2" /> Add to Bag
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={handleWishlistToggle} className={cn("border", isWishlisted ? 'bg-destructive/20 text-destructive border-destructive' : '')}>
+                        <Heart size={20} className={cn(isWishlisted ? 'fill-current' : '')} />
+                    </Button>
+                </div>
+              </div>
+              <Button size="lg" className="w-full" onClick={handleBuyNow}>Buy Now</Button>
+            </div>
+          )}
+        </div>
 
 
          {selectedVariant && (
