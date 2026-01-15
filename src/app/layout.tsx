@@ -4,10 +4,10 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
-import { FirebaseClientProvider } from '@/firebase/client-provider';
 import LayoutDebugger from '@/components/debug/LayoutDebugger';
 import { usePathname } from 'next/navigation';
 import { MobileBottomNav } from '@/components/mobile-bottom-nav';
+import { Providers } from '@/components/providers';
 
 // export const metadata: Metadata = {
 //   title: 'Averzo',
@@ -34,10 +34,10 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Saira:wght@600;700;800&display=swap" rel="stylesheet" />
       </head>
       <body className={cn('font-body antialiased min-h-screen bg-background pb-16 lg:pb-0')}>
-        <FirebaseClientProvider>
+        <Providers>
           {children}
           <Toaster />
-        </FirebaseClientProvider>
+        </Providers>
         {showMobileNav && <MobileBottomNav />}
         <LayoutDebugger />
       </body>

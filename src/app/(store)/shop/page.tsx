@@ -1,10 +1,10 @@
 
 'use client';
 
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { ProductGrid } from '@/components/shop/product-grid';
-import { products, categoriesData } from '@/lib/data';
+import { products as allProducts, categoriesData } from '@/lib/data';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -27,7 +27,7 @@ import {
 
 const PRODUCTS_PER_PAGE = 32;
 
-export default function ShopPage() {
+function ShopPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -94,7 +94,7 @@ export default function ShopPage() {
   }, [router, pathname, searchParams]);
 
   const { paginatedProducts, totalPages } = useMemo(() => {
-    let filtered = [...products];
+    let filtered = [...allProducts];
 
     if (initialFilters.mother_category) {
         filtered = filtered.filter(p => p.category === initialFilters.mother_category || categoriesData.find(c => c.mother_name === initialFilters.mother_category)?.groups.some(g => g.group_name === p.group));
@@ -240,5 +240,13 @@ export default function ShopPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ShopPage() {
+  return (
+    <Suspense fallback={<div>Loading filters...</div>}>
+      <ShopPageContent />
+    </Suspense>
   );
 }

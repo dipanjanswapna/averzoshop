@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { categoriesData } from '@/lib/categories';
+import { motion, AnimatePresence } from 'framer-motion';
 
 
 const NestedAccordion = ({ category, onClose }: { category: any, onClose: () => void }) => {
@@ -117,6 +118,7 @@ export default function AverzoNavbar() {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [activeMenu, setActiveMenu] = useState<string | null>(null);
   
   useEffect(() => {
     const controlNavbar = () => {
@@ -140,6 +142,11 @@ export default function AverzoNavbar() {
       }
     });
     return searchParams.toString();
+  };
+
+  const menuVariants = {
+    hidden: { opacity: 0, y: -20, display: 'none' },
+    visible: { opacity: 1, y: 0, display: 'block', transition: { staggerChildren: 0.05 } },
   };
 
   return (
@@ -189,7 +196,9 @@ export default function AverzoNavbar() {
       </div>
 
       {/* 2. Secondary Category Bar (Auto-hides) */}
-      <nav className={cn(
+      <nav 
+        onMouseLeave={() => setActiveMenu(null)}
+        className={cn(
           "bg-secondary text-secondary-foreground transition-all duration-300 origin-top",
           "hidden lg:flex",
           isVisible ? "scale-y-100 opacity-100 h-10" : "scale-y-0 opacity-0 h-0"
@@ -199,41 +208,55 @@ export default function AverzoNavbar() {
             {categoriesData.map((item) => {
                 const motherCategoryPath = item.path || `/shop?${createQueryString({ mother_category: item.mother_name })}`;
                 return (
-                    <div key={item.mother_name} className="group static">
-                    <Link href={motherCategoryPath}>
-                        <button className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-1 hover:text-primary">
-                            {item.mother_name} <ChevronDown size={12} />
-                        </button>
-                    </Link>
-                    
                     <div 
-                        className="absolute left-0 right-0 top-full w-full bg-background text-foreground border-t shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[110]"
-                        style={{ 
-                        maxHeight: 'calc(100vh - 112px)', 
-                        overflowY: 'auto' 
-                        }}
+                      key={item.mother_name} 
+                      className="group static"
+                      onMouseEnter={() => setActiveMenu(item.mother_name)}
                     >
-                        <div className="container mx-auto grid grid-cols-5 gap-x-10 gap-y-6 p-10">
-                            {item.groups.map(group => (
-                                <div key={group.group_name} className="col-span-1">
-                                    <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">
-                                        <Link href={`/shop?${createQueryString({ mother_category: item.mother_name, group: group.group_name })}`}>
-                                        {group.group_name}
-                                        </Link>
-                                    </h4>
-                                    <ul className="space-y-2 text-sm text-muted-foreground font-body">
-                                    {group.subs.map(sub => (
-                                        <li key={sub} className="hover:text-primary cursor-pointer">
-                                            <Link href={`/shop?${createQueryString({ mother_category: item.mother_name, group: group.group_name, subcategory: sub })}`}>
-                                                {sub}
-                                            </Link>
-                                        </li>
+                      <Link href={motherCategoryPath}>
+                          <button className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-1 hover:text-primary">
+                              {item.mother_name} <ChevronDown size={12} />
+                          </button>
+                      </Link>
+                    
+                      <AnimatePresence>
+                        {activeMenu === item.mother_name && (
+                           <motion.div
+                              initial="hidden"
+                              animate="visible"
+                              exit="hidden"
+                              variants={menuVariants}
+                              className="absolute left-0 right-0 top-full w-full bg-background text-foreground border-t shadow-2xl z-[110]"
+                              style={{ maxHeight: 'calc(100vh - 112px)', overflowY: 'auto' }}
+                            >
+                                <div className="container mx-auto grid grid-cols-5 gap-x-10 gap-y-6 p-10">
+                                    {item.groups.map(group => (
+                                        <motion.div 
+                                          key={group.group_name} 
+                                          className="col-span-1"
+                                          initial={{ opacity: 0, x: -10 }}
+                                          animate={{ opacity: 1, x: 0 }}
+                                        >
+                                            <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">
+                                                <Link href={`/shop?${createQueryString({ mother_category: item.mother_name, group: group.group_name })}`}>
+                                                {group.group_name}
+                                                </Link>
+                                            </h4>
+                                            <ul className="space-y-2 text-sm text-muted-foreground font-body">
+                                            {group.subs.map(sub => (
+                                                <li key={sub} className="hover:text-primary cursor-pointer">
+                                                    <Link href={`/shop?${createQueryString({ mother_category: item.mother_name, group: group.group_name, subcategory: sub })}`}>
+                                                        {sub}
+                                                    </Link>
+                                                </li>
+                                            ))}
+                                            </ul>
+                                        </motion.div>
                                     ))}
-                                    </ul>
                                 </div>
-                            ))}
-                        </div>
-                    </div>
+                            </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                 )
             })}
