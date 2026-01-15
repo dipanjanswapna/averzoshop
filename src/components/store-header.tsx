@@ -1,14 +1,41 @@
-
 "use client";
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Search, ShoppingCart, User, ChevronDown } from 'lucide-react';
 import AverzoLogo from './averzo-logo';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
+import { Button } from './ui/button';
 
-// The data is hardcoded here as per the user's provided component structure.
-// In a real application, this would come from a dynamic source.
 const menuData: Record<string, React.ReactNode> = {
-  "MEN": (
+  "All Categories": (
+    <div className="grid grid-cols-4 gap-x-8 gap-y-6">
+      {[
+        "Men's Fashion", "Women's Fashion", "Electronics & Gadgets", "Kids & Baby", 
+        "Beauty & Personal Care", "Home & Living", "Health & Wellness", "Gaming & Esports", 
+        "Pet Care", "Sports & Outdoors", "Smart Home & IoT", "Automotive & Biking", 
+        "Books & Stationery", "Artisan & Handicrafts", "Travel & Luggage", 
+        "Eco-Friendly Living", "Musical Instruments", "Gifts & Celebrations", 
+        "Daily Essentials (Groceries)"
+      ].map((category) => (
+        <Link key={category} href="#" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+          {category}
+        </Link>
+      ))}
+    </div>
+  ),
+  "Men's Fashion": (
     <>
       <div className="col-span-1">
         <h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Topwear</h4>
@@ -16,7 +43,6 @@ const menuData: Record<string, React.ReactNode> = {
           <li className="hover:text-foreground cursor-pointer">T-Shirts</li>
           <li className="hover:text-foreground cursor-pointer">Casual Shirts</li>
           <li className="hover:text-foreground cursor-pointer">Polos</li>
-          <li className="hover:text-foreground cursor-pointer">Formal Shirts</li>
         </ul>
       </div>
       <div className="col-span-1">
@@ -24,7 +50,6 @@ const menuData: Record<string, React.ReactNode> = {
         <ul className="space-y-2 text-sm text-muted-foreground font-body">
           <li className="hover:text-foreground cursor-pointer">Jeans</li>
           <li className="hover:text-foreground cursor-pointer">Chinos</li>
-          <li className="hover:text-foreground cursor-pointer">Trousers</li>
         </ul>
       </div>
       <div className="col-span-1">
@@ -34,18 +59,17 @@ const menuData: Record<string, React.ReactNode> = {
           <li className="hover:text-foreground cursor-pointer">Pajama</li>
         </ul>
       </div>
-       <div className="col-span-2">
-          <div className="relative h-full bg-secondary rounded-xl p-6 overflow-hidden flex flex-col justify-center border">
-            <h3 className="text-2xl font-black text-primary font-saira leading-tight">Aura Men's<br/> Collection</h3>
-            <p className="text-xs text-muted-foreground mt-2 max-w-[200px]">Explore the latest trends in men's fashion and accessories.</p>
-            <button className="mt-4 bg-primary text-primary-foreground font-bold py-2 px-6 rounded-lg text-xs w-max hover:bg-primary/80 transition-colors">
-              SHOP NOW
-            </button>
-          </div>
-        </div>
+       <div className="col-span-1">
+        <h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Accessories</h4>
+        <ul className="space-y-2 text-sm text-muted-foreground font-body">
+          <li className="hover:text-foreground cursor-pointer">Wallets</li>
+          <li className="hover:text-foreground cursor-pointer">Belts</li>
+          <li className="hover:text-foreground cursor-pointer">Watches</li>
+        </ul>
+      </div>
     </>
   ),
-  "WOMEN": (
+    "Women's Fashion": (
      <>
       <div className="col-span-1">
         <h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Saree</h4>
@@ -62,38 +86,80 @@ const menuData: Record<string, React.ReactNode> = {
           <li className="hover:text-foreground cursor-pointer">Unstitched</li>
         </ul>
       </div>
+       <div className="col-span-1">
+        <h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Western Wear</h4>
+        <ul className="space-y-2 text-sm text-muted-foreground font-body">
+          <li className="hover:text-foreground cursor-pointer">Tops</li>
+          <li className="hover:text-foreground cursor-pointer">Jeans</li>
+        </ul>
+      </div>
       <div className="col-span-1">
-        <h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Bags</h4>
+        <h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Bags & Accessories</h4>
         <ul className="space-y-2 text-sm text-muted-foreground font-body">
           <li className="hover:text-foreground cursor-pointer">Handbags</li>
           <li className="hover:text-foreground cursor-pointer">Clutches</li>
+           <li className="hover:text-foreground cursor-pointer">Jewellery</li>
         </ul>
       </div>
-       <div className="col-span-2">
-          <div className="relative h-full bg-secondary rounded-xl p-6 overflow-hidden flex flex-col justify-center border">
-            <h3 className="text-2xl font-black text-primary font-saira leading-tight">Aura Women's<br/> Elegance</h3>
-            <p className="text-xs text-muted-foreground mt-2 max-w-[200px]">Discover stylish and modern apparel for every occasion.</p>
-            <button className="mt-4 bg-primary text-primary-foreground font-bold py-2 px-6 rounded-lg text-xs w-max hover:bg-primary/80 transition-colors">
-              SHOP NOW
-            </button>
-          </div>
-        </div>
     </>
   ),
+  "Electronics & Gadgets": (
+    <>
+      <div className="col-span-1">
+        <h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Computers</h4>
+        <ul className="space-y-2 text-sm text-muted-foreground font-body">
+          <li className="hover:text-foreground cursor-pointer">Laptops</li>
+          <li className="hover:text-foreground cursor-pointer">Desktops</li>
+          <li className="hover:text-foreground cursor-pointer">Monitors</li>
+        </ul>
+      </div>
+      <div className="col-span-1">
+        <h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Mobiles</h4>
+        <ul className="space-y-2 text-sm text-muted-foreground font-body">
+          <li className="hover:text-foreground cursor-pointer">Smartphones</li>
+          <li className="hover:text-foreground cursor-pointer">Tablets</li>
+        </ul>
+      </div>
+      <div className="col-span-1">
+        <h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Cameras</h4>
+        <ul className="space-y-2 text-sm text-muted-foreground font-body">
+          <li className="hover:text-foreground cursor-pointer">DSLR</li>
+          <li className="hover:text-foreground cursor-pointer">Action Cameras</li>
+        </ul>
+      </div>
+    </>
+  ),
+  "Kids & Baby": (
+    <>
+      <div className="col-span-1">
+        <h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Boys' Clothing</h4>
+      </div>
+      <div className="col-span-1">
+        <h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Girls' Clothing</h4>
+      </div>
+      <div className="col-span-1">
+        <h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Toys</h4>
+      </div>
+      <div className="col-span-1">
+        <h4 className="font-bold text-primary mb-4 font-saira uppercase tracking-wider">Baby Care</h4>
+      </div>
+    </>
+  )
 };
+
 
 const MegaMenu = ({ isOpen, items }: { isOpen: boolean, items?: React.ReactNode }) => {
   if (!isOpen) return null;
 
   return (
     <div
-      className="absolute left-0 right-0 top-full w-full bg-background/80 border-t shadow-2xl z-[100] animate-in fade-in slide-in-from-top-2 duration-300 backdrop-blur-sm"
+      className="absolute left-0 right-0 top-full w-full bg-background/80 border-t shadow-2xl z-40 animate-in fade-in slide-in-from-top-2 duration-300 backdrop-blur-sm"
       style={{
-        maxHeight: 'calc(100vh - 8rem)',
+        maxHeight: '70vh',
         overflowY: 'auto'
       }}
     >
-      <div className="container mx-auto grid grid-cols-5 gap-8 p-10">
+      <div className="container mx-auto grid grid-cols-4 gap-8 p-10">
         {items || <p className="col-span-5 text-center text-muted-foreground">No items to display.</p>}
       </div>
     </div>
@@ -103,10 +169,20 @@ const MegaMenu = ({ isOpen, items }: { isOpen: boolean, items?: React.ReactNode 
 export function StoreHeader() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
 
-  const categories = ['MEN', 'WOMEN', 'KIDS', 'ELECTRONICS', 'HEALTH & WELLNESS', 'PET CARE'];
+  const allCategories = [
+    "All Categories", "Men's Fashion", "Women's Fashion", "Electronics & Gadgets", "Kids & Baby", 
+    "Beauty & Personal Care", "Home & Living", "Health & Wellness", "Gaming & Esports", 
+    "Pet Care", "Sports & Outdoors", "Smart Home & IoT", "Automotive & Biking", 
+    "Books & Stationery", "Artisan & Handicrafts", "Travel & Luggage", 
+    "Eco-Friendly Living", "Musical Instruments", "Gifts & Celebrations", 
+    "Daily Essentials (Groceries)"
+  ];
+  
+  const mainCategories = allCategories.slice(0, 10);
+  const moreCategories = allCategories.slice(10);
 
   return (
-    <header className="sticky top-0 w-full bg-background z-[110] border-b shadow-sm transition-all overflow-visible">
+    <header className="sticky top-0 w-full bg-background z-50 border-b shadow-sm transition-all overflow-visible">
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex items-center justify-between py-3 gap-6">
           <Link href="/" className="text-3xl font-black font-saira tracking-tighter text-foreground">
@@ -139,21 +215,37 @@ export function StoreHeader() {
           </div>
         </div>
 
-        <nav className="hidden md:flex justify-center gap-10">
-          {categories.map((cat) => (
-            <div
-              key={cat}
-              className="relative group py-3"
-              onMouseEnter={() => setActiveMenu(cat)}
-              onMouseLeave={() => setActiveMenu(null)}
-            >
-              <button className="flex items-center gap-1 text-[13px] font-bold tracking-widest hover:text-primary transition-colors uppercase font-saira">
-                {cat} <ChevronDown size={14} className="group-hover:rotate-180 transition-transform" />
-              </button>
-
-              <MegaMenu isOpen={activeMenu === cat} items={menuData[cat]} />
-            </div>
-          ))}
+        <nav className="hidden md:flex justify-center items-center gap-6">
+          {mainCategories.map((cat) => (
+              <div
+                key={cat}
+                className="relative group py-3"
+                onMouseEnter={() => setActiveMenu(cat)}
+                onMouseLeave={() => setActiveMenu(null)}
+              >
+                <button className="flex items-center gap-1 text-[12px] font-bold tracking-wider hover:text-primary transition-colors uppercase font-saira">
+                  {cat}
+                </button>
+                <MegaMenu isOpen={activeMenu === cat} items={menuData[cat]} />
+              </div>
+            ))}
+             {moreCategories.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-1 text-[12px] font-bold tracking-wider hover:text-primary transition-colors uppercase font-saira py-3">
+                    More <ChevronDown size={14} />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {moreCategories.map((cat) => (
+                    <DropdownMenuItem key={cat}>
+                        {/* You can add link here if needed */}
+                        <span>{cat}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
         </nav>
       </div>
     </header>
