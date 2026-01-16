@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -478,7 +479,7 @@ export default function POSPage() {
             </div>
 
              {/* Mobile "View Cart" Button & Sheet */}
-            <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm p-3 border-t no-print">
+            <div className="lg:hidden fixed bottom-16 left-0 right-0 bg-background/80 backdrop-blur-sm p-3 border-t no-print">
                  <Sheet>
                     <SheetTrigger asChild>
                        <Button size="lg" className="w-full h-14 text-lg font-bold flex items-center justify-between">

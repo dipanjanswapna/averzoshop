@@ -28,9 +28,12 @@ export default function RootLayout({
   }, []);
 
   const protectedPrefixes = ['/dashboard', '/outlet', '/vendor', '/rider', '/customer', '/login', '/register'];
-  const shouldShowNav = !protectedPrefixes.some(prefix => pathname.startsWith(prefix));
+  const isAdminRoute = protectedPrefixes.some(prefix => pathname.startsWith(prefix));
+  const isPosPage = pathname === '/outlet/pos';
 
-  // Only show the mobile nav on the client side after the component has mounted.
+  // Show nav on non-admin routes OR on the POS page
+  const shouldShowNav = !isAdminRoute || isPosPage;
+  
   const showMobileNav = isClient && shouldShowNav;
 
   return (
