@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -63,7 +64,7 @@ function RegisterPageContent() {
         setEmailSent(true);
     } catch (error: any) {
         console.error("Error sending email link:", error);
-        toast({ variant: 'destructive', title: 'Failed to send link', description: 'Please try again later.' });
+        toast({ variant: "destructive", title: "Failed to send link", description: "Please try again later." });
     } finally {
         setLoading(false);
     }
@@ -91,7 +92,7 @@ function RegisterPageContent() {
           role: 'customer',
           status: 'approved',
           createdAt: serverTimestamp(),
-          loyaltyPoints: 0,
+          loyaltyPoints: 100, // Bonus points for new sign-up
           totalSpent: 0,
           membershipTier: 'silver',
         });
