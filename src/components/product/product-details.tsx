@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, Dispatch, SetStateAction } from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Minus, Plus, ShoppingBag, Heart, HelpCircle, MapPin, Share2, Printer, Gift, X, Store, Calendar } from 'lucide-react';
+import { Minus, Plus, ShoppingBag, Heart, HelpCircle, MapPin, Share2, Printer, Gift, X, Store, Calendar, CalendarDays } from 'lucide-react';
 import type { Product, ProductVariant } from '@/types/product';
 import { TrustBadges } from './trust-badges';
 import Link from 'next/link';
@@ -214,21 +214,6 @@ export function ProductDetails({
         </div>
 
          {product.flashSale && <SaleTimer endDate={product.flashSale.endDate} />}
-        
-        {isPreOrder && releaseDate && (
-            <div className="bg-blue-100 text-blue-800 border-l-4 border-blue-500 p-4 rounded-md flex items-center gap-4">
-                <Calendar size={24} className="flex-shrink-0" />
-                <div>
-                    <p className="font-bold">This is a Pre-order item.</p>
-                    <p className="text-sm">Expected to ship on or after: {releaseDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-                    {product.preOrder.depositAmount > 0 && (
-                        <p className="text-sm mt-1">
-                            Requires a <span className="font-bold">{product.preOrder.depositType === 'percentage' ? `${product.preOrder.depositAmount}%` : `৳${product.preOrder.depositAmount}`}</span> deposit.
-                        </p>
-                    )}
-                </div>
-            </div>
-        )}
 
         <div className="flex items-center justify-between">
            <div className="flex items-baseline gap-3">
@@ -314,23 +299,24 @@ export function ProductDetails({
         <div className="pt-4">
           <div className='min-h-[104px]'>
              {isPreOrder ? (
-                <div className="flex flex-col gap-4">
-                    <div className="flex flex-col sm:flex-row items-center gap-4">
-                        <div className="flex items-center border border-border rounded-md w-fit">
-                            <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => setQuantity(q => Math.max(1, q - 1))}><Minus size={14}/></Button>
-                            <span className="w-10 text-center font-bold">{quantity}</span>
-                            <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => setQuantity(q => q + 1)} disabled={product.preOrder?.limit != null && quantity >= product.preOrder.limit}><Plus size={14}/></Button>
-                        </div>
-                        <div className="flex items-center gap-2 w-full">
-                            <Button size="lg" className="w-full" onClick={handlePreOrder}>
-                                <ShoppingBag size={20} className="mr-2" /> Pre-order Now
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={handleWishlistToggle} className={cn("border", isWishlisted ? 'bg-destructive/20 text-destructive border-destructive' : '')}>
-                                <Heart size={20} className={cn(isWishlisted ? 'fill-current' : '')} />
-                            </Button>
-                        </div>
+                <div className="flex flex-col gap-4 p-4 border rounded-2xl bg-orange-50/30 border-orange-200">
+                  {releaseDate && (
+                    <div className="flex items-start gap-3 text-orange-800">
+                      <CalendarDays className="mt-1 shrink-0" size={20} />
+                      <div>
+                        <p className="font-bold text-sm uppercase">Pre-order Available</p>
+                        <p className="text-sm">সম্ভাব্য ডেলিভারি শুরু: <span className="font-bold">{releaseDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</span></p>
+                      </div>
                     </div>
-                    {product.preOrder?.limit && <p className="text-xs text-center text-muted-foreground">Limited to {product.preOrder.limit} pre-orders.</p>}
+                  )}
+                  {product.preOrder?.depositAmount != null && product.preOrder.depositAmount > 0 && (
+                    <div className="text-xs text-orange-600 bg-white p-2 rounded border border-orange-100">
+                      বুকিং করতে পণ্যটির মূল দামের মাত্র <strong>{product.preOrder.depositType === 'percentage' ? `${product.preOrder.depositAmount}%` : `৳${product.preOrder.depositAmount}`}</strong> অগ্রিম প্রদান করতে হবে।
+                    </div>
+                  )}
+                  <Button size="lg" className="w-full bg-orange-600 hover:bg-orange-700 text-white h-14 text-lg font-bold gap-2" onClick={handlePreOrder}>
+                    <ShoppingBag size={20} /> PRE-ORDER NOW
+                  </Button>
                 </div>
             ) : isOutOfStock ? (
               <div className="flex w-full items-center gap-4">
