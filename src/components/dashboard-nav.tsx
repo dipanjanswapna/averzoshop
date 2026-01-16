@@ -29,6 +29,7 @@ const adminNavItems = [
   { href: '/dashboard/vendors', label: 'Vendors', icon: Truck },
   { href: '/dashboard/stock-requests', label: 'Stock Requests', icon: ClipboardList },
   { href: '/dashboard/stock-transfers', label: 'Stock Transfers', icon: ArrowRightLeft },
+  { href: '/dashboard/coupons', label: 'Coupons', icon: Tags },
   { href: '/dashboard/sub-brands', label: 'Sub-Brands', icon: Tags },
   { href: '/dashboard/outlets', label: 'Offline Outlets', icon: Building },
 ];

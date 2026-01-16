@@ -47,8 +47,7 @@ export function CheckoutOrderSummary() {
 
       const coupon = couponSnap.data() as Coupon;
       
-      // Basic validation (more can be added)
-      if (new Date(coupon.expiryDate) < new Date()) {
+      if (coupon.expiryDate.toDate() < new Date()) {
         toast({ variant: 'destructive', title: 'Promo code expired.' });
         applyPromoCode(null);
         return;

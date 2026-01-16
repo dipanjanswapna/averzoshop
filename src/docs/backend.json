@@ -287,7 +287,8 @@
         "expiryDate": { "type": "string", "format": "date-time", "description": "The expiration date of the coupon." },
         "creatorType": { "type": "string", "enum": ["admin", "vendor"], "description": "Who created the coupon." },
         "creatorId": { "type": "string", "description": "The UID of the admin or vendor who created it." },
-        "applicableProducts": { "type": "array", "items": { "type": "string" }, "description": "Array of product IDs this coupon applies to. Empty means all." }
+        "applicableProducts": { "type": "array", "items": { "type": "string" }, "description": "Array of product IDs this coupon applies to. Empty means all." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the coupon was created." }
       },
       "required": ["code", "discountType", "value", "expiryDate", "creatorType", "creatorId"]
     }
