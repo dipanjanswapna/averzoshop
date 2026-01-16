@@ -3,7 +3,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Search, PlusCircle, MinusCircle, XCircle, ShoppingCart, Banknote, CreditCard, Smartphone } from 'lucide-react';
+import { Search, PlusCircle, MinusCircle, XCircle, ShoppingCart, Banknote, CreditCard, Smartphone, Camera } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { Product, ProductVariant } from '@/types/product';
@@ -12,10 +12,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { useFirebase } from '@/firebase';
 import { doc, runTransaction, serverTimestamp, collection } from 'firebase/firestore';
-import { PrintableReceipt } from '@/components/pos/PrintableReceipt';
 import type { POSSale } from '@/types/pos';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ReceiptPreviewDialog } from '@/components/pos/ReceiptPreviewDialog';
+import { CameraScannerDialog } from '@/components/pos/CameraScannerDialog';
 
 
 type CartItem = {
@@ -36,6 +36,7 @@ export default function POSPage() {
     const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'mobile'>('cash');
     const [lastSale, setLastSale] = useState<POSSale | null>(null);
     const [isReceiptPreviewOpen, setIsReceiptPreviewOpen] = useState(false);
+    const [isScannerOpen, setIsScannerOpen] = useState(false);
 
 
     const outletId = useMemo(() => userData?.outletId, [userData]);
@@ -125,35 +126,42 @@ export default function POSPage() {
             setCart(prev => prev.filter(item => item.variant.sku !== variantSku));
         }
     };
+    
+    const findAndAddToCartBySku = (sku: string) => {
+        const trimmedSku = sku.trim().toLowerCase();
+        if (!trimmedSku || !allProducts || !outletId) return false;
+
+        for (const product of allProducts) {
+            const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants);
+            const variant = variantsArray.find(v => v.sku.toLowerCase() === trimmedSku);
+
+            if (variant) {
+                addToCart(product, variant);
+                return true; // Found and added
+            }
+        }
+        return false; // Not found
+    };
 
     const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const trimmedSearchTerm = searchTerm.trim().toLowerCase();
-        if (!trimmedSearchTerm) return;
-    
-        // 1. Prioritize exact SKU match for barcode scanning
-        if (allProducts && outletId) {
-            for (const product of allProducts) {
-                const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants);
-                const variant = variantsArray.find(v => v.sku.toLowerCase() === trimmedSearchTerm);
-    
-                if (variant) {
-                    // The addToCart function will handle stock checking and user feedback
-                    addToCart(product, variant);
-                    setSearchTerm(''); // Clear search field on successful scan
-                    return; // Stop further processing
-                }
-            }
-        }
-    
-        // 2. If no exact SKU match, it's a name search. The visual grid update is enough.
-        // We can just give a toast if nothing is found after filtering.
-        if (availableProducts.length === 0) {
+        const found = findAndAddToCartBySku(searchTerm);
+        if (found) {
+            setSearchTerm('');
+        } else if (availableProducts.length === 0) {
             toast({ variant: 'destructive', title: 'Product Not Found', description: `No product matches "${searchTerm}".` });
         }
-        // If it's a name search with multiple results, the grid shows them, which is the desired behavior.
-        // No explicit toast is needed here, as it might be annoying. The user can see the results.
     };
+
+    const handleScanSuccess = (decodedText: string) => {
+        const found = findAndAddToCartBySku(decodedText);
+        if (found) {
+            toast({ title: "Product Added", description: `Scanned item added to cart.` });
+        } else {
+             toast({ variant: 'destructive', title: 'Product Not Found', description: `No product with barcode "${decodedText}" found.` });
+        }
+    };
+
 
     const cartSubtotal = useMemo(() => {
         return cart.reduce((total, item) => total + item.variant.price * item.quantity, 0);
@@ -191,7 +199,6 @@ export default function POSPage() {
             await runTransaction(firestore, async (transaction) => {
                 const productRefs: Map<string, { ref: any; product: Product }> = new Map();
 
-                // First, read all product documents to ensure atomicity and avoid race conditions
                 for (const item of cart) {
                     if (!productRefs.has(item.product.id)) {
                          const productRef = doc(firestore, 'products', item.product.id);
@@ -203,7 +210,6 @@ export default function POSPage() {
                     }
                 }
 
-                // Then, perform all updates
                 for (const item of cart) {
                     const { ref, product: productData } = productRefs.get(item.product.id)!;
                     
@@ -217,7 +223,6 @@ export default function POSPage() {
                         throw new Error(`Not enough stock for ${item.product.name}. Available: ${currentStock}`);
                     }
                     
-                    // Modify the array in memory
                     variantsArray[variantIndex].stock -= item.quantity;
                     if (variantsArray[variantIndex].outlet_stocks) {
                        variantsArray[variantIndex].outlet_stocks![outletId] -= item.quantity;
@@ -225,7 +230,6 @@ export default function POSPage() {
                     
                     const newTotalStock = productData.total_stock - item.quantity;
 
-                    // Write the entire modified array back
                     transaction.update(ref, {
                         variants: variantsArray,
                         total_stock: newTotalStock,
@@ -272,10 +276,19 @@ export default function POSPage() {
                             <Input
                                 ref={searchInputRef}
                                 placeholder="Scan Barcode or Search products by name/SKU..."
-                                className="pl-10 h-12 text-base"
+                                className="pl-10 pr-12 h-12 text-base"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
+                             <Button
+                                type="button"
+                                size="icon"
+                                variant="ghost"
+                                className="absolute right-1 top-1/2 -translate-y-1/2"
+                                onClick={() => setIsScannerOpen(true)}
+                            >
+                                <Camera className="h-5 w-5 text-muted-foreground" />
+                            </Button>
                         </div>
                     </form>
                     <Card className="flex-1">
@@ -372,6 +385,11 @@ export default function POSPage() {
                     outletId={userData.outletId}
                 />
             )}
+            <CameraScannerDialog
+                open={isScannerOpen}
+                onOpenChange={setIsScannerOpen}
+                onScanSuccess={handleScanSuccess}
+            />
         </>
     );
 }
