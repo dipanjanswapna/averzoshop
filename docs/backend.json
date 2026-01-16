@@ -159,6 +159,11 @@
         "price": { "type": "number", "description": "The base selling price of the product if no variants have specific prices." },
         "compareAtPrice": { "type": "number", "description": "The original price (MRP) to show a discount." },
         "baseSku": { "type": "string", "description": "The base Stock Keeping Unit for the product." },
+        "specifications": {
+          "type": "object",
+          "description": "A map of key-value pairs for product specifications.",
+          "additionalProperties": { "type": "string" }
+        },
         "total_stock": { "type": "number", "description": "Aggregated stock from all variants across all locations." },
         "variants": {
           "type": "array",
