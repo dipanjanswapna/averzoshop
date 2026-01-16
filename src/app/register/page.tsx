@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -6,7 +5,7 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { sendSignInLinkToEmail, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { sendSignInLinkToEmail, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
@@ -23,7 +22,17 @@ const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   email: z.string().email({ message: 'Invalid email address.' }),
   role: z.enum(['customer', 'vendor', 'rider'], { required_error: 'Please select a role.' }),
+  password: z.string().optional(),
+}).superRefine((data, ctx) => {
+    if ((data.role === 'vendor' || data.role === 'rider') && (!data.password || data.password.length < 6)) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Password must be at least 6 characters.',
+            path: ['password'],
+        });
+    }
 });
+
 
 function RegisterPageContent() {
   const [loading, setLoading] = useState(false);
@@ -38,12 +47,62 @@ function RegisterPageContent() {
       name: '',
       email: '',
       role: 'customer',
+      password: '',
     },
   });
+  
+  const selectedRole = form.watch('role');
+
+  const handleEmailPasswordRegistration = async (values: z.infer<typeof formSchema>) => {
+    setLoading(true);
+    if (!auth || !firestore) {
+      toast({ variant: 'destructive', title: 'Auth service not available.' });
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password!);
+      const user = userCredential.user;
+
+      await updateProfile(user, { displayName: values.name });
+
+      await setDoc(doc(firestore, 'users', user.uid), {
+        uid: user.uid,
+        email: user.email,
+        displayName: values.name,
+        photoURL: user.photoURL,
+        role: values.role,
+        status: 'pending', // Vendors and Riders require approval
+        createdAt: serverTimestamp(),
+        loyaltyPoints: 0,
+        totalSpent: 0,
+        membershipTier: 'silver',
+      });
+      
+      toast({
+        title: "Registration Submitted!",
+        description: "Your account is pending approval. We'll notify you soon."
+      });
+
+      router.push('/login');
+
+    } catch (error: any) {
+      console.error("Error creating account:", error);
+      let description = "Could not create your account. Please try again.";
+      if (error.code === 'auth/email-already-in-use') {
+          description = 'This email is already registered. Please log in.';
+      }
+      toast({ variant: "destructive", title: "Registration Failed", description });
+    } finally {
+        setLoading(false);
+    }
+  };
+
 
   const handleSendLink = async (values: z.infer<typeof formSchema>) => {
     setLoading(true);
-    if (!auth || !firestore) {
+    if (!auth) {
       toast({ variant: 'destructive', title: 'Auth service not available.' });
       setLoading(false);
       return;
@@ -70,6 +129,14 @@ function RegisterPageContent() {
     }
   };
   
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (values.role === 'customer') {
+      await handleSendLink(values);
+    } else {
+      await handleEmailPasswordRegistration(values);
+    }
+  };
+
   const handleGoogleSignIn = async () => {
     if (!auth || !firestore) {
       toast({ variant: 'destructive', title: 'Auth service not available.' });
@@ -96,9 +163,11 @@ function RegisterPageContent() {
           totalSpent: 0,
           membershipTier: 'silver',
         });
+        toast({ title: "Welcome!", description: "Your account is created and you've received 100 bonus points!" });
+      } else {
+        toast({ title: 'Google Sign-In Successful', description: 'Welcome back!' });
       }
 
-      toast({ title: 'Google Sign-In Successful', description: 'Redirecting...' });
       router.push('/dashboard');
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Google Sign-In Failed', description: error.message });
@@ -125,7 +194,7 @@ function RegisterPageContent() {
             </CardHeader>
             <CardContent>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleSendLink)} className="space-y-4">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                   <FormField control={form.control} name="name" render={({ field }) => (
                       <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="John Doe" {...field} /></FormControl><FormMessage /></FormItem>
                   )} />
@@ -143,7 +212,24 @@ function RegisterPageContent() {
                           </SelectContent>
                         </Select><FormMessage /></FormItem>
                   )} />
-                  <Button type="submit" className="w-full" disabled={loading}>{loading ? 'Sending Link...' : 'Send Magic Link'}</Button>
+                   {selectedRole !== 'customer' && (
+                    <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Password</FormLabel>
+                          <FormControl>
+                            <Input type="password" placeholder="••••••••" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? 'Processing...' : (selectedRole === 'customer' ? 'Send Magic Link' : 'Create Account')}
+                  </Button>
                 </form>
               </Form>
 
