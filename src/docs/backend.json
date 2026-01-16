@@ -121,7 +121,7 @@
         "totalAmount": { "type": "number" },
         "assignedOutletId": { "type": "string" },
         "riderId": { "type": "string", "description": "The UID of the rider assigned to this delivery." },
-        "status": { "type": "string", "enum": ["new", "preparing", "ready_for_pickup", "out_for_delivery", "delivered", "canceled", "pre-ordered"] },
+        "status": { "type": "string", "enum": ["new", "preparing", "ready_for_pickup", "out_for_delivery", "delivered", "canceled", "pre-ordered", "fulfilled"] },
         "orderType": { "type": "string", "enum": ["regular", "pre-order"] },
         "createdAt": { "type": "string", "format": "date-time" }
       },

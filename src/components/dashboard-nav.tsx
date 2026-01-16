@@ -25,6 +25,7 @@ const adminNavItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/dashboard/products', label: 'Products', icon: Package },
   { href: '/dashboard/orders', label: 'Orders & Delivery', icon: ShoppingCart },
+  { href: '/dashboard/pre-orders', label: 'Pre-orders', icon: ClipboardList },
   { href: '/dashboard/users', label: 'Users', icon: Users },
   { href: '/dashboard/vendors', label: 'Vendors', icon: Truck },
   { href: '/dashboard/stock-requests', label: 'Stock Requests', icon: ClipboardList },
