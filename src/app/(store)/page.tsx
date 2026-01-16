@@ -17,13 +17,21 @@ import { ProductCard } from '@/components/product-card';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import type { Product } from '@/types/product';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
+import { useMemo } from 'react';
 
 const heroCarouselImages = PlaceHolderImages.filter(p =>
   p.id.startsWith('hero-carousel-')
 );
 
 export default function StoreFrontPage() {
-  const { data: products, isLoading } = useFirestoreQuery<Product>('products');
+  const { firestore } = useFirebase();
+  const productsQuery = useMemo(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'products');
+  }, [firestore]);
+  const { data: products, isLoading } = useFirestoreQuery<Product>(productsQuery);
 
   const approvedProducts = products?.filter(p => p.status === 'approved' && p.total_stock > 0) || [];
   const featuredProducts = approvedProducts.slice(0, 4);

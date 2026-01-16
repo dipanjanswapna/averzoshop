@@ -1,8 +1,9 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
-import { onSnapshot, Query, DocumentData } from 'firebase/firestore';
+import { useState, useEffect, useMemo } from 'react';
+import { onSnapshot, Query, DocumentData, collection, getFirestore, CollectionReference } from 'firebase/firestore';
+import { useFirebase } from '@/firebase';
 
 interface UseFirestoreQuery<T> {
   data: T[] | null;
@@ -10,22 +11,33 @@ interface UseFirestoreQuery<T> {
   error: Error | null;
 }
 
-// The hook now accepts a Firestore Query object, or null if the query is not ready
-export function useFirestoreQuery<T>(q: Query<DocumentData> | null): UseFirestoreQuery<T> {
+export function useFirestoreQuery<T>(queryString: string): UseFirestoreQuery<T>;
+export function useFirestoreQuery<T>(query: Query<DocumentData> | null): UseFirestoreQuery<T>;
+export function useFirestoreQuery<T>(q: string | Query<DocumentData> | null): UseFirestoreQuery<T> {
   const [data, setData] = useState<T[] | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
 
+  const { firestore } = useFirebase();
+
+  const queryObj = useMemo(() => {
+    if (typeof q === 'string') {
+      if (!firestore) return null;
+      return collection(firestore, q) as Query<DocumentData>;
+    }
+    return q;
+  }, [q, firestore]);
+
+
   useEffect(() => {
-    // If the query is not ready (e.g., waiting for user ID), don't fetch.
-    if (!q) {
+    if (!queryObj) {
       setData(null);
       setIsLoading(false);
       return;
     }
     setIsLoading(true);
 
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    const unsubscribe = onSnapshot(queryObj, (querySnapshot) => {
       const documents: T[] = [];
       querySnapshot.forEach((doc) => {
         documents.push({ ...doc.data(), id: doc.id } as T);
@@ -38,9 +50,8 @@ export function useFirestoreQuery<T>(q: Query<DocumentData> | null): UseFirestor
       setIsLoading(false);
     });
 
-    // Cleanup subscription on unmount
     return () => unsubscribe();
-  }, [q]); // The dependency on `q` means it MUST be memoized by the caller.
+  }, [queryObj]);
 
   return { data, isLoading, error };
 }

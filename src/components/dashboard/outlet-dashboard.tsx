@@ -20,6 +20,8 @@ import type { Product } from '@/types/product';
 import { Skeleton } from '../ui/skeleton';
 import { SalesChart } from '../sales-chart';
 import { useMemo } from 'react';
+import { useFirebase } from '@/firebase';
+import { collection, query } from 'firebase/firestore';
 
 interface PosSale {
     id: string;
@@ -33,8 +35,13 @@ interface PosSale {
 
 export function OutletDashboard() {
   const { userData } = useAuth();
-  const { data: products, isLoading: productsLoading } = useFirestoreQuery<Product>('products');
-  const { data: sales, isLoading: salesLoading } = useFirestoreQuery<PosSale>('pos_sales');
+  const { firestore } = useFirebase();
+
+  const productsQuery = useMemo(() => firestore ? query(collection(firestore, 'products')) : null, [firestore]);
+  const salesQuery = useMemo(() => firestore ? query(collection(firestore, 'pos_sales')) : null, [firestore]);
+  
+  const { data: products, isLoading: productsLoading } = useFirestoreQuery<Product>(productsQuery);
+  const { data: sales, isLoading: salesLoading } = useFirestoreQuery<PosSale>(salesQuery);
 
   const outletId = useMemo(() => userData?.outletId, [userData]);
 

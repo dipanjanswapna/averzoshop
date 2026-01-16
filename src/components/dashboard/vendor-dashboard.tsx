@@ -24,13 +24,18 @@ import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { Product } from '@/types/product';
 import Image from 'next/image';
 import { Badge } from '../ui/badge';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { AddProductDialog } from './add-product-dialog';
 import { Skeleton } from '../ui/skeleton';
+import { useFirebase } from '@/firebase';
+import { collection, query } from 'firebase/firestore';
 
 export function VendorDashboard() {
   const { user } = useAuth();
-  const { data: products, isLoading } = useFirestoreQuery<Product>('products');
+  const { firestore } = useFirebase();
+
+  const productsQuery = useMemo(() => firestore ? query(collection(firestore, 'products')) : null, [firestore]);
+  const { data: products, isLoading } = useFirestoreQuery<Product>(productsQuery);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   const vendorProducts = products?.filter(p => p.vendorId === user?.uid) || [];

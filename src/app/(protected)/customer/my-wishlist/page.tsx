@@ -9,10 +9,20 @@ import { Heart, User } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useFirebase } from '@/firebase';
+import { collection } from 'firebase/firestore';
+import { useMemo } from 'react';
 
 export default function MyWishlistPage() {
   const { user, userData, loading: authLoading } = useAuth();
-  const { data: allProducts, isLoading: productsLoading } = useFirestoreQuery<Product>('products');
+  const { firestore } = useFirebase();
+
+  const productsQuery = useMemo(() => {
+    if (!firestore) return null;
+    return collection(firestore, 'products');
+  }, [firestore]);
+  
+  const { data: allProducts, isLoading: productsLoading } = useFirestoreQuery<Product>(productsQuery);
 
   const loading = authLoading || productsLoading;
 
