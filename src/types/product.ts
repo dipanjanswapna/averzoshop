@@ -1,4 +1,3 @@
-
 export type ProductVariant = {
     sku: string;
     color?: string;
@@ -41,7 +40,7 @@ export type Product = {
     };
     preOrder?: {
         enabled: boolean;
-        releaseDate: string;
+        releaseDate: any;
         depositType?: 'percentage' | 'fixed';
         depositAmount?: number;
         limit?: number;

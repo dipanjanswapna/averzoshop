@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Suspense, useMemo, useState, useEffect } from 'react';
@@ -145,7 +144,7 @@ function ProductPageContent() {
                          {product.group && (
                            <>
                             <BreadcrumbItem>
-                                <BreadcrumbLink href={`/shop?mother_category=${encodeURIComponent(product.category)}&group=${encodeURIComponent(product.group)}`}>{product.group}</BreadcrumbLink>
+                                <BreadcrumbLink href={`/shop?mother_category=${encodeURIComponent(product.category)}&amp;group=${encodeURIComponent(product.group)}`}>{product.group}</BreadcrumbLink>
                             </BreadcrumbItem>
                             <BreadcrumbSeparator />
                            </>

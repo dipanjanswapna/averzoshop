@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -95,17 +94,17 @@ body {
 }
 
 @layer utilities {
-  .printable-area, .printable-receipt {
-    display: none;
+  .printable-area {
+      display: none;
   }
   @media print {
     body * {
       visibility: hidden;
     }
-    .printable-receipt, .printable-receipt * {
+    .printable-area, .printable-area * {
       visibility: visible;
     }
-    .printable-receipt {
+    .printable-area {
       position: absolute;
       left: 0;
       top: 0;
@@ -114,8 +113,8 @@ body {
     .no-print {
       display: none !important;
     }
-    @page {
-      size: 80mm auto; /* Adjust width as needed for thermal printers */
+     @page {
+      size: 300px 200px;
       margin: 0;
     }
   }

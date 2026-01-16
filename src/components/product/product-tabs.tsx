@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -72,7 +71,7 @@ export function ProductTabs({ product }: { product: Product }) {
                 <TabsTrigger value="description">Description</TabsTrigger>
                 <TabsTrigger value="specifications">Specifications</TabsTrigger>
                 <TabsTrigger value="reviews">Reviews</TabsTrigger>
-                <TabsTrigger value="qa">Q&A</TabsTrigger>
+                <TabsTrigger value="qa">Q&amp;A</TabsTrigger>
             </TabsList>
             <TabsContent value="description" className="py-6 text-sm text-muted-foreground prose max-w-none">
                 <p>{product.description || "No description available for this product."}</p>
