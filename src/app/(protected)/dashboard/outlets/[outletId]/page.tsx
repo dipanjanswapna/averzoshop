@@ -26,7 +26,7 @@ export default function OutletDetailsPage() {
   const { data: usersData, isLoading: usersLoading } = useFirestoreQuery<UserData>('users');
 
   const [isTransferDialogOpen, setIsTransferDialogOpen] = useState(false);
-  const [productToTransfer, setProductToTransfer] = useState<any | null>(null);
+  const [productToTransfer, setProductToTransfer] = useState<Product | null>(null);
 
   const isLoading = outletsLoading || productsLoading || usersLoading;
 
@@ -42,15 +42,18 @@ export default function OutletDetailsPage() {
   const inventory = useMemo(() => {
     if (!productsData || !outletId) return [];
     return productsData
-      .filter(p => p.outlet_stocks && p.outlet_stocks[outletId] > 0)
-      .map(p => ({
-        ...p,
-        stock: p.outlet_stocks[outletId],
-        vendorName: vendorMap.get(p.vendorId) || 'Unknown Vendor',
-      }));
+      .map(p => {
+        const stockInOutlet = p.variants.reduce((sum, v) => sum + (v.outlet_stocks?.[outletId] ?? 0), 0);
+        return {
+          ...p,
+          stock: stockInOutlet,
+          vendorName: vendorMap.get(p.vendorId) || 'Unknown Vendor',
+        };
+      })
+      .filter(p => p.stock > 0);
   }, [productsData, outletId, vendorMap]);
 
-  const handleTransferClick = (product: any) => {
+  const handleTransferClick = (product: Product) => {
     setProductToTransfer(product);
     setIsTransferDialogOpen(true);
   }

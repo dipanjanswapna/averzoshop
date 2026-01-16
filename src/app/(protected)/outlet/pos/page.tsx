@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -132,43 +131,59 @@ export default function POSPage() {
         try {
             await runTransaction(firestore, async (transaction) => {
                 const saleItems: any[] = [];
+                const productRefsToUpdate = new Map<string, { productDoc: DocumentData, items: CartItem[] }>();
     
+                // Phase 1: Read all product documents first
                 for (const cartItem of cart) {
-                    const productRef = doc(firestore, 'products', cartItem.product.id);
-                    const productDoc = await transaction.get(productRef);
-    
-                    if (!productDoc.exists()) {
-                        throw new Error(`Product ${cartItem.product.name} not found.`);
+                    if (!productRefsToUpdate.has(cartItem.product.id)) {
+                        const productRef = doc(firestore, 'products', cartItem.product.id);
+                        const productDoc = await transaction.get(productRef);
+                        if (!productDoc.exists()) {
+                            throw new Error(`Product ${cartItem.product.name} not found.`);
+                        }
+                        productRefsToUpdate.set(cartItem.product.id, { productDoc, items: [] });
                     }
+                    productRefsToUpdate.get(cartItem.product.id)!.items.push(cartItem);
+                }
     
-                    const currentData = productDoc.data() as Product;
-                    const variantIndex = currentData.variants.findIndex(v => v.sku === cartItem.variant.sku);
-                    
-                    if (variantIndex === -1) {
-                        throw new Error(`Variant ${cartItem.variant.sku} not found for product ${cartItem.product.name}.`);
-                    }
+                // Phase 2: Perform all writes
+                for (const [productId, { productDoc, items }] of productRefsToUpdate.entries()) {
+                    const productData = productDoc.data() as Product;
+                    let totalStockDecrement = 0;
+    
+                    for (const cartItem of items) {
+                        const variantIndex = productData.variants.findIndex(v => v.sku === cartItem.variant.sku);
+                        if (variantIndex === -1) {
+                            throw new Error(`Variant ${cartItem.variant.sku} not found for product ${cartItem.product.name}.`);
+                        }
+    
+                        const currentVariantStock = productData.variants[variantIndex].outlet_stocks?.[outletId] ?? 0;
+                        if (currentVariantStock < cartItem.quantity) {
+                            throw new Error(`Not enough stock for ${cartItem.product.name} (${cartItem.variant.sku}). Available: ${currentVariantStock}`);
+                        }
+    
+                        totalStockDecrement += cartItem.quantity;
+                        const stockUpdatePath = `variants.${variantIndex}.outlet_stocks.${outletId}`;
+                        const variantTotalStockPath = `variants.${variantIndex}.stock`;
 
-                    const currentVariantStockInOutlet = currentData.variants[variantIndex].outlet_stocks?.[outletId] ?? 0;
+                        transaction.update(productDoc.ref, {
+                            [stockUpdatePath]: increment(-cartItem.quantity),
+                            [variantTotalStockPath]: increment(-cartItem.quantity),
+                        });
     
-                    if (currentVariantStockInOutlet < cartItem.quantity) {
-                        throw new Error(`Not enough stock for ${cartItem.product.name}. Available: ${currentVariantStockInOutlet}`);
+                        saleItems.push({
+                            productId: cartItem.product.id,
+                            productName: cartItem.product.name,
+                            variantSku: cartItem.variant.sku,
+                            quantity: cartItem.quantity,
+                            price: cartItem.variant.price,
+                        });
                     }
-    
-                    transaction.update(productRef, {
-                        [`variants.${variantIndex}.stock`]: increment(-cartItem.quantity),
-                        [`variants.${variantIndex}.outlet_stocks.${outletId}`]: increment(-cartItem.quantity),
-                        total_stock: increment(-cartItem.quantity),
-                    });
-    
-                    saleItems.push({
-                        productId: cartItem.product.id,
-                        productName: cartItem.product.name,
-                        variantSku: cartItem.variant.sku,
-                        quantity: cartItem.quantity,
-                        price: cartItem.variant.price,
+                    transaction.update(productDoc.ref, {
+                        total_stock: increment(-totalStockDecrement),
                     });
                 }
-                
+    
                 const salesRef = collection(firestore, 'pos_sales');
                 transaction.set(doc(salesRef), {
                     outletId,
@@ -193,7 +208,7 @@ export default function POSPage() {
 
 
     return (
-        <div className="p-4 md:p-6 h-full">
+         <div className="h-full">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start h-full">
                 {/* Product Grid Section */}
                 <div className="lg:col-span-2 flex flex-col gap-4 h-full">
@@ -209,7 +224,7 @@ export default function POSPage() {
                             />
                         </div>
                     </form>
-                    <ScrollArea className="h-[calc(100vh-250px)] border rounded-lg">
+                    <ScrollArea className="h-[calc(100vh-220px)] lg:h-[calc(100vh-200px)] border rounded-lg">
                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 p-4">
                             {isLoading && Array.from({ length: 10 }).map((_, i) => <Card key={i} className="animate-pulse bg-muted aspect-square" />)}
                             {availableProducts.map(product => {
@@ -237,8 +252,8 @@ export default function POSPage() {
                 </div>
 
                 {/* Cart Section */}
-                <div className="lg:col-span-1 lg:sticky lg:top-6 h-fit lg:h-auto">
-                    <Card>
+                <div className="lg:col-span-1 lg:sticky lg:top-6 h-fit lg:h-full flex flex-col">
+                    <Card className="flex-1 flex flex-col">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                <ShoppingCart /> Cart
@@ -247,7 +262,7 @@ export default function POSPage() {
                                 {totalItems} items in cart
                             </CardDescription>
                         </CardHeader>
-                        <ScrollArea className="max-h-96 lg:max-h-full lg:h-auto">
+                        <ScrollArea className="flex-grow">
                              <CardContent className="space-y-4">
                                  {cart.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">

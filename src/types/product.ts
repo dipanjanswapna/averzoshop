@@ -4,9 +4,10 @@ export type ProductVariant = {
     color?: string;
     size?: string;
     image?: string;
-    stock: number;
+    stock: number; // Total stock for this variant across all locations
     price: number;
     compareAtPrice?: number;
+    outlet_stocks?: { [key: string]: number }; // Stock per outlet for this specific variant
 };
 
 export type Product = {
@@ -19,9 +20,8 @@ export type Product = {
     price: number; // Base price
     compareAtPrice?: number;
     baseSku: string;
-    total_stock: number;
+    total_stock: number; // Aggregated stock from all variants across all locations
     variants: ProductVariant[];
-    outlet_stocks: { [key: string]: number };
     image: string;
     brand: string;
     colors: string[];

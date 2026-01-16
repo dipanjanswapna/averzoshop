@@ -1,4 +1,3 @@
-
 'use client';
 import { useState } from 'react';
 import {
@@ -37,6 +36,7 @@ export function ReceiveStockDialog({ open, onOpenChange, challan }: ReceiveStock
             return;
         }
 
+        const outletId = userData.outletId;
         setIsLoading(true);
 
         try {
@@ -44,49 +44,34 @@ export function ReceiveStockDialog({ open, onOpenChange, challan }: ReceiveStock
                 const challanRef = doc(firestore, 'delivery_challans', challan.id);
                 const stockRequestRef = doc(firestore, 'stock_requests', challan.stockRequestId);
                 
-                // 1. All reads first
                 const productRefs = challan.items.map(item => doc(firestore, 'products', item.productId));
                 const productDocs = await Promise.all(productRefs.map(ref => transaction.get(ref)));
 
-                const updatesToPerform: { ref: any, data: any }[] = [];
-
-                // 2. Process data and prepare writes
                 for (let i = 0; i < challan.items.length; i++) {
                     const item = challan.items[i];
                     const productDoc = productDocs[i];
 
                     if (!productDoc.exists()) {
-                        throw new Error(`Product with ID ${item.productId} not found.`);
+                        throw new Error(`Product ${item.productName} (ID: ${item.productId}) not found.`);
                     }
 
                     const productData = productDoc.data() as Product;
                     const variantIndex = productData.variants.findIndex(v => v.sku === item.variantSku);
 
                     if (variantIndex === -1) {
-                        throw new Error(`Variant with SKU ${item.variantSku} not found for product ${item.productName}.`);
+                        throw new Error(`Variant SKU ${item.variantSku} not found for product ${item.productName}.`);
                     }
 
-                    const newVariants = [...productData.variants];
-                    newVariants[variantIndex] = {
-                        ...newVariants[variantIndex],
-                        stock: newVariants[variantIndex].stock + item.quantity
-                    };
+                    const variantStockPath = `variants.${variantIndex}.stock`;
+                    const outletStockPath = `variants.${variantIndex}.outlet_stocks.${outletId}`;
                     
-                    updatesToPerform.push({
-                        ref: productRefs[i],
-                        data: {
-                            total_stock: increment(item.quantity),
-                            [`outlet_stocks.${userData.outletId}`]: increment(item.quantity),
-                            variants: newVariants
-                        }
+                    transaction.update(productDoc.ref, {
+                        total_stock: increment(item.quantity),
+                        [variantStockPath]: increment(item.quantity),
+                        [outletStockPath]: increment(item.quantity)
                     });
                 }
                 
-                // 3. All writes last
-                updatesToPerform.forEach(update => {
-                    transaction.update(update.ref, update.data);
-                });
-
                 transaction.update(challanRef, { status: 'received' });
                 transaction.update(stockRequestRef, { status: 'received' });
             });

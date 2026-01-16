@@ -46,15 +46,21 @@ export function DispatchStockDialog({ open, onOpenChange, transfer }: DispatchSt
                 }
 
                 const productData = productDoc.data() as Product;
-                const currentOutletStock = productData.outlet_stocks?.[transfer.sourceOutletId] ?? 0;
-
-                if (currentOutletStock < transfer.quantity) {
-                    throw new Error(`Not enough stock for ${transfer.productName}. Available: ${currentOutletStock}`);
+                const variantIndex = productData.variants.findIndex(v => v.sku === transfer.variantSku);
+                if (variantIndex === -1) {
+                    throw new Error(`Variant ${transfer.variantSku} not found.`);
                 }
+
+                const stockUpdatePath = `variants.${variantIndex}.outlet_stocks.${transfer.sourceOutletId}`;
+                const currentStock = productData.variants[variantIndex].outlet_stocks?.[transfer.sourceOutletId] ?? 0;
                 
-                // Decrement stock from the source outlet. Total stock remains unchanged.
+                if (currentStock < transfer.quantity) {
+                     throw new Error(`Not enough stock for ${transfer.productName}. Available: ${currentStock}`);
+                }
+
+                // Decrement stock from source outlet's variant stock. Total stock remains the same for now.
                 transaction.update(productRef, {
-                    [`outlet_stocks.${transfer.sourceOutletId}`]: increment(-transfer.quantity),
+                    [stockUpdatePath]: increment(-transfer.quantity),
                 });
                 
                 // Update the transfer status to 'dispatched'

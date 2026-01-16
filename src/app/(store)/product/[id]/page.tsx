@@ -24,7 +24,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 function ProductPageContent() {
     const params = useParams();
     const { id } = params;
-    const router = useRouter();
     const searchParams = useSearchParams();
     
     const { data: products, isLoading } = useFirestoreQuery<Product>('products');
@@ -58,7 +57,7 @@ function ProductPageContent() {
         }
 
         if (!initialVariant) {
-            initialVariant = product.variants?.find(v => v.stock > 0) || product.variants?.[0] || null;
+            initialVariant = product.variants?.find(v => (v.stock || 0) > 0) || product.variants?.[0] || null;
         }
 
         if (initialVariant) {
@@ -124,6 +123,9 @@ function ProductPageContent() {
             </div>
         );
     }
+    
+    const isProductOutOfStock = selectedVariant ? (selectedVariant.stock || 0) <= 0 : product.total_stock <= 0;
+
 
     return (
         <div className="bg-background">
@@ -161,6 +163,7 @@ function ProductPageContent() {
                         setSelectedColor={setSelectedColor}
                         selectedSize={selectedSize}
                         setSelectedSize={setSelectedSize}
+                        isOutOfStock={isProductOutOfStock}
                     />
                 </div>
             </div>
@@ -180,7 +183,7 @@ function ProductPageContent() {
                 <RelatedProducts products={relatedProducts} />
             </div>
 
-            <MobileActionbar product={product} />
+            <MobileActionbar product={product} selectedVariant={selectedVariant} isOutOfStock={isProductOutOfStock}/>
         </div>
     );
 }

@@ -40,12 +40,26 @@ export function ReceiveTransferDialog({ open, onOpenChange, transfer }: ReceiveT
                 const transferRef = doc(firestore, 'stock_transfers', transfer.id);
                 const productRef = doc(firestore, 'products', transfer.productId);
 
-                // Increment stock in the destination outlet. Total stock remains unchanged.
+                const productDoc = await transaction.get(productRef);
+                if (!productDoc.exists()) {
+                    throw new Error(`Product with ID ${transfer.productId} not found.`);
+                }
+                const productData = productDoc.data() as Product;
+                const variantIndex = productData.variants.findIndex(v => v.sku === transfer.variantSku);
+                if (variantIndex === -1) {
+                    throw new Error(`Variant ${transfer.variantSku} not found.`);
+                }
+
+                // Increment stock in the destination outlet
+                const stockUpdatePath = `variants.${variantIndex}.outlet_stocks.${transfer.destinationOutletId}`;
+                const variantTotalStockPath = `variants.${variantIndex}.stock`;
+
                 transaction.update(productRef, {
-                    [`outlet_stocks.${transfer.destinationOutletId}`]: increment(transfer.quantity),
+                    total_stock: increment(transfer.quantity),
+                    [variantTotalStockPath]: increment(transfer.quantity),
+                    [stockUpdatePath]: increment(transfer.quantity)
                 });
                 
-                // Update the transfer status to 'received'
                 transaction.update(transferRef, { status: 'received' });
             });
 
