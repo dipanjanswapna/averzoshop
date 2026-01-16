@@ -11,4 +11,9 @@ export interface UserData {
   assignedOutlets?: string[];
   createdAt?: string;
   phone?: string;
+  loyaltyPoints?: number;
+  totalSpent?: number;
+  membershipTier?: 'silver' | 'gold' | 'platinum';
 }
+
+    

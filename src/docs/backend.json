@@ -20,7 +20,10 @@
             "description": "An array of outlet IDs that the vendor is allowed to supply to.",
             "items": { "type": "string" }
         },
-        "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the user account was created." }
+        "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the user account was created." },
+        "loyaltyPoints": { "type": "number", "description": "The user's current loyalty point balance." },
+        "totalSpent": { "type": "number", "description": "The total amount of money spent by the user." },
+        "membershipTier": { "type": "string", "enum": ["silver", "gold", "platinum"], "description": "The user's membership level." }
       },
       "required": ["uid", "email", "role", "status"]
     },
@@ -328,3 +331,5 @@
     "/coupons/{couponId}": { "schema": { "$ref": "#/entities/coupon" }, "description": "Stores all promotional codes for discounts." }
   }
 }
+
+    

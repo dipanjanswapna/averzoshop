@@ -90,6 +90,9 @@ function LoginPageContent() {
           role: 'customer',
           status: 'approved',
           createdAt: new Date().toISOString(),
+          loyaltyPoints: 0,
+          totalSpent: 0,
+          membershipTier: 'silver',
         });
       } else {
         // Existing user, merge data but don't overwrite role/status
@@ -194,3 +197,5 @@ export default function LoginPage() {
     </FirebaseClientProvider>
   )
 }
+
+    

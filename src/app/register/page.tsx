@@ -66,6 +66,9 @@ function RegisterPageContent() {
         role: values.role,
         status: status,
         createdAt: new Date().toISOString(),
+        loyaltyPoints: 0,
+        totalSpent: 0,
+        membershipTier: 'silver',
       });
 
       toast({ title: 'Registration Successful', description: 'Redirecting to login...' });
@@ -100,6 +103,9 @@ function RegisterPageContent() {
           role: 'customer',
           status: 'approved',
           createdAt: new Date().toISOString(),
+          loyaltyPoints: 0,
+          totalSpent: 0,
+          membershipTier: 'silver',
         });
       } else {
          // Existing user, merge data but don't overwrite role/status
@@ -227,3 +233,5 @@ export default function RegisterPage() {
         </FirebaseClientProvider>
     )
 }
+
+    

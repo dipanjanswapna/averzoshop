@@ -84,7 +84,10 @@ export function AddUserDialog({ open, onOpenChange }: AddUserDialogProps) {
             displayName: values.name,
             role: values.role,
             status: 'approved', // Admin-created users are pre-approved
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
+            loyaltyPoints: 0,
+            totalSpent: 0,
+            membershipTier: 'silver',
         };
 
         if (values.role === 'vendor' && values.assignedOutlets) {
@@ -204,3 +207,5 @@ export function AddUserDialog({ open, onOpenChange }: AddUserDialogProps) {
     </Dialog>
   );
 }
+
+    

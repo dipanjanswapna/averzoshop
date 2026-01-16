@@ -21,7 +21,7 @@ import { CardHeader, CardTitle } from '../ui/card';
 import { useCart, CartItem as CartItemType } from '@/hooks/use-cart';
 import { useFirebase } from '@/firebase';
 import { useAuth } from '@/hooks/use-auth';
-import { collection, doc, writeBatch, serverTimestamp, getDocs, runTransaction } from 'firebase/firestore';
+import { collection, doc, writeBatch, serverTimestamp, getDocs, runTransaction, increment } from 'firebase/firestore';
 import { calculateDistance } from '@/lib/distance';
 import type { Outlet } from '@/types/outlet';
 import type { Product } from '@/types/product';
@@ -66,156 +66,163 @@ export function ShippingForm() {
       return;
     }
     
-    const isPreOrderCart = cartItems.length > 0 && !!cartItems[0].isPreOrder;
-
+    const isPreOrderCart = cartItems.some(item => item.isPreOrder);
+    const hasRegularItems = cartItems.some(item => !item.isPreOrder);
 
     try {
-        if (isPreOrderCart) {
-            const batch = writeBatch(firestore);
+      // Logic for updating user points
+      const pointsEarned = Math.floor(totalPayable / 100) * 5;
+      const userRef = doc(firestore, 'users', user.uid);
+
+      if (isPreOrderCart && !hasRegularItems) { // Only pre-order items
+          const batch = writeBatch(firestore);
+          const orderRef = doc(collection(firestore, 'orders'));
+          
+          batch.set(orderRef, {
+              customerId: user.uid,
+              shippingAddress: values,
+              items: cartItems.map(item => ({
+                  productId: item.product.id,
+                  productName: item.product.name,
+                  variantSku: item.variant.sku,
+                  quantity: item.quantity,
+                  price: item.variant.price
+              })),
+              subtotal: subtotal,
+              totalAmount: totalPayable,
+              fullOrderValue: fullOrderTotal,
+              assignedOutletId: 'pre-order-fulfillment', 
+              status: 'pre-ordered',
+              orderType: 'pre-order',
+              createdAt: serverTimestamp(),
+          });
+          
+          batch.update(userRef, { 
+              loyaltyPoints: increment(pointsEarned),
+              totalSpent: increment(totalPayable) 
+          });
+
+          await batch.commit();
+          
+          clearCart();
+          toast({
+              title: 'Pre-order Placed!',
+              description: `Your pre-order has been confirmed. We'll notify you upon release.`,
+          });
+          router.push('/customer/my-orders');
+
+      } else { // Mixed or regular cart
+          await runTransaction(firestore, async (transaction) => {
             const orderRef = doc(collection(firestore, 'orders'));
             
-            batch.set(orderRef, {
-                customerId: user.uid,
-                shippingAddress: values,
-                items: cartItems.map(item => ({
-                    productId: item.product.id,
-                    productName: item.product.name,
-                    variantSku: item.variant.sku,
-                    quantity: item.quantity,
-                    price: item.variant.price
-                })),
-                subtotal: subtotal,
-                totalAmount: totalPayable,
-                fullOrderValue: fullOrderTotal,
-                assignedOutletId: 'pre-order-fulfillment', 
-                status: 'pre-ordered',
-                orderType: 'pre-order',
-                createdAt: serverTimestamp(),
-            });
+            // Only process regular items for stock check and update
+            const regularItems = cartItems.filter(item => !item.isPreOrder);
+            if (regularItems.length > 0) {
+                const [productsSnapshot, outletsSnapshot] = await Promise.all([
+                    getDocs(collection(firestore, 'products')),
+                    getDocs(collection(firestore, 'outlets'))
+                ]);
+                const allProducts = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Product[];
+                const allOutlets = outletsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Outlet[];
 
-            await batch.commit();
-            
-            clearCart();
-            toast({
-                title: 'Pre-order Placed!',
-                description: `Your pre-order has been confirmed. We'll notify you upon release.`,
-            });
-            router.push('/customer/my-orders');
-
-        } else {
-            const [productsSnapshot, outletsSnapshot] = await Promise.all([
-                getDocs(collection(firestore, 'products')),
-                getDocs(collection(firestore, 'outlets'))
-            ]);
-            const allProducts = productsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Product[];
-            const allOutlets = outletsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Outlet[];
-            
-            const suitableOutlets = allOutlets.filter(outlet => {
-                return cartItems.every(cartItem => {
-                const product = allProducts.find(p => p.id === cartItem.product.id);
-                if (!product) return false;
-                const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants || {});
-                const variant = variantsArray.find(v => v.sku === cartItem.variant.sku);
-                const stockInOutlet = variant?.outlet_stocks?.[outlet.id] ?? 0;
-                return stockInOutlet >= cartItem.quantity;
+                const suitableOutlets = allOutlets.filter(outlet => {
+                    return regularItems.every(cartItem => {
+                        const product = allProducts.find(p => p.id === cartItem.product.id);
+                        if (!product) return false;
+                        const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants || {});
+                        const variant = variantsArray.find(v => v.sku === cartItem.variant.sku);
+                        const stockInOutlet = variant?.outlet_stocks?.[outlet.id] ?? 0;
+                        return stockInOutlet >= cartItem.quantity;
+                    });
                 });
-            });
 
-            if (suitableOutlets.length === 0) {
-                toast({ variant: 'destructive', title: 'Out of Stock', description: 'Sorry, no single outlet can fulfill your entire order at the moment.' });
-                setIsLoading(false);
-                return;
-            }
-
-            const customerCoords = { lat: 23.8103, lng: 90.4125 }; 
-            
-            const nearestOutlet = suitableOutlets.reduce((closest, outlet) => {
-                const distance = calculateDistance(
-                    customerCoords.lat,
-                    customerCoords.lng,
-                    outlet.location.lat,
-                    outlet.location.lng
-                );
-                if (!closest || distance < closest.distance) {
-                    return { ...outlet, distance };
+                if (suitableOutlets.length === 0) {
+                  throw new Error('Sorry, no single outlet can fulfill your entire order at the moment.');
                 }
-                return closest;
-            }, null as (Outlet & { distance: number }) | null);
+                
+                const customerCoords = { lat: 23.8103, lng: 90.4125 };
+                const nearestOutlet = suitableOutlets.reduce((closest, outlet) => {
+                    const distance = calculateDistance(customerCoords.lat, customerCoords.lng, outlet.location.lat, outlet.location.lng);
+                    if (!closest || distance < closest.distance) return { ...outlet, distance };
+                    return closest;
+                }, null as (Outlet & { distance: number }) | null);
+    
+                if (!nearestOutlet) {
+                    throw new Error('Could not find a suitable outlet to ship from.');
+                }
+                
+                for (const cartItem of regularItems) {
+                    const productRef = doc(firestore, 'products', cartItem.product.id);
+                    const productDoc = await transaction.get(productRef);
 
-            if (!nearestOutlet) {
-                toast({ variant: 'destructive', title: 'Routing Error', description: 'Could not find a suitable outlet to ship from.' });
-                setIsLoading(false);
-                return;
+                    if (!productDoc.exists()) throw new Error(`Product ${cartItem.product.name} not found.`);
+
+                    const productData = productDoc.data() as Product;
+                    const variantsArray = Array.isArray(productData.variants) ? [...productData.variants] : Object.values(productData.variants || {});
+                    
+                    const variantIndex = variantsArray.findIndex(v => v.sku === cartItem.variant.sku);
+                    if (variantIndex === -1) throw new Error(`Variant ${cartItem.variant.sku} not found.`);
+
+                    const variant = variantsArray[variantIndex];
+                    const currentStock = variant.outlet_stocks?.[nearestOutlet.id] ?? 0;
+                    if (currentStock < cartItem.quantity) throw new Error(`Not enough stock for ${productData.name} at ${nearestOutlet.name}.`);
+
+                    variantsArray[variantIndex].stock = (variant.stock || 0) - cartItem.quantity;
+                    variantsArray[variantIndex].outlet_stocks![nearestOutlet.id] = currentStock - cartItem.quantity;
+                    
+                    const newTotalStock = productData.total_stock - cartItem.quantity;
+
+                    transaction.update(productRef, {
+                        variants: variantsArray,
+                        total_stock: newTotalStock
+                    });
+                }
+
+                 transaction.set(orderRef, {
+                    customerId: user.uid,
+                    shippingAddress: values,
+                    items: cartItems.map(item => ({
+                        productId: item.product.id, productName: item.product.name, variantSku: item.variant.sku, quantity: item.quantity, price: item.variant.price
+                    })),
+                    subtotal: subtotal,
+                    discountAmount: discount,
+                    promoCode: promoCode?.code,
+                    totalAmount: totalPayable,
+                    fullOrderValue: fullOrderTotal,
+                    assignedOutletId: nearestOutlet.id,
+                    status: isPreOrderCart ? 'pre-ordered' : 'new',
+                    orderType: isPreOrderCart ? 'pre-order' : 'regular',
+                    createdAt: serverTimestamp(),
+                });
+            } else { // Only pre-order items but in the else block
+                 transaction.set(orderRef, {
+                    customerId: user.uid,
+                    shippingAddress: values,
+                    items: cartItems.map(item => ({
+                        productId: item.product.id, productName: item.product.name, variantSku: item.variant.sku, quantity: item.quantity, price: item.variant.price
+                    })),
+                    subtotal: subtotal,
+                    totalAmount: totalPayable,
+                    fullOrderValue: fullOrderTotal,
+                    assignedOutletId: 'pre-order-fulfillment', 
+                    status: 'pre-ordered',
+                    orderType: 'pre-order',
+                    createdAt: serverTimestamp(),
+                });
             }
 
-            await runTransaction(firestore, async (transaction) => {
-              const orderRef = doc(collection(firestore, 'orders'));
-
-              for (const cartItem of cartItems) {
-                  const productRef = doc(firestore, 'products', cartItem.product.id);
-                  const productDoc = await transaction.get(productRef);
-
-                  if (!productDoc.exists()) {
-                      throw new Error(`Product ${cartItem.product.name} not found.`);
-                  }
-
-                  const productData = productDoc.data() as Product;
-                  const variantsArray = Array.isArray(productData.variants) 
-                      ? productData.variants.map(v => ({...v})) 
-                      : Object.values(productData.variants || {}).map(v => ({...v}));
-                  
-                  const variantIndex = variantsArray.findIndex(v => v.sku === cartItem.variant.sku);
-                  if (variantIndex === -1) {
-                      throw new Error(`Variant ${cartItem.variant.sku} not found.`);
-                  }
-
-                  const variant = variantsArray[variantIndex];
-                  const currentStock = variant.outlet_stocks?.[nearestOutlet.id] ?? 0;
-
-                  if (currentStock < cartItem.quantity) {
-                      throw new Error(`Not enough stock for ${productData.name} at ${nearestOutlet.name}. Available: ${currentStock}, Requested: ${cartItem.quantity}.`);
-                  }
-
-                  variantsArray[variantIndex].stock = (variant.stock || 0) - cartItem.quantity;
-                  if (variantsArray[variantIndex].outlet_stocks) {
-                       variantsArray[variantIndex].outlet_stocks![nearestOutlet.id] = currentStock - cartItem.quantity;
-                  }
-                  
-                  const newTotalStock = productData.total_stock - cartItem.quantity;
-
-                  transaction.update(productRef, {
-                      variants: variantsArray,
-                      total_stock: newTotalStock
-                  });
-              }
-              
-              transaction.set(orderRef, {
-                  customerId: user.uid,
-                  shippingAddress: values,
-                  items: cartItems.map(item => ({
-                      productId: item.product.id,
-                      productName: item.product.name,
-                      variantSku: item.variant.sku,
-                      quantity: item.quantity,
-                      price: item.variant.price
-                  })),
-                  subtotal: subtotal,
-                  discountAmount: discount,
-                  promoCode: promoCode?.code,
-                  totalAmount: totalPayable,
-                  assignedOutletId: nearestOutlet.id,
-                  status: 'new',
-                  orderType: 'regular',
-                  createdAt: serverTimestamp(),
-              });
+            transaction.update(userRef, { 
+                loyaltyPoints: increment(pointsEarned),
+                totalSpent: increment(totalPayable) 
             });
+          });
 
-            clearCart();
-            toast({
-                title: 'Order Placed!',
-                description: `Your order has been routed to our ${nearestOutlet.name} outlet for fulfillment.`,
-            });
-            router.push('/customer/my-orders');
+          clearCart();
+          toast({
+              title: 'Order Placed!',
+              description: `Your order has been confirmed.`,
+          });
+          router.push('/customer/my-orders');
         }
 
     } catch (error: any) {
@@ -326,3 +333,5 @@ export function ShippingForm() {
       </Form>
   );
 }
+
+    

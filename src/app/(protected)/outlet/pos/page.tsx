@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -619,7 +620,17 @@ export default function POSPage() {
 
             try {
                 const orderRef = doc(firestore, 'orders', orderId);
-                await setDoc(orderRef, preOrderData);
+                const userRef = doc(firestore, 'users', selectedCustomer.uid);
+                
+                await runTransaction(firestore, async (transaction) => {
+                    transaction.set(orderRef, preOrderData);
+                    
+                    const pointsEarned = Math.floor(grandTotal / 100) * 5;
+                    transaction.update(userRef, {
+                        loyaltyPoints: increment(pointsEarned),
+                        totalSpent: increment(grandTotal),
+                    });
+                });
                 
                 const receiptData = {
                     ...preOrderData,
@@ -642,90 +653,77 @@ export default function POSPage() {
             return;
         }
 
-        const saleId = doc(collection(firestore, 'id_generator')).id;
-        const saleData: POSSale = {
-            id: saleId,
-            outletId,
-            soldBy: user.uid,
-            items: cart.map(item => ({
-                productId: item.product.id,
-                productName: item.product.name,
-                variantSku: item.variant.sku,
-                quantity: item.quantity,
-                price: item.variant.price,
-            })),
-            subtotal: cartSubtotal,
-            discountAmount: discountAmount,
-            promoCode: appliedCoupon?.code,
-            totalAmount: grandTotal,
-            paymentMethod: paymentMethod,
-            createdAt: serverTimestamp(),
-        };
-
+        // Regular Sale
         try {
             await runTransaction(firestore, async (transaction) => {
-                const productRefs: Map<string, { ref: any; product: Product }> = new Map();
+                const saleId = doc(collection(firestore, 'id_generator')).id;
+                const saleRef = doc(firestore, 'pos_sales', saleId);
+
+                const saleData: POSSale = {
+                    id: saleId,
+                    outletId,
+                    soldBy: user.uid,
+                    items: cart.map(item => ({
+                        productId: item.product.id,
+                        productName: item.product.name,
+                        variantSku: item.variant.sku,
+                        quantity: item.quantity,
+                        price: item.variant.price,
+                    })),
+                    subtotal: cartSubtotal,
+                    discountAmount: discountAmount,
+                    promoCode: appliedCoupon?.code,
+                    totalAmount: grandTotal,
+                    paymentMethod: paymentMethod,
+                    createdAt: serverTimestamp(),
+                };
+                transaction.set(saleRef, saleData);
 
                 for (const item of cart) {
-                    if (!productRefs.has(item.product.id)) {
-                         const productRef = doc(firestore, 'products', item.product.id);
-                         const productDoc = await transaction.get(productRef);
-                         if (!productDoc.exists()) {
-                            throw new Error(`Product ${item.product.name} not found.`);
-                         }
-                         productRefs.set(item.product.id, { ref: productRef, product: productDoc.data() as Product });
-                    }
-                }
-
-                for (const item of cart) {
-                    const { ref, product: productData } = productRefs.get(item.product.id)!;
+                    const productRef = doc(firestore, 'products', item.product.id);
+                    const productDoc = await transaction.get(productRef);
+                    if (!productDoc.exists()) throw new Error(`Product ${item.product.name} not found.`);
                     
+                    const productData = productDoc.data() as Product;
                     const variantsArray = Array.isArray(productData.variants) ? [...productData.variants] : [...Object.values(productData.variants)];
                     const variantIndex = variantsArray.findIndex(v => v.sku === item.variant.sku);
 
                     if (variantIndex === -1) throw new Error(`Variant ${item.variant.sku} not found.`);
                     
                     const currentStock = variantsArray[variantIndex].outlet_stocks?.[outletId] ?? 0;
-                    if (currentStock < item.quantity) {
-                        throw new Error(`Not enough stock for ${item.product.name}. Available: ${currentStock}`);
-                    }
+                    if (currentStock < item.quantity) throw new Error(`Not enough stock for ${item.product.name}. Available: ${currentStock}`);
                     
-                    const newTotalStock = productData.total_stock - item.quantity;
-                    const newVariantStock = (variantsArray[variantIndex].stock || 0) - item.quantity;
-                    const newOutletStocks = {
-                        ...(variantsArray[variantIndex].outlet_stocks || {}),
-                        [outletId]: currentStock - item.quantity
-                    };
+                    variantsArray[variantIndex].stock = (variantsArray[variantIndex].stock || 0) - item.quantity;
+                    variantsArray[variantIndex].outlet_stocks![outletId] = currentStock - item.quantity;
 
-                    variantsArray[variantIndex] = {
-                        ...variantsArray[variantIndex],
-                        stock: newVariantStock,
-                        outlet_stocks: newOutletStocks
-                    };
-
-                    transaction.update(ref, {
+                    transaction.update(productRef, {
                         variants: variantsArray,
-                        total_stock: newTotalStock,
+                        total_stock: increment(-item.quantity),
                     });
                 }
     
-                const salesRef = doc(firestore, 'pos_sales', saleId);
-                transaction.set(salesRef, saleData);
-
                 if (appliedCoupon) {
                     const couponRef = doc(firestore, 'coupons', appliedCoupon.id);
-                    transaction.update(couponRef, {
-                        usedCount: increment(1)
+                    transaction.update(couponRef, { usedCount: increment(1) });
+                }
+
+                if (selectedCustomer) {
+                    const userRef = doc(firestore, 'users', selectedCustomer.uid);
+                    const pointsEarned = Math.floor(grandTotal / 100) * 5;
+                    transaction.update(userRef, {
+                        loyaltyPoints: increment(pointsEarned),
+                        totalSpent: increment(grandTotal),
                     });
                 }
+                
+                let saleInfoForReceipt: any = { ...saleData, orderType: 'regular' };
+                if (paymentMethod === 'cash') {
+                    saleInfoForReceipt = { ...saleInfoForReceipt, cashReceived, changeDue };
+                }
+                setLastSale(saleInfoForReceipt);
             });
     
             toast({ title: 'Sale Completed!', description: 'Receipt is being prepared.' });
-            let saleInfoForReceipt: any = { ...saleData, orderType: 'regular' };
-            if (paymentMethod === 'cash') {
-                saleInfoForReceipt = { ...saleInfoForReceipt, cashReceived, changeDue };
-            }
-            setLastSale(saleInfoForReceipt);
             setIsReceiptPreviewOpen(true);
             clearSaleState();
     
@@ -876,3 +874,5 @@ export default function POSPage() {
         </>
     );
 }
+
+    
