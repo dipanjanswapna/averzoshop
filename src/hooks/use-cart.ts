@@ -34,7 +34,7 @@ const calculateSubtotal = (items: CartItem[]) => {
 };
 
 const calculateDiscount = (items: CartItem[], coupon: Coupon | null): number => {
-    if (!coupon) return 0;
+    if (!coupon || items.length === 0) return 0;
     
     const eligibleItems = items.filter(item => {
         if (coupon.creatorType === 'admin') {
@@ -85,37 +85,45 @@ export const useCart = create<CartState>()(
         const promoCode = get().promoCode;
         const subtotal = calculateSubtotal(items);
         const shippingFee = subtotal > 500 || subtotal === 0 ? 0 : 50;
-        const isPreOrderCart = items.length > 0 && !!items[0].isPreOrder;
-        
-        let discount = 0;
-        let totalPayable = 0;
-        let fullOrderTotal = subtotal;
-        let isPartialPayment = false;
 
-        if (isPreOrderCart) {
-          // No discounts on pre-orders for simplicity
-          let depositTotal = 0;
-          items.forEach(item => {
-            const preOrderInfo = item.product.preOrder;
-            const itemSubtotal = item.variant.price * item.quantity;
-            if (preOrderInfo?.enabled && preOrderInfo.depositAmount != null && preOrderInfo.depositAmount > 0) {
-              isPartialPayment = true;
-              if (preOrderInfo.depositType === 'percentage') {
-                depositTotal += (itemSubtotal * preOrderInfo.depositAmount) / 100;
-              } else { // fixed
-                depositTotal += (preOrderInfo.depositAmount * item.quantity);
-              }
+        let regularItemsSubtotal = 0;
+        let preOrderPayableNow = 0;
+        let isPartialPaymentInCart = false;
+
+        items.forEach(item => {
+            const itemTotal = item.variant.price * item.quantity;
+            if (item.isPreOrder) {
+                const preOrderInfo = item.product.preOrder;
+                if (preOrderInfo?.enabled && preOrderInfo.depositAmount != null && preOrderInfo.depositAmount > 0) {
+                    isPartialPaymentInCart = true;
+                    if (preOrderInfo.depositType === 'percentage') {
+                        preOrderPayableNow += (itemTotal * preOrderInfo.depositAmount) / 100;
+                    } else { // fixed
+                        preOrderPayableNow += (preOrderInfo.depositAmount * item.quantity);
+                    }
+                } else {
+                    // Pre-order with 100% upfront
+                    preOrderPayableNow += itemTotal;
+                }
             } else {
-              depositTotal += itemSubtotal;
+                // Regular item
+                regularItemsSubtotal += itemTotal;
             }
-          });
-          totalPayable = depositTotal + shippingFee; // Add shipping to deposit
-        } else {
-          discount = calculateDiscount(items, promoCode);
-          totalPayable = subtotal - discount + shippingFee;
-        }
+        });
 
-        set({ subtotal, discount, shippingFee, totalPayable, fullOrderTotal: subtotal, isPartialPayment });
+        const regularItemsForDiscount = items.filter(item => !item.isPreOrder);
+        const discount = calculateDiscount(regularItemsForDiscount, promoCode);
+        
+        const totalPayable = (regularItemsSubtotal - discount) + preOrderPayableNow + shippingFee;
+
+        set({
+            subtotal: subtotal,
+            discount: discount,
+            shippingFee: shippingFee,
+            totalPayable: totalPayable,
+            fullOrderTotal: subtotal,
+            isPartialPayment: isPartialPaymentInCart,
+        });
       },
 
       addItem: (product, variant, quantity = 1) => {
@@ -127,18 +135,6 @@ export const useCart = create<CartState>()(
         
         const isPreOrderItem = !!product.preOrder?.enabled;
         const currentItems = get().items;
-
-        if (currentItems.length > 0) {
-            const cartIsPreOrder = !!currentItems[0].isPreOrder;
-            if (isPreOrderItem !== cartIsPreOrder) {
-                toast({
-                    variant: 'destructive',
-                    title: 'Mixing Items Not Allowed',
-                    description: 'Pre-order items and regular items must be purchased in separate orders.',
-                });
-                return;
-            }
-        }
 
         const existingItem = currentItems.find((item) => item.variant && item.variant.sku === variant.sku);
 
@@ -200,6 +196,24 @@ export const useCart = create<CartState>()(
       },
 
       applyPromoCode: (coupon) => {
+          const items = get().items;
+          const regularItemsForDiscount = items.filter(item => !item.isPreOrder);
+          
+          if (coupon) {
+            const discountValue = calculateDiscount(regularItemsForDiscount, coupon);
+            if (discountValue === 0 && regularItemsForDiscount.length > 0 && coupon.value > 0) {
+                const eligibleSubtotal = regularItemsForDiscount.reduce((acc, item) => acc + (item.variant?.price || 0) * item.quantity, 0);
+                if (coupon.minimumSpend > eligibleSubtotal) {
+                    toast({ variant: 'destructive', title: `Minimum spend of ৳${coupon.minimumSpend} required for eligible items.` });
+                } else {
+                    toast({ variant: 'destructive', title: 'Coupon Not Valid', description: 'This coupon cannot be applied to the regular items in your cart.' });
+                }
+                set({ promoCode: null });
+                get()._recalculate();
+                return;
+            }
+          }
+          
           set({ promoCode: coupon });
           get()._recalculate();
       },

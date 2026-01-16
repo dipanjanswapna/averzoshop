@@ -14,8 +14,8 @@ import { useFirebase } from '@/firebase';
 import type { Coupon } from '@/types/coupon';
 
 export function CheckoutOrderSummary() {
-  const { 
-    items, 
+  const {
+    items,
     subtotal,
     discount,
     promoCode,
@@ -30,11 +30,19 @@ export function CheckoutOrderSummary() {
   const [promoCodeInput, setPromoCodeInput] = useState('');
   const [isApplying, setIsApplying] = useState(false);
 
+  const hasPreOrderItems = useMemo(() => items.some(item => item.isPreOrder), [items]);
+  const hasRegularItems = useMemo(() => items.some(item => !item.isPreOrder), [items]);
+
   const handleApplyPromoCode = async () => {
     if (!promoCodeInput.trim() || !firestore) {
       toast({ variant: 'destructive', title: 'Please enter a promo code.' });
       return;
     }
+    if (hasPreOrderItems && !hasRegularItems) {
+        toast({ variant: 'destructive', title: 'Promo codes cannot be applied to pre-orders.' });
+        return;
+    }
+
     setIsApplying(true);
     try {
       const couponRef = doc(firestore, 'coupons', promoCodeInput.trim().toUpperCase());
@@ -54,33 +62,8 @@ export function CheckoutOrderSummary() {
         return;
       }
       
-      const eligibleItems = items.filter(item => {
-          if (coupon.creatorType === 'admin') {
-              return !coupon.applicableProducts || coupon.applicableProducts.length === 0 || coupon.applicableProducts.includes(item.product.id);
-          }
-          if (coupon.creatorType === 'vendor') {
-              if (item.product.vendorId !== coupon.creatorId) return false;
-              return !coupon.applicableProducts || coupon.applicableProducts.length === 0 || coupon.applicableProducts.includes(item.product.id);
-          }
-          return false;
-      });
-
-      if (eligibleItems.length === 0) {
-          toast({ variant: 'destructive', title: 'Coupon Not Applicable', description: 'This coupon is not valid for the items in your cart.' });
-          applyPromoCode(null);
-          return;
-      }
-
-      const eligibleSubtotal = eligibleItems.reduce((acc, item) => acc + (item.variant?.price || 0) * item.quantity, 0);
-
-      if (eligibleSubtotal < coupon.minimumSpend) {
-         toast({ variant: 'destructive', title: `Minimum spend of ৳${coupon.minimumSpend} on eligible items required.` });
-         applyPromoCode(null);
-        return;
-      }
-
       applyPromoCode(coupon);
-      toast({ title: 'Promo code applied successfully!' });
+      // The toast for success/failure is now handled within the hook based on applicability
 
     } catch (error) {
       console.error(error);
@@ -95,7 +78,7 @@ export function CheckoutOrderSummary() {
     <Card className="shadow-lg">
       <CardHeader>
         <CardTitle className="font-headline text-xl">
-           {isPartialPayment ? 'Pre-order Summary' : 'Order Summary'}
+           {hasPreOrderItems && hasRegularItems ? 'Mixed Order Summary' : isPartialPayment ? 'Pre-order Summary' : 'Order Summary'}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -120,57 +103,63 @@ export function CheckoutOrderSummary() {
           })}
         </div>
         <Separator />
-        {isPartialPayment ? (
-           <div className="space-y-2 text-sm">
+        
+        <div className="space-y-2 text-sm">
              <div className="flex justify-between">
-                <span>Full Order Value</span>
-                <span className="font-medium">৳{fullOrderTotal.toFixed(2)}</span>
-            </div>
-             <div className="flex justify-between font-bold text-primary">
-                <span>Deposit to Pay Today</span>
-                <span className="font-medium">৳{totalPayable.toFixed(2)}</span>
-            </div>
-            <p className='text-xs text-muted-foreground'>The remaining amount will be due upon product release. Shipping fee included.</p>
-          </div>
-        ) : (
-            <div className="space-y-2">
-                <div className="flex justify-between text-sm">
                 <span>Subtotal</span>
                 <span className="font-medium">৳{subtotal.toFixed(2)}</span>
+            </div>
+            {discount > 0 && (
+                <div className="flex justify-between text-green-600">
+                    <span>Discount ({promoCode?.code})</span>
+                    <span className="font-medium">- ৳{discount.toFixed(2)}</span>
                 </div>
-                {discount > 0 && (
-                    <div className="flex justify-between text-sm text-green-600">
-                        <span>Discount ({promoCode?.code})</span>
-                        <span className="font-medium">- ৳{discount.toFixed(2)}</span>
-                    </div>
-                )}
-                <div className="flex justify-between text-sm">
+            )}
+             <div className="flex justify-between">
                 <span>Shipping Fee</span>
                 <span className="font-medium">{shippingFee > 0 ? `৳${shippingFee.toFixed(2)}` : 'Free'}</span>
+            </div>
+        </div>
+
+        <Separator />
+        
+        {isPartialPayment && (
+             <div className="space-y-2 text-sm bg-blue-50 p-3 rounded-lg border border-blue-200">
+                 <div className="flex justify-between font-bold">
+                    <span>Total Order Value</span>
+                    <span>৳{fullOrderTotal.toFixed(2)}</span>
                 </div>
+                <div className="flex justify-between text-blue-700">
+                    <span>Payable Now</span>
+                    <span>৳{(totalPayable).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-muted-foreground">
+                    <span>Remaining Due</span>
+                    <span>৳{(fullOrderTotal - (totalPayable - shippingFee)).toFixed(2)}</span>
+                </div>
+                 <p className='text-xs text-blue-600 mt-2'>Your cart contains pre-order items. The remaining amount is due upon fulfillment.</p>
             </div>
         )}
-        <Separator />
-         {!isPartialPayment && (
-            <div className="flex items-end gap-2">
-                <div className="flex-1 space-y-1">
-                <label htmlFor="promo-code" className="text-xs font-medium text-muted-foreground">Promo Code</label>
-                <Input 
-                    id="promo-code" 
-                    placeholder="Enter code" 
-                    value={promoCodeInput}
-                    onChange={(e) => setPromoCodeInput(e.target.value)}
-                    disabled={isApplying}
-                />
-                </div>
-                <Button onClick={handleApplyPromoCode} disabled={isApplying}>
-                {isApplying ? 'Applying...' : 'Apply'}
-                </Button>
+
+        <div className="flex items-end gap-2">
+            <div className="flex-1 space-y-1">
+            <label htmlFor="promo-code" className="text-xs font-medium text-muted-foreground">Promo Code</label>
+            <Input 
+                id="promo-code" 
+                placeholder="Enter code" 
+                value={promoCodeInput}
+                onChange={(e) => setPromoCodeInput(e.target.value)}
+                disabled={isApplying || (hasPreOrderItems && !hasRegularItems)}
+            />
             </div>
-         )}
+            <Button onClick={handleApplyPromoCode} disabled={isApplying || (hasPreOrderItems && !hasRegularItems)}>
+            {isApplying ? 'Applying...' : 'Apply'}
+            </Button>
+        </div>
+         
         <Separator />
         <div className="flex justify-between font-bold text-lg">
-          <span>Total Payable</span>
+          <span>Total Payable Today</span>
           <span>৳{totalPayable.toFixed(2)}</span>
         </div>
       </CardContent>
