@@ -47,10 +47,14 @@ export default function InventoryPage() {
   
   const outletProducts = useMemo(() => {
     if (!products || !outletId) return [];
-    return products.map(p => ({
-        ...p,
-        stockInOutlet: p.variants.reduce((sum, v) => sum + (v.outlet_stocks?.[outletId] ?? 0), 0)
-    })).filter(p => p.stockInOutlet > 0);
+    return products.map(p => {
+        const variantsArray = Array.isArray(p.variants) ? p.variants : Object.values(p.variants);
+        const stockInOutlet = variantsArray.reduce((sum, v) => sum + (v.outlet_stocks?.[outletId] ?? 0), 0);
+        return {
+            ...p,
+            stockInOutlet
+        };
+    }).filter(p => p.stockInOutlet > 0);
   }, [products, outletId]);
 
 

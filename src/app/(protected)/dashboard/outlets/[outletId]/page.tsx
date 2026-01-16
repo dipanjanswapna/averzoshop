@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useParams } from 'next/navigation';
@@ -43,7 +44,8 @@ export default function OutletDetailsPage() {
     if (!productsData || !outletId) return [];
     return productsData
       .map(p => {
-        const stockInOutlet = p.variants.reduce((sum, v) => sum + (v.outlet_stocks?.[outletId] ?? 0), 0);
+        const variantsArray = Array.isArray(p.variants) ? p.variants : Object.values(p.variants);
+        const stockInOutlet = variantsArray.reduce((sum, v) => sum + (v.outlet_stocks?.[outletId] ?? 0), 0);
         return {
           ...p,
           stock: stockInOutlet,

@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from 'react';
 import {
@@ -12,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useFirebase } from '@/firebase';
-import { doc, runTransaction, increment } from 'firebase/firestore';
+import { doc, runTransaction } from 'firebase/firestore';
 import type { StockTransfer } from '@/types/logistics';
 import type { Product } from '@/types/product';
 
@@ -45,21 +46,25 @@ export function ReceiveTransferDialog({ open, onOpenChange, transfer }: ReceiveT
                     throw new Error(`Product with ID ${transfer.productId} not found.`);
                 }
                 const productData = productDoc.data() as Product;
-                const variantIndex = productData.variants.findIndex(v => v.sku === transfer.variantSku);
+                const variantsArray = Array.isArray(productData.variants) 
+                    ? [...productData.variants.map(v => ({...v}))] 
+                    : [...Object.values(productData.variants).map(v => ({...v}))];
+                
+                const variantIndex = variantsArray.findIndex(v => v.sku === transfer.variantSku);
                 if (variantIndex === -1) {
                     throw new Error(`Variant ${transfer.variantSku} not found.`);
                 }
 
-                // Increment stock in the destination outlet
-                const stockUpdatePath = `variants.${variantIndex}.outlet_stocks.${transfer.destinationOutletId}`;
-                const variantTotalStockPath = `variants.${variantIndex}.stock`;
+                const variant = variantsArray[variantIndex];
 
-                transaction.update(productRef, {
-                    total_stock: increment(transfer.quantity),
-                    [variantTotalStockPath]: increment(transfer.quantity),
-                    [stockUpdatePath]: increment(transfer.quantity)
-                });
+                // Increment stock in the destination outlet
+                if (variant.outlet_stocks) {
+                    variant.outlet_stocks[transfer.destinationOutletId] = (variant.outlet_stocks[transfer.destinationOutletId] || 0) + transfer.quantity;
+                } else {
+                    variant.outlet_stocks = { [transfer.destinationOutletId]: transfer.quantity };
+                }
                 
+                transaction.update(productRef, { variants: variantsArray });
                 transaction.update(transferRef, { status: 'received' });
             });
 

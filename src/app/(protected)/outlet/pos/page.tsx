@@ -1,5 +1,6 @@
+
 'use client';
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,7 +12,7 @@ import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { useFirebase } from '@/firebase';
-import { doc, runTransaction, serverTimestamp, collection, addDoc, increment } from 'firebase/firestore';
+import { doc, runTransaction, serverTimestamp, collection, addDoc, increment, DocumentData } from 'firebase/firestore';
 
 type CartItem = {
     product: Product;
@@ -33,22 +34,23 @@ export default function POSPage() {
     const availableProducts = useMemo(() => {
         if (!allProducts || !outletId) return [];
         return allProducts
-            .filter(p => 
-                p.status === 'approved' && 
-                p.variants.some(v => (v.outlet_stocks?.[outletId] ?? 0) > 0)
-            )
-            .filter(p => 
-                p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                p.baseSku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                p.variants?.some(v => v.sku.toLowerCase().includes(searchTerm.toLowerCase()))
-            );
+            .filter(p => {
+                const variantsArray = Array.isArray(p.variants) ? p.variants : Object.values(p.variants);
+                return p.status === 'approved' && variantsArray.some(v => (v.outlet_stocks?.[outletId] ?? 0) > 0)
+            })
+            .filter(p => {
+                const variantsArray = Array.isArray(p.variants) ? p.variants : Object.values(p.variants);
+                return p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    p.baseSku.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    variantsArray.some(v => v.sku.toLowerCase().includes(searchTerm.toLowerCase()))
+            });
     }, [allProducts, outletId, searchTerm]);
-
+    
     const findVariantInStock = (product: Product): ProductVariant | null => {
         if (!outletId) return null;
         
-        // Find a variant that has stock in the current outlet
-        const variantInStock = product.variants?.find(v => (v.outlet_stocks?.[outletId] ?? 0) > 0);
+        const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants);
+        const variantInStock = variantsArray.find(v => (v.outlet_stocks?.[outletId] ?? 0) > 0);
 
         return variantInStock || null;
     }
@@ -131,45 +133,54 @@ export default function POSPage() {
         try {
             await runTransaction(firestore, async (transaction) => {
                 const saleItems: any[] = [];
-                const productRefsToUpdate = new Map<string, { productDoc: DocumentData, items: CartItem[] }>();
-    
-                // Phase 1: Read all product documents first
-                for (const cartItem of cart) {
-                    if (!productRefsToUpdate.has(cartItem.product.id)) {
-                        const productRef = doc(firestore, 'products', cartItem.product.id);
-                        const productDoc = await transaction.get(productRef);
-                        if (!productDoc.exists()) {
-                            throw new Error(`Product ${cartItem.product.name} not found.`);
-                        }
-                        productRefsToUpdate.set(cartItem.product.id, { productDoc, items: [] });
+                
+                const productsInCart = new Map<string, CartItem[]>();
+                for (const item of cart) {
+                    if (!productsInCart.has(item.product.id)) {
+                        productsInCart.set(item.product.id, []);
                     }
-                    productRefsToUpdate.get(cartItem.product.id)!.items.push(cartItem);
+                    productsInCart.get(item.product.id)!.push(item);
                 }
-    
-                // Phase 2: Perform all writes
-                for (const [productId, { productDoc, items }] of productRefsToUpdate.entries()) {
+                
+                const productDocs = new Map<string, DocumentData>();
+                for (const productId of productsInCart.keys()) {
+                    const productRef = doc(firestore, 'products', productId);
+                    const productDoc = await transaction.get(productRef);
+                    if (!productDoc.exists()) {
+                        throw new Error(`Product with ID ${productId} not found.`);
+                    }
+                    productDocs.set(productId, productDoc);
+                }
+                
+                for (const [productId, items] of productsInCart.entries()) {
+                    const productDoc = productDocs.get(productId)!;
                     const productData = productDoc.data() as Product;
+    
+                    let variantsArray = Array.isArray(productData.variants) 
+                        ? [...productData.variants.map(v => ({...v}))]
+                        : [...Object.values(productData.variants).map(v => ({...v}))];
+                    
                     let totalStockDecrement = 0;
     
                     for (const cartItem of items) {
-                        const variantIndex = productData.variants.findIndex(v => v.sku === cartItem.variant.sku);
+                        const variantIndex = variantsArray.findIndex(v => v.sku === cartItem.variant.sku);
                         if (variantIndex === -1) {
                             throw new Error(`Variant ${cartItem.variant.sku} not found for product ${cartItem.product.name}.`);
                         }
     
-                        const currentVariantStock = productData.variants[variantIndex].outlet_stocks?.[outletId] ?? 0;
-                        if (currentVariantStock < cartItem.quantity) {
-                            throw new Error(`Not enough stock for ${cartItem.product.name} (${cartItem.variant.sku}). Available: ${currentVariantStock}`);
-                        }
+                        const variant = variantsArray[variantIndex];
+                        const currentStock = variant.outlet_stocks?.[outletId] ?? 0;
     
+                        if (currentStock < cartItem.quantity) {
+                            throw new Error(`Not enough stock for ${cartItem.product.name} (${cartItem.variant.sku}). Available: ${currentStock}`);
+                        }
+                        
+                        variant.stock -= cartItem.quantity;
+                        if (variant.outlet_stocks) {
+                           variant.outlet_stocks[outletId] = currentStock - cartItem.quantity;
+                        }
+                        
                         totalStockDecrement += cartItem.quantity;
-                        const stockUpdatePath = `variants.${variantIndex}.outlet_stocks.${outletId}`;
-                        const variantTotalStockPath = `variants.${variantIndex}.stock`;
-
-                        transaction.update(productDoc.ref, {
-                            [stockUpdatePath]: increment(-cartItem.quantity),
-                            [variantTotalStockPath]: increment(-cartItem.quantity),
-                        });
     
                         saleItems.push({
                             productId: cartItem.product.id,
@@ -179,8 +190,10 @@ export default function POSPage() {
                             price: cartItem.variant.price,
                         });
                     }
+                    
                     transaction.update(productDoc.ref, {
-                        total_stock: increment(-totalStockDecrement),
+                        variants: variantsArray,
+                        total_stock: increment(-totalStockDecrement)
                     });
                 }
     

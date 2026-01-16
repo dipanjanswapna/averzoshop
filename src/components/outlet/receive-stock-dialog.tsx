@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from 'react';
 import {
@@ -13,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from "@/hooks/use-toast";
 import { useFirebase } from '@/firebase';
-import { doc, runTransaction, increment } from 'firebase/firestore';
+import { doc, runTransaction, increment, DocumentReference, DocumentData } from 'firebase/firestore';
 import type { DeliveryChallan } from '@/types/logistics';
 import { useAuth } from '@/hooks/use-auth';
 import type { Product } from '@/types/product';
@@ -44,31 +45,51 @@ export function ReceiveStockDialog({ open, onOpenChange, challan }: ReceiveStock
                 const challanRef = doc(firestore, 'delivery_challans', challan.id);
                 const stockRequestRef = doc(firestore, 'stock_requests', challan.stockRequestId);
                 
-                const productRefs = challan.items.map(item => doc(firestore, 'products', item.productId));
-                const productDocs = await Promise.all(productRefs.map(ref => transaction.get(ref)));
+                const productRefs = new Map<string, {ref: DocumentReference, items: any[]}>();
+                challan.items.forEach(item => {
+                    if (!productRefs.has(item.productId)) {
+                        productRefs.set(item.productId, { ref: doc(firestore, 'products', item.productId), items: [] });
+                    }
+                    productRefs.get(item.productId)!.items.push(item);
+                });
+        
+                const productDocs = await Promise.all(
+                    Array.from(productRefs.values()).map(p => transaction.get(p.ref))
+                );
 
-                for (let i = 0; i < challan.items.length; i++) {
-                    const item = challan.items[i];
-                    const productDoc = productDocs[i];
-
+                let docIndex = 0;
+                for (const [productId, { items }] of productRefs.entries()) {
+                    const productDoc = productDocs[docIndex++];
                     if (!productDoc.exists()) {
-                        throw new Error(`Product ${item.productName} (ID: ${item.productId}) not found.`);
+                        throw new Error(`Product with ID ${productId} not found.`);
                     }
-
+        
                     const productData = productDoc.data() as Product;
-                    const variantIndex = productData.variants.findIndex(v => v.sku === item.variantSku);
-
-                    if (variantIndex === -1) {
-                        throw new Error(`Variant SKU ${item.variantSku} not found for product ${item.productName}.`);
-                    }
-
-                    const variantStockPath = `variants.${variantIndex}.stock`;
-                    const outletStockPath = `variants.${variantIndex}.outlet_stocks.${outletId}`;
+                    const variantsArray = Array.isArray(productData.variants) 
+                        ? [...productData.variants.map(v => ({...v}))] 
+                        : [...Object.values(productData.variants).map(v => ({...v}))];
                     
+                    let totalProductIncrement = 0;
+        
+                    for (const item of items) {
+                        const variantIndex = variantsArray.findIndex(v => v.sku === item.variantSku);
+                        if (variantIndex === -1) {
+                            throw new Error(`Variant SKU ${item.variantSku} not found for product ${item.productName}.`);
+                        }
+                        
+                        const variant = variantsArray[variantIndex];
+                        variant.stock = (variant.stock || 0) + item.quantity;
+                        if (variant.outlet_stocks) {
+                            variant.outlet_stocks[outletId] = (variant.outlet_stocks[outletId] || 0) + item.quantity;
+                        } else {
+                            variant.outlet_stocks = { [outletId]: item.quantity };
+                        }
+                        totalProductIncrement += item.quantity;
+                    }
+        
                     transaction.update(productDoc.ref, {
-                        total_stock: increment(item.quantity),
-                        [variantStockPath]: increment(item.quantity),
-                        [outletStockPath]: increment(item.quantity)
+                        variants: variantsArray,
+                        total_stock: increment(totalProductIncrement)
                     });
                 }
                 

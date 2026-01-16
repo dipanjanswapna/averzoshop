@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from 'react';
 import {
@@ -12,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useFirebase } from '@/firebase';
-import { doc, runTransaction, increment } from 'firebase/firestore';
+import { doc, runTransaction } from 'firebase/firestore';
 import type { StockTransfer } from '@/types/logistics';
 import type { Product } from '@/types/product';
 
@@ -46,21 +47,31 @@ export function DispatchStockDialog({ open, onOpenChange, transfer }: DispatchSt
                 }
 
                 const productData = productDoc.data() as Product;
-                const variantIndex = productData.variants.findIndex(v => v.sku === transfer.variantSku);
+                const variantsArray = Array.isArray(productData.variants) 
+                    ? [...productData.variants.map(v => ({...v}))]
+                    : [...Object.values(productData.variants).map(v => ({...v}))];
+
+                const variantIndex = variantsArray.findIndex(v => v.sku === transfer.variantSku);
                 if (variantIndex === -1) {
                     throw new Error(`Variant ${transfer.variantSku} not found.`);
                 }
 
-                const stockUpdatePath = `variants.${variantIndex}.outlet_stocks.${transfer.sourceOutletId}`;
-                const currentStock = productData.variants[variantIndex].outlet_stocks?.[transfer.sourceOutletId] ?? 0;
+                const variant = variantsArray[variantIndex];
+                const currentStock = variant.outlet_stocks?.[transfer.sourceOutletId] ?? 0;
                 
                 if (currentStock < transfer.quantity) {
                      throw new Error(`Not enough stock for ${transfer.productName}. Available: ${currentStock}`);
                 }
 
-                // Decrement stock from source outlet's variant stock. Total stock remains the same for now.
+                // Decrement stock from source outlet's variant stock. 
+                // total_stock and variant.stock are not modified here, as the stock is in transit.
+                if (variant.outlet_stocks) {
+                    variant.outlet_stocks[transfer.sourceOutletId] = currentStock - transfer.quantity;
+                }
+
+                // Update the entire variants array
                 transaction.update(productRef, {
-                    [stockUpdatePath]: increment(-transfer.quantity),
+                    variants: variantsArray,
                 });
                 
                 // Update the transfer status to 'dispatched'
