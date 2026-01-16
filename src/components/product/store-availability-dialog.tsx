@@ -8,11 +8,25 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import type { Outlet } from '@/types/outlet';
 import type { Product, ProductVariant } from '@/types/product';
 import { Skeleton } from '../ui/skeleton';
-import { MapPin, Store } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
 
@@ -44,23 +58,28 @@ export function StoreAvailabilityDialog({ open, onOpenChange, product }: StoreAv
 
     return allOutlets
       .map(outlet => {
-        // Calculate total stock for this product in this specific outlet by summing up all its variants' stock for that outlet
-        const totalStockInOutlet = variants.reduce((sum, variant) => {
-          return sum + (variant.outlet_stocks?.[outlet.id] ?? 0);
-        }, 0);
+        const variantsInStock = variants
+          .map(variant => ({
+            ...variant,
+            stockInOutlet: variant.outlet_stocks?.[outlet.id] ?? 0,
+          }))
+          .filter(variant => variant.stockInOutlet > 0);
+        
+        const totalStockInOutlet = variantsInStock.reduce((sum, variant) => sum + variant.stockInOutlet, 0);
 
         return {
           ...outlet,
-          stock: totalStockInOutlet
+          totalStock: totalStockInOutlet,
+          variants: variantsInStock,
         };
       })
-      .filter(outlet => outlet.stock > 0); // Only keep outlets that have stock for this product
+      .filter(outlet => outlet.totalStock > 0);
 
   }, [allOutlets, product]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Store Availability</DialogTitle>
           <DialogDescription>
@@ -68,36 +87,57 @@ export function StoreAvailabilityDialog({ open, onOpenChange, product }: StoreAv
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="max-h-[60vh]">
-          <div className="space-y-4 pr-6">
+          <div className="pr-2">
             {isLoading ? (
-              [...Array(3)].map((_, i) => (
-                <div key={i} className="flex items-center gap-4 border p-4 rounded-lg">
-                  <Skeleton className="h-8 w-8 rounded-md" />
-                  <div className="flex-1 space-y-2">
-                    <Skeleton className="h-4 w-3/4" />
-                    <Skeleton className="h-3 w-1/2" />
-                  </div>
-                   <Skeleton className="h-6 w-16 rounded-full" />
-                </div>
-              ))
+              <div className="space-y-2">
+                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-20 w-full" />
+              </div>
             ) : outletsWithStock.length > 0 ? (
-              outletsWithStock.map(outlet => (
-                <div key={outlet.id} className="flex items-start gap-4 border p-4 rounded-lg">
-                  <div className="bg-muted p-2 rounded-md mt-1">
-                    <Store className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-bold">{outlet.name}</p>
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
-                      <MapPin size={12} />
-                      <span>{outlet.location.address}</span>
-                    </div>
-                  </div>
-                  <Badge variant={outlet.stock > 10 ? 'default' : 'secondary'} className={outlet.stock > 10 ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}>
-                    {outlet.stock} units
-                  </Badge>
-                </div>
-              ))
+              <Accordion type="single" collapsible className="w-full">
+                {outletsWithStock.map(outlet => (
+                  <AccordionItem value={outlet.id} key={outlet.id}>
+                    <AccordionTrigger>
+                      <div className="flex-1 text-left">
+                        <p className="font-bold">{outlet.name}</p>
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
+                          <MapPin size={12} />
+                          <span>{outlet.location.address}</span>
+                        </div>
+                      </div>
+                      <Badge variant={outlet.totalStock > 10 ? 'default' : 'secondary'} className={`ml-4 ${outlet.totalStock > 10 ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>
+                        {outlet.totalStock} units
+                      </Badge>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Variant</TableHead>
+                            <TableHead>SKU</TableHead>
+                            <TableHead className="text-right">Stock</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {outlet.variants.map((variant) => (
+                            <TableRow key={variant.sku}>
+                              <TableCell className="font-medium">
+                                {variant.color || ''} {variant.size ? `(${variant.size})` : ''}
+                                {!variant.color && !variant.size && "Standard"}
+                              </TableCell>
+                              <TableCell className="font-mono text-xs">{variant.sku}</TableCell>
+                              <TableCell className="text-right font-bold">
+                                {variant.stockInOutlet}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
             ) : (
               <div className="text-center py-10 text-muted-foreground">
                 <p>This product is currently not available in any of our physical stores.</p>
