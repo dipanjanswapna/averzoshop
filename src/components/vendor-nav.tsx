@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -10,6 +9,7 @@ import {
   Settings,
   FileText,
   Tags,
+  Clock,
 } from 'lucide-react';
 import {
   SidebarMenu,
@@ -21,6 +21,7 @@ const navItems = [
     { href: '/vendor/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/vendor/products', label: 'My Products', icon: Package },
     { href: '/vendor/stock-requests', label: 'Stock Requests', icon: ShoppingCart },
+    { href: '/vendor/pre-orders', label: 'Pre-orders', icon: Clock },
     { href: '/vendor/challans', label: 'Delivery Challans', icon: FileText },
     { href: '/vendor/coupons', label: 'My Coupons', icon: Tags },
 ];
