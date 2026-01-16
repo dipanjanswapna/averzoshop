@@ -42,4 +42,7 @@ export type StockTransfer = {
   status: 'requested' | 'dispatched' | 'received' | 'cancelled';
   requestedBy: string;
   createdAt: any; // Firestore Timestamp
+  // Optional fields for UI convenience
+  sourceOutletName?: string;
+  destinationOutletName?: string;
 };

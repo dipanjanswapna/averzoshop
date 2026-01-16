@@ -5,31 +5,42 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Upload, Package, History, Box, CheckCircle } from 'lucide-react';
+import { Upload, Package, History, Box, CheckCircle, ArrowRightLeft, Truck, Check } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { Product } from '@/types/product';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { DeliveryChallan } from '@/types/logistics';
+import type { DeliveryChallan, StockTransfer } from '@/types/logistics';
 import type { UserData } from '@/types/user';
+import type { Outlet } from '@/types/outlet';
 import { ReceiveStockDialog } from '@/components/outlet/receive-stock-dialog';
+import { DispatchStockDialog } from '@/components/outlet/dispatch-stock-dialog';
+import { ReceiveTransferDialog } from '@/components/outlet/receive-transfer-dialog';
+
 
 export default function InventoryPage() {
   const { userData } = useAuth();
   const { data: products, isLoading: productsLoading } = useFirestoreQuery<Product>('products');
   const { data: challans, isLoading: challansLoading } = useFirestoreQuery<DeliveryChallan>('delivery_challans');
   const { data: users, isLoading: usersLoading } = useFirestoreQuery<UserData>('users');
+  const { data: transfers, isLoading: transfersLoading } = useFirestoreQuery<StockTransfer>('stock_transfers');
+  const { data: allOutlets, isLoading: outletsLoading } = useFirestoreQuery<Outlet>('outlets');
 
   const [isReceiveDialogOpen, setIsReceiveDialogOpen] = useState(false);
   const [selectedChallan, setSelectedChallan] = useState<DeliveryChallan | null>(null);
+
+  const [transferToDispatch, setTransferToDispatch] = useState<StockTransfer | null>(null);
+  const [isDispatchDialogOpen, setIsDispatchDialogOpen] = useState(false);
+  const [transferToReceive, setTransferToReceive] = useState<StockTransfer | null>(null);
+  const [isReceiveTransferDialogOpen, setIsReceiveTransferDialogOpen] = useState(false);
   
-  const isLoading = productsLoading || challansLoading || usersLoading;
+  const isLoading = productsLoading || challansLoading || usersLoading || transfersLoading || outletsLoading;
 
   const outletId = useMemo(() => userData?.outletId || '', [userData]);
   
-  const outletProducts = products?.filter(p => p.outlet_stocks && p.outlet_stocks[outletId]) || [];
+  const outletProducts = products?.filter(p => p.outlet_stocks && p.outlet_stocks[outletId] && p.outlet_stocks[outletId] > 0) || [];
 
   const enhancedChallans = useMemo(() => {
     if (!challans || !users || !outletId) return [];
@@ -48,29 +59,44 @@ export default function InventoryPage() {
     setSelectedChallan(challan);
     setIsReceiveDialogOpen(true);
   };
+  
+  const outgoingTransfers = useMemo(() => {
+    if (!transfers || !outletId || !allOutlets) return [];
+    const outletMap = new Map(allOutlets.map(o => [o.id, o.name]));
+    return transfers
+        .filter(t => t.sourceOutletId === outletId && t.status === 'requested')
+        .map(t => ({ ...t, destinationOutletName: outletMap.get(t.destinationOutletId) || 'Unknown' }))
+        .sort((a, b) => (b.createdAt?.toDate?.().getTime() || 0) - (a.createdAt?.toDate?.().getTime() || 0));
+  }, [transfers, outletId, allOutlets]);
 
+  const incomingTransfers = useMemo(() => {
+      if (!transfers || !outletId || !allOutlets) return [];
+      const outletMap = new Map(allOutlets.map(o => [o.id, o.name]));
+      return transfers
+          .filter(t => t.destinationOutletId === outletId && t.status === 'dispatched')
+          .map(t => ({ ...t, sourceOutletName: outletMap.get(t.sourceOutletId) || 'Unknown' }))
+          .sort((a, b) => (b.createdAt?.toDate?.().getTime() || 0) - (a.createdAt?.toDate?.().getTime() || 0));
+  }, [transfers, outletId, allOutlets]);
 
-  const renderCurrentStockSkeleton = () => (
-    [...Array(5)].map((_, i) => (
+  const handleDispatchClick = (transfer: StockTransfer) => {
+      setTransferToDispatch(transfer);
+      setIsDispatchDialogOpen(true);
+  };
+
+  const handleReceiveTransferClick = (transfer: StockTransfer) => {
+      setTransferToReceive(transfer);
+      setIsReceiveTransferDialogOpen(true);
+  };
+
+  const renderSkeleton = (rows = 5) => (
+    [...Array(rows)].map((_, i) => (
        <TableRow key={i}>
-            <TableCell className="hidden sm:table-cell"><Skeleton className="h-16 w-16 rounded-md" /></TableCell>
-            <TableCell><Skeleton className="h-5 w-40" /></TableCell>
-            <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
-            <TableCell><Skeleton className="h-5 w-12" /></TableCell>
-            <TableCell className="text-right"><Skeleton className="h-5 w-16 ml-auto" /></TableCell>
+            <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+            <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+            <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+            <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+            <TableCell className="text-right"><Skeleton className="h-9 w-28" /></TableCell>
         </TableRow>
-    ))
-  );
-
-  const renderStockInwardSkeleton = () => (
-    [...Array(3)].map((_, i) => (
-      <TableRow key={i}>
-        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
-        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-        <TableCell><Skeleton className="h-5 w-16" /></TableCell>
-        <TableCell className="text-right"><Skeleton className="h-9 w-28" /></TableCell>
-      </TableRow>
     ))
   );
 
@@ -79,9 +105,10 @@ export default function InventoryPage() {
     <div className="flex flex-col gap-6">
         <h1 className="text-3xl font-bold font-headline">Inventory Management</h1>
         <Tabs defaultValue="current_stock">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="current_stock"><Box className="mr-2 h-4 w-4" /> Current Stock</TabsTrigger>
                 <TabsTrigger value="stock_inward"><History className="mr-2 h-4 w-4" /> Stock Inward</TabsTrigger>
+                <TabsTrigger value="stock_transfers"><ArrowRightLeft className="mr-2 h-4 w-4" /> Stock Transfers</TabsTrigger>
             </TabsList>
             
             <TabsContent value="current_stock">
@@ -103,7 +130,7 @@ export default function InventoryPage() {
                         </TableHeader>
                         <TableBody>
                         {isLoading ? (
-                            renderCurrentStockSkeleton()
+                            renderSkeleton()
                         ) : outletProducts.length > 0 ? (
                             outletProducts.map(product => (
                             <TableRow key={product.id}>
@@ -155,7 +182,7 @@ export default function InventoryPage() {
                             </TableHeader>
                             <TableBody>
                                 {isLoading ? (
-                                    renderStockInwardSkeleton()
+                                    renderSkeleton()
                                 ) : enhancedChallans.length > 0 ? (
                                     enhancedChallans.map(challan => (
                                         <TableRow key={challan.id}>
@@ -186,9 +213,104 @@ export default function InventoryPage() {
                     </CardContent>
                 </Card>
             </TabsContent>
+            
+            <TabsContent value="stock_transfers">
+                <Tabs defaultValue="incoming">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="incoming">Incoming</TabsTrigger>
+                        <TabsTrigger value="outgoing">Outgoing</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="incoming" className="mt-4">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Incoming Stock Transfers</CardTitle>
+                                <CardDescription>Accept stock dispatched from other outlets.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Date</TableHead>
+                                            <TableHead>From Outlet</TableHead>
+                                            <TableHead>Product</TableHead>
+                                            <TableHead>Quantity</TableHead>
+                                            <TableHead className="text-right">Action</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {isLoading ? renderSkeleton(3) : incomingTransfers.length > 0 ? (
+                                            incomingTransfers.map(t => (
+                                                <TableRow key={t.id}>
+                                                    <TableCell>{t.createdAt.toDate().toLocaleDateString()}</TableCell>
+                                                    <TableCell>{t.sourceOutletName}</TableCell>
+                                                    <TableCell>{t.productName}</TableCell>
+                                                    <TableCell>{t.quantity}</TableCell>
+                                                    <TableCell className="text-right">
+                                                        <Button onClick={() => handleReceiveTransferClick(t)} size="sm">
+                                                            <Check className="mr-2 h-4 w-4" /> Receive
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={5} className="h-24 text-center">No incoming transfers.</TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                     <TabsContent value="outgoing" className="mt-4">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Outgoing Stock Transfers</CardTitle>
+                                <CardDescription>Dispatch stock requested by other outlets or admins.</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                               <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Date</TableHead>
+                                            <TableHead>To Outlet</TableHead>
+                                            <TableHead>Product</TableHead>
+                                            <TableHead>Quantity</TableHead>
+                                            <TableHead className="text-right">Action</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                         {isLoading ? renderSkeleton(3) : outgoingTransfers.length > 0 ? (
+                                            outgoingTransfers.map(t => (
+                                                <TableRow key={t.id}>
+                                                    <TableCell>{t.createdAt.toDate().toLocaleDateString()}</TableCell>
+                                                    <TableCell>{t.destinationOutletName}</TableCell>
+                                                    <TableCell>{t.productName}</TableCell>
+                                                    <TableCell>{t.quantity}</TableCell>
+                                                    <TableCell className="text-right">
+                                                        <Button onClick={() => handleDispatchClick(t)} size="sm" variant="outline">
+                                                            <Truck className="mr-2 h-4 w-4" /> Dispatch
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={5} className="h-24 text-center">No outgoing transfer requests.</TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                </Tabs>
+            </TabsContent>
         </Tabs>
     </div>
     {selectedChallan && <ReceiveStockDialog open={isReceiveDialogOpen} onOpenChange={setIsReceiveDialogOpen} challan={selectedChallan} />}
+    {transferToDispatch && <DispatchStockDialog open={isDispatchDialogOpen} onOpenChange={setIsDispatchDialogOpen} transfer={transferToDispatch} />}
+    {transferToReceive && <ReceiveTransferDialog open={isReceiveTransferDialogOpen} onOpenChange={setIsReceiveTransferDialogOpen} transfer={transferToReceive} />}
     </>
   );
 }
