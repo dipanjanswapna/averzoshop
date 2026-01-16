@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -8,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -89,11 +88,10 @@ function LoginPageContent() {
           photoURL: user.photoURL,
           role: 'customer',
           status: 'approved',
-          createdAt: new Date().toISOString(),
+          createdAt: serverTimestamp(),
           loyaltyPoints: 0,
           totalSpent: 0,
           membershipTier: 'silver',
-          isPhoneVerified: false,
         });
       } else {
         // Existing user, merge data but don't overwrite role/status

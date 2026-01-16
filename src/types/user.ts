@@ -10,11 +10,9 @@ export interface UserData {
   outletId?: string;
   assignedOutlets?: string[];
   createdAt?: string;
-  phone?: string;
   loyaltyPoints?: number;
   totalSpent?: number;
   membershipTier?: 'silver' | 'gold' | 'platinum';
-  isPhoneVerified?: boolean;
 }
 
     
