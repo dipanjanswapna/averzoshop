@@ -1,0 +1,108 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // By default, deny all reads and writes
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Users can read their own profile. Admins can read any profile.
+    // Users can update their own profile, but are restricted from changing protected fields.
+    match /users/{userId} {
+      allow read: if request.auth.uid == userId || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      allow create: if request.auth.uid == userId;
+      allow update: if request.auth.uid == userId 
+                    && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'status', 'loyaltyPoints', 'membershipLevel', 'totalSpent', 'outletId']);
+    }
+
+    // Products can be read by anyone.
+    // They can be created by vendors or admins.
+    // They can only be updated by the vendor who owns it, or an admin.
+    match /products/{productId} {
+      allow read: if true;
+      allow create: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['vendor', 'admin'];
+      allow update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+                      || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'vendor'
+                          && resource.data.vendorId == request.auth.uid);
+    }
+
+    // Questions are publicly readable.
+    // Logged-in users can create questions.
+    // Admins or product vendors can answer (update) them.
+    match /products/{productId}/questions/{questionId} {
+        allow read: if true;
+        allow create: if request.auth != null && request.resource.data.askedByUid == request.auth.uid;
+        allow update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+                       || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'vendor' 
+                           && get(/databases/$(database)/documents/products/$(productId)).data.vendorId == request.auth.uid);
+    }
+
+    // Orders can be read by the customer who placed it, the assigned outlet, or an admin.
+    // Orders can only be created by the customer themselves.
+    // Orders can be updated by admins, assigned outlets, or assigned riders.
+    match /orders/{orderId} {
+      allow read: if request.auth.uid == resource.data.customerId 
+                    || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+                    || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.outletId == resource.data.assignedOutletId;
+      allow create: if request.auth.uid == request.resource.data.customerId;
+      allow update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+                      || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.outletId == resource.data.assignedOutletId
+                      || resource.data.riderId == request.auth.uid;
+    }
+
+    // POS sales can be created and read by the outlet manager or an admin.
+    match /pos_sales/{saleId} {
+        allow read, create: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.outletId == resource.data.outletId
+                             || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Outlets are publicly readable. Only admins can create or update them.
+    match /outlets/{outletId} {
+      allow read: if true;
+      allow create, update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Stock requests can be created by vendors. They can be read by the vendor or an admin.
+    // They can only be updated (approved/rejected) by an admin.
+    match /stock_requests/{requestId} {
+        allow read: if request.auth.uid == resource.data.vendorId || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+        allow create: if request.auth.uid == request.resource.data.vendorId;
+        allow update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    
+    // Delivery challans can be read by the vendor, outlet manager, or admin.
+    // Only admins can create or update them (simulating a system-level action).
+     match /delivery_challans/{challanId} {
+        allow read: if request.auth.uid == resource.data.vendorId 
+                      || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.outletId == resource.data.outletId
+                      || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+        allow create, update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Stock transfers can be read by involved outlets or admins.
+    // Can be created by admins, or updated (dispatched) by the source outlet.
+    match /stock_transfers/{transferId} {
+        allow read: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.outletId == resource.data.sourceOutletId
+                      || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.outletId == resource.data.destinationOutletId
+                      || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+        allow create: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+        allow update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' 
+                                 || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.outletId == resource.data.sourceOutletId;
+    }
+
+    // Coupons are publicly readable.
+    // Admins can create any coupon. Vendors can create coupons for their own products.
+    match /coupons/{couponId} {
+      allow read: if true;
+      allow create, update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+                              || (request.resource.data.creatorType == 'vendor' && request.auth.uid == request.resource.data.creatorId);
+    }
+    
+    // This collection is used for generating unique IDs and should not be publicly accessible.
+    match /id_generator/{docId} {
+        allow read, write: if false;
+    }
+  }
+}
