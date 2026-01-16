@@ -1,3 +1,4 @@
+
 'use client';
 import React from 'react';
 import Barcode from 'react-barcode';
@@ -55,7 +56,13 @@ export function PrintableReceipt({ sale, outletId }: PrintableReceiptProps) {
             </table>
 
             <div className="text-[10px] space-y-0.5 border-t border-dashed mt-2 pt-2">
-                <div className="flex justify-between"><span>Subtotal:</span><span>৳{sale.totalAmount.toFixed(2)}</span></div>
+                <div className="flex justify-between"><span>Subtotal:</span><span>৳{sale.subtotal.toFixed(2)}</span></div>
+                {sale.discountAmount > 0 && (
+                    <div className="flex justify-between">
+                        <span>Discount ({sale.promoCode}):</span>
+                        <span>- ৳{sale.discountAmount.toFixed(2)}</span>
+                    </div>
+                )}
                 <div className="flex justify-between font-bold text-xs">
                     <span>Grand Total:</span>
                     <span>৳{sale.totalAmount.toFixed(2)}</span>

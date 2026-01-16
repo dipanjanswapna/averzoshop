@@ -80,11 +80,14 @@
             "required": ["productId", "productName", "variantSku", "quantity", "price"]
           } 
         },
-        "totalAmount": { "type": "number" },
+        "subtotal": { "type": "number", "description": "The total amount before discounts." },
+        "discountAmount": { "type": "number", "description": "The amount discounted via a promo code." },
+        "promoCode": { "type": "string", "description": "The promo code used for the sale." },
+        "totalAmount": { "type": "number", "description": "The final amount after discounts." },
         "paymentMethod": { "type": "string", "enum": ["cash", "card", "mobile"] },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["outletId", "soldBy", "items", "totalAmount", "paymentMethod", "createdAt"]
+      "required": ["outletId", "soldBy", "items", "subtotal", "totalAmount", "paymentMethod", "createdAt"]
     },
      "order": {
       "title": "Online Order",

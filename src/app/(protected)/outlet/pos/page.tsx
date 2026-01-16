@@ -12,7 +12,7 @@ import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { useFirebase } from '@/firebase';
-import { doc, runTransaction, serverTimestamp, collection } from 'firebase/firestore';
+import { doc, getDoc, runTransaction, serverTimestamp, collection, increment } from 'firebase/firestore';
 import type { POSSale } from '@/types/pos';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ReceiptPreviewDialog } from '@/components/pos/ReceiptPreviewDialog';
@@ -26,6 +26,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { Separator } from '@/components/ui/separator';
+import type { Coupon } from '@/types/coupon';
+
 
 type CartItem = {
     product: Product;
@@ -43,6 +46,14 @@ const CartPanel = ({
     updateQuantity,
     totalItems,
     cartSubtotal,
+    discountAmount,
+    grandTotal,
+    promoCodeInput,
+    setPromoCodeInput,
+    handleApplyPromo,
+    isApplyingPromo,
+    appliedCoupon,
+    removePromoCode,
     paymentMethod,
     setPaymentMethod,
     cashReceived,
@@ -101,10 +112,58 @@ const CartPanel = ({
                 </CardContent>
             </ScrollArea>
             <CardFooter className="flex-col items-stretch space-y-4 border-t p-4 bg-muted/30">
-                <div className="flex justify-between font-bold text-lg">
-                    <span>Total ({totalItems} items)</span>
-                    <span>৳{cartSubtotal.toFixed(2)}</span>
+                <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                        <span>Subtotal</span>
+                        <span>৳{cartSubtotal.toFixed(2)}</span>
+                    </div>
+                    {discountAmount > 0 && (
+                        <div className="flex justify-between text-green-600">
+                            <span>Discount ({appliedCoupon?.code})</span>
+                            <span>- ৳{discountAmount.toFixed(2)}</span>
+                        </div>
+                    )}
                 </div>
+
+                <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2">
+                    <span>Total ({totalItems} items)</span>
+                    <span>৳{grandTotal.toFixed(2)}</span>
+                </div>
+
+                <Separator />
+                
+                <div className="space-y-2">
+                    {appliedCoupon ? (
+                        <div className="flex justify-between items-center bg-green-100/50 p-2 rounded-md">
+                            <div className="text-green-700">
+                                <p className="text-sm font-bold">Code Applied: {appliedCoupon.code}</p>
+                                <p className="text-xs">-৳{discountAmount.toFixed(2)}</p>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={removePromoCode}>
+                                <XCircle className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="flex items-end gap-2">
+                            <div className="flex-1 space-y-1">
+                                <Label htmlFor="promo-code" className="text-xs font-medium">Promo Code</Label>
+                                <Input 
+                                    id="promo-code" 
+                                    placeholder="Enter code"
+                                    value={promoCodeInput}
+                                    onChange={(e) => setPromoCodeInput(e.target.value)}
+                                    disabled={isApplyingPromo}
+                                />
+                            </div>
+                            <Button onClick={handleApplyPromo} disabled={isApplyingPromo || !promoCodeInput}>
+                                {isApplyingPromo ? 'Applying...' : 'Apply'}
+                            </Button>
+                        </div>
+                    )}
+                </div>
+
+                <Separator />
+                
                 <div className='space-y-2'>
                     <Label className='text-sm font-medium'>Payment Method</Label>
                     <div className='grid grid-cols-3 gap-2'>
@@ -131,7 +190,7 @@ const CartPanel = ({
                             {[500, 1000, 2000].map(amt => (
                                 <Button key={amt} type="button" variant="outline" onClick={() => setCashReceived((prev: number) => prev + amt)}>+ ৳{amt}</Button>
                             ))}
-                             <Button type="button" variant="outline" onClick={() => setCashReceived(cartSubtotal)}>Exact</Button>
+                             <Button type="button" variant="outline" onClick={() => setCashReceived(grandTotal)}>Exact</Button>
                              <Button type="button" variant="ghost" className="col-span-2 text-destructive hover:bg-destructive/10" onClick={() => setCashReceived(0)}>Clear</Button>
                         </div>
                         <div className={cn("p-3 rounded-md text-center", changeDue >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')}>
@@ -144,7 +203,7 @@ const CartPanel = ({
 
                 <Button 
                     size="lg" 
-                    disabled={cart.length === 0 || isProcessing || (paymentMethod === 'cash' && cashReceived < cartSubtotal)}
+                    disabled={cart.length === 0 || isProcessing || (paymentMethod === 'cash' && cashReceived < grandTotal)}
                     onClick={handleCompleteSale}
                     className="h-14 text-lg"
                 >
@@ -169,6 +228,11 @@ export default function POSPage() {
     const [cashReceived, setCashReceived] = useState<number>(0);
     const [lastSale, setLastSale] = useState<(POSSale & { cashReceived?: number, changeDue?: number }) | null>(null);
     const [isReceiptPreviewOpen, setIsReceiptPreviewOpen] = useState(false);
+
+    const [promoCodeInput, setPromoCodeInput] = useState('');
+    const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+    const [discountAmount, setDiscountAmount] = useState(0);
+    const [isApplyingPromo, setIsApplyingPromo] = useState(false);
 
 
     const outletId = useMemo(() => userData?.outletId, [userData]);
@@ -301,11 +365,74 @@ export default function POSPage() {
         return cart.reduce((total, item) => total + item.variant.price * item.quantity, 0);
     }, [cart]);
 
+    const grandTotal = useMemo(() => {
+        return cartSubtotal - discountAmount;
+    }, [cartSubtotal, discountAmount]);
+
     const totalItems = useMemo(() => {
         return cart.reduce((total, item) => total + item.quantity, 0);
     }, [cart]);
     
-    const changeDue = cashReceived - cartSubtotal;
+    const changeDue = cashReceived - grandTotal;
+
+    const calculateDiscount = (subtotal: number, coupon: Coupon): number => {
+        if (subtotal < coupon.minimumSpend) {
+            toast({ variant: 'destructive', title: `Minimum spend of ৳${coupon.minimumSpend} required.` });
+            return 0;
+        };
+        if (coupon.discountType === 'fixed') {
+            return Math.min(coupon.value, subtotal);
+        }
+        if (coupon.discountType === 'percentage') {
+            return (subtotal * coupon.value) / 100;
+        }
+        return 0;
+    };
+
+    const handleApplyPromo = async () => {
+        if (!promoCodeInput.trim() || !firestore) return;
+        setIsApplyingPromo(true);
+
+        const code = promoCodeInput.trim().toUpperCase();
+        const couponRef = doc(firestore, 'coupons', code);
+        try {
+            const couponSnap = await getDoc(couponRef);
+            if (!couponSnap.exists()) {
+                toast({ variant: 'destructive', title: 'Invalid Promo Code' });
+                return;
+            }
+            const coupon = { id: couponSnap.id, ...couponSnap.data() } as Coupon;
+            
+            if (coupon.expiryDate.toDate() < new Date()) {
+                toast({ variant: 'destructive', title: 'Promo code expired.' });
+                return;
+            }
+
+            if (coupon.usedCount >= coupon.usageLimit) {
+                toast({ variant: 'destructive', title: 'Promo code usage limit reached.' });
+                return;
+            }
+
+            const discount = calculateDiscount(cartSubtotal, coupon);
+            if (discount > 0) {
+                setAppliedCoupon(coupon);
+                setDiscountAmount(discount);
+                toast({ title: 'Promo code applied!' });
+            }
+
+        } catch (error) {
+            toast({ variant: 'destructive', title: 'Error applying promo code.' });
+        } finally {
+            setIsApplyingPromo(false);
+        }
+    };
+
+    const removePromoCode = () => {
+        setAppliedCoupon(null);
+        setDiscountAmount(0);
+        setPromoCodeInput('');
+        toast({ title: 'Promo code removed.' });
+    };
 
 
     const handleCompleteSale = async () => {
@@ -327,7 +454,10 @@ export default function POSPage() {
                 quantity: item.quantity,
                 price: item.variant.price,
             })),
-            totalAmount: cartSubtotal,
+            subtotal: cartSubtotal,
+            discountAmount: discountAmount,
+            promoCode: appliedCoupon?.code,
+            totalAmount: grandTotal,
             paymentMethod: paymentMethod,
             createdAt: serverTimestamp(),
         };
@@ -375,18 +505,28 @@ export default function POSPage() {
     
                 const salesRef = doc(firestore, 'pos_sales', saleId);
                 transaction.set(salesRef, saleData);
+
+                if (appliedCoupon) {
+                    const couponRef = doc(firestore, 'coupons', appliedCoupon.id);
+                    transaction.update(couponRef, {
+                        usedCount: increment(1)
+                    });
+                }
             });
     
             toast({ title: 'Sale Completed!', description: 'Receipt is being prepared.' });
             let saleInfoForReceipt: POSSale & { cashReceived?: number; changeDue?: number } = { ...saleData };
             if (paymentMethod === 'cash') {
-                saleInfoForReceipt = { ...saleData, cashReceived, changeDue };
+                saleInfoForReceipt = { ...saleData, cashReceived, changeDue: grandTotal - cashReceived };
             }
             setLastSale(saleInfoForReceipt);
             setIsReceiptPreviewOpen(true);
             setCart([]);
             setSearchTerm('');
             setCashReceived(0);
+            setPromoCodeInput('');
+            setAppliedCoupon(null);
+            setDiscountAmount(0);
     
         } catch (error: any) {
             console.error('Sale transaction failed: ', error);
@@ -411,6 +551,14 @@ export default function POSPage() {
         updateQuantity,
         totalItems,
         cartSubtotal,
+        discountAmount,
+        grandTotal,
+        promoCodeInput,
+        setPromoCodeInput,
+        handleApplyPromo,
+        isApplyingPromo,
+        appliedCoupon,
+        removePromoCode,
         paymentMethod,
         setPaymentMethod,
         cashReceived,
@@ -487,7 +635,7 @@ export default function POSPage() {
                                 <ShoppingCart />
                                 <span>{totalItems} Items</span>
                             </div>
-                            <span>৳{cartSubtotal.toFixed(2)}</span>
+                            <span>৳{grandTotal.toFixed(2)}</span>
                        </Button>
                     </SheetTrigger>
                     <SheetContent side="bottom" className="h-[90vh] flex flex-col p-0">
