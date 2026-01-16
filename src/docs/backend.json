@@ -118,7 +118,8 @@
             }
           }
         },
-        "totalAmount": { "type": "number" },
+        "totalAmount": { "type": "number", "description": "The amount paid by the customer (can be partial for pre-orders)." },
+        "fullOrderValue": { "type": "number", "description": "The total value of the order, especially for pre-orders with partial payment." },
         "assignedOutletId": { "type": "string" },
         "riderId": { "type": "string", "description": "The UID of the rider assigned to this delivery." },
         "status": { "type": "string", "enum": ["new", "preparing", "ready_for_pickup", "out_for_delivery", "delivered", "canceled", "pre-ordered", "fulfilled"] },

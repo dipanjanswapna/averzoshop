@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useCart } from '@/hooks/use-cart';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -17,16 +18,17 @@ export function CheckoutOrderSummary() {
     items, 
     subtotal,
     discount,
+    promoCode,
+    shippingFee,
+    totalPayable,
+    fullOrderTotal,
+    isPartialPayment,
     applyPromoCode,
-    promoCode
   } = useCart();
   const { firestore } = useFirebase();
   const { toast } = useToast();
   const [promoCodeInput, setPromoCodeInput] = useState('');
   const [isApplying, setIsApplying] = useState(false);
-
-  const shippingFee = subtotal > 500 || subtotal === 0 ? 0 : 50;
-  const total = subtotal - discount + shippingFee;
 
   const handleApplyPromoCode = async () => {
     if (!promoCodeInput.trim() || !firestore) {
@@ -52,7 +54,6 @@ export function CheckoutOrderSummary() {
         return;
       }
       
-      // Check for eligibility
       const eligibleItems = items.filter(item => {
           if (coupon.creatorType === 'admin') {
               return !coupon.applicableProducts || coupon.applicableProducts.length === 0 || coupon.applicableProducts.includes(item.product.id);
@@ -93,7 +94,9 @@ export function CheckoutOrderSummary() {
   return (
     <Card className="shadow-lg">
       <CardHeader>
-        <CardTitle className="font-headline text-xl">Order Summary</CardTitle>
+        <CardTitle className="font-headline text-xl">
+           {isPartialPayment ? 'Pre-order Summary' : 'Order Summary'}
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-4 max-h-64 overflow-y-auto pr-2">
@@ -117,42 +120,58 @@ export function CheckoutOrderSummary() {
           })}
         </div>
         <Separator />
-        <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-            <span>Subtotal</span>
-            <span className="font-medium">৳{subtotal.toFixed(2)}</span>
+        {isPartialPayment ? (
+           <div className="space-y-2 text-sm">
+             <div className="flex justify-between">
+                <span>Full Order Value</span>
+                <span className="font-medium">৳{fullOrderTotal.toFixed(2)}</span>
             </div>
-             {discount > 0 && (
-                <div className="flex justify-between text-sm text-green-600">
-                    <span>Discount ({promoCode?.code})</span>
-                    <span className="font-medium">- ৳{discount.toFixed(2)}</span>
-                </div>
-            )}
-            <div className="flex justify-between text-sm">
-            <span>Shipping Fee</span>
-            <span className="font-medium">{shippingFee > 0 ? `৳${shippingFee.toFixed(2)}` : 'Free'}</span>
+             <div className="flex justify-between font-bold text-primary">
+                <span>Deposit to Pay Today</span>
+                <span className="font-medium">৳{totalPayable.toFixed(2)}</span>
             </div>
-        </div>
-        <Separator />
-         <div className="flex items-end gap-2">
-            <div className="flex-1 space-y-1">
-              <label htmlFor="promo-code" className="text-xs font-medium text-muted-foreground">Promo Code</label>
-              <Input 
-                id="promo-code" 
-                placeholder="Enter code" 
-                value={promoCodeInput}
-                onChange={(e) => setPromoCodeInput(e.target.value)}
-                disabled={isApplying}
-              />
-            </div>
-            <Button onClick={handleApplyPromoCode} disabled={isApplying}>
-              {isApplying ? 'Applying...' : 'Apply'}
-            </Button>
+            <p className='text-xs text-muted-foreground'>The remaining amount will be due upon product release. Shipping fee included.</p>
           </div>
+        ) : (
+            <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                <span>Subtotal</span>
+                <span className="font-medium">৳{subtotal.toFixed(2)}</span>
+                </div>
+                {discount > 0 && (
+                    <div className="flex justify-between text-sm text-green-600">
+                        <span>Discount ({promoCode?.code})</span>
+                        <span className="font-medium">- ৳{discount.toFixed(2)}</span>
+                    </div>
+                )}
+                <div className="flex justify-between text-sm">
+                <span>Shipping Fee</span>
+                <span className="font-medium">{shippingFee > 0 ? `৳${shippingFee.toFixed(2)}` : 'Free'}</span>
+                </div>
+            </div>
+        )}
+        <Separator />
+         {!isPartialPayment && (
+            <div className="flex items-end gap-2">
+                <div className="flex-1 space-y-1">
+                <label htmlFor="promo-code" className="text-xs font-medium text-muted-foreground">Promo Code</label>
+                <Input 
+                    id="promo-code" 
+                    placeholder="Enter code" 
+                    value={promoCodeInput}
+                    onChange={(e) => setPromoCodeInput(e.target.value)}
+                    disabled={isApplying}
+                />
+                </div>
+                <Button onClick={handleApplyPromoCode} disabled={isApplying}>
+                {isApplying ? 'Applying...' : 'Apply'}
+                </Button>
+            </div>
+         )}
         <Separator />
         <div className="flex justify-between font-bold text-lg">
-          <span>Total</span>
-          <span>৳{total.toFixed(2)}</span>
+          <span>Total Payable</span>
+          <span>৳{totalPayable.toFixed(2)}</span>
         </div>
       </CardContent>
     </Card>

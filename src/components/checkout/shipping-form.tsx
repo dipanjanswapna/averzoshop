@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -36,10 +36,15 @@ const formSchema = z.object({
 });
 
 export function ShippingForm() {
-  const { items: cartItems, clearCart, total } = useCart(state => ({
-    items: state.items,
+  const { cartItems, clearCart, totalPayable, subtotal, fullOrderTotal, isPartialPayment, promoCode, discount } = useCart(state => ({
+    cartItems: state.items,
     clearCart: state.clearCart,
-    total: state.items.reduce((acc, item) => acc + (item.variant?.price || 0) * item.quantity, 0),
+    totalPayable: state.totalPayable,
+    subtotal: state.subtotal,
+    fullOrderTotal: state.fullOrderTotal,
+    isPartialPayment: state.isPartialPayment,
+    promoCode: state.promoCode,
+    discount: state.discount,
   }));
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -66,7 +71,6 @@ export function ShippingForm() {
 
     try {
         if (isPreOrderCart) {
-            // Pre-order logic: No stock check needed, just create the order
             const batch = writeBatch(firestore);
             const orderRef = doc(collection(firestore, 'orders'));
             
@@ -80,8 +84,10 @@ export function ShippingForm() {
                     quantity: item.quantity,
                     price: item.variant.price
                 })),
-                totalAmount: total,
-                assignedOutletId: 'pre-order-fulfillment', // Special value for pre-orders
+                subtotal: subtotal,
+                totalAmount: totalPayable,
+                fullOrderValue: fullOrderTotal,
+                assignedOutletId: 'pre-order-fulfillment', 
                 status: 'pre-ordered',
                 orderType: 'pre-order',
                 createdAt: serverTimestamp(),
@@ -97,7 +103,6 @@ export function ShippingForm() {
             router.push('/customer/my-orders');
 
         } else {
-            // Regular order logic with stock check and routing
             const [productsSnapshot, outletsSnapshot] = await Promise.all([
                 getDocs(collection(firestore, 'products')),
                 getDocs(collection(firestore, 'outlets'))
@@ -171,7 +176,6 @@ export function ShippingForm() {
                       throw new Error(`Not enough stock for ${productData.name} at ${nearestOutlet.name}. Available: ${currentStock}, Requested: ${cartItem.quantity}.`);
                   }
 
-                  // Decrement stock values
                   variantsArray[variantIndex].stock = (variant.stock || 0) - cartItem.quantity;
                   if (variantsArray[variantIndex].outlet_stocks) {
                        variantsArray[variantIndex].outlet_stocks![nearestOutlet.id] = currentStock - cartItem.quantity;
@@ -195,7 +199,10 @@ export function ShippingForm() {
                       quantity: item.quantity,
                       price: item.variant.price
                   })),
-                  totalAmount: total,
+                  subtotal: subtotal,
+                  discountAmount: discount,
+                  promoCode: promoCode?.code,
+                  totalAmount: totalPayable,
                   assignedOutletId: nearestOutlet.id,
                   status: 'new',
                   orderType: 'regular',

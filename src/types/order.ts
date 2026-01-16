@@ -27,6 +27,7 @@ export interface Order {
     discountAmount?: number;
     promoCode?: string;
     totalAmount: number;
+    fullOrderValue?: number;
     assignedOutletId: string;
     status: OrderStatus;
     orderType: 'regular' | 'pre-order';

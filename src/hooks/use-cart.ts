@@ -17,6 +17,10 @@ type CartState = {
   promoCode: Coupon | null;
   subtotal: number;
   discount: number;
+  shippingFee: number;
+  totalPayable: number;
+  fullOrderTotal: number;
+  isPartialPayment: boolean;
   addItem: (product: Product, variant: ProductVariant, quantity?: number) => void;
   removeItem: (variantSku: string) => void;
   updateQuantity: (variantSku: string, quantity: number) => void;
@@ -32,31 +36,27 @@ const calculateSubtotal = (items: CartItem[]) => {
 const calculateDiscount = (items: CartItem[], coupon: Coupon | null): number => {
     if (!coupon) return 0;
     
-    // Filter cart items that are eligible for the coupon
     const eligibleItems = items.filter(item => {
         if (coupon.creatorType === 'admin') {
-            // Admin coupons are applicable to all products unless specified
             return !coupon.applicableProducts || coupon.applicableProducts.length === 0 || coupon.applicableProducts.includes(item.product.id);
         }
         if (coupon.creatorType === 'vendor') {
-            // Vendor coupons are only applicable to that vendor's products
             if (item.product.vendorId !== coupon.creatorId) {
                 return false;
             }
-            // If specific products are listed, it must be one of them
             return !coupon.applicableProducts || coupon.applicableProducts.length === 0 || coupon.applicableProducts.includes(item.product.id);
         }
         return false;
     });
 
     if (eligibleItems.length === 0) {
-        return 0; // No items in the cart are eligible for this coupon
+        return 0;
     }
 
     const eligibleSubtotal = eligibleItems.reduce((acc, item) => acc + (item.variant?.price || 0) * item.quantity, 0);
 
     if (eligibleSubtotal < coupon.minimumSpend) {
-        return 0; // The total of eligible items doesn't meet the minimum spend
+        return 0;
     }
 
     if (coupon.discountType === 'fixed') {
@@ -75,13 +75,47 @@ export const useCart = create<CartState>()(
       promoCode: null,
       subtotal: 0,
       discount: 0,
+      shippingFee: 0,
+      totalPayable: 0,
+      fullOrderTotal: 0,
+      isPartialPayment: false,
       
       _recalculate: () => {
         const items = get().items;
         const promoCode = get().promoCode;
         const subtotal = calculateSubtotal(items);
-        const discount = calculateDiscount(items, promoCode);
-        set({ subtotal, discount });
+        const shippingFee = subtotal > 500 || subtotal === 0 ? 0 : 50;
+        const isPreOrderCart = items.length > 0 && !!items[0].isPreOrder;
+        
+        let discount = 0;
+        let totalPayable = 0;
+        let fullOrderTotal = subtotal;
+        let isPartialPayment = false;
+
+        if (isPreOrderCart) {
+          // No discounts on pre-orders for simplicity
+          let depositTotal = 0;
+          items.forEach(item => {
+            const preOrderInfo = item.product.preOrder;
+            const itemSubtotal = item.variant.price * item.quantity;
+            if (preOrderInfo?.enabled && preOrderInfo.depositAmount != null && preOrderInfo.depositAmount > 0) {
+              isPartialPayment = true;
+              if (preOrderInfo.depositType === 'percentage') {
+                depositTotal += (itemSubtotal * preOrderInfo.depositAmount) / 100;
+              } else { // fixed
+                depositTotal += (preOrderInfo.depositAmount * item.quantity);
+              }
+            } else {
+              depositTotal += itemSubtotal;
+            }
+          });
+          totalPayable = depositTotal + shippingFee; // Add shipping to deposit
+        } else {
+          discount = calculateDiscount(items, promoCode);
+          totalPayable = subtotal - discount + shippingFee;
+        }
+
+        set({ subtotal, discount, shippingFee, totalPayable, fullOrderTotal: subtotal, isPartialPayment });
       },
 
       addItem: (product, variant, quantity = 1) => {
@@ -162,7 +196,7 @@ export const useCart = create<CartState>()(
       },
 
       clearCart: () => {
-        set({ items: [], promoCode: null, subtotal: 0, discount: 0 });
+        set({ items: [], promoCode: null, subtotal: 0, discount: 0, shippingFee: 0, totalPayable: 0, fullOrderTotal: 0, isPartialPayment: false });
       },
 
       applyPromoCode: (coupon) => {
