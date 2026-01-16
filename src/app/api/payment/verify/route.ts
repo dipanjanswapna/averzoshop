@@ -29,6 +29,11 @@ export async function POST(request: NextRequest) {
     // Step 1: Check if the payment was actually successful according to the gateway
     if (status !== 'VALID') {
         // Here you might want to update your database to mark the transaction as 'Failed'.
+        await firestore().collection('orders').doc(tran_id).update({
+          paymentStatus: 'Failed',
+          status: 'canceled'
+        }).catch(err => console.error("Failed to update order to 'Failed'", err));
+
         return NextResponse.json({ status: 'Failed', message: 'Payment was not successful.' }, { status: 400 });
     }
 
