@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo } from 'react';
@@ -11,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import type { Outlet } from '@/types/outlet';
-import type { Product } from '@/types/product';
+import type { Product, ProductVariant } from '@/types/product';
 import { Skeleton } from '../ui/skeleton';
 import { MapPin, Store } from 'lucide-react';
 import { Badge } from '../ui/badge';
@@ -23,18 +22,41 @@ interface StoreAvailabilityDialogProps {
   product: Product;
 }
 
+const getVariantsAsArray = (variants: any): ProductVariant[] => {
+    if (!variants) return [];
+    if (Array.isArray(variants)) {
+        return variants;
+    }
+    if (typeof variants === 'object') {
+        return Object.values(variants);
+    }
+    return [];
+};
+
+
 export function StoreAvailabilityDialog({ open, onOpenChange, product }: StoreAvailabilityDialogProps) {
   const { data: allOutlets, isLoading } = useFirestoreQuery<Outlet>('outlets');
 
   const outletsWithStock = useMemo(() => {
-    if (!allOutlets || !product.outlet_stocks) return [];
+    if (!allOutlets || !product) return [];
+
+    const variants = getVariantsAsArray(product.variants);
+
     return allOutlets
-      .filter(outlet => (product.outlet_stocks[outlet.id] ?? 0) > 0)
-      .map(outlet => ({
-        ...outlet,
-        stock: product.outlet_stocks[outlet.id]
-      }));
-  }, [allOutlets, product.outlet_stocks]);
+      .map(outlet => {
+        // Calculate total stock for this product in this specific outlet by summing up all its variants' stock for that outlet
+        const totalStockInOutlet = variants.reduce((sum, variant) => {
+          return sum + (variant.outlet_stocks?.[outlet.id] ?? 0);
+        }, 0);
+
+        return {
+          ...outlet,
+          stock: totalStockInOutlet
+        };
+      })
+      .filter(outlet => outlet.stock > 0); // Only keep outlets that have stock for this product
+
+  }, [allOutlets, product]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
