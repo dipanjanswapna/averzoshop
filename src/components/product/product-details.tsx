@@ -16,6 +16,7 @@ import { ShareButtons } from './share-buttons';
 import { SizeGuideDialog } from './size-guide-dialog';
 import { useCart } from '@/hooks/use-cart';
 import { StoreAvailabilityDialog } from './store-availability-dialog';
+import Barcode from 'react-barcode';
 
 interface ProductDetailsProps {
     product: Product;
@@ -200,6 +201,12 @@ export function ProductDetails({
                </div>
           </div>
         </div>
+        
+        {selectedVariant?.sku && (
+            <div className="flex justify-start">
+                <Barcode value={selectedVariant.sku} height={50} displayValue={false} />
+            </div>
+        )}
 
          {product.flashSale && <SaleTimer endDate={product.flashSale.endDate} />}
 
@@ -224,7 +231,7 @@ export function ProductDetails({
          )}
         
         {product.giftWithPurchase?.enabled && product.giftWithPurchase.description && (
-            <div className="bg-green-100 text-green-800 border-l-4 border-green-500 p-4 rounded-md flex items-center gap-4">
+            <div className="bg-green-100 text-green-800 border-l-4 border-green-500 p-4 rounded-md flex items-center gap-4 mt-6">
                 <Gift size={24} className="flex-shrink-0" />
                 <div>
                 <p className="font-bold">Free Gift with Purchase!</p>
