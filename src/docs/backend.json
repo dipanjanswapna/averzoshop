@@ -281,6 +281,7 @@
       "description": "A promotional code for discounts.",
       "type": "object",
       "properties": {
+        "id": { "type": "string" },
         "code": { "type": "string", "description": "The unique code for the coupon (e.g., WINTER20)." },
         "discountType": { "type": "string", "enum": ["percentage", "fixed"], "description": "The type of discount." },
         "value": { "type": "number", "description": "The discount value (either percentage or fixed amount)." },

@@ -21,23 +21,51 @@ type CartState = {
   updateQuantity: (variantSku: string, quantity: number) => void;
   clearCart: () => void;
   applyPromoCode: (coupon: Coupon | null) => void;
+  _recalculate: () => void;
 };
 
 const calculateSubtotal = (items: CartItem[]) => {
   return items.reduce((acc, item) => acc + (item.variant?.price || 0) * item.quantity, 0);
 };
 
-const calculateDiscount = (subtotal: number, coupon: Coupon | null): number => {
-    if (!coupon || subtotal < coupon.minimumSpend) return 0;
+const calculateDiscount = (items: CartItem[], coupon: Coupon | null): number => {
+    if (!coupon) return 0;
+    
+    // Filter cart items that are eligible for the coupon
+    const eligibleItems = items.filter(item => {
+        if (coupon.creatorType === 'admin') {
+            // Admin coupons are applicable to all products unless specified
+            return !coupon.applicableProducts || coupon.applicableProducts.length === 0 || coupon.applicableProducts.includes(item.product.id);
+        }
+        if (coupon.creatorType === 'vendor') {
+            // Vendor coupons are only applicable to that vendor's products
+            if (item.product.vendorId !== coupon.creatorId) {
+                return false;
+            }
+            // If specific products are listed, it must be one of them
+            return !coupon.applicableProducts || coupon.applicableProducts.length === 0 || coupon.applicableProducts.includes(item.product.id);
+        }
+        return false;
+    });
+
+    if (eligibleItems.length === 0) {
+        return 0; // No items in the cart are eligible for this coupon
+    }
+
+    const eligibleSubtotal = eligibleItems.reduce((acc, item) => acc + (item.variant?.price || 0) * item.quantity, 0);
+
+    if (eligibleSubtotal < coupon.minimumSpend) {
+        return 0; // The total of eligible items doesn't meet the minimum spend
+    }
+
     if (coupon.discountType === 'fixed') {
-        return Math.min(coupon.value, subtotal);
+        return Math.min(coupon.value, eligibleSubtotal);
     }
     if (coupon.discountType === 'percentage') {
-        return (subtotal * coupon.value) / 100;
+        return (eligibleSubtotal * coupon.value) / 100;
     }
     return 0;
 };
-
 
 export const useCart = create<CartState>()(
   persist(
@@ -51,7 +79,7 @@ export const useCart = create<CartState>()(
         const items = get().items;
         const promoCode = get().promoCode;
         const subtotal = calculateSubtotal(items);
-        const discount = calculateDiscount(subtotal, promoCode);
+        const discount = calculateDiscount(items, promoCode);
         set({ subtotal, discount });
       },
 

@@ -9,6 +9,7 @@ import {
   ShoppingCart,
   Settings,
   FileText,
+  Tags,
 } from 'lucide-react';
 import {
   SidebarMenu,
@@ -21,6 +22,7 @@ const navItems = [
     { href: '/vendor/products', label: 'My Products', icon: Package },
     { href: '/vendor/stock-requests', label: 'Stock Requests', icon: ShoppingCart },
     { href: '/vendor/challans', label: 'Delivery Challans', icon: FileText },
+    { href: '/vendor/coupons', label: 'My Coupons', icon: Tags },
 ];
 
 export function VendorNav() {

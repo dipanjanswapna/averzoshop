@@ -45,15 +45,36 @@ export function CheckoutOrderSummary() {
         return;
       }
 
-      const coupon = couponSnap.data() as Coupon;
+      const coupon = { id: couponSnap.id, ...couponSnap.data() } as Coupon;
       
       if (coupon.expiryDate.toDate() < new Date()) {
         toast({ variant: 'destructive', title: 'Promo code expired.' });
         applyPromoCode(null);
         return;
       }
-      if (subtotal < coupon.minimumSpend) {
-         toast({ variant: 'destructive', title: `Minimum spend of ৳${coupon.minimumSpend} required.` });
+      
+      // Check for eligibility
+      const eligibleItems = items.filter(item => {
+          if (coupon.creatorType === 'admin') {
+              return !coupon.applicableProducts || coupon.applicableProducts.length === 0 || coupon.applicableProducts.includes(item.product.id);
+          }
+          if (coupon.creatorType === 'vendor') {
+              if (item.product.vendorId !== coupon.creatorId) return false;
+              return !coupon.applicableProducts || coupon.applicableProducts.length === 0 || coupon.applicableProducts.includes(item.product.id);
+          }
+          return false;
+      });
+
+      if (eligibleItems.length === 0) {
+          toast({ variant: 'destructive', title: 'Coupon Not Applicable', description: 'This coupon is not valid for the items in your cart.' });
+          applyPromoCode(null);
+          return;
+      }
+
+      const eligibleSubtotal = eligibleItems.reduce((acc, item) => acc + (item.variant?.price || 0) * item.quantity, 0);
+
+      if (eligibleSubtotal < coupon.minimumSpend) {
+         toast({ variant: 'destructive', title: `Minimum spend of ৳${coupon.minimumSpend} on eligible items required.` });
          applyPromoCode(null);
         return;
       }
