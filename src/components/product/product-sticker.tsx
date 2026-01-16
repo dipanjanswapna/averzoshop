@@ -10,6 +10,8 @@ interface ProductStickerProps {
 }
 
 export function ProductSticker({ product, variant }: ProductStickerProps) {
+  const displayPrice = variant.price ?? product.price;
+  
   return (
     <div className="p-4 border border-dashed border-black w-[300px] font-sans bg-white text-black">
       <div className="text-center space-y-1">
@@ -20,7 +22,7 @@ export function ProductSticker({ product, variant }: ProductStickerProps) {
                 {variant.color}{variant.color && variant.size && ' / '}{variant.size}
             </p>
         )}
-        <p className="text-lg font-bold">৳{variant.price.toFixed(2)}</p>
+        <p className="text-lg font-bold">৳{displayPrice.toFixed(2)}</p>
         <div className="flex justify-center pt-2">
             <Barcode 
                 value={variant.sku}
