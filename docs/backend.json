@@ -6,50 +6,20 @@
       "description": "A user of the application.",
       "type": "object",
       "properties": {
-        "uid": {
-          "type": "string",
-          "description": "The user's unique ID."
-        },
-        "email": {
-          "type": "string",
-          "format": "email",
-          "description": "The user's email address."
-        },
-        "displayName": {
-          "type": "string",
-          "description": "The user's display name."
-        },
-        "photoURL": {
-          "type": "string",
-          "format": "uri",
-          "description": "The URL of the user's profile picture."
-        },
-        "role": {
-          "type": "string",
-          "description": "The role of the user.",
-          "enum": ["customer", "admin", "outlet", "vendor", "rider"]
-        },
-        "status": {
-          "type": "string",
-          "description": "The approval status of the user.",
-          "enum": ["pending", "approved", "rejected"]
-        },
-        "wishlist": {
+        "uid": { "type": "string", "description": "The user's unique ID." },
+        "email": { "type": "string", "format": "email", "description": "The user's email address." },
+        "displayName": { "type": "string", "description": "The user's display name." },
+        "photoURL": { "type": "string", "format": "uri", "description": "The URL of the user's profile picture." },
+        "role": { "type": "string", "description": "The role of the user.", "enum": ["customer", "admin", "outlet", "vendor", "rider"] },
+        "status": { "type": "string", "description": "The approval status of the user.", "enum": ["pending", "approved", "rejected"] },
+        "wishlist": { "type": "array", "description": "An array of product IDs that the user has added to their wishlist.", "items": { "type": "string" } },
+        "outletId": { "type": "string", "description": "The ID of the outlet this user manages, if applicable." },
+        "assignedOutlets": {
             "type": "array",
-            "description": "An array of product IDs that the user has added to their wishlist.",
-            "items": {
-                "type": "string"
-            }
+            "description": "An array of outlet IDs that the vendor is allowed to supply to.",
+            "items": { "type": "string" }
         },
-        "outletId": {
-            "type": "string",
-            "description": "The ID of the outlet this user manages, if applicable."
-        },
-        "createdAt": {
-            "type": "string",
-            "format": "date-time",
-            "description": "The timestamp when the user account was created."
-        }
+        "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the user account was created." }
       },
       "required": ["uid", "email", "role", "status"]
     },
@@ -58,29 +28,11 @@
       "description": "A product supplier for Averzo.",
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "The vendor's unique ID."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the vendor company."
-        },
-        "contact": {
-          "type": "string",
-          "format": "email",
-          "description": "The primary contact email for the vendor."
-        },
-        "status": {
-          "type": "string",
-          "description": "The status of the vendor.",
-          "enum": ["Active", "Inactive"]
-        },
-        "createdAt": {
-            "type": "string",
-            "format": "date-time",
-            "description": "The timestamp when the vendor was added."
-        }
+        "id": { "type": "string", "description": "The vendor's unique ID." },
+        "name": { "type": "string", "description": "The name of the vendor company." },
+        "contact": { "type": "string", "format": "email", "description": "The primary contact email for the vendor." },
+        "status": { "type": "string", "description": "The status of the vendor.", "enum": ["Active", "Inactive"] },
+        "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the vendor was added." }
       },
       "required": ["id", "name", "contact", "status"]
     },
@@ -89,43 +41,20 @@
       "description": "A physical store location for Averzo.",
       "type": "object",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "The outlet's unique ID."
+        "id": { "type": "string", "description": "The outlet's unique ID." },
+        "name": { "type": "string", "description": "The name of the outlet." },
+        "location": { 
+          "type": "object",
+          "properties": {
+            "address": { "type": "string" },
+            "lat": { "type": "number" },
+            "lng": { "type": "number" }
+          },
+          "description": "The physical address and coordinates of the outlet."
         },
-        "name": {
-          "type": "string",
-          "description": "The name of the outlet."
-        },
-        "location": {
-          "type": "string",
-          "description": "The physical address of the outlet."
-        },
-        "status": {
-          "type": "string",
-          "description": "The operational status of the outlet.",
-          "enum": ["Active", "Inactive"]
-        },
-        "managerId": {
-          "type": "string",
-          "description": "The UID of the user managing this outlet."
-        },
-        "inventory": {
-          "type": "array",
-          "description": "List of products and their stock levels at this outlet.",
-          "items": {
-            "type": "object",
-            "properties": {
-              "productId": { "type": "string" },
-              "stock": { "type": "number" }
-            }
-          }
-        },
-        "createdAt": {
-          "type": "string",
-          "format": "date-time",
-          "description": "The timestamp when the outlet was added."
-        }
+        "status": { "type": "string", "description": "The operational status of the outlet.", "enum": ["Active", "Inactive"] },
+        "managerId": { "type": "string", "description": "The UID of the user managing this outlet." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the outlet was added." }
       },
       "required": ["name", "location", "status"]
     },
@@ -137,6 +66,45 @@
         "id": { "type": "string", "description": "The unique ID of the sale." },
         "outletId": { "type": "string", "description": "The ID of the outlet where the sale occurred." },
         "soldBy": { "type": "string", "description": "The UID of the sales assistant who made the sale." },
+        "items": { 
+          "type": "array", 
+          "items": { 
+            "type": "object", 
+            "properties": { 
+              "productId": { "type": "string" }, 
+              "productName": { "type": "string" },
+              "variantSku": { "type": "string" },
+              "quantity": { "type": "number" }, 
+              "price": { "type": "number" }
+            },
+            "required": ["productId", "productName", "variantSku", "quantity", "price"]
+          } 
+        },
+        "subtotal": { "type": "number", "description": "The total amount before discounts." },
+        "discountAmount": { "type": "number", "description": "The amount discounted via a promo code." },
+        "promoCode": { "type": "string", "description": "The promo code used for the sale." },
+        "totalAmount": { "type": "number", "description": "The final amount after discounts." },
+        "paymentMethod": { "type": "string", "enum": ["cash", "card", "mobile"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["outletId", "soldBy", "items", "subtotal", "totalAmount", "paymentMethod", "createdAt"]
+    },
+     "order": {
+      "title": "Online Order",
+      "description": "Represents an online order placed by a customer.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "customerId": { "type": "string" },
+        "shippingAddress": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "phone": { "type": "string" },
+            "address": { "type": "string" },
+            "city": { "type": "string" }
+          }
+        },
         "items": {
           "type": "array",
           "items": {
@@ -144,17 +112,19 @@
             "properties": {
               "productId": { "type": "string" },
               "productName": { "type": "string" },
+              "variantSku": { "type": "string" },
               "quantity": { "type": "number" },
               "price": { "type": "number" }
-            },
-            "required": ["productId", "productName", "quantity", "price"]
+            }
           }
         },
         "totalAmount": { "type": "number" },
-        "paymentMethod": { "type": "string", "enum": ["cash", "card", "mobile"] },
+        "assignedOutletId": { "type": "string" },
+        "riderId": { "type": "string", "description": "The UID of the rider assigned to this delivery." },
+        "status": { "type": "string", "enum": ["new", "preparing", "ready_for_pickup", "out_for_delivery", "delivered", "canceled"] },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["outletId", "soldBy", "items", "totalAmount", "paymentMethod", "createdAt"]
+      "required": ["customerId", "shippingAddress", "items", "totalAmount", "assignedOutletId", "status", "createdAt"]
     },
     "product": {
       "title": "Product",
@@ -163,60 +133,184 @@
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
+        "description": { "type": "string" },
         "category": { "type": "string" },
         "group": { "type": "string" },
         "subcategory": { "type": "string" },
-        "price": { "type": "number" },
-        "total_stock": { "type": "number" },
-        "outlet_stocks": {
-          "type": "object",
-          "description": "Stock count per outlet",
-          "additionalProperties": {
-            "type": "number"
+        "price": { "type": "number", "description": "The base selling price of the product if no variants have specific prices." },
+        "compareAtPrice": { "type": "number", "description": "The original price (MRP) to show a discount." },
+        "baseSku": { "type": "string", "description": "The base Stock Keeping Unit for the product." },
+        "total_stock": { "type": "number", "description": "Aggregated stock from all variants across all locations." },
+        "variants": {
+          "type": "array",
+          "description": "Product variants for different sizes and colors.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "sku": { "type": "string", "description": "Unique SKU for the variant." },
+              "color": { "type": "string" },
+              "size": { "type": "string" },
+              "image": { "type": "string", "format": "uri", "description": "Image URL specific to this variant." },
+              "stock": { "type": "number", "description": "Total stock for this variant across all outlets." },
+              "price": { "type": "number", "description": "Price specific to this variant." },
+              "compareAtPrice": { "type": "number", "description": "The original price (MRP) for this specific variant." },
+              "outlet_stocks": {
+                "type": "object",
+                "description": "Stock count per outlet for this specific variant.",
+                "additionalProperties": { "type": "number" }
+              }
+            },
+            "required": ["sku", "stock", "price"]
           }
         },
-        "image": { "type": "string", "format": "uri" },
+        "image": { "type": "string", "format": "uri", "description": "Main product image." },
+        "gallery": { "type": "array", "items": { "type": "string", "format": "uri" }, "description": "A gallery of additional product images." },
+        "videos": { "type": "array", "items": { "type": "string", "format": "uri" }, "description": "A list of product video URLs (e.g., YouTube embeds)." },
         "brand": { "type": "string" },
+        "colors": { "type": "array", "items": { "type": "string" } },
+        "sizes": { "type": "array", "items": { "type": "string" } },
         "vendorId": { "type": "string" },
-        "status": { "type": "string", "enum": ["pending", "approved", "rejected"]},
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "discount": { "type": "number", "description": "The calculated discount percentage, derived from price and compareAtPrice." },
+        "giftWithPurchase": {
+          "type": "object",
+          "description": "Details of a free gift offered with the product.",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "description": { "type": "string", "description": "A short description of the free gift." }
+          }
+        }
+      },
+      "required": ["name", "price", "total_stock", "vendorId", "status", "category", "group", "subcategory", "brand", "image", "baseSku", "variants"]
+    },
+    "question": {
+      "title": "Question",
+      "description": "A customer question about a product.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "productId": { "type": "string" },
+        "questionText": { "type": "string" },
+        "answerText": { "type": "string" },
+        "askedByUid": { "type": "string" },
+        "askedByName": { "type": "string" },
+        "answeredByUid": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "answeredAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["productId", "questionText", "askedByUid", "askedByName", "createdAt"]
+    },
+    "stock_request": {
+      "title": "Stock Request",
+      "description": "A request from a vendor to supply stock to an outlet.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "vendorId": { "type": "string" },
+        "outletId": { "type": "string" },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "productId": { "type": "string" },
+              "productName": { "type": "string" },
+              "quantity": { "type": "number" },
+              "variantSku": { "type": "string" },
+              "variantDescription": { "type": "string" }
+            },
+            "required": ["productId", "productName", "quantity", "variantSku"]
+          }
+        },
+        "totalQuantity": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "approved", "shipped", "received", "rejected"] },
         "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["name", "price", "total_stock", "vendorId", "status"]
+      "required": ["vendorId", "outletId", "items", "totalQuantity", "status", "createdAt"]
+    },
+    "delivery_challan": {
+      "title": "Delivery Challan",
+      "description": "A digital document authorizing the transfer of stock from a vendor to an outlet.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "stockRequestId": { "type": "string" },
+        "vendorId": { "type": "string" },
+        "outletId": { "type": "string" },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "productId": { "type": "string" },
+              "productName": { "type": "string" },
+              "quantity": { "type": "number" },
+              "variantSku": { "type": "string" },
+              "variantDescription": { "type": "string" }
+            },
+            "required": ["productId", "productName", "quantity", "variantSku"]
+          }
+        },
+        "totalQuantity": { "type": "number" },
+        "status": { "type": "string", "enum": ["issued", "in_transit", "received"] },
+        "issuedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["stockRequestId", "vendorId", "outletId", "items", "totalQuantity", "status", "issuedAt"]
+    },
+    "stock_transfer": {
+      "title": "Stock Transfer",
+      "description": "A request to transfer stock from one outlet to another, initiated by an admin.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "sourceOutletId": { "type": "string" },
+        "destinationOutletId": { "type": "string" },
+        "productId": { "type": "string" },
+        "productName": { "type": "string" },
+        "variantSku": { "type": "string" },
+        "quantity": { "type": "number" },
+        "status": { "type": "string", "enum": ["requested", "dispatched", "received", "cancelled"] },
+        "requestedBy": { "type": "string", "description": "UID of the admin who initiated the transfer." },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["sourceOutletId", "destinationOutletId", "productId", "quantity", "status", "requestedBy", "createdAt"]
+    },
+    "coupon": {
+      "title": "Coupon",
+      "description": "A promotional code for discounts.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "code": { "type": "string", "description": "The unique code for the coupon (e.g., WINTER20)." },
+        "discountType": { "type": "string", "enum": ["percentage", "fixed"], "description": "The type of discount." },
+        "value": { "type": "number", "description": "The discount value (either percentage or fixed amount)." },
+        "minimumSpend": { "type": "number", "description": "The minimum purchase amount to apply the coupon." },
+        "usageLimit": { "type": "number", "description": "Total number of times the coupon can be used." },
+        "usedCount": { "type": "number", "description": "How many times the coupon has been used." },
+        "expiryDate": { "type": "string", "format": "date-time", "description": "The expiration date of the coupon." },
+        "creatorType": { "type": "string", "enum": ["admin", "vendor"], "description": "Who created the coupon." },
+        "creatorId": { "type": "string", "description": "The UID of the admin or vendor who created it." },
+        "applicableProducts": { "type": "array", "items": { "type": "string" }, "description": "Array of product IDs this coupon applies to. Empty means all." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the coupon was created." }
+      },
+      "required": ["code", "discountType", "value", "expiryDate", "creatorType", "creatorId"]
     }
   },
   "auth": {
     "providers": ["google.com", "password"]
   },
   "firestore": {
-    "/users/{userId}": {
-      "schema": {
-        "$ref": "#/entities/user"
-      },
-      "description": "Stores user profile information, including their role, status, and wishlist."
-    },
-    "/vendors/{vendorId}": {
-      "schema": {
-        "$ref": "#/entities/vendor"
-      },
-      "description": "Stores information about product suppliers (vendors)."
-    },
-    "/outlets/{outletId}": {
-      "schema": {
-        "$ref": "#/entities/outlet"
-      },
-      "description": "Stores information about physical store locations (outlets)."
-    },
-    "/pos_sales/{saleId}": {
-      "schema": {
-        "$ref": "#/entities/pos_sale"
-      },
-      "description": "Logs all point-of-sale transactions from outlets."
-    },
-    "/products/{productId}": {
-      "schema": {
-        "$ref": "#/entities/product"
-      },
-      "description": "Stores all product information for the platform."
-    }
+    "/users/{userId}": { "schema": { "$ref": "#/entities/user" }, "description": "Stores user profile information, including their role, status, and wishlist." },
+    "/vendors/{vendorId}": { "schema": { "$ref": "#/entities/vendor" }, "description": "Stores information about product suppliers (vendors)." },
+    "/outlets/{outletId}": { "schema": { "$ref": "#/entities/outlet" }, "description": "Stores information about physical store locations (outlets)." },
+    "/pos_sales/{saleId}": { "schema": { "$ref": "#/entities/pos_sale" }, "description": "Logs all point-of-sale transactions from outlets." },
+    "/products/{productId}": { "schema": { "$ref": "#/entities/product" }, "description": "Stores all product information for the platform." },
+    "/products/{productId}/questions/{questionId}": { "schema": { "$ref": "#/entities/question"}, "description": "Stores customer questions and answers for a specific product."},
+    "/stock_requests/{requestId}": { "schema": { "$ref": "#/entities/stock_request" }, "description": "Tracks stock movement requests from vendors to outlets." },
+    "/delivery_challans/{challanId}": { "schema": { "$ref": "#/entities/delivery_challan" }, "description": "Stores delivery challans generated after stock request approvals." },
+    "/orders/{orderId}": { "schema": { "$ref": "#/entities/order" }, "description": "Stores customer online orders routed to specific outlets for fulfillment." },
+    "/stock_transfers/{transferId}": { "schema": { "$ref": "#/entities/stock_transfer" }, "description": "Tracks inter-outlet stock transfers initiated by admins." },
+    "/coupons/{couponId}": { "schema": { "$ref": "#/entities/coupon" }, "description": "Stores all promotional codes for discounts." }
   }
 }

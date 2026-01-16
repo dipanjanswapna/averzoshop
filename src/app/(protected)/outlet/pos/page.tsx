@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -490,12 +489,18 @@ export default function POSPage() {
                         throw new Error(`Not enough stock for ${item.product.name}. Available: ${currentStock}`);
                     }
                     
-                    variantsArray[variantIndex].stock -= item.quantity;
-                    if (variantsArray[variantIndex].outlet_stocks) {
-                       variantsArray[variantIndex].outlet_stocks![outletId] -= item.quantity;
-                    }
-                    
                     const newTotalStock = productData.total_stock - item.quantity;
+                    const newVariantStock = (variantsArray[variantIndex].stock || 0) - item.quantity;
+                    const newOutletStocks = {
+                        ...(variantsArray[variantIndex].outlet_stocks || {}),
+                        [outletId]: currentStock - item.quantity
+                    };
+
+                    variantsArray[variantIndex] = {
+                        ...variantsArray[variantIndex],
+                        stock: newVariantStock,
+                        outlet_stocks: newOutletStocks
+                    };
 
                     transaction.update(ref, {
                         variants: variantsArray,
@@ -517,7 +522,7 @@ export default function POSPage() {
             toast({ title: 'Sale Completed!', description: 'Receipt is being prepared.' });
             let saleInfoForReceipt: POSSale & { cashReceived?: number; changeDue?: number } = { ...saleData };
             if (paymentMethod === 'cash') {
-                saleInfoForReceipt = { ...saleData, cashReceived, changeDue: grandTotal - cashReceived };
+                saleInfoForReceipt = { ...saleData, cashReceived, changeDue };
             }
             setLastSale(saleInfoForReceipt);
             setIsReceiptPreviewOpen(true);

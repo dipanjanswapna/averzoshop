@@ -57,7 +57,7 @@ export function PrintableReceipt({ sale, outletId }: PrintableReceiptProps) {
 
             <div className="text-[10px] space-y-0.5 border-t border-dashed mt-2 pt-2">
                 <div className="flex justify-between"><span>Subtotal:</span><span>৳{sale.subtotal.toFixed(2)}</span></div>
-                {sale.discountAmount > 0 && (
+                {sale.discountAmount && sale.discountAmount > 0 && (
                     <div className="flex justify-between">
                         <span>Discount ({sale.promoCode}):</span>
                         <span>- ৳{sale.discountAmount.toFixed(2)}</span>
@@ -71,7 +71,7 @@ export function PrintableReceipt({ sale, outletId }: PrintableReceiptProps) {
                     <>
                          <div className="flex justify-between"><span>Cash Received:</span><span>৳{(sale.cashReceived || 0).toFixed(2)}</span></div>
                         <div className="flex justify-between text-xs font-black border-t border-dotted mt-1 pt-1">
-                            <span>Change:</span><span>৳{(sale.changeDue || 0).toFixed(2)}</span>
+                            <span>Change:</span><span>৳{((sale.cashReceived || 0) - sale.totalAmount).toFixed(2)}</span>
                         </div>
                     </>
                 )}
