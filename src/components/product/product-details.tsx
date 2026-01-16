@@ -201,23 +201,8 @@ export function ProductDetails({
                </div>
           </div>
         </div>
-        
-        {selectedVariant?.sku && (
-          <div className="border rounded-lg p-4 bg-muted/20">
-            <div className="grid grid-cols-2 gap-x-4">
-              <div>
-                <p className="text-sm font-bold">{product.name}</p>
-                <p className="text-xs text-muted-foreground mt-1">Brand: {product.brand}</p>
-                <p className="text-xs text-muted-foreground">Sold by: Vendor ID {product.vendorId}</p>
-              </div>
-              <div className="flex items-center justify-end">
-                <Barcode value={selectedVariant.sku} height={40} width={1.5} displayValue={true} fontSize={10} />
-              </div>
-            </div>
-          </div>
-        )}
 
-         {product.flashSale && <SaleTimer endDate={product.flashSale.endDate} />}
+        {product.flashSale && <SaleTimer endDate={product.flashSale.endDate} />}
 
         <div className="flex items-center justify-between">
            <div className="flex items-baseline gap-3">
@@ -250,6 +235,21 @@ export function ProductDetails({
             </div>
         )}
         </div>
+        
+        {selectedVariant?.sku && (
+          <div className="border rounded-lg p-4 bg-muted/20 my-4">
+            <div className="grid grid-cols-2 gap-x-4">
+              <div>
+                <p className="text-sm font-bold">{product.name}</p>
+                <p className="text-xs text-muted-foreground mt-1">Brand: {product.brand}</p>
+                <p className="text-xs text-muted-foreground">Sold by: Vendor ID {product.vendorId}</p>
+              </div>
+              <div className="flex items-center justify-end">
+                <Barcode value={selectedVariant.sku} height={40} width={1.5} displayValue={true} fontSize={10} />
+              </div>
+            </div>
+          </div>
+        )}
 
 
         {uniqueColors.length > 0 && (
