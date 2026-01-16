@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -89,19 +90,20 @@ function LoginPageContent() {
           role: 'customer',
           status: 'approved',
           createdAt: serverTimestamp(),
-          loyaltyPoints: 0,
+          loyaltyPoints: 100, // Welcome bonus
           totalSpent: 0,
           membershipTier: 'silver',
         });
+        toast({ title: 'Welcome!', description: "Your account is created and you've received 100 bonus points!" });
       } else {
         // Existing user, merge data but don't overwrite role/status
         await setDoc(userDocRef, {
           displayName: user.displayName,
           photoURL: user.photoURL,
         }, { merge: true });
+        toast({ title: 'Google Sign-In Successful', description: 'Welcome back!' });
       }
 
-      toast({ title: 'Google Sign-In Successful', description: 'Redirecting...' });
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Google Sign-In Failed', description: error.message });
     }
