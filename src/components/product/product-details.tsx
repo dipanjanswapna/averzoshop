@@ -203,9 +203,18 @@ export function ProductDetails({
         </div>
         
         {selectedVariant?.sku && (
-            <div className="flex justify-start">
-                <Barcode value={selectedVariant.sku} height={50} displayValue={false} />
+          <div className="border rounded-lg p-4 bg-muted/20">
+            <div className="grid grid-cols-2 gap-x-4">
+              <div>
+                <p className="text-sm font-bold">{product.name}</p>
+                <p className="text-xs text-muted-foreground mt-1">Brand: {product.brand}</p>
+                <p className="text-xs text-muted-foreground">Sold by: Vendor ID {product.vendorId}</p>
+              </div>
+              <div className="flex items-center justify-end">
+                <Barcode value={selectedVariant.sku} height={40} width={1.5} displayValue={true} fontSize={10} />
+              </div>
             </div>
+          </div>
         )}
 
          {product.flashSale && <SaleTimer endDate={product.flashSale.endDate} />}
@@ -230,7 +239,7 @@ export function ProductDetails({
            </div>
          )}
         
-        <div className="py-4">
+        <div className="space-y-4 py-4">
         {product.giftWithPurchase?.enabled && product.giftWithPurchase.description && (
             <div className="bg-green-100 text-green-800 border-l-4 border-green-500 p-4 rounded-md flex items-center gap-4">
                 <Gift size={24} className="flex-shrink-0" />
