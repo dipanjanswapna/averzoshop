@@ -20,7 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  const showMobileNav = !pathname.startsWith('/dashboard');
+  const protectedPrefixes = ['/dashboard', '/outlet', '/vendor', '/rider', '/customer', '/login', '/register'];
+  const showMobileNav = !protectedPrefixes.some(prefix => pathname.startsWith(prefix));
 
   return (
     <html lang="en" suppressHydrationWarning>
