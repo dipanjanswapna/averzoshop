@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from 'next/image';
@@ -10,6 +9,7 @@ import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
 import { useMemo } from 'react';
 import { useCompare } from '@/hooks/use-compare';
+import { WishlistButton } from './ui/wishlist-button';
 
 export const ProductCard = ({ product }: { product: Product }) => {
   const { addItem } = useCart();
@@ -121,13 +121,16 @@ export const ProductCard = ({ product }: { product: Product }) => {
 
         {/* Hover Actions (Hidden on Mobile, Visible on Desktop Hover) */}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-          <Button variant="ghost" size="icon" className="p-2 bg-card rounded-full text-card-foreground hover:bg-primary hover:text-primary-foreground transition-colors">
-            <Heart size={16} />
-          </Button>
+          <WishlistButton
+            productId={product.id}
+            variant="ghost"
+            size="icon"
+            className="bg-card rounded-full text-card-foreground hover:bg-primary hover:text-primary-foreground h-8 w-8"
+          />
           <Button 
             variant="ghost" 
             size="icon" 
-            className="p-2 bg-card rounded-full text-card-foreground hover:bg-primary hover:text-primary-foreground transition-colors"
+            className="p-2 bg-card rounded-full text-card-foreground hover:bg-primary hover:text-primary-foreground transition-colors h-8 w-8"
             onClick={handleCompareToggle}
           >
             <Layers size={16} />
@@ -179,5 +182,3 @@ export const ProductCard = ({ product }: { product: Product }) => {
     </Link>
   );
 };
-
-    

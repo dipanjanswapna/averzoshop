@@ -9,7 +9,6 @@ import type { Product, ProductVariant } from '@/types/product';
 import { TrustBadges } from './trust-badges';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
-import { doc, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { SaleTimer } from './sale-timer';
 import { ShareButtons } from './share-buttons';
@@ -18,6 +17,7 @@ import { useCart } from '@/hooks/use-cart';
 import { StoreAvailabilityDialog } from './store-availability-dialog';
 import Barcode from 'react-barcode';
 import { BarcodePopup } from './barcode-popup';
+import { WishlistButton } from '../ui/wishlist-button';
 
 interface ProductDetailsProps {
     product: Product;
@@ -42,14 +42,12 @@ export function ProductDetails({
   const router = useRouter();
 
   const [quantity, setQuantity] = useState(1);
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
   const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(false);
   const [isBarcodeOpen, setIsBarcodeOpen] = useState(false);
 
   const { addItem } = useCart();
-  const { user, firestore, userData } = useAuth();
   const { toast } = useToast();
   
 
@@ -113,15 +111,6 @@ export function ProductDetails({
         setSelectedColor(firstAvailableColor);
     }
   }
-
-  // Check wishlist status
-  useEffect(() => {
-    if (userData?.wishlist?.includes(product.id)) {
-      setIsWishlisted(true);
-    } else {
-      setIsWishlisted(false);
-    }
-  }, [userData, product.id]);
   
   useEffect(() => {
     setQuantity(1);
@@ -135,26 +124,6 @@ export function ProductDetails({
   const stockStatus = stock > 10 ? 'In Stock' : stock > 0 ? `Only ${stock} left!` : 'Out of Stock';
   const stockColor = stock > 10 ? 'text-green-600' : stock > 0 ? 'text-orange-600' : 'text-destructive';
 
-
-  const handleWishlistToggle = async () => {
-    if (!user || !firestore) {
-      toast({ variant: "destructive", title: "Please login", description: "You need to be logged in to manage your wishlist." });
-      return;
-    }
-    const userWishlistRef = doc(firestore, "users", user.uid);
-    try {
-      if (isWishlisted) {
-        await updateDoc(userWishlistRef, { wishlist: arrayRemove(product.id) });
-        toast({ title: "Removed from wishlist" });
-      } else {
-        await updateDoc(userWishlistRef, { wishlist: arrayUnion(product.id) });
-        toast({ title: "Added to wishlist" });
-      }
-    } catch (error) {
-      console.error("Error updating wishlist:", error);
-      toast({ variant: "destructive", title: "Could not update wishlist" });
-    }
-  };
 
   const handleAddToCart = () => {
     if (isOutOfStock) {
@@ -330,9 +299,7 @@ export function ProductDetails({
                 <Button size="lg" disabled className="flex-1 h-12">
                   Out of Stock
                 </Button>
-                <Button variant="outline" size="icon" className="h-12 w-12" onClick={handleWishlistToggle}>
-                    <Heart size={20} className={cn(isWishlisted ? 'text-destructive fill-destructive' : 'text-foreground')} />
-                </Button>
+                <WishlistButton productId={product.id} variant="outline" size="icon" className="h-12 w-12" />
               </div>
             ) : (
                 <div className="flex flex-col gap-4">
@@ -342,9 +309,7 @@ export function ProductDetails({
                             <span className="w-12 text-center text-lg font-bold">{quantity}</span>
                             <Button variant="ghost" size="icon" className="h-12 w-12" onClick={() => setQuantity(q => q + 1)} disabled={quantity >= stock}><Plus size={16}/></Button>
                         </div>
-                        <Button variant="outline" size="icon" className="h-12 w-12 ml-auto" onClick={handleWishlistToggle}>
-                            <Heart size={20} className={cn(isWishlisted ? 'text-destructive fill-destructive' : 'text-foreground')} />
-                        </Button>
+                        <WishlistButton productId={product.id} variant="outline" size="icon" className="h-12 w-12 ml-auto" />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <Button size="lg" variant="outline" className="w-full h-12" onClick={handleAddToCart}>
