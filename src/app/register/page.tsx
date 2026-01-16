@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -79,9 +78,18 @@ function RegisterPageContent() {
           window.confirmationResult = confirmation;
           setStep('verifyPhone');
           toast({ title: "OTP Sent!", description: "Please check your phone for the 6-digit code." });
-      } catch (error) {
+      } catch (error: any) {
           console.error(error);
-          toast({ variant: "destructive", title: "Failed to send OTP", description: "Too many requests or invalid number." });
+          if (error.code === 'auth/billing-not-enabled') {
+            toast({
+                variant: 'destructive',
+                title: 'Billing Not Enabled',
+                description: "Phone authentication is not enabled for this project. Please enable billing in your Firebase console.",
+                duration: 9000,
+            });
+          } else {
+            toast({ variant: "destructive", title: "Failed to send OTP", description: "Too many requests or invalid number." });
+          }
       } finally {
           setLoading(false);
       }
