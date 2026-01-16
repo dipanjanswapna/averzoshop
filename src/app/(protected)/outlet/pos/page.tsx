@@ -11,7 +11,8 @@ import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { useFirebase } from '@/firebase';
-import { doc, getDoc, runTransaction, serverTimestamp, collection, increment } from 'firebase/firestore';
+import { doc, getDoc, runTransaction, serverTimestamp, collection, increment, setDoc } from 'firebase/firestore';
+import type { Order } from '@/types/order';
 import type { POSSale } from '@/types/pos';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ReceiptPreviewDialog } from '@/components/pos/ReceiptPreviewDialog';
@@ -33,6 +34,7 @@ type CartItem = {
     product: Product;
     variant: ProductVariant;
     quantity: number;
+    isPreOrder?: boolean;
 };
 
 type SearchableVariant = ProductVariant & {
@@ -59,7 +61,9 @@ const CartPanel = ({
     setCashReceived,
     changeDue,
     isProcessing,
-    handleCompleteSale
+    handleCompleteSale,
+    isPreOrderCart,
+    fullOrderTotal
 }: any) => (
     <div className="flex flex-col gap-4 h-full">
         {/* Customer Card */}
@@ -84,7 +88,7 @@ const CartPanel = ({
         <Card className="flex-1 flex flex-col shadow-lg">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                   <ShoppingCart /> Current Sale
+                   <ShoppingCart /> {isPreOrderCart ? 'Pre-order Booking' : 'Current Sale'}
                 </CardTitle>
             </CardHeader>
             <ScrollArea className="flex-grow">
@@ -111,23 +115,37 @@ const CartPanel = ({
                 </CardContent>
             </ScrollArea>
             <CardFooter className="flex-col items-stretch space-y-4 border-t p-4 bg-muted/30">
-                <div className="space-y-1 text-sm">
-                    <div className="flex justify-between">
-                        <span>Subtotal</span>
-                        <span>৳{cartSubtotal.toFixed(2)}</span>
-                    </div>
-                    {discountAmount > 0 && (
-                        <div className="flex justify-between text-green-600">
-                            <span>Discount ({appliedCoupon?.code})</span>
-                            <span>- ৳{discountAmount.toFixed(2)}</span>
+                
+                {isPreOrderCart ? (
+                    <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                            <span>Total Value</span>
+                            <span>৳{fullOrderTotal.toFixed(2)}</span>
                         </div>
-                    )}
-                </div>
-
-                <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2">
-                    <span>Total ({totalItems} items)</span>
-                    <span>৳{grandTotal.toFixed(2)}</span>
-                </div>
+                         <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2 text-primary">
+                            <span>Deposit Payable</span>
+                            <span>৳{grandTotal.toFixed(2)}</span>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                            <span>Subtotal</span>
+                            <span>৳{cartSubtotal.toFixed(2)}</span>
+                        </div>
+                        {discountAmount > 0 && (
+                            <div className="flex justify-between text-green-600">
+                                <span>Discount ({appliedCoupon?.code})</span>
+                                <span>- ৳{discountAmount.toFixed(2)}</span>
+                            </div>
+                        )}
+                         <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2">
+                            <span>Total ({totalItems} items)</span>
+                            <span>৳{grandTotal.toFixed(2)}</span>
+                        </div>
+                    </div>
+                )}
+                
 
                 <Separator />
                 
@@ -151,10 +169,10 @@ const CartPanel = ({
                                     placeholder="Enter code"
                                     value={promoCodeInput}
                                     onChange={(e) => setPromoCodeInput(e.target.value)}
-                                    disabled={isApplyingPromo}
+                                    disabled={isApplyingPromo || isPreOrderCart}
                                 />
                             </div>
-                            <Button onClick={handleApplyPromo} disabled={isApplyingPromo || !promoCodeInput}>
+                            <Button onClick={handleApplyPromo} disabled={isApplyingPromo || !promoCodeInput || isPreOrderCart}>
                                 {isApplyingPromo ? 'Applying...' : 'Apply'}
                             </Button>
                         </div>
@@ -206,7 +224,7 @@ const CartPanel = ({
                     onClick={handleCompleteSale}
                     className="h-14 text-lg"
                 >
-                    {isProcessing ? 'Processing...' : 'Complete Sale'}
+                    {isProcessing ? 'Processing...' : (isPreOrderCart ? 'Book Pre-order' : 'Complete Sale')}
                 </Button>
             </CardFooter>
         </Card>
@@ -225,7 +243,7 @@ export default function POSPage() {
     const searchInputRef = useRef<HTMLInputElement>(null);
     const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'mobile'>('cash');
     const [cashReceived, setCashReceived] = useState<number>(0);
-    const [lastSale, setLastSale] = useState<(POSSale & { cashReceived?: number, changeDue?: number }) | null>(null);
+    const [lastSale, setLastSale] = useState<any | null>(null);
     const [isReceiptPreviewOpen, setIsReceiptPreviewOpen] = useState(false);
 
     const [promoCodeInput, setPromoCodeInput] = useState('');
@@ -247,7 +265,7 @@ export default function POSPage() {
 
             variantsArray.forEach(variant => {
                 const stockInOutlet = variant.outlet_stocks?.[outletId] ?? 0;
-                if (stockInOutlet > 0) {
+                if (stockInOutlet > 0 || product.preOrder?.enabled) {
                     const searchableTerms = [
                         product.name.toLowerCase(),
                         product.baseSku.toLowerCase(),
@@ -279,15 +297,28 @@ export default function POSPage() {
             return;
         }
         const stockInOutlet = variant.outlet_stocks?.[outletId] ?? 0;
-        if (stockInOutlet <= 0) {
+        if (stockInOutlet <= 0 && !product.preOrder?.enabled) {
              toast({ variant: 'destructive', title: 'Out of stock' });
             return;
         }
 
         setCart(prevCart => {
+            const isPreOrderItem = !!product.preOrder?.enabled;
+            if (prevCart.length > 0) {
+                const cartIsPreOrder = !!prevCart[0].isPreOrder;
+                if (isPreOrderItem !== cartIsPreOrder) {
+                    toast({
+                        variant: 'destructive',
+                        title: 'Mixed Cart Not Allowed',
+                        description: 'Pre-order and regular items cannot be in the same transaction.',
+                    });
+                    return prevCart;
+                }
+            }
+
             const existingItem = prevCart.find(item => item.variant.sku === variant.sku);
             if (existingItem) {
-                if (existingItem.quantity >= stockInOutlet) {
+                if (!product.preOrder?.enabled && existingItem.quantity >= stockInOutlet) {
                     toast({ variant: 'destructive', title: 'Stock limit reached' });
                     return prevCart;
                 }
@@ -297,7 +328,7 @@ export default function POSPage() {
                         : item
                 );
             }
-            return [...prevCart, { product, variant, quantity: 1 }];
+            return [...prevCart, { product, variant, quantity: 1, isPreOrder: isPreOrderItem }];
         });
     };
 
@@ -306,10 +337,12 @@ export default function POSPage() {
         if (!cartItem || !outletId) return;
 
         if (newQuantity > 0) {
-            const stockInOutlet = cartItem.variant.outlet_stocks?.[outletId] ?? 0;
-            if (newQuantity > stockInOutlet) {
-                toast({ variant: 'destructive', title: 'Stock limit reached' });
-                return;
+            if (!cartItem.isPreOrder) {
+                const stockInOutlet = cartItem.variant.outlet_stocks?.[outletId] ?? 0;
+                if (newQuantity > stockInOutlet) {
+                    toast({ variant: 'destructive', title: 'Stock limit reached' });
+                    return;
+                }
             }
             setCart(prev => prev.map(item =>
                 item.variant.sku === variantSku ? { ...item, quantity: newQuantity } : item
@@ -329,13 +362,13 @@ export default function POSPage() {
             
             if (variant) {
                 const stockInOutlet = variant.outlet_stocks?.[outletId] ?? 0;
-                if (stockInOutlet > 0) {
+                if (stockInOutlet > 0 || product.preOrder?.enabled) {
                     addToCart(product, variant);
-                    return true; // Successfully found and added to cart
+                    return true;
                 }
             }
         }
-        return false; // Not found or out of stock in this outlet
+        return false;
     };
 
 
@@ -359,14 +392,31 @@ export default function POSPage() {
         }
     };
 
+    const isPreOrderCart = useMemo(() => cart.length > 0 && !!cart[0].isPreOrder, [cart]);
 
-    const cartSubtotal = useMemo(() => {
-        return cart.reduce((total, item) => total + item.variant.price * item.quantity, 0);
-    }, [cart]);
+    const { cartSubtotal, grandTotal, fullOrderTotal } = useMemo(() => {
+        const subtotal = cart.reduce((total, item) => total + item.variant.price * item.quantity, 0);
 
-    const grandTotal = useMemo(() => {
-        return cartSubtotal - discountAmount;
-    }, [cartSubtotal, discountAmount]);
+        if (isPreOrderCart) {
+            let depositTotal = 0;
+            cart.forEach(item => {
+                const preOrderInfo = item.product.preOrder;
+                const itemSubtotal = item.variant.price * item.quantity;
+                if (preOrderInfo?.enabled && preOrderInfo.depositAmount != null && preOrderInfo.depositAmount > 0) {
+                  if (preOrderInfo.depositType === 'percentage') {
+                    depositTotal += (itemSubtotal * preOrderInfo.depositAmount) / 100;
+                  } else { // fixed
+                    depositTotal += (preOrderInfo.depositAmount * item.quantity);
+                  }
+                } else {
+                  depositTotal += itemSubtotal;
+                }
+            });
+            return { cartSubtotal: subtotal, grandTotal: depositTotal, fullOrderTotal: subtotal };
+        }
+
+        return { cartSubtotal: subtotal, grandTotal: subtotal - discountAmount, fullOrderTotal: subtotal };
+    }, [cart, discountAmount, isPreOrderCart]);
 
     const totalItems = useMemo(() => {
         return cart.reduce((total, item) => total + item.quantity, 0);
@@ -389,7 +439,7 @@ export default function POSPage() {
     };
 
     const handleApplyPromo = async () => {
-        if (!promoCodeInput.trim() || !firestore) return;
+        if (!promoCodeInput.trim() || !firestore || isPreOrderCart) return;
         setIsApplyingPromo(true);
 
         const code = promoCodeInput.trim().toUpperCase();
@@ -432,7 +482,15 @@ export default function POSPage() {
         setPromoCodeInput('');
         toast({ title: 'Promo code removed.' });
     };
-
+    
+    const clearSaleState = () => {
+        setCart([]);
+        setSearchTerm('');
+        setCashReceived(0);
+        setPromoCodeInput('');
+        setAppliedCoupon(null);
+        setDiscountAmount(0);
+    };
 
     const handleCompleteSale = async () => {
         if (!firestore || !user || !outletId || cart.length === 0) {
@@ -441,6 +499,60 @@ export default function POSPage() {
         }
     
         setIsProcessing(true);
+        
+        if (isPreOrderCart) {
+            const orderId = doc(collection(firestore, 'id_generator')).id;
+            const firstItem = cart[0];
+
+            const preOrderData: Omit<Order, 'id'> & { id: string } = {
+                id: orderId,
+                customerId: user.uid,
+                shippingAddress: { 
+                    name: 'In-Store Pre-order Customer',
+                    phone: userData?.email || 'N/A',
+                    address: `Pickup at Outlet ID: ${outletId}`,
+                    city: 'In-Store',
+                },
+                items: cart.map(item => ({
+                    productId: item.product.id,
+                    productName: item.product.name,
+                    variantSku: item.variant.sku,
+                    quantity: item.quantity,
+                    price: item.variant.price
+                })),
+                subtotal: cartSubtotal,
+                totalAmount: grandTotal,
+                fullOrderValue: fullOrderTotal,
+                assignedOutletId: outletId,
+                status: 'pre-ordered',
+                orderType: 'pre-order',
+                createdAt: serverTimestamp(),
+            };
+
+            try {
+                const orderRef = doc(firestore, 'orders', orderId);
+                await setDoc(orderRef, preOrderData);
+                
+                const receiptData = {
+                    ...preOrderData,
+                    paymentMethod: paymentMethod,
+                    cashReceived: cashReceived,
+                    changeDue: cashReceived - grandTotal
+                };
+                
+                setLastSale(receiptData);
+                setIsReceiptPreviewOpen(true);
+                clearSaleState();
+                toast({ title: 'Pre-order Booked!', description: 'Receipt is being prepared.' });
+            } catch (error: any) {
+                console.error('Pre-order failed: ', error);
+                toast({ variant: 'destructive', title: 'Pre-order Failed', description: error.message || 'An unexpected error occurred.' });
+            } finally {
+                setIsProcessing(false);
+            }
+            return;
+        }
+
         const saleId = doc(collection(firestore, 'id_generator')).id;
         const saleData: POSSale = {
             id: saleId,
@@ -520,18 +632,13 @@ export default function POSPage() {
             });
     
             toast({ title: 'Sale Completed!', description: 'Receipt is being prepared.' });
-            let saleInfoForReceipt: POSSale & { cashReceived?: number; changeDue?: number } = { ...saleData };
+            let saleInfoForReceipt: any = { ...saleData, orderType: 'regular' };
             if (paymentMethod === 'cash') {
-                saleInfoForReceipt = { ...saleData, cashReceived, changeDue };
+                saleInfoForReceipt = { ...saleInfoForReceipt, cashReceived, changeDue };
             }
             setLastSale(saleInfoForReceipt);
             setIsReceiptPreviewOpen(true);
-            setCart([]);
-            setSearchTerm('');
-            setCashReceived(0);
-            setPromoCodeInput('');
-            setAppliedCoupon(null);
-            setDiscountAmount(0);
+            clearSaleState();
     
         } catch (error: any) {
             console.error('Sale transaction failed: ', error);
@@ -570,7 +677,9 @@ export default function POSPage() {
         setCashReceived,
         changeDue,
         isProcessing,
-        handleCompleteSale
+        handleCompleteSale,
+        isPreOrderCart,
+        fullOrderTotal
     };
 
     return (
@@ -606,6 +715,11 @@ export default function POSPage() {
                                         <CardContent className="p-0 flex-grow">
                                             <div className="relative aspect-square">
                                                 <Image src={variantImage || 'https://placehold.co/300'} alt={product.name} fill className="object-cover rounded-t-lg" />
+                                                 {product.preOrder?.enabled && (
+                                                    <div className="absolute top-1 left-1 bg-purple-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">
+                                                        Pre-order
+                                                    </div>
+                                                )}
                                             </div>
                                         </CardContent>
                                         <CardFooter className="p-2 flex-col items-start">

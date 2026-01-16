@@ -11,12 +11,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Printer } from 'lucide-react';
 import { PrintableReceipt } from './PrintableReceipt';
-import type { POSSale } from '@/types/pos';
 
 interface ReceiptPreviewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  sale: POSSale & { cashReceived?: number, changeDue?: number };
+  sale: any;
   outletId: string;
 }
 
@@ -43,7 +42,7 @@ export function ReceiptPreviewDialog({ open, onOpenChange, sale, outletId }: Rec
 
                 <DialogFooter className="sm:justify-between gap-2">
                      <DialogClose asChild>
-                        <Button variant="outline" className="w-full sm:w-auto">Cancel</Button>
+                        <Button variant="outline" className="w-full sm:w-auto">Close</Button>
                     </DialogClose>
                     <Button onClick={handlePrint} className="w-full sm:w-auto gap-2">
                         <Printer size={18} /> Print Now
