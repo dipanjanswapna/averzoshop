@@ -21,17 +21,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  const [showMobileNav, setShowMobileNav] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    if (pathname) {
-      const protectedPrefixes = ['/dashboard', '/outlet', '/vendor', '/rider', '/customer', '/login', '/register'];
-      const shouldShow = !protectedPrefixes.some(prefix => pathname.startsWith(prefix));
-      setShowMobileNav(shouldShow);
-    } else {
-      setShowMobileNav(false);
-    }
-  }, [pathname]);
+    setIsClient(true);
+  }, []);
+
+  const protectedPrefixes = ['/dashboard', '/outlet', '/vendor', '/rider', '/customer', '/login', '/register'];
+  const shouldShowNav = !protectedPrefixes.some(prefix => pathname.startsWith(prefix));
+
+  // Only show the mobile nav on the client side after the component has mounted.
+  const showMobileNav = isClient && shouldShowNav;
 
   return (
     <html lang="en" suppressHydrationWarning>
