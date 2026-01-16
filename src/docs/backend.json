@@ -23,9 +23,24 @@
         "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the user account was created." },
         "loyaltyPoints": { "type": "number", "description": "The user's current loyalty point balance." },
         "totalSpent": { "type": "number", "description": "The total amount of money spent by the user." },
-        "membershipTier": { "type": "string", "enum": ["silver", "gold", "platinum"], "description": "The user's membership level." }
+        "membershipTier": { "type": "string", "enum": ["silver", "gold", "platinum"], "description": "The user's membership level." },
+        "isPhoneVerified": { "type": "boolean", "description": "Indicates if the user's phone number has been verified." }
       },
       "required": ["uid", "email", "role", "status"]
+    },
+    "point_transaction": {
+      "title": "Point Transaction",
+      "description": "A log of every loyalty point transaction for a user.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "pointsChange": { "type": "number", "description": "Positive for earning, negative for redeeming." },
+        "type": { "type": "string", "enum": ["earn", "redeem", "adjustment"] },
+        "reason": { "type": "string", "description": "Reason for the transaction, e.g., 'Purchase: [OrderID]' or 'Admin Adjustment'." },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "pointsChange", "type", "reason", "createdAt"]
     },
     "vendor": {
       "title": "Vendor",
@@ -319,6 +334,7 @@
   },
   "firestore": {
     "/users/{userId}": { "schema": { "$ref": "#/entities/user" }, "description": "Stores user profile information, including their role, status, and wishlist." },
+    "/users/{userId}/points_history/{transactionId}": { "schema": { "$ref": "#/entities/point_transaction" }, "description": "Logs all loyalty point transactions for a user." },
     "/vendors/{vendorId}": { "schema": { "$ref": "#/entities/vendor" }, "description": "Stores information about product suppliers (vendors)." },
     "/outlets/{outletId}": { "schema": { "$ref": "#/entities/outlet" }, "description": "Stores information about physical store locations (outlets)." },
     "/pos_sales/{saleId}": { "schema": { "$ref": "#/entities/pos_sale" }, "description": "Logs all point-of-sale transactions from outlets." },
@@ -331,5 +347,3 @@
     "/coupons/{couponId}": { "schema": { "$ref": "#/entities/coupon" }, "description": "Stores all promotional codes for discounts." }
   }
 }
-
-    

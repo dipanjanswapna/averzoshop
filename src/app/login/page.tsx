@@ -93,6 +93,7 @@ function LoginPageContent() {
           loyaltyPoints: 0,
           totalSpent: 0,
           membershipTier: 'silver',
+          isPhoneVerified: false,
         });
       } else {
         // Existing user, merge data but don't overwrite role/status
