@@ -10,6 +10,7 @@
         "email": { "type": "string", "format": "email", "description": "The user's email address." },
         "displayName": { "type": "string", "description": "The user's display name." },
         "photoURL": { "type": "string", "format": "uri", "description": "The URL of the user's profile picture." },
+        "phone": { "type": "string", "description": "The user's phone number." },
         "role": { "type": "string", "description": "The role of the user.", "enum": ["customer", "admin", "outlet", "vendor", "rider"] },
         "status": { "type": "string", "description": "The approval status of the user.", "enum": ["pending", "approved", "rejected"] },
         "wishlist": { "type": "array", "description": "An array of product IDs that the user has added to their wishlist.", "items": { "type": "string" } },
@@ -19,9 +20,26 @@
             "description": "An array of outlet IDs that the vendor is allowed to supply to.",
             "items": { "type": "string" }
         },
-        "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the user account was created." }
+        "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the user account was created." },
+        "loyaltyPoints": { "type": "number", "description": "The user's current loyalty point balance." },
+        "totalSpent": { "type": "number", "description": "The total amount of money spent by the user." },
+        "membershipTier": { "type": "string", "enum": ["silver", "gold", "platinum"], "description": "The user's membership level." }
       },
       "required": ["uid", "email", "role", "status"]
+    },
+    "point_transaction": {
+      "title": "Point Transaction",
+      "description": "A log of every loyalty point transaction for a user.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "pointsChange": { "type": "number", "description": "Positive for earning, negative for redeeming." },
+        "type": { "type": "string", "enum": ["earn", "redeem", "adjustment"] },
+        "reason": { "type": "string", "description": "Reason for the transaction, e.g., 'Purchase: [OrderID]' or 'Admin Adjustment'." },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "pointsChange", "type", "reason", "createdAt"]
     },
     "vendor": {
       "title": "Vendor",
@@ -118,10 +136,12 @@
             }
           }
         },
-        "totalAmount": { "type": "number" },
+        "totalAmount": { "type": "number", "description": "The amount paid by the customer (can be partial for pre-orders)." },
+        "fullOrderValue": { "type": "number", "description": "The total value of the order, especially for pre-orders with partial payment." },
         "assignedOutletId": { "type": "string" },
         "riderId": { "type": "string", "description": "The UID of the rider assigned to this delivery." },
-        "status": { "type": "string", "enum": ["new", "preparing", "ready_for_pickup", "out_for_delivery", "delivered", "canceled"] },
+        "status": { "type": "string", "enum": ["new", "preparing", "ready_for_pickup", "out_for_delivery", "delivered", "canceled", "pre-ordered", "fulfilled"] },
+        "orderType": { "type": "string", "enum": ["regular", "pre-order"] },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["customerId", "shippingAddress", "items", "totalAmount", "assignedOutletId", "status", "createdAt"]
@@ -180,6 +200,17 @@
             "enabled": { "type": "boolean" },
             "description": { "type": "string", "description": "A short description of the free gift." }
           }
+        },
+        "preOrder": {
+            "type": "object",
+            "description": "Pre-order specific settings for the product.",
+            "properties": {
+                "enabled": { "type": "boolean" },
+                "releaseDate": { "type": "string", "format": "date-time" },
+                "depositType": { "type": "string", "enum": ["percentage", "fixed"] },
+                "depositAmount": { "type": "number" },
+                "limit": { "type": "number" }
+            }
         }
       },
       "required": ["name", "price", "total_stock", "vendorId", "status", "category", "group", "subcategory", "brand", "image", "baseSku", "variants"]
@@ -302,6 +333,7 @@
   },
   "firestore": {
     "/users/{userId}": { "schema": { "$ref": "#/entities/user" }, "description": "Stores user profile information, including their role, status, and wishlist." },
+    "/users/{userId}/points_history/{transactionId}": { "schema": { "$ref": "#/entities/point_transaction" }, "description": "Logs all loyalty point transactions for a user." },
     "/vendors/{vendorId}": { "schema": { "$ref": "#/entities/vendor" }, "description": "Stores information about product suppliers (vendors)." },
     "/outlets/{outletId}": { "schema": { "$ref": "#/entities/outlet" }, "description": "Stores information about physical store locations (outlets)." },
     "/pos_sales/{saleId}": { "schema": { "$ref": "#/entities/pos_sale" }, "description": "Logs all point-of-sale transactions from outlets." },

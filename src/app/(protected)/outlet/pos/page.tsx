@@ -277,7 +277,7 @@ const CartPanel = ({
 
 export default function POSPage() {
     const { user, userData } = useAuth();
-    const { data: allProducts, isLoading: productsLoading } = useFirestoreQuery<Product>('products');
+    const { data: allProducts, isLoading: productsLoading } = useFirestoreQuery('products');
     const { data: allUsers, isLoading: usersLoading } = useFirestoreQuery<UserData>('users');
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -630,6 +630,15 @@ export default function POSPage() {
                         loyaltyPoints: increment(pointsEarned),
                         totalSpent: increment(grandTotal),
                     });
+
+                    const pointsHistoryRef = doc(collection(firestore, `users/${selectedCustomer.uid}/points_history`));
+                    transaction.set(pointsHistoryRef, {
+                        userId: selectedCustomer.uid,
+                        pointsChange: pointsEarned,
+                        type: 'earn',
+                        reason: `Pre-order Booking: ${orderId}`,
+                        createdAt: serverTimestamp(),
+                    });
                 });
                 
                 const receiptData = {
@@ -655,8 +664,8 @@ export default function POSPage() {
 
         // Regular Sale
         try {
+            const saleId = doc(collection(firestore, 'id_generator')).id;
             await runTransaction(firestore, async (transaction) => {
-                const saleId = doc(collection(firestore, 'id_generator')).id;
                 const saleRef = doc(firestore, 'pos_sales', saleId);
 
                 const saleData: POSSale = {
@@ -713,6 +722,14 @@ export default function POSPage() {
                     transaction.update(userRef, {
                         loyaltyPoints: increment(pointsEarned),
                         totalSpent: increment(grandTotal),
+                    });
+                     const pointsHistoryRef = doc(collection(firestore, `users/${selectedCustomer.uid}/points_history`));
+                    transaction.set(pointsHistoryRef, {
+                        userId: selectedCustomer.uid,
+                        pointsChange: pointsEarned,
+                        type: 'earn',
+                        reason: `POS Sale: ${saleId}`,
+                        createdAt: serverTimestamp(),
                     });
                 }
                 

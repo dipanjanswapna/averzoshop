@@ -101,6 +101,14 @@ export function ShippingForm() {
               loyaltyPoints: increment(pointsEarned),
               totalSpent: increment(totalPayable) 
           });
+          const pointsHistoryRef = doc(collection(firestore, `users/${user.uid}/points_history`));
+          batch.set(pointsHistoryRef, {
+              userId: user.uid,
+              pointsChange: pointsEarned,
+              type: 'earn',
+              reason: `Online Pre-order: ${orderRef.id}`,
+              createdAt: serverTimestamp(),
+          });
 
           await batch.commit();
           
@@ -214,6 +222,14 @@ export function ShippingForm() {
             transaction.update(userRef, { 
                 loyaltyPoints: increment(pointsEarned),
                 totalSpent: increment(totalPayable) 
+            });
+            const pointsHistoryRef = doc(collection(firestore, `users/${user.uid}/points_history`));
+            transaction.set(pointsHistoryRef, {
+                userId: user.uid,
+                pointsChange: pointsEarned,
+                type: 'earn',
+                reason: `Online Order: ${orderRef.id}`,
+                createdAt: serverTimestamp(),
             });
           });
 
