@@ -183,7 +183,7 @@ export function ProductDetails({
 
   return (
     <>
-      <div className="flex flex-col gap-6 no-print">
+      <div className="flex flex-col gap-4 no-print">
         <div>
            <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-primary uppercase">{product.group}</span>
@@ -192,19 +192,15 @@ export function ProductDetails({
                   {showShare && <ShareButtons url={typeof window !== 'undefined' ? window.location.href : ''} />}
               </div>
            </div>
-          <h1 className="text-3xl lg:text-4xl font-extrabold font-headline text-foreground mt-1">{product.name}</h1>
-          <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+          <h1 className="text-3xl lg:text-4xl font-extrabold font-headline text-foreground mt-2">{product.name}</h1>
+          <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
               <span>By <Link href="#" className="text-primary font-semibold hover:underline">{product.brand}</Link></span>
-              <span className="h-4 border-l border-border"></span>
-              <div className="flex items-center gap-2">
-                <span>SKU: {selectedVariant?.sku || product.baseSku}</span>
-               </div>
-          </div>
+           </div>
         </div>
 
         {product.flashSale && <SaleTimer endDate={product.flashSale.endDate} />}
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pt-2">
            <div className="flex items-baseline gap-3">
             <span className="text-3xl font-bold text-primary font-roboto">৳{displayPrice.toFixed(2)}</span>
             {originalPrice && originalPrice > displayPrice && (
@@ -219,25 +215,25 @@ export function ProductDetails({
         </div>
 
         {savings > 0 && !isPreOrder && (
-           <div className="bg-primary/10 text-primary font-bold text-sm p-2 rounded-md text-center">
+           <div className="bg-primary/10 text-primary font-bold text-sm p-3 rounded-md text-center mt-2">
               You save ৳{savings.toFixed(2)}!
            </div>
          )}
         
-        <div className="space-y-4 py-4">
-        {product.giftWithPurchase?.enabled && product.giftWithPurchase.description && (
-            <div className="bg-green-100 text-green-800 border-l-4 border-green-500 p-4 rounded-md flex items-center gap-4">
-                <Gift size={24} className="flex-shrink-0" />
-                <div>
-                <p className="font-bold">Free Gift with Purchase!</p>
-                <p className="text-sm">{product.giftWithPurchase.description}</p>
+         <div className="space-y-4 py-4">
+            {product.giftWithPurchase?.enabled && product.giftWithPurchase.description && (
+                <div className="bg-green-100 text-green-800 border-l-4 border-green-500 p-4 rounded-md flex items-center gap-4">
+                    <Gift size={24} className="flex-shrink-0" />
+                    <div>
+                    <p className="font-bold">Free Gift with Purchase!</p>
+                    <p className="text-sm">{product.giftWithPurchase.description}</p>
+                    </div>
                 </div>
-            </div>
-        )}
+            )}
         </div>
         
         {selectedVariant?.sku && (
-          <div className="border rounded-lg p-4 bg-muted/20 my-4">
+          <div className="border rounded-lg p-4 bg-muted/20">
             <div className="grid grid-cols-2 gap-x-4">
               <div>
                 <p className="text-sm font-bold">{product.name}</p>
@@ -250,7 +246,6 @@ export function ProductDetails({
             </div>
           </div>
         )}
-
 
         {uniqueColors.length > 0 && (
           <div className="space-y-3">
