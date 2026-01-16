@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import {
   Dialog,
@@ -19,43 +19,51 @@ interface CameraScannerDialogProps {
 const QRCODE_REGION_ID = "html5qr-code-full-region";
 
 export function CameraScannerDialog({ open, onOpenChange, onScanSuccess }: CameraScannerDialogProps) {
+  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
 
   useEffect(() => {
+    // This effect handles the creation and cleanup of the scanner
     if (open) {
-      const html5QrcodeScanner = new Html5QrcodeScanner(
-        QRCODE_REGION_ID,
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        /* verbose= */ false
-      );
+      // Only initialize if it doesn't exist
+      if (!scannerRef.current) {
+        const scanner = new Html5QrcodeScanner(
+          QRCODE_REGION_ID,
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          false
+        );
 
-      const handleSuccess = (decodedText: string, decodedResult: any) => {
-        onScanSuccess(decodedText);
-        html5QrcodeScanner.clear();
-        onOpenChange(false);
-      };
+        const handleSuccess = (decodedText: string) => {
+          onScanSuccess(decodedText);
+          onOpenChange(false);
+        };
 
-      const handleError = (error: any) => {
-        // This error handler can be used for debugging, but is often noisy.
-        // console.warn(`Code scan error = ${error}`);
-      };
+        const handleError = (error: any) => {
+          // This callback is required, but we can ignore most errors.
+          // e.g. "QR code parse error"
+        };
 
-      html5QrcodeScanner.render(handleSuccess, handleError);
-
-      return () => {
-        if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
-            html5QrcodeScanner.clear().catch(err => {
-              // This can happen if the component unmounts before the scanner is fully initialized.
-              // It's safe to ignore in most cases.
-              console.error("Failed to clear scanner on unmount. This might be expected.", err);
-            });
-        }
-      };
+        scanner.render(handleSuccess, handleError);
+        scannerRef.current = scanner;
+      }
     }
-  }, [open, onScanSuccess, onOpenChange]);
+
+    // Cleanup function for when the dialog is closed or component unmounts
+    return () => {
+      if (scannerRef.current) {
+        // Check if scanner is still scanning before trying to clear
+        if (scannerRef.current.isScanning) {
+          scannerRef.current.clear().catch(error => {
+            console.error("Scanner cleanup failed:", error);
+          });
+        }
+        scannerRef.current = null;
+      }
+    };
+  }, [open, onOpenChange, onScanSuccess]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>Scan Barcode</DialogTitle>
           <DialogDescription>
