@@ -252,16 +252,14 @@ function RegisterPageContent() {
               <div className="space-y-4 text-center">
                   <AverzoLogo className="mx-auto mb-4" />
                   <h2 className="text-xl font-bold">Enter OTP</h2>
-                  <p className="text-sm text-gray-500">A 6-digit code has been sent to +{phoneToVerify}</p>
+                  <p className="text-sm text-gray-500">Sent to: +{phoneToVerify}</p>
                   <Input 
                       placeholder="Enter 6 digit code" 
                       value={otp} 
                       onChange={(e) => setOtp(e.target.value)}
-                      className="text-center tracking-[1rem]"
-                      maxLength={6}
                   />
                   <Button onClick={onOTPVerify} className="w-full h-12 bg-green-600 hover:bg-green-700" disabled={isVerifying || otp.length < 6}>
-                      {isVerifying ? 'Verifying...' : 'Verify & Complete'}
+                      {isVerifying ? 'Verifying...' : 'Verify & Continue'}
                   </Button>
                   <Button variant="link" onClick={() => setStep('register')}>Back to registration</Button>
               </div>
