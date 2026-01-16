@@ -1,8 +1,7 @@
-
 'use client';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Search, PlusCircle, MinusCircle, XCircle, ShoppingCart, Banknote, CreditCard, Smartphone } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
@@ -16,6 +15,7 @@ import { doc, runTransaction, serverTimestamp, collection } from 'firebase/fires
 import { PrintableReceipt } from '@/components/pos/PrintableReceipt';
 import type { POSSale } from '@/types/pos';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ReceiptPreviewDialog } from '@/components/pos/ReceiptPreviewDialog';
 
 
 type CartItem = {
@@ -35,15 +35,7 @@ export default function POSPage() {
     const searchInputRef = useRef<HTMLInputElement>(null);
     const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'mobile'>('cash');
     const [lastSale, setLastSale] = useState<POSSale | null>(null);
-
-    useEffect(() => {
-        if (lastSale) {
-            const timer = setTimeout(() => {
-                window.print();
-            }, 500); // Allow state to update and component to render before printing
-            return () => clearTimeout(timer);
-        }
-    }, [lastSale]);
+    const [isReceiptPreviewOpen, setIsReceiptPreviewOpen] = useState(false);
 
 
     const outletId = useMemo(() => userData?.outletId, [userData]);
@@ -182,7 +174,7 @@ export default function POSPage() {
             await runTransaction(firestore, async (transaction) => {
                 const productRefs: Map<string, { ref: any; product: Product }> = new Map();
 
-                // First, read all product documents
+                // First, read all product documents to ensure atomicity and avoid race conditions
                 for (const item of cart) {
                     if (!productRefs.has(item.product.id)) {
                          const productRef = doc(firestore, 'products', item.product.id);
@@ -194,7 +186,7 @@ export default function POSPage() {
                     }
                 }
 
-                // Then, perform all writes
+                // Then, perform all updates
                 for (const item of cart) {
                     const { ref, product: productData } = productRefs.get(item.product.id)!;
                     
@@ -207,13 +199,17 @@ export default function POSPage() {
                     if (currentStock < item.quantity) {
                         throw new Error(`Not enough stock for ${item.product.name}. Available: ${currentStock}`);
                     }
-
+                    
+                    // Modify the array in memory
                     variantsArray[variantIndex].stock -= item.quantity;
                     variantsArray[variantIndex].outlet_stocks![outletId] -= item.quantity;
+                    
+                    const newTotalStock = productData.total_stock - item.quantity;
 
+                    // Write the entire modified array back
                     transaction.update(ref, {
                         variants: variantsArray,
-                        total_stock: productData.total_stock - item.quantity,
+                        total_stock: newTotalStock,
                     });
                 }
     
@@ -221,8 +217,9 @@ export default function POSPage() {
                 transaction.set(salesRef, saleData);
             });
     
-            toast({ title: 'Sale Completed!', description: 'Printing receipt...' });
+            toast({ title: 'Sale Completed!', description: 'Receipt is being prepared.' });
             setLastSale(saleData);
+            setIsReceiptPreviewOpen(true);
             setCart([]);
             setSearchTerm('');
     
@@ -348,8 +345,14 @@ export default function POSPage() {
                     </Card>
                 </div>
             </div>
-            {lastSale && userData?.outletId && <PrintableReceipt sale={lastSale} outletId={userData.outletId} />}
+            {lastSale && userData?.outletId && (
+                <ReceiptPreviewDialog
+                    open={isReceiptPreviewOpen}
+                    onOpenChange={setIsReceiptPreviewOpen}
+                    sale={lastSale}
+                    outletId={userData.outletId}
+                />
+            )}
         </>
     );
 }
-
