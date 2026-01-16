@@ -95,21 +95,22 @@ body {
 }
 
 @layer utilities {
-  .printable-area {
+  .printable-area, .printable-receipt {
     display: none;
   }
   @media print {
     body * {
       visibility: hidden;
     }
-    .printable-area, .printable-area * {
+    .printable-receipt, .printable-receipt * {
       visibility: visible;
     }
-    .printable-area {
+    .printable-receipt {
       position: absolute;
       left: 0;
       top: 0;
       width: 100%;
+      height: 100%;
     }
     .no-print {
       display: none !important;

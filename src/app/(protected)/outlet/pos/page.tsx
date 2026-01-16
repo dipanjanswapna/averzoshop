@@ -1,10 +1,9 @@
-
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Search, PlusCircle, MinusCircle, XCircle, ShoppingCart } from 'lucide-react';
+import { Search, PlusCircle, MinusCircle, XCircle, ShoppingCart, Banknote, CreditCard, Smartphone } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { Product, ProductVariant } from '@/types/product';
@@ -12,7 +11,9 @@ import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { useFirebase } from '@/firebase';
-import { doc, runTransaction, serverTimestamp, collection, addDoc, increment, DocumentData } from 'firebase/firestore';
+import { doc, runTransaction, serverTimestamp, collection, addDoc, WriteBatch, getDocs } from 'firebase/firestore';
+import { PrintableReceipt } from '@/components/pos/PrintableReceipt';
+import type { POSSale } from '@/types/pos';
 
 type CartItem = {
     product: Product;
@@ -28,42 +29,63 @@ export default function POSPage() {
     const [isProcessing, setIsProcessing] = useState(false);
     const { toast } = useToast();
     const { firestore } = useFirebase();
+    const searchInputRef = useRef<HTMLInputElement>(null);
+    const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'mobile'>('cash');
+    const [lastSale, setLastSale] = useState<POSSale | null>(null);
+
+    useEffect(() => {
+        if (lastSale) {
+            const timer = setTimeout(() => {
+                window.print();
+            }, 500); // Allow state to update and component to render before printing
+            return () => clearTimeout(timer);
+        }
+    }, [lastSale]);
+
 
     const outletId = useMemo(() => userData?.outletId, [userData]);
 
     const availableProducts = useMemo(() => {
         if (!allProducts || !outletId) return [];
         return allProducts
-            .filter(p => {
+            .map(p => {
                 const variantsArray = Array.isArray(p.variants) ? p.variants : Object.values(p.variants);
-                return p.status === 'approved' && variantsArray.some(v => (v.outlet_stocks?.[outletId] ?? 0) > 0)
-            })
-            .filter(p => {
-                const variantsArray = Array.isArray(p.variants) ? p.variants : Object.values(p.variants);
-                return p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    p.baseSku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                    variantsArray.some(v => v.sku.toLowerCase().includes(searchTerm.toLowerCase()))
-            });
-    }, [allProducts, outletId, searchTerm]);
-    
-    const findVariantInStock = (product: Product): ProductVariant | null => {
-        if (!outletId) return null;
-        
-        const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants);
-        const variantInStock = variantsArray.find(v => (v.outlet_stocks?.[outletId] ?? 0) > 0);
+                const stockInOutlet = variantsArray.some(v => (v.outlet_stocks?.[outletId] ?? 0) > 0);
+                if (p.status !== 'approved' || !stockInOutlet) return null;
 
+                const searchableTerms = [
+                    p.name.toLowerCase(),
+                    p.baseSku.toLowerCase(),
+                    ...variantsArray.map(v => v.sku.toLowerCase())
+                ].join(' ');
+
+                return { ...p, searchableTerms };
+            })
+            .filter(Boolean)
+            .filter(p => p!.searchableTerms.includes(searchTerm.toLowerCase()));
+    }, [allProducts, outletId, searchTerm]);
+
+    const findVariantInStock = (product: Product, sku?: string): ProductVariant | null => {
+        if (!outletId) return null;
+        const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants);
+
+        if (sku) {
+            const variantBySku = variantsArray.find(v => v.sku.toLowerCase() === sku.toLowerCase() && (v.outlet_stocks?.[outletId] ?? 0) > 0);
+            return variantBySku || null;
+        }
+
+        const variantInStock = variantsArray.find(v => (v.outlet_stocks?.[outletId] ?? 0) > 0);
         return variantInStock || null;
     }
 
     const addToCart = (product: Product, variant: ProductVariant | null) => {
         if (!variant || !outletId) {
-            toast({ variant: 'destructive', title: 'Variant not available', description: 'Please select a valid product variant.' });
+            toast({ variant: 'destructive', title: 'Variant not available' });
             return;
         }
-
         const stockInOutlet = variant.outlet_stocks?.[outletId] ?? 0;
         if (stockInOutlet <= 0) {
-             toast({ variant: 'destructive', title: 'Out of stock', description: 'This variant is not available in your outlet.' });
+             toast({ variant: 'destructive', title: 'Out of stock' });
             return;
         }
 
@@ -106,11 +128,17 @@ export default function POSPage() {
         e.preventDefault();
         if (availableProducts.length === 1) {
             const product = availableProducts[0];
-            const variant = findVariantInStock(product);
+            const variant = findVariantInStock(product!, searchTerm.trim());
             if(variant){
-                addToCart(product, variant);
+                addToCart(product!, variant);
                 setSearchTerm('');
+            } else {
+                toast({variant: 'destructive', title: 'Product variant not found or out of stock.'});
             }
+        } else if (availableProducts.length > 1) {
+            toast({title: 'Multiple products found', description: 'Please select a product from the grid.'})
+        } else {
+             toast({variant: 'destructive', title: 'Product not found.'})
         }
     };
 
@@ -124,91 +152,85 @@ export default function POSPage() {
 
     const handleCompleteSale = async () => {
         if (!firestore || !user || !outletId || cart.length === 0) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Cannot complete sale. Check login and cart.' });
+            toast({ variant: 'destructive', title: 'Error', description: 'Cannot complete sale.' });
             return;
         }
     
         setIsProcessing(true);
-    
+        const saleId = doc(collection(firestore, 'id_generator')).id;
+        const saleData: POSSale = {
+            id: saleId,
+            outletId,
+            soldBy: user.uid,
+            items: cart.map(item => ({
+                productId: item.product.id,
+                productName: item.product.name,
+                variantSku: item.variant.sku,
+                quantity: item.quantity,
+                price: item.variant.price,
+            })),
+            totalAmount: cartSubtotal,
+            paymentMethod: paymentMethod,
+            createdAt: serverTimestamp(),
+        };
+
         try {
             await runTransaction(firestore, async (transaction) => {
-                const saleItems: any[] = [];
-                
-                const productsInCart = new Map<string, CartItem[]>();
+                const productRefs: Map<string, any> = new Map();
                 for (const item of cart) {
-                    if (!productsInCart.has(item.product.id)) {
-                        productsInCart.set(item.product.id, []);
+                    if (!productRefs.has(item.product.id)) {
+                        productRefs.set(item.product.id, doc(firestore, 'products', item.product.id));
                     }
-                    productsInCart.get(item.product.id)!.push(item);
                 }
                 
-                const productDocs = new Map<string, DocumentData>();
-                for (const productId of productsInCart.keys()) {
-                    const productRef = doc(firestore, 'products', productId);
-                    const productDoc = await transaction.get(productRef);
-                    if (!productDoc.exists()) {
-                        throw new Error(`Product with ID ${productId} not found.`);
-                    }
-                    productDocs.set(productId, productDoc);
+                const productDocs = await Promise.all(
+                  Array.from(productRefs.values()).map(ref => transaction.get(ref))
+                );
+
+                const productDataMap = new Map();
+                for(const doc of productDocs) {
+                    productDataMap.set(doc.id, doc.data());
                 }
-                
-                for (const [productId, items] of productsInCart.entries()) {
-                    const productDoc = productDocs.get(productId)!;
-                    const productData = productDoc.data() as Product;
-    
-                    let variantsArray = Array.isArray(productData.variants) 
-                        ? [...productData.variants.map(v => ({...v}))]
-                        : [...Object.values(productData.variants).map(v => ({...v}))];
+
+                for (const item of cart) {
+                    const productRef = productRefs.get(item.product.id);
+                    const productData = productDataMap.get(item.product.id) as Product;
+
+                    if (!productData) throw new Error(`Product ${item.product.name} not found in transaction.`);
+
+                    const variantsArray = Array.isArray(productData.variants) ? productData.variants : Object.values(productData.variants);
+                    const variantIndex = variantsArray.findIndex(v => v.sku === item.variant.sku);
+
+                    if (variantIndex === -1) throw new Error(`Variant ${item.variant.sku} not found.`);
                     
-                    let totalStockDecrement = 0;
-    
-                    for (const cartItem of items) {
-                        const variantIndex = variantsArray.findIndex(v => v.sku === cartItem.variant.sku);
-                        if (variantIndex === -1) {
-                            throw new Error(`Variant ${cartItem.variant.sku} not found for product ${cartItem.product.name}.`);
-                        }
-    
-                        const variant = variantsArray[variantIndex];
-                        const currentStock = variant.outlet_stocks?.[outletId] ?? 0;
-    
-                        if (currentStock < cartItem.quantity) {
-                            throw new Error(`Not enough stock for ${cartItem.product.name} (${cartItem.variant.sku}). Available: ${currentStock}`);
-                        }
-                        
-                        variant.stock -= cartItem.quantity;
-                        if (variant.outlet_stocks) {
-                           variant.outlet_stocks[outletId] = currentStock - cartItem.quantity;
-                        }
-                        
-                        totalStockDecrement += cartItem.quantity;
-    
-                        saleItems.push({
-                            productId: cartItem.product.id,
-                            productName: cartItem.product.name,
-                            variantSku: cartItem.variant.sku,
-                            quantity: cartItem.quantity,
-                            price: cartItem.variant.price,
-                        });
+                    const currentStock = variantsArray[variantIndex].outlet_stocks?.[outletId] ?? 0;
+                    if (currentStock < item.quantity) {
+                        throw new Error(`Not enough stock for ${item.product.name}`);
                     }
-                    
-                    transaction.update(productDoc.ref, {
-                        variants: variantsArray,
-                        total_stock: increment(-totalStockDecrement)
+
+                    // This is the correct way to update a nested field in an array
+                    const newVariants = [...variantsArray];
+                    newVariants[variantIndex] = {
+                        ...newVariants[variantIndex],
+                        stock: newVariants[variantIndex].stock - item.quantity,
+                        outlet_stocks: {
+                            ...newVariants[variantIndex].outlet_stocks,
+                            [outletId]: currentStock - item.quantity
+                        }
+                    };
+
+                    transaction.update(productRef, {
+                        variants: newVariants,
+                        total_stock: productData.total_stock - item.quantity
                     });
                 }
     
-                const salesRef = collection(firestore, 'pos_sales');
-                transaction.set(doc(salesRef), {
-                    outletId,
-                    soldBy: user.uid,
-                    items: saleItems,
-                    totalAmount: cartSubtotal,
-                    paymentMethod: 'cash',
-                    createdAt: serverTimestamp(),
-                });
+                const salesRef = doc(firestore, 'pos_sales', saleId);
+                transaction.set(salesRef, saleData);
             });
     
-            toast({ title: 'Sale Completed!', description: `Successfully recorded sale of ${totalItems} items.` });
+            toast({ title: 'Sale Completed!', description: 'Printing receipt...' });
+            setLastSale(saleData); // Set sale data to trigger printing
             setCart([]);
     
         } catch (error: any) {
@@ -221,26 +243,28 @@ export default function POSPage() {
 
 
     return (
-         <div className="h-full">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start h-full">
+         <>
+            <div className="h-full grid grid-cols-1 lg:grid-cols-5 gap-4 p-4 no-print">
                 {/* Product Grid Section */}
-                <div className="lg:col-span-2 flex flex-col gap-4 h-full">
+                <div className="lg:col-span-3 flex flex-col gap-4 h-full">
                     <h1 className="text-2xl font-bold font-headline">Point of Sale</h1>
                     <form onSubmit={handleSearchSubmit}>
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                             <Input
-                                placeholder="Search products by name or scan barcode/SKU..."
-                                className="pl-10 h-12 text-lg"
+                                ref={searchInputRef}
+                                placeholder="Scan Barcode or Search products by name/SKU..."
+                                className="pl-10 h-12 text-base"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
                     </form>
-                    <ScrollArea className="h-[calc(100vh-220px)] lg:h-[calc(100vh-200px)] border rounded-lg">
-                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 p-4">
+                    <ScrollArea className="h-[calc(100vh-220px)] border rounded-lg bg-background">
+                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-4">
                             {isLoading && Array.from({ length: 10 }).map((_, i) => <Card key={i} className="animate-pulse bg-muted aspect-square" />)}
                             {availableProducts.map(product => {
+                                if(!product) return null;
                                 const variant = findVariantInStock(product);
                                 return (
                                 <Card key={product.id} onClick={() => addToCart(product, variant)} className="cursor-pointer hover:border-primary transition-colors flex flex-col">
@@ -265,15 +289,12 @@ export default function POSPage() {
                 </div>
 
                 {/* Cart Section */}
-                <div className="lg:col-span-1 lg:sticky lg:top-6 h-fit lg:h-full flex flex-col">
-                    <Card className="flex-1 flex flex-col">
+                <div className="lg:col-span-2 h-fit lg:h-full flex flex-col">
+                    <Card className="flex-1 flex flex-col shadow-lg">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                               <ShoppingCart /> Cart
+                               <ShoppingCart /> Current Sale
                             </CardTitle>
-                            <CardDescription>
-                                {totalItems} items in cart
-                            </CardDescription>
                         </CardHeader>
                         <ScrollArea className="flex-grow">
                              <CardContent className="space-y-4">
@@ -284,10 +305,8 @@ export default function POSPage() {
                                     </div>
                                 ) : cart.map(item => (
                                     <div key={item.variant.sku} className="flex items-center gap-4">
-                                         <Image src={item.product.image || 'https://placehold.co/64'} alt={item.product.name} width={48} height={48} className="rounded-md object-cover w-12 h-12" />
                                         <div className="flex-grow">
-                                            <p className="text-sm font-medium truncate">{item.product.name}</p>
-                                            <p className="text-xs text-muted-foreground">{item.variant.size} {item.variant.color}</p>
+                                            <p className="text-sm font-medium truncate">{item.product.name} <span className="text-muted-foreground text-xs">({item.variant.sku})</span></p>
                                             <p className="text-xs text-muted-foreground">৳{item.variant.price.toFixed(2)}</p>
                                         </div>
                                         <div className="flex items-center gap-1">
@@ -300,15 +319,24 @@ export default function POSPage() {
                                 ))}
                             </CardContent>
                         </ScrollArea>
-                        <CardFooter className="flex-col items-stretch space-y-4 border-t pt-4">
+                        <CardFooter className="flex-col items-stretch space-y-4 border-t p-4">
                             <div className="flex justify-between font-bold text-lg">
-                                <span>Total</span>
+                                <span>Total ({totalItems} items)</span>
                                 <span>৳{cartSubtotal.toFixed(2)}</span>
+                            </div>
+                            <div className='space-y-2'>
+                                <label className='text-sm font-medium'>Payment Method</label>
+                                <div className='grid grid-cols-3 gap-2'>
+                                    <Button variant={paymentMethod === 'cash' ? 'default' : 'outline'} onClick={() => setPaymentMethod('cash')} className="flex-col h-16 gap-1"><Banknote size={20}/>Cash</Button>
+                                    <Button variant={paymentMethod === 'card' ? 'default' : 'outline'} onClick={() => setPaymentMethod('card')} className="flex-col h-16 gap-1"><CreditCard size={20}/>Card</Button>
+                                    <Button variant={paymentMethod === 'mobile' ? 'default' : 'outline'} onClick={() => setPaymentMethod('mobile')} className="flex-col h-16 gap-1"><Smartphone size={20}/>Mobile</Button>
+                                </div>
                             </div>
                             <Button 
                                 size="lg" 
                                 disabled={cart.length === 0 || isProcessing}
                                 onClick={handleCompleteSale}
+                                className="h-14 text-lg"
                             >
                                 {isProcessing ? 'Processing...' : 'Complete Sale'}
                             </Button>
@@ -316,6 +344,7 @@ export default function POSPage() {
                     </Card>
                 </div>
             </div>
-        </div>
+            {lastSale && userData?.outletId && <PrintableReceipt sale={lastSale} outletId={userData.outletId} />}
+        </>
     );
 }
