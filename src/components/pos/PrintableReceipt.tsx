@@ -17,70 +17,65 @@ export function PrintableReceipt({ sale, outletId }: PrintableReceiptProps) {
     const saleDate = sale.createdAt?.seconds ? new Date(sale.createdAt.seconds * 1000) : new Date();
 
     if (isLoading && !outlet) {
-        return <div className="printable-receipt p-2">Loading outlet details...</div>;
+        return <div className="p-2">Loading outlet details...</div>;
     }
 
     return (
-        <div className="printable-receipt p-2 bg-white text-black font-mono w-full">
-            <div className="text-center mb-2">
-                <h1 className="text-base font-bold">AVERZO.</h1>
-                {outlet && (
-                    <>
-                        <p className="text-[10px]">{outlet.name}</p>
-                        <p className="text-[10px]">{outlet.location.address}</p>
-                    </>
-                )}
-                <p className="text-[10px]">Date: {saleDate.toLocaleString()}</p>
+        <div className="w-[80mm] p-2 font-mono text-[10px] leading-tight text-black bg-white">
+            <div className="text-center space-y-1 mb-2 border-b border-dashed pb-2">
+                <h2 className="text-sm font-bold uppercase tracking-tighter">AVERZO</h2>
+                <p className="text-[9px]">Trade License: TRAD/DNCC/XXXXXX</p>
+                <p className="text-[9px]">VAT Reg: 00XXXXXXXX-XXXX</p>
+                {outlet && <p className="text-[9px]">Address: {outlet.location.address}</p>}
+                <p className="text-[9px] font-bold mt-1">Sale ID: #{sale.id.substring(0, 8).toUpperCase()}</p>
+                 <p className="text-[9px]">Date: {saleDate.toLocaleString()}</p>
             </div>
 
-            <div className="border-t border-b border-dashed border-black py-1 my-1 text-[10px]">
-                <div className="flex justify-between font-bold">
-                    <span>Item</span>
-                    <span className="text-right">Total</span>
-                </div>
-                {sale.items.map((item, index) => (
-                    <div key={index}>
-                        <p>{item.quantity} x {item.productName}</p>
-                        <div className="flex justify-between pl-2">
-                            <span className='text-[9px]'>{item.variantSku}</span>
-                            <span className="text-right">৳{(item.price * item.quantity).toFixed(2)}</span>
-                        </div>
-                    </div>
-                ))}
-            </div>
+            <table className="w-full text-[9px]">
+                <thead>
+                    <tr className="border-b border-dashed">
+                        <th className="py-1 text-left w-1/2">Item</th>
+                        <th className="py-1 text-center">Qty</th>
+                        <th className="py-1 text-right">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {sale.items.map((item, index) => (
+                        <tr key={index}>
+                            <td className="py-0.5 align-top">
+                                {item.productName}
+                                <br />
+                                <span className="text-gray-600">{item.variantSku}</span>
+                            </td>
+                            <td className="py-0.5 text-center align-top">{item.quantity}</td>
+                            <td className="py-0.5 text-right align-top">৳{(item.price * item.quantity).toFixed(2)}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
 
-            <div className="space-y-0.5 text-[10px] border-b border-dashed border-black pb-1 mb-1">
-                <div className="flex justify-between">
-                    <span>Subtotal:</span>
-                    <span>৳{sale.totalAmount.toFixed(2)}</span>
-                </div>
+            <div className="text-[10px] space-y-0.5 border-t border-dashed mt-2 pt-2">
+                <div className="flex justify-between"><span>Subtotal:</span><span>৳{sale.totalAmount.toFixed(2)}</span></div>
                 <div className="flex justify-between font-bold text-xs">
-                    <span>TOTAL:</span>
+                    <span>Grand Total:</span>
                     <span>৳{sale.totalAmount.toFixed(2)}</span>
                 </div>
-                 <div className="flex justify-between">
-                    <span>Payment Method:</span>
-                    <span className='capitalize'>{sale.paymentMethod}</span>
-                </div>
-                {sale.paymentMethod === 'cash' && sale.cashReceived && (
+                 {sale.paymentMethod === 'cash' && (
                     <>
-                        <div className="flex justify-between">
-                            <span>Cash Received:</span>
-                            <span>৳{sale.cashReceived.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span>Change Due:</span>
-                            <span>৳{Math.max(0, sale.changeDue || 0).toFixed(2)}</span>
+                         <div className="flex justify-between"><span>Cash Received:</span><span>৳{(sale.cashReceived || 0).toFixed(2)}</span></div>
+                        <div className="flex justify-between text-xs font-black border-t border-dotted mt-1 pt-1">
+                            <span>Change:</span><span>৳{(sale.changeDue || 0).toFixed(2)}</span>
                         </div>
                     </>
                 )}
             </div>
-
-            <div className="text-center mt-2">
-                <p className="font-bold text-xs">Thank you for your purchase!</p>
-                <div className="flex justify-center mt-1">
-                     <Barcode value={sale.id} height={30} width={1} fontSize={8} margin={2} />
+             <div className="text-center mt-4 text-[9px]">
+                <div className="flex justify-center">
+                    <Barcode value={sale.id} height={30} width={1} fontSize={8} margin={0} />
                 </div>
+                <p className="font-bold italic mt-2">Thank you for shopping!</p>
+                <p>Software by: Averzo</p>
+                <p>Return policy: Within 7 days with invoice.</p>
             </div>
         </div>
     );

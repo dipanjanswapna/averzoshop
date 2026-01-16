@@ -6,6 +6,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Printer } from 'lucide-react';
@@ -26,24 +27,26 @@ export function ReceiptPreviewDialog({ open, onOpenChange, sale, outletId }: Rec
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-sm p-0">
-                <DialogHeader className="p-4 border-b">
-                    <DialogTitle>Sale Completed</DialogTitle>
+            <DialogContent className="sm:max-w-md w-full no-print">
+                <DialogHeader>
+                    <DialogTitle>Invoice Preview</DialogTitle>
                     <DialogDescription>
-                        Receipt generated. Ready to print.
+                       Review the receipt before printing.
                     </DialogDescription>
                 </DialogHeader>
                 
-                <div className="p-4">
-                     <div className="mx-auto" style={{ width: '80mm' }}>
+                <div className="bg-gray-100 p-4 rounded-md overflow-y-auto max-h-[60vh]">
+                     <div id="printable-invoice" className="mx-auto bg-white">
                         <PrintableReceipt sale={sale} outletId={outletId} />
                     </div>
                 </div>
 
-                <DialogFooter className="p-4 border-t bg-muted/50">
-                    <Button onClick={handlePrint} className="w-full">
-                        <Printer className="mr-2 h-4 w-4" />
-                        Print Receipt
+                <DialogFooter className="sm:justify-between gap-2">
+                     <DialogClose asChild>
+                        <Button variant="outline" className="w-full sm:w-auto">Cancel</Button>
+                    </DialogClose>
+                    <Button onClick={handlePrint} className="w-full sm:w-auto gap-2">
+                        <Printer size={18} /> Print Now
                     </Button>
                 </DialogFooter>
             </DialogContent>

@@ -95,25 +95,30 @@ body {
 }
 
 @layer utilities {
-  .printable-area, .printable-receipt {
-    display: none;
+  .no-print {
+      display: initial !important;
   }
   @media print {
     body * {
       visibility: hidden;
     }
-    .printable-receipt, .printable-receipt * {
+    #printable-invoice, #printable-invoice * {
       visibility: visible;
     }
-    .printable-receipt {
+    #printable-invoice {
       position: absolute;
       left: 0;
       top: 0;
       width: 100%;
-      height: 100%;
+      border: none !important;
+      padding: 0;
     }
     .no-print {
       display: none !important;
+    }
+    @page {
+      size: 80mm auto; /* Standard thermal printer paper width */
+      margin: 2mm;
     }
   }
 }
