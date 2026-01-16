@@ -224,14 +224,15 @@ export function ProductDetails({
           )}
         </div>
 
-         {savings > 0 && !isPreOrder && (
+        {savings > 0 && !isPreOrder && (
            <div className="bg-primary/10 text-primary font-bold text-sm p-2 rounded-md text-center">
               You save ৳{savings.toFixed(2)}!
            </div>
          )}
         
+        <div className="py-4">
         {product.giftWithPurchase?.enabled && product.giftWithPurchase.description && (
-            <div className="bg-green-100 text-green-800 border-l-4 border-green-500 p-4 rounded-md flex items-center gap-4 mt-6">
+            <div className="bg-green-100 text-green-800 border-l-4 border-green-500 p-4 rounded-md flex items-center gap-4">
                 <Gift size={24} className="flex-shrink-0" />
                 <div>
                 <p className="font-bold">Free Gift with Purchase!</p>
@@ -239,6 +240,8 @@ export function ProductDetails({
                 </div>
             </div>
         )}
+        </div>
+
 
         {uniqueColors.length > 0 && (
           <div className="space-y-3">
@@ -323,24 +326,24 @@ export function ProductDetails({
                 </Button>
               </div>
             ) : (
-               <div className="flex flex-col gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center border border-border rounded-md w-fit">
-                      <Button variant="ghost" size="icon" className="h-12 w-12" onClick={() => setQuantity(q => Math.max(1, q - 1))}><Minus size={16}/></Button>
-                      <span className="w-12 text-center text-lg font-bold">{quantity}</span>
-                      <Button variant="ghost" size="icon" className="h-12 w-12" onClick={() => setQuantity(q => q + 1)} disabled={quantity >= stock}><Plus size={16}/></Button>
-                  </div>
-                   <Button size="lg" variant="outline" className="w-full h-12" onClick={handleAddToCart}>
-                      <ShoppingBag size={20} className="mr-2" /> Add to Bag
-                  </Button>
+                <div className="flex flex-col gap-4">
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center border border-border rounded-md">
+                            <Button variant="ghost" size="icon" className="h-12 w-12" onClick={() => setQuantity(q => Math.max(1, q - 1))}><Minus size={16}/></Button>
+                            <span className="w-12 text-center text-lg font-bold">{quantity}</span>
+                            <Button variant="ghost" size="icon" className="h-12 w-12" onClick={() => setQuantity(q => q + 1)} disabled={quantity >= stock}><Plus size={16}/></Button>
+                        </div>
+                        <Button variant="outline" size="icon" className="h-12 w-12 ml-auto" onClick={handleWishlistToggle}>
+                            <Heart size={20} className={cn(isWishlisted ? 'text-destructive fill-destructive' : 'text-foreground')} />
+                        </Button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <Button size="lg" variant="outline" className="w-full h-12" onClick={handleAddToCart}>
+                            <ShoppingBag size={20} className="mr-2" /> Add to Bag
+                        </Button>
+                        <Button size="lg" className="w-full h-12" onClick={handleBuyNow}>Buy Now</Button>
+                    </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <Button size="lg" className="w-full h-12" onClick={handleBuyNow}>Buy Now</Button>
-                    <Button variant="outline" size="icon" className="h-12 w-12" onClick={handleWishlistToggle}>
-                        <Heart size={20} className={cn(isWishlisted ? 'text-destructive fill-destructive' : 'text-foreground')} />
-                    </Button>
-                </div>
-              </div>
             )}
           </div>
         </div>
