@@ -26,6 +26,7 @@ interface ProductDetailsProps {
     setSelectedColor: Dispatch<SetStateAction<string | null>>;
     selectedSize: string | null;
     setSelectedSize: Dispatch<SetStateAction<string | null>>;
+    isOutOfStock: boolean;
 }
 
 
@@ -35,7 +36,8 @@ export function ProductDetails({
     selectedColor,
     setSelectedColor,
     selectedSize,
-    setSelectedSize
+    setSelectedSize,
+    isOutOfStock,
 }: ProductDetailsProps) {
   const router = useRouter();
 
@@ -53,38 +55,47 @@ export function ProductDetails({
     window.print();
   };
 
-  const uniqueColors = useMemo(() => [...new Set(product.variants?.map(v => v.color).filter(Boolean))], [product.variants]);
-  const uniqueSizes = useMemo(() => [...new Set(product.variants?.map(v => v.size).filter(Boolean))], [product.variants]);
+  const variantsArray = useMemo(() =>
+    Array.isArray(product.variants)
+      ? product.variants
+      : product.variants && typeof product.variants === 'object'
+      ? Object.values(product.variants)
+      : [],
+    [product.variants]
+  );
+
+  const uniqueColors = useMemo(() => [...new Set(variantsArray.map(v => v.color).filter(Boolean))], [variantsArray]);
+  const uniqueSizes = useMemo(() => [...new Set(variantsArray.map(v => v.size).filter(Boolean))], [variantsArray]);
 
   // Derived state to check availability of sizes for the selected color
   const availableSizesForSelectedColor = useMemo(() => {
     if (!selectedColor || uniqueSizes.length === 0) return new Set(uniqueSizes);
     const available = new Set<string>();
-    product.variants?.forEach(v => {
+    variantsArray.forEach(v => {
       if (v.color === selectedColor && v.size && v.stock > 0) {
         available.add(v.size);
       }
     });
     return available;
-  }, [selectedColor, product.variants, uniqueSizes]);
+  }, [selectedColor, variantsArray, uniqueSizes]);
 
   // Derived state to check availability of colors for the selected size
   const availableColorsForSelectedSize = useMemo(() => {
     if (!selectedSize || uniqueColors.length === 0) return new Set(uniqueColors);
     const available = new Set<string>();
-    product.variants?.forEach(v => {
+    variantsArray.forEach(v => {
       if (v.size === selectedSize && v.color && v.stock > 0) {
         available.add(v.color);
       }
     });
     return available;
-  }, [selectedSize, product.variants, uniqueColors]);
+  }, [selectedSize, variantsArray, uniqueColors]);
 
   const handleSelectColor = (color: string) => {
     setSelectedColor(color);
     // If current size is not available with the new color, try to find a valid one
-    if (selectedSize && !product.variants?.some(v => v.color === color && v.size === selectedSize && v.stock > 0)) {
-        const firstAvailableSize = product.variants?.find(v => v.color === color && v.stock > 0)?.size || null;
+    if (selectedSize && !variantsArray.some(v => v.color === color && v.size === selectedSize && v.stock > 0)) {
+        const firstAvailableSize = variantsArray.find(v => v.color === color && v.stock > 0)?.size || null;
         setSelectedSize(firstAvailableSize);
     }
   };
@@ -92,8 +103,8 @@ export function ProductDetails({
   const handleSelectSize = (size: string) => {
     setSelectedSize(size);
      // If current color is not available with the new size, try to find a valid one
-    if (selectedColor && !product.variants?.some(v => v.size === size && v.color === selectedColor && v.stock > 0)) {
-        const firstAvailableColor = product.variants?.find(v => v.size === size && v.stock > 0)?.color || null;
+    if (selectedColor && !variantsArray.some(v => v.size === size && v.color === selectedColor && v.stock > 0)) {
+        const firstAvailableColor = variantsArray.find(v => v.size === size && v.stock > 0)?.color || null;
         setSelectedColor(firstAvailableColor);
     }
   }
@@ -118,7 +129,6 @@ export function ProductDetails({
   const stock = selectedVariant ? selectedVariant.stock : 0;
   const stockStatus = stock > 10 ? 'In Stock' : stock > 0 ? `Only ${stock} left!` : 'Out of Stock';
   const stockColor = stock > 10 ? 'text-green-600' : stock > 0 ? 'text-orange-600' : 'text-destructive';
-  const isOutOfStock = !selectedVariant || stock <= 0;
 
 
   const handleWishlistToggle = async () => {
@@ -223,7 +233,7 @@ export function ProductDetails({
             <h3 className="text-sm font-bold uppercase text-muted-foreground">Color: <span className="text-foreground capitalize">{selectedColor}</span></h3>
             <div className="flex flex-wrap gap-2">
               {uniqueColors.map(color => {
-                  const isAvailable = uniqueSizes.length === 0 ? product.variants.some(v => v.color === color && v.stock > 0) : availableColorsForSelectedSize.has(color);
+                  const isAvailable = uniqueSizes.length === 0 ? variantsArray.some(v => v.color === color && v.stock > 0) : availableColorsForSelectedSize.has(color);
                 return (
                 <button key={color} onClick={() => handleSelectColor(color)}
                   className={cn("h-8 w-8 rounded-full border-2 transition-all relative", 
@@ -248,7 +258,7 @@ export function ProductDetails({
               </div>
             <div className="flex flex-wrap gap-2">
               {uniqueSizes.map(size => {
-                  const isAvailable = uniqueColors.length === 0 ? product.variants.some(v => v.size === size && v.stock > 0) : availableSizesForSelectedColor.has(size);
+                  const isAvailable = uniqueColors.length === 0 ? variantsArray.some(v => v.size === size && v.stock > 0) : availableSizesForSelectedColor.has(size);
                   return (
                     <Button 
                     key={size} 

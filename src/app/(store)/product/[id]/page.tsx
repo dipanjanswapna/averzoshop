@@ -49,15 +49,16 @@ function ProductPageContent() {
     useEffect(() => {
         if (!product) return;
 
+        const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants || {});
         const skuFromUrl = searchParams.get('sku');
         let initialVariant: ProductVariant | null = null;
         
         if (skuFromUrl) {
-            initialVariant = product.variants?.find(v => v.sku === skuFromUrl) || null;
+            initialVariant = variantsArray.find(v => v.sku === skuFromUrl) || null;
         }
 
         if (!initialVariant) {
-            initialVariant = product.variants?.find(v => (v.stock || 0) > 0) || product.variants?.[0] || null;
+            initialVariant = variantsArray.find(v => (v.stock || 0) > 0) || variantsArray[0] || null;
         }
 
         if (initialVariant) {
@@ -71,10 +72,11 @@ function ProductPageContent() {
     useEffect(() => {
         if (!product) return;
 
-        const uniqueColors = [...new Set(product.variants?.map(v => v.color).filter(Boolean))];
-        const uniqueSizes = [...new Set(product.variants?.map(v => v.size).filter(Boolean))];
+        const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants || {});
+        const uniqueColors = [...new Set(variantsArray.map(v => v.color).filter(Boolean))];
+        const uniqueSizes = [...new Set(variantsArray.map(v => v.size).filter(Boolean))];
 
-        const variant = product.variants?.find(v => {
+        const variant = variantsArray.find(v => {
             const colorMatch = uniqueColors.length === 0 || v.color === selectedColor;
             const sizeMatch = uniqueSizes.length === 0 || v.size === selectedSize;
             return colorMatch && sizeMatch;
