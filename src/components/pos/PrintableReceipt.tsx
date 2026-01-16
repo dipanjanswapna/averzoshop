@@ -1,10 +1,12 @@
 
 'use client';
-import React from 'react';
+import React, { useMemo } from 'react';
 import Barcode from 'react-barcode';
 import type { POSSale } from '@/types/pos';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import type { Outlet } from '@/types/outlet';
+import { useFirebase } from '@/firebase';
+import { query, collection } from 'firebase/firestore';
 
 interface PrintableReceiptProps {
   sale: POSSale & { cashReceived?: number, changeDue?: number };
@@ -12,8 +14,15 @@ interface PrintableReceiptProps {
 }
 
 export function PrintableReceipt({ sale, outletId }: PrintableReceiptProps) {
-    const { data: outlets, isLoading } = useFirestoreQuery<Outlet>('outlets');
-    const outlet = outlets?.find(o => o.id === outletId);
+    const { firestore } = useFirebase();
+    
+    const outletsQuery = useMemo(() => {
+      if (!firestore) return null;
+      return query(collection(firestore, 'outlets'));
+    }, [firestore]);
+
+    const { data: outlets, isLoading } = useFirestoreQuery<Outlet>(outletsQuery);
+    const outlet = useMemo(() => outlets?.find(o => o.id === outletId), [outlets, outletId]);
 
     const saleDate = sale.createdAt?.seconds ? new Date(sale.createdAt.seconds * 1000) : new Date();
 

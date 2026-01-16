@@ -26,39 +26,32 @@ import {
 import { SalesChart } from '@/components/sales-chart';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { Skeleton } from '../ui/skeleton';
-
-interface Sale {
-  id: string;
-  totalAmount: number;
-  createdAt: {
-    toDate: () => Date;
-  };
-  // Expanded for recent orders
-  customer?: string;
-  email?: string;
-  status?: 'Delivered' | 'Pending' | 'Shipped' | 'Canceled';
-}
-interface User {
-  id: string;
-  status: 'approved' | 'pending' | 'rejected';
-}
-interface Product {
-  id: string;
-}
+import { useFirebase } from '@/firebase';
+import { collection, query } from 'firebase/firestore';
+import { useMemo } from 'react';
+import type { Order } from '@/types/order';
+import type { UserData } from '@/types/user';
+import type { Product } from '@/types/product';
 
 export function AdminDashboard() {
-  const { data: sales, isLoading: salesLoading } = useFirestoreQuery<Sale>('pos_sales');
-  const { data: users, isLoading: usersLoading } = useFirestoreQuery<User>('users');
-  const { data: products, isLoading: productsLoading } = useFirestoreQuery<Product>('products');
+  const { firestore } = useFirebase();
 
-  const isLoading = salesLoading || usersLoading || productsLoading;
+  const ordersQuery = useMemo(() => firestore ? query(collection(firestore, 'orders')) : null, [firestore]);
+  const usersQuery = useMemo(() => firestore ? query(collection(firestore, 'users')) : null, [firestore]);
+  const productsQuery = useMemo(() => firestore ? query(collection(firestore, 'products')) : null, [firestore]);
+
+  const { data: orders, isLoading: ordersLoading } = useFirestoreQuery<Order>(ordersQuery);
+  const { data: users, isLoading: usersLoading } = useFirestoreQuery<UserData>(usersQuery);
+  const { data: products, isLoading: productsLoading } = useFirestoreQuery<Product>(productsQuery);
+
+  const isLoading = ordersLoading || usersLoading || productsLoading;
   
-  const totalRevenue = sales?.reduce((acc, sale) => acc + sale.totalAmount, 0) || 0;
-  const newOrdersCount = sales?.length || 0;
+  const totalRevenue = orders?.reduce((acc, order) => acc + order.totalAmount, 0) || 0;
+  const newOrdersCount = orders?.length || 0;
   const totalProductsCount = products?.length || 0;
   const activeUsersCount = users?.filter(u => u.status === 'approved').length || 0;
 
-  const recentOrders = sales?.slice(0, 5) || [];
+  const recentOrders = orders?.slice(0, 5) || [];
 
   return (
     <div className="flex flex-col gap-6">
@@ -150,13 +143,13 @@ export function AdminDashboard() {
                 ) : recentOrders.map((order) => (
                   <TableRow key={order.id}>
                     <TableCell>
-                      <div className="font-medium">{order.customer || 'Offline Sale'}</div>
+                      <div className="font-medium">{order.shippingAddress.name || 'N/A'}</div>
                       <div className="hidden text-sm text-muted-foreground md:inline">
-                        {order.email || `ID: ${order.id.substring(0,8)}`}
+                        ID: {order.id.substring(0,8)}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={order.status === 'Delivered' ? 'default' : 'secondary'} className={order.status === 'Delivered' ? 'bg-accent text-accent-foreground' : ''}>{order.status || 'Delivered'}</Badge>
+                      <Badge variant={order.status === 'delivered' ? 'default' : 'secondary'} className={order.status === 'delivered' ? 'bg-accent text-accent-foreground' : ''}>{order.status || 'Delivered'}</Badge>
                     </TableCell>
                     <TableCell className="text-right">৳{order.totalAmount.toFixed(2)}</TableCell>
                   </TableRow>

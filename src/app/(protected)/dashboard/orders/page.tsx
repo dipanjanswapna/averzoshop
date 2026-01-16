@@ -1,5 +1,6 @@
 
 'use client';
+import { useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -20,30 +21,24 @@ import { Badge } from '@/components/ui/badge';
 import { DeliveryMonitor } from './delivery-monitor';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useFirebase } from '@/firebase';
+import { collection, query, orderBy } from 'firebase/firestore';
+import type { Order } from '@/types/order';
 
-interface Sale {
-  id: string;
-  outletId: string;
-  soldBy: string;
-  totalAmount: number;
-  createdAt: {
-    toDate: () => Date;
-  };
-  // This can be expanded to include online order details
-  status?: 'Delivered' | 'Pending' | 'Shipped' | 'Canceled';
-}
 
 export default function OrdersPage() {
-  const { data: sales, isLoading } = useFirestoreQuery<Sale>('pos_sales');
+  const { firestore } = useFirebase();
 
-  const orders = sales?.map(sale => ({
-    id: sale.id,
-    customer: `User-${sale.soldBy.substring(0, 6)}`,
-    date: sale.createdAt.toDate().toLocaleDateString(),
-    total: sale.totalAmount,
-    status: sale.status || 'Delivered'
-  })) || [];
+  const ordersQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'orders'), orderBy('createdAt', 'desc'));
+  }, [firestore]);
 
+  const { data: orders, isLoading } = useFirestoreQuery<Order>(ordersQuery);
+
+  const filterOrders = (status: Order['status']) => {
+    return orders?.filter(o => o.status === status) || [];
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -60,25 +55,29 @@ export default function OrdersPage() {
           <Tabs defaultValue="all">
             <TabsList>
               <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="pending">Pending</TabsTrigger>
-              <TabsTrigger value="shipped">Shipped</TabsTrigger>
+              <TabsTrigger value="new">New</TabsTrigger>
+              <TabsTrigger value="preparing">Preparing</TabsTrigger>
+              <TabsTrigger value="out_for_delivery">Out for Delivery</TabsTrigger>
               <TabsTrigger value="delivered">Delivered</TabsTrigger>
               <TabsTrigger value="canceled">Canceled</TabsTrigger>
             </TabsList>
-            <TabsContent value="all">
-              <OrderTable orders={orders} isLoading={isLoading} />
+            <TabsContent value="all" className="mt-4">
+              <OrderTable orders={orders || []} isLoading={isLoading} />
             </TabsContent>
-            <TabsContent value="pending">
-              <OrderTable orders={orders.filter(o => o.status === 'Pending')} isLoading={isLoading} />
+            <TabsContent value="new" className="mt-4">
+              <OrderTable orders={filterOrders('new')} isLoading={isLoading} />
             </TabsContent>
-            <TabsContent value="shipped">
-              <OrderTable orders={orders.filter(o => o.status === 'Shipped')} isLoading={isLoading} />
+            <TabsContent value="preparing" className="mt-4">
+              <OrderTable orders={filterOrders('preparing')} isLoading={isLoading} />
             </TabsContent>
-            <TabsContent value="delivered">
-              <OrderTable orders={orders.filter(o => o.status === 'Delivered')} isLoading={isLoading} />
+            <TabsContent value="out_for_delivery" className="mt-4">
+               <OrderTable orders={filterOrders('out_for_delivery')} isLoading={isLoading} />
             </TabsContent>
-            <TabsContent value="canceled">
-              <OrderTable orders={orders.filter(o => o.status === 'Canceled')} isLoading={isLoading} />
+            <TabsContent value="delivered" className="mt-4">
+              <OrderTable orders={filterOrders('delivered')} isLoading={isLoading} />
+            </TabsContent>
+            <TabsContent value="canceled" className="mt-4">
+              <OrderTable orders={filterOrders('canceled')} isLoading={isLoading} />
             </TabsContent>
           </Tabs>
         </CardContent>
@@ -87,7 +86,7 @@ export default function OrdersPage() {
   );
 }
 
-function OrderTable({ orders, isLoading }: { orders: any[], isLoading: boolean }) {
+function OrderTable({ orders, isLoading }: { orders: Order[], isLoading: boolean }) {
   const renderSkeleton = () =>
     [...Array(5)].map((_, i) => (
       <TableRow key={i}>
@@ -114,21 +113,21 @@ function OrderTable({ orders, isLoading }: { orders: any[], isLoading: boolean }
         {isLoading ? renderSkeleton() : orders.length > 0 ? (
           orders.map(order => (
             <TableRow key={order.id}>
-              <TableCell className="font-medium">{order.id.substring(0, 8)}...</TableCell>
-              <TableCell>{order.customer}</TableCell>
-              <TableCell>{order.date}</TableCell>
+              <TableCell className="font-medium font-mono text-xs">{order.id.substring(0, 8)}...</TableCell>
+              <TableCell>{order.shippingAddress.name}</TableCell>
+              <TableCell>{order.createdAt.toDate().toLocaleDateString()}</TableCell>
               <TableCell>
-                <Badge variant={order.status === 'Delivered' ? 'default' : 'secondary'} className={order.status === 'Delivered' ? 'bg-accent text-accent-foreground' : ''}>
+                <Badge variant={order.status === 'delivered' ? 'default' : 'secondary'} className={order.status === 'delivered' ? 'bg-accent text-accent-foreground capitalize' : 'capitalize'}>
                   {order.status}
                 </Badge>
               </TableCell>
-              <TableCell className="text-right">৳{order.total.toFixed(2)}</TableCell>
+              <TableCell className="text-right">৳{order.totalAmount.toFixed(2)}</TableCell>
             </TableRow>
           ))
         ) : (
             <TableRow>
                 <TableCell colSpan={5} className="text-center h-24">
-                    No orders found.
+                    No orders found in this category.
                 </TableCell>
             </TableRow>
         )}

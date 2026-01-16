@@ -1,5 +1,6 @@
+
 'use client';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Product } from '@/types/product';
 import { ProductReviews } from './product-reviews';
@@ -10,7 +11,7 @@ import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { Skeleton } from '../ui/skeleton';
 import { useAuth } from '@/hooks/use-auth';
 import { useFirebase } from '@/firebase';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp, query, collection, orderBy } from 'firebase/firestore';
 import { Textarea } from '../ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 
@@ -26,10 +27,15 @@ interface Question {
 
 export function ProductTabs({ product }: { product: Product }) {
   const [isQuestionDialogOpen, setIsQuestionDialogOpen] = useState(false);
-  const { data: questions, isLoading: isLoadingQuestions } = useFirestoreQuery<Question>(`products/${product.id}/questions`);
-  const { user, userData } = useAuth();
-  const { firestore } = useFirebase();
+  const { user, userData, firestore } = useAuth();
   const { toast } = useToast();
+  
+  const questionsQuery = useMemo(() => {
+    if (!firestore || !product?.id) return null;
+    return query(collection(firestore, `products/${product.id}/questions`), orderBy('createdAt', 'desc'));
+  }, [firestore, product?.id]);
+
+  const { data: questions, isLoading: isLoadingQuestions } = useFirestoreQuery<Question>(questionsQuery);
 
   const [answers, setAnswers] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState<string | null>(null);

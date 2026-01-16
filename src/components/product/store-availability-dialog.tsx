@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -29,6 +30,8 @@ import { Skeleton } from '../ui/skeleton';
 import { MapPin } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
+import { useFirebase } from '@/firebase';
+import { collection, query } from 'firebase/firestore';
 
 interface StoreAvailabilityDialogProps {
   open: boolean;
@@ -49,7 +52,14 @@ const getVariantsAsArray = (variants: any): ProductVariant[] => {
 
 
 export function StoreAvailabilityDialog({ open, onOpenChange, product }: StoreAvailabilityDialogProps) {
-  const { data: allOutlets, isLoading } = useFirestoreQuery<Outlet>('outlets');
+  const { firestore } = useFirebase();
+
+  const outletsQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'outlets'));
+  }, [firestore]);
+  
+  const { data: allOutlets, isLoading } = useFirestoreQuery<Outlet>(outletsQuery);
 
   const outletsWithStock = useMemo(() => {
     if (!allOutlets || !product) return [];
