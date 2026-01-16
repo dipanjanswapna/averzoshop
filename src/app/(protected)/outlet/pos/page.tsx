@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -11,9 +12,11 @@ import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { useFirebase } from '@/firebase';
-import { doc, runTransaction, serverTimestamp, collection, addDoc, WriteBatch, getDocs } from 'firebase/firestore';
+import { doc, runTransaction, serverTimestamp, collection } from 'firebase/firestore';
 import { PrintableReceipt } from '@/components/pos/PrintableReceipt';
 import type { POSSale } from '@/types/pos';
+import { Skeleton } from '@/components/ui/skeleton';
+
 
 type CartItem = {
     product: Product;
@@ -61,8 +64,8 @@ export default function POSPage() {
 
                 return { ...p, searchableTerms };
             })
-            .filter(Boolean)
-            .filter(p => p!.searchableTerms.includes(searchTerm.toLowerCase()));
+            .filter((p): p is Product & { searchableTerms: string } => !!p)
+            .filter(p => p.searchableTerms.includes(searchTerm.toLowerCase()));
     }, [allProducts, outletId, searchTerm]);
 
     const findVariantInStock = (product: Product, sku?: string): ProductVariant | null => {
@@ -128,16 +131,17 @@ export default function POSPage() {
         e.preventDefault();
         if (availableProducts.length === 1) {
             const product = availableProducts[0];
-            const variant = findVariantInStock(product!, searchTerm.trim());
+            // Try to find by SKU first, then fall back to first available
+            const variant = findVariantInStock(product, searchTerm.trim()) || findVariantInStock(product);
             if(variant){
-                addToCart(product!, variant);
+                addToCart(product, variant);
                 setSearchTerm('');
             } else {
                 toast({variant: 'destructive', title: 'Product variant not found or out of stock.'});
             }
-        } else if (availableProducts.length > 1) {
+        } else if (availableProducts.length > 1 && searchTerm) {
             toast({title: 'Multiple products found', description: 'Please select a product from the grid.'})
-        } else {
+        } else if (availableProducts.length === 0 && searchTerm) {
              toast({variant: 'destructive', title: 'Product not found.'})
         }
     };
@@ -176,52 +180,40 @@ export default function POSPage() {
 
         try {
             await runTransaction(firestore, async (transaction) => {
-                const productRefs: Map<string, any> = new Map();
+                const productRefs: Map<string, { ref: any; product: Product }> = new Map();
+
+                // First, read all product documents
                 for (const item of cart) {
                     if (!productRefs.has(item.product.id)) {
-                        productRefs.set(item.product.id, doc(firestore, 'products', item.product.id));
+                         const productRef = doc(firestore, 'products', item.product.id);
+                         const productDoc = await transaction.get(productRef);
+                         if (!productDoc.exists()) {
+                            throw new Error(`Product ${item.product.name} not found.`);
+                         }
+                         productRefs.set(item.product.id, { ref: productRef, product: productDoc.data() as Product });
                     }
                 }
-                
-                const productDocs = await Promise.all(
-                  Array.from(productRefs.values()).map(ref => transaction.get(ref))
-                );
 
-                const productDataMap = new Map();
-                for(const doc of productDocs) {
-                    productDataMap.set(doc.id, doc.data());
-                }
-
+                // Then, perform all writes
                 for (const item of cart) {
-                    const productRef = productRefs.get(item.product.id);
-                    const productData = productDataMap.get(item.product.id) as Product;
-
-                    if (!productData) throw new Error(`Product ${item.product.name} not found in transaction.`);
-
-                    const variantsArray = Array.isArray(productData.variants) ? productData.variants : Object.values(productData.variants);
+                    const { ref, product: productData } = productRefs.get(item.product.id)!;
+                    
+                    const variantsArray = Array.isArray(productData.variants) ? [...productData.variants] : [...Object.values(productData.variants)];
                     const variantIndex = variantsArray.findIndex(v => v.sku === item.variant.sku);
 
                     if (variantIndex === -1) throw new Error(`Variant ${item.variant.sku} not found.`);
                     
                     const currentStock = variantsArray[variantIndex].outlet_stocks?.[outletId] ?? 0;
                     if (currentStock < item.quantity) {
-                        throw new Error(`Not enough stock for ${item.product.name}`);
+                        throw new Error(`Not enough stock for ${item.product.name}. Available: ${currentStock}`);
                     }
 
-                    // This is the correct way to update a nested field in an array
-                    const newVariants = [...variantsArray];
-                    newVariants[variantIndex] = {
-                        ...newVariants[variantIndex],
-                        stock: newVariants[variantIndex].stock - item.quantity,
-                        outlet_stocks: {
-                            ...newVariants[variantIndex].outlet_stocks,
-                            [outletId]: currentStock - item.quantity
-                        }
-                    };
+                    variantsArray[variantIndex].stock -= item.quantity;
+                    variantsArray[variantIndex].outlet_stocks![outletId] -= item.quantity;
 
-                    transaction.update(productRef, {
-                        variants: newVariants,
-                        total_stock: productData.total_stock - item.quantity
+                    transaction.update(ref, {
+                        variants: variantsArray,
+                        total_stock: productData.total_stock - item.quantity,
                     });
                 }
     
@@ -230,8 +222,9 @@ export default function POSPage() {
             });
     
             toast({ title: 'Sale Completed!', description: 'Printing receipt...' });
-            setLastSale(saleData); // Set sale data to trigger printing
+            setLastSale(saleData);
             setCart([]);
+            setSearchTerm('');
     
         } catch (error: any) {
             console.error('Sale transaction failed: ', error);
@@ -241,10 +234,19 @@ export default function POSPage() {
         }
     };
 
+    const renderProductSkeletons = () => (
+        Array.from({ length: 12 }).map((_, i) => (
+             <div key={i} className="flex flex-col space-y-2">
+                <Skeleton className="aspect-square w-full rounded-lg" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-5 w-1/2" />
+            </div>
+        ))
+    );
 
     return (
          <>
-            <div className="h-full grid grid-cols-1 lg:grid-cols-5 gap-4 p-4 no-print">
+            <div className="h-full grid grid-cols-1 lg:grid-cols-5 gap-4 p-4 no-print bg-muted/30">
                 {/* Product Grid Section */}
                 <div className="lg:col-span-3 flex flex-col gap-4 h-full">
                     <h1 className="text-2xl font-bold font-headline">Point of Sale</h1>
@@ -260,32 +262,34 @@ export default function POSPage() {
                             />
                         </div>
                     </form>
-                    <ScrollArea className="h-[calc(100vh-220px)] border rounded-lg bg-background">
-                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-4">
-                            {isLoading && Array.from({ length: 10 }).map((_, i) => <Card key={i} className="animate-pulse bg-muted aspect-square" />)}
-                            {availableProducts.map(product => {
-                                if(!product) return null;
-                                const variant = findVariantInStock(product);
-                                return (
-                                <Card key={product.id} onClick={() => addToCart(product, variant)} className="cursor-pointer hover:border-primary transition-colors flex flex-col">
-                                    <CardContent className="p-0 flex-grow">
-                                        <div className="relative aspect-square">
-                                            <Image src={product.image || 'https://placehold.co/300'} alt={product.name} fill className="object-cover rounded-t-lg" />
-                                        </div>
-                                    </CardContent>
-                                    <CardFooter className="p-2 flex-col items-start">
-                                        <p className="text-xs font-semibold truncate w-full">{product.name}</p>
-                                        <p className="text-sm font-bold text-primary">৳{variant?.price ?? product.price}</p>
-                                    </CardFooter>
-                                </Card>
-                            )})}
-                        </div>
-                        {!isLoading && availableProducts.length === 0 && (
-                            <div className="flex items-center justify-center h-full text-muted-foreground">
-                                <p>{searchTerm ? `No products found for "${searchTerm}"` : 'No products available in this outlet.'}</p>
+                    <Card className="flex-1">
+                        <ScrollArea className="h-[calc(100vh-230px)] rounded-lg">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-4">
+                                {isLoading ? renderProductSkeletons() : 
+                                availableProducts.map(product => {
+                                    if(!product) return null;
+                                    const variant = findVariantInStock(product);
+                                    return (
+                                    <Card key={product.id} onClick={() => addToCart(product, variant)} className="cursor-pointer hover:border-primary transition-colors flex flex-col shadow-sm">
+                                        <CardContent className="p-0 flex-grow">
+                                            <div className="relative aspect-square">
+                                                <Image src={product.image || 'https://placehold.co/300'} alt={product.name} fill className="object-cover rounded-t-lg" />
+                                            </div>
+                                        </CardContent>
+                                        <CardFooter className="p-2 flex-col items-start">
+                                            <p className="text-xs font-semibold truncate w-full">{product.name}</p>
+                                            <p className="text-sm font-bold text-primary">৳{variant?.price ?? product.price}</p>
+                                        </CardFooter>
+                                    </Card>
+                                )})}
                             </div>
-                        )}
-                    </ScrollArea>
+                            {!isLoading && availableProducts.length === 0 && (
+                                <div className="flex items-center justify-center h-full text-muted-foreground p-10 text-center">
+                                    <p>{searchTerm ? `No products found for "${searchTerm}"` : 'No products available in this outlet. Check inventory.'}</p>
+                                </div>
+                            )}
+                        </ScrollArea>
+                    </Card>
                 </div>
 
                 {/* Cart Section */}
@@ -304,7 +308,7 @@ export default function POSPage() {
                                         <p className="mt-4">Your cart is empty</p>
                                     </div>
                                 ) : cart.map(item => (
-                                    <div key={item.variant.sku} className="flex items-center gap-4">
+                                    <div key={item.variant.sku} className="flex items-center gap-4 border-b pb-2">
                                         <div className="flex-grow">
                                             <p className="text-sm font-medium truncate">{item.product.name} <span className="text-muted-foreground text-xs">({item.variant.sku})</span></p>
                                             <p className="text-xs text-muted-foreground">৳{item.variant.price.toFixed(2)}</p>
@@ -319,7 +323,7 @@ export default function POSPage() {
                                 ))}
                             </CardContent>
                         </ScrollArea>
-                        <CardFooter className="flex-col items-stretch space-y-4 border-t p-4">
+                        <CardFooter className="flex-col items-stretch space-y-4 border-t p-4 bg-muted/30">
                             <div className="flex justify-between font-bold text-lg">
                                 <span>Total ({totalItems} items)</span>
                                 <span>৳{cartSubtotal.toFixed(2)}</span>
@@ -348,3 +352,4 @@ export default function POSPage() {
         </>
     );
 }
+

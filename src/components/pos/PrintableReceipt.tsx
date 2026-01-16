@@ -1,7 +1,7 @@
+
 'use client';
 import React from 'react';
 import Barcode from 'react-barcode';
-import AverzoLogo from '@/components/averzo-logo';
 import type { POSSale } from '@/types/pos';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import type { Outlet } from '@/types/outlet';
@@ -39,9 +39,12 @@ export function PrintableReceipt({ sale, outletId }: PrintableReceiptProps) {
                         <span>Total</span>
                     </div>
                     {sale.items.map((item, index) => (
-                        <div key={index} className="flex justify-between">
-                            <span>{item.quantity} x {item.productName.substring(0,15)}... ({item.variantSku})</span>
-                            <span>৳{(item.price * item.quantity).toFixed(2)}</span>
+                        <div key={index}>
+                            <p>{item.quantity} x {item.productName}</p>
+                            <div className="flex justify-between pl-2">
+                                <span className='text-[10px]'>{item.variantSku}</span>
+                                <span>৳{(item.price * item.quantity).toFixed(2)}</span>
+                            </div>
                         </div>
                     ))}
                 </div>
