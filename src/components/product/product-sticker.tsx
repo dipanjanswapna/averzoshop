@@ -15,9 +15,6 @@ export function ProductSticker({ product, variant }: ProductStickerProps) {
   return (
     <div className="p-2 border border-dashed border-black w-60 font-sans bg-white text-black">
       <div className="text-center space-y-1">
-        {product.giftWithPurchase?.enabled && (
-          <p className="text-[10px] font-bold text-red-600">Free Gift with Purchase!</p>
-        )}
         <p className="text-xs font-bold uppercase">{product.brand}</p>
         <p className="text-[10px] leading-tight">{product.name}</p>
         {(variant.color || variant.size) && (
@@ -36,6 +33,9 @@ export function ProductSticker({ product, variant }: ProductStickerProps) {
                 background="transparent"
             />
         </div>
+        {product.giftWithPurchase?.enabled && (
+          <p className="text-[10px] font-bold text-red-600 pt-1">Free Gift with Purchase!</p>
+        )}
       </div>
     </div>
   );
