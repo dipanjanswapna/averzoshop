@@ -35,6 +35,13 @@ export const ProductCard = ({ product }: { product: Product }) => {
     };
   }, [product]);
 
+  const variantDiscount = useMemo(() => {
+    if (displayOriginalPrice && displayOriginalPrice > displayPrice) {
+        return Math.round(((displayOriginalPrice - displayPrice) / displayOriginalPrice) * 100);
+    }
+    return 0;
+  }, [displayPrice, displayOriginalPrice]);
+
   const stockStatus = !isOutOfStock && product.total_stock < 10 ? 'Low Stock' : null;
 
   const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -69,8 +76,8 @@ export const ProductCard = ({ product }: { product: Product }) => {
         {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
           <span className="bg-black/80 text-white text-[9px] font-saira px-2 py-0.5 rounded-full uppercase">{product.group}</span>
-          {product.discount > 0 && !isOutOfStock && (
-            <span className="bg-primary text-primary-foreground text-[9px] font-bold px-2 py-0.5 rounded-full">{Math.round(product.discount)}% OFF</span>
+          {variantDiscount > 0 && !isOutOfStock && (
+            <span className="bg-primary text-primary-foreground text-[9px] font-bold px-2 py-0.5 rounded-full">{variantDiscount}% OFF</span>
           )}
            {product.giftWithPurchase?.enabled && (
             <span className="bg-green-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
