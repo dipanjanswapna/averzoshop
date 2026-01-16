@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -5,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Upload, Package, History, Box, CheckCircle, ArrowRightLeft, Truck, Check } from 'lucide-react';
+import { Upload, Package, History, Box, CheckCircle, ArrowRightLeft, Truck, Check, Eye } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { Product } from '@/types/product';
@@ -18,6 +19,7 @@ import type { Outlet } from '@/types/outlet';
 import { ReceiveStockDialog } from '@/components/outlet/receive-stock-dialog';
 import { DispatchStockDialog } from '@/components/outlet/dispatch-stock-dialog';
 import { ReceiveTransferDialog } from '@/components/outlet/receive-transfer-dialog';
+import { StockDetailsDialog } from '@/components/outlet/stock-details-dialog';
 
 
 export default function InventoryPage() {
@@ -36,11 +38,21 @@ export default function InventoryPage() {
   const [transferToReceive, setTransferToReceive] = useState<StockTransfer | null>(null);
   const [isReceiveTransferDialogOpen, setIsReceiveTransferDialogOpen] = useState(false);
   
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [selectedProductForDetails, setSelectedProductForDetails] = useState<Product | null>(null);
+
   const isLoading = productsLoading || challansLoading || usersLoading || transfersLoading || outletsLoading;
 
   const outletId = useMemo(() => userData?.outletId || '', [userData]);
   
-  const outletProducts = products?.filter(p => p.outlet_stocks && p.outlet_stocks[outletId] && p.outlet_stocks[outletId] > 0) || [];
+  const outletProducts = useMemo(() => {
+    if (!products || !outletId) return [];
+    return products.map(p => ({
+        ...p,
+        stockInOutlet: p.variants.reduce((sum, v) => sum + (v.outlet_stocks?.[outletId] ?? 0), 0)
+    })).filter(p => p.stockInOutlet > 0);
+  }, [products, outletId]);
+
 
   const enhancedChallans = useMemo(() => {
     if (!challans || !users || !outletId) return [];
@@ -59,6 +71,11 @@ export default function InventoryPage() {
     setSelectedChallan(challan);
     setIsReceiveDialogOpen(true);
   };
+
+  const handleViewDetailsClick = (product: Product) => {
+    setSelectedProductForDetails(product);
+    setIsDetailsOpen(true);
+  }
   
   const outgoingTransfers = useMemo(() => {
     if (!transfers || !outletId || !allOutlets) return [];
@@ -125,7 +142,7 @@ export default function InventoryPage() {
                             <TableHead>Name</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead>Stock in Outlet</TableHead>
-                            <TableHead className="text-right">Price</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -150,8 +167,13 @@ export default function InventoryPage() {
                                     {product.status}
                                 </Badge>
                                 </TableCell>
-                                <TableCell>{product.outlet_stocks[userData?.outletId || '']}</TableCell>
-                                <TableCell className="text-right">৳{product.price.toFixed(2)}</TableCell>
+                                <TableCell>{product.stockInOutlet}</TableCell>
+                                <TableCell className="text-right">
+                                    <Button variant="outline" size="sm" onClick={() => handleViewDetailsClick(product)}>
+                                        <Eye className="mr-2 h-4 w-4"/>
+                                        View Details
+                                    </Button>
+                                </TableCell>
                             </TableRow>
                             ))
                         ) : (
@@ -311,6 +333,7 @@ export default function InventoryPage() {
     {selectedChallan && <ReceiveStockDialog open={isReceiveDialogOpen} onOpenChange={setIsReceiveDialogOpen} challan={selectedChallan} />}
     {transferToDispatch && <DispatchStockDialog open={isDispatchDialogOpen} onOpenChange={setIsDispatchDialogOpen} transfer={transferToDispatch} />}
     {transferToReceive && <ReceiveTransferDialog open={isReceiveTransferDialogOpen} onOpenChange={setIsReceiveTransferDialogOpen} transfer={transferToReceive} />}
+    {selectedProductForDetails && <StockDetailsDialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen} product={selectedProductForDetails} outletId={outletId} />}
     </>
   );
 }
