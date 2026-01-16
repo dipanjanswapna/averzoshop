@@ -1,3 +1,4 @@
+
 export type ProductVariant = {
     sku: string;
     color?: string;
@@ -19,6 +20,7 @@ export type Product = {
     price: number; // Base price
     compareAtPrice?: number;
     baseSku: string;
+    specifications?: { [key: string]: string };
     total_stock: number; // Aggregated stock from all variants across all locations
     variants: ProductVariant[];
     image: string;

@@ -3,6 +3,7 @@
 import { MobileBottomNav } from '@/components/mobile-bottom-nav';
 import AverzoNavbar from '@/components/store-header';
 import Link from 'next/link';
+import { CompareBar } from '@/components/compare/compare-bar';
 
 export default function StoreLayout({
   children,
@@ -135,6 +136,7 @@ export default function StoreLayout({
           </div>
         </div>
       </footer>
+      <CompareBar />
     </div>
   );
 }

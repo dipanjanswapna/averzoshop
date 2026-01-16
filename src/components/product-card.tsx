@@ -1,17 +1,21 @@
+
 'use client';
 
 import Image from 'next/image';
-import { Heart, ShoppingBag, Eye, MapPin, Gift } from 'lucide-react';
+import { Heart, ShoppingBag, Eye, MapPin, Gift, Layers } from 'lucide-react';
 import type { Product } from '@/types/product';
 import Link from 'next/link';
 import { Button } from './ui/button';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
 import { useMemo } from 'react';
+import { useCompare } from '@/hooks/use-compare';
 
 export const ProductCard = ({ product }: { product: Product }) => {
   const { addItem } = useCart();
   const { toast } = useToast();
+  const { items: compareItems, addItem: addCompareItem, removeItem: removeCompareItem } = useCompare();
+  const isComparing = useMemo(() => compareItems.some(item => item.id === product.id), [compareItems, product.id]);
 
   const { defaultVariant, displayPrice, displayOriginalPrice, isOutOfStock } = useMemo(() => {
     const variantsArray = Array.isArray(product.variants)
@@ -59,6 +63,21 @@ export const ProductCard = ({ product }: { product: Product }) => {
 
     addItem(product, defaultVariant);
   };
+  
+  const handleCompareToggle = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isComparing) {
+      removeCompareItem(product.id);
+      toast({ title: 'Removed from Compare' });
+    } else {
+      const success = addCompareItem(product);
+      if (success) {
+        toast({ title: 'Added to Compare' });
+      }
+    }
+  };
+
 
   return (
     <Link href={`/product/${product.id}`} className="group relative bg-card border border-border rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 block">
@@ -105,8 +124,13 @@ export const ProductCard = ({ product }: { product: Product }) => {
           <Button variant="ghost" size="icon" className="p-2 bg-card rounded-full text-card-foreground hover:bg-primary hover:text-primary-foreground transition-colors">
             <Heart size={16} />
           </Button>
-          <Button variant="ghost" size="icon" className="p-2 bg-card rounded-full text-card-foreground hover:bg-primary hover:text-primary-foreground transition-colors">
-            <Eye size={16} />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="p-2 bg-card rounded-full text-card-foreground hover:bg-primary hover:text-primary-foreground transition-colors"
+            onClick={handleCompareToggle}
+          >
+            <Layers size={16} />
           </Button>
         </div>
       </div>
