@@ -42,10 +42,12 @@ export default function POSPage() {
 
     const availableProducts = useMemo(() => {
         if (!allProducts || !outletId) return [];
-        return allProducts
+
+        const productsInOutlet = allProducts
             .map(p => {
                 const variantsArray = Array.isArray(p.variants) ? p.variants : Object.values(p.variants);
                 const stockInOutlet = variantsArray.some(v => (v.outlet_stocks?.[outletId] ?? 0) > 0);
+                
                 if (p.status !== 'approved' || !stockInOutlet) return null;
 
                 const searchableTerms = [
@@ -56,8 +58,13 @@ export default function POSPage() {
 
                 return { ...p, searchableTerms };
             })
-            .filter((p): p is Product & { searchableTerms: string } => !!p)
-            .filter(p => p.searchableTerms.includes(searchTerm.toLowerCase()));
+            .filter((p): p is Product & { searchableTerms: string } => !!p);
+
+        if (!searchTerm) {
+            return productsInOutlet;
+        }
+
+        return productsInOutlet.filter(p => p.searchableTerms.includes(searchTerm.toLowerCase()));
     }, [allProducts, outletId, searchTerm]);
 
     const findVariantInStock = (product: Product, sku?: string): ProductVariant | null => {
@@ -121,21 +128,31 @@ export default function POSPage() {
 
     const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (availableProducts.length === 1) {
-            const product = availableProducts[0];
-            // Try to find by SKU first, then fall back to first available
-            const variant = findVariantInStock(product, searchTerm.trim()) || findVariantInStock(product);
-            if(variant){
-                addToCart(product, variant);
-                setSearchTerm('');
-            } else {
-                toast({variant: 'destructive', title: 'Product variant not found or out of stock.'});
+        const trimmedSearchTerm = searchTerm.trim().toLowerCase();
+        if (!trimmedSearchTerm) return;
+    
+        // 1. Prioritize exact SKU match for barcode scanning
+        if (allProducts && outletId) {
+            for (const product of allProducts) {
+                const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants);
+                const variant = variantsArray.find(v => v.sku.toLowerCase() === trimmedSearchTerm);
+    
+                if (variant) {
+                    // The addToCart function will handle stock checking and user feedback
+                    addToCart(product, variant);
+                    setSearchTerm(''); // Clear search field on successful scan
+                    return; // Stop further processing
+                }
             }
-        } else if (availableProducts.length > 1 && searchTerm) {
-            toast({title: 'Multiple products found', description: 'Please select a product from the grid.'})
-        } else if (availableProducts.length === 0 && searchTerm) {
-             toast({variant: 'destructive', title: 'Product not found.'})
         }
+    
+        // 2. If no exact SKU match, it's a name search. The visual grid update is enough.
+        // We can just give a toast if nothing is found after filtering.
+        if (availableProducts.length === 0) {
+            toast({ variant: 'destructive', title: 'Product Not Found', description: `No product matches "${searchTerm}".` });
+        }
+        // If it's a name search with multiple results, the grid shows them, which is the desired behavior.
+        // No explicit toast is needed here, as it might be annoying. The user can see the results.
     };
 
     const cartSubtotal = useMemo(() => {
@@ -202,7 +219,9 @@ export default function POSPage() {
                     
                     // Modify the array in memory
                     variantsArray[variantIndex].stock -= item.quantity;
-                    variantsArray[variantIndex].outlet_stocks![outletId] -= item.quantity;
+                    if (variantsArray[variantIndex].outlet_stocks) {
+                       variantsArray[variantIndex].outlet_stocks![outletId] -= item.quantity;
+                    }
                     
                     const newTotalStock = productData.total_stock - item.quantity;
 
