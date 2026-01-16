@@ -24,8 +24,8 @@ export const ProductCard = ({ product }: { product: Product }) => {
     const price = determinedVariant?.price ?? product.price;
     const originalPrice = determinedVariant?.compareAtPrice ?? product.compareAtPrice;
 
-    // A product is out of stock only if its total aggregated stock is zero or less.
-    const outOfStock = product.total_stock <= 0;
+    // A product is out of stock only if its total aggregated stock is zero or less AND it's not a pre-order item.
+    const outOfStock = !product.preOrder?.enabled && product.total_stock <= 0;
 
     return {
       defaultVariant: determinedVariant,
@@ -42,7 +42,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
     return 0;
   }, [displayPrice, displayOriginalPrice]);
 
-  const stockStatus = !isOutOfStock && product.total_stock < 10 ? 'Low Stock' : null;
+  const stockStatus = !isOutOfStock && !product.preOrder?.enabled && product.total_stock < 10 ? 'Low Stock' : null;
 
   const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -74,7 +74,10 @@ export const ProductCard = ({ product }: { product: Product }) => {
         )}
         
         {/* Badges */}
-        <div className="absolute top-2 left-2 flex flex-col gap-1">
+        <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
+          {product.preOrder?.enabled && (
+            <span className="bg-purple-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">Pre-order</span>
+          )}
           <span className="bg-black/80 text-white text-[9px] font-saira px-2 py-0.5 rounded-full uppercase">{product.group}</span>
           {variantDiscount > 0 && !isOutOfStock && (
             <span className="bg-primary text-primary-foreground text-[9px] font-bold px-2 py-0.5 rounded-full">{variantDiscount}% OFF</span>
@@ -136,6 +139,11 @@ export const ProductCard = ({ product }: { product: Product }) => {
         <Button onClick={handleAddToCart} className="w-full mt-2 flex items-center justify-center gap-2 bg-foreground text-background py-2 rounded-lg text-[10px] font-bold hover:bg-primary hover:text-primary-foreground transition-colors" disabled={isOutOfStock}>
           {isOutOfStock ? (
             'Out of Stock'
+          ) : product.preOrder?.enabled ? (
+            <>
+              <ShoppingBag size={12} />
+              PRE-ORDER
+            </>
           ) : (
             <>
               <ShoppingBag size={12} />

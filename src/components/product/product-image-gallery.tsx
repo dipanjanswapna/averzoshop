@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
@@ -53,7 +52,7 @@ export function ProductImageGallery({ product, selectedVariant }: ProductImageGa
     }
   }, [selectedVariant, product.image]);
   
-  const isOutOfStock = !selectedVariant || selectedVariant.stock <= 0;
+  const isOutOfStock = !product.preOrder?.enabled && (!selectedVariant || (selectedVariant.stock || 0) <= 0);
 
   return (
     <div className="flex flex-col gap-4 sticky top-28">
@@ -87,7 +86,12 @@ export function ProductImageGallery({ product, selectedVariant }: ProductImageGa
           </div>
         )}
 
-        <div className="absolute top-4 left-4 flex flex-col gap-2">
+        <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+            {product.preOrder?.enabled && (
+              <div className="bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase">
+                Pre-Order
+              </div>
+            )}
             {product.isNew && <div className="bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">NEW</div>}
             {product.discount > 0 && !isOutOfStock && (
               <div className="bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full">
