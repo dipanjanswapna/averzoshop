@@ -27,8 +27,14 @@ export function ProductImageGallery({ product, selectedVariant }: ProductImageGa
     product.gallery?.forEach(src => mediaSet.set(src, { type: 'image', src }));
 
     // Add unique variant images
-    product.variants?.forEach(v => {
-      if (v.image) {
+    const variantsArray = Array.isArray(product.variants)
+      ? product.variants
+      : product.variants && typeof product.variants === 'object'
+      ? Object.values(product.variants)
+      : [];
+
+    variantsArray.forEach(v => {
+      if (v?.image) {
         mediaSet.set(v.image, { type: 'image', src: v.image });
       }
     });
@@ -47,7 +53,7 @@ export function ProductImageGallery({ product, selectedVariant }: ProductImageGa
     }
   }, [selectedVariant, product.image]);
   
-  const isOutOfStock = product.total_stock <= 0;
+  const isOutOfStock = !selectedVariant || selectedVariant.stock <= 0;
 
   return (
     <div className="flex flex-col gap-4 sticky top-28">
@@ -69,7 +75,7 @@ export function ProductImageGallery({ product, selectedVariant }: ProductImageGa
             alt={product.name}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className={cn("object-cover", isOutOfStock && "grayscale")}
+            className={cn("object-cover")}
           />
         </motion.div>
         
