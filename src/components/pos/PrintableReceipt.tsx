@@ -4,10 +4,9 @@ import Barcode from 'react-barcode';
 import type { POSSale } from '@/types/pos';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import type { Outlet } from '@/types/outlet';
-import AverzoLogo from '../averzo-logo';
 
 interface PrintableReceiptProps {
-  sale: POSSale;
+  sale: POSSale & { cashReceived?: number, changeDue?: number };
   outletId: string;
 }
 
@@ -50,7 +49,7 @@ export function PrintableReceipt({ sale, outletId }: PrintableReceiptProps) {
                 ))}
             </div>
 
-            <div className="space-y-0.5 text-[10px]">
+            <div className="space-y-0.5 text-[10px] border-b border-dashed border-black pb-1 mb-1">
                 <div className="flex justify-between">
                     <span>Subtotal:</span>
                     <span>৳{sale.totalAmount.toFixed(2)}</span>
@@ -63,9 +62,21 @@ export function PrintableReceipt({ sale, outletId }: PrintableReceiptProps) {
                     <span>Payment Method:</span>
                     <span className='capitalize'>{sale.paymentMethod}</span>
                 </div>
+                {sale.paymentMethod === 'cash' && sale.cashReceived && (
+                    <>
+                        <div className="flex justify-between">
+                            <span>Cash Received:</span>
+                            <span>৳{sale.cashReceived.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <span>Change Due:</span>
+                            <span>৳{Math.max(0, sale.changeDue || 0).toFixed(2)}</span>
+                        </div>
+                    </>
+                )}
             </div>
 
-            <div className="text-center mt-2 border-t border-dashed border-black pt-1">
+            <div className="text-center mt-2">
                 <p className="font-bold text-xs">Thank you for your purchase!</p>
                 <div className="flex justify-center mt-1">
                      <Barcode value={sale.id} height={30} width={1} fontSize={8} margin={2} />

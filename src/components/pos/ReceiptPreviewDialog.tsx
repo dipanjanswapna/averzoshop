@@ -15,7 +15,7 @@ import type { POSSale } from '@/types/pos';
 interface ReceiptPreviewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  sale: POSSale;
+  sale: POSSale & { cashReceived?: number, changeDue?: number };
   outletId: string;
 }
 

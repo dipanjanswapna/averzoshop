@@ -16,6 +16,8 @@ import type { POSSale } from '@/types/pos';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ReceiptPreviewDialog } from '@/components/pos/ReceiptPreviewDialog';
 import { CameraScanner } from '@/components/pos/CameraScanner';
+import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 
 
 type CartItem = {
@@ -40,7 +42,8 @@ export default function POSPage() {
     const { firestore } = useFirebase();
     const searchInputRef = useRef<HTMLInputElement>(null);
     const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'mobile'>('cash');
-    const [lastSale, setLastSale] = useState<POSSale | null>(null);
+    const [cashReceived, setCashReceived] = useState<number>(0);
+    const [lastSale, setLastSale] = useState<(POSSale & { cashReceived?: number, changeDue?: number }) | null>(null);
     const [isReceiptPreviewOpen, setIsReceiptPreviewOpen] = useState(false);
 
 
@@ -177,6 +180,9 @@ export default function POSPage() {
     const totalItems = useMemo(() => {
         return cart.reduce((total, item) => total + item.quantity, 0);
     }, [cart]);
+    
+    const changeDue = cashReceived - cartSubtotal;
+
 
     const handleCompleteSale = async () => {
         if (!firestore || !user || !outletId || cart.length === 0) {
@@ -248,10 +254,15 @@ export default function POSPage() {
             });
     
             toast({ title: 'Sale Completed!', description: 'Receipt is being prepared.' });
-            setLastSale(saleData);
+            let saleInfoForReceipt: POSSale & { cashReceived?: number; changeDue?: number } = { ...saleData };
+            if (paymentMethod === 'cash') {
+                saleInfoForReceipt = { ...saleData, cashReceived, changeDue };
+            }
+            setLastSale(saleInfoForReceipt);
             setIsReceiptPreviewOpen(true);
             setCart([]);
             setSearchTerm('');
+            setCashReceived(0);
     
         } catch (error: any) {
             console.error('Sale transaction failed: ', error);
@@ -360,16 +371,45 @@ export default function POSPage() {
                                 <span>৳{cartSubtotal.toFixed(2)}</span>
                             </div>
                             <div className='space-y-2'>
-                                <label className='text-sm font-medium'>Payment Method</label>
+                                <Label className='text-sm font-medium'>Payment Method</Label>
                                 <div className='grid grid-cols-3 gap-2'>
                                     <Button variant={paymentMethod === 'cash' ? 'default' : 'outline'} onClick={() => setPaymentMethod('cash')} className="flex-col h-16 gap-1"><Banknote size={20}/>Cash</Button>
                                     <Button variant={paymentMethod === 'card' ? 'default' : 'outline'} onClick={() => setPaymentMethod('card')} className="flex-col h-16 gap-1"><CreditCard size={20}/>Card</Button>
                                     <Button variant={paymentMethod === 'mobile' ? 'default' : 'outline'} onClick={() => setPaymentMethod('mobile')} className="flex-col h-16 gap-1"><Smartphone size={20}/>Mobile</Button>
                                 </div>
                             </div>
+                            
+                            {paymentMethod === 'cash' && cart.length > 0 && (
+                                <div className="space-y-4 p-4 border rounded-lg bg-background">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="cash-received">Cash Received</Label>
+                                        <Input
+                                            id="cash-received"
+                                            type="number"
+                                            value={cashReceived || ''}
+                                            onChange={(e) => setCashReceived(Number(e.target.value))}
+                                            placeholder="Enter amount received"
+                                            className="h-12 text-lg font-bold"
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {[500, 1000, 2000].map(amt => (
+                                            <Button key={amt} type="button" variant="outline" onClick={() => setCashReceived(prev => prev + amt)}>+ ৳{amt}</Button>
+                                        ))}
+                                         <Button type="button" variant="outline" onClick={() => setCashReceived(cartSubtotal)}>Exact</Button>
+                                         <Button type="button" variant="ghost" className="col-span-2 text-destructive hover:bg-destructive/10" onClick={() => setCashReceived(0)}>Clear</Button>
+                                    </div>
+                                    <div className={cn("p-3 rounded-md text-center", changeDue >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')}>
+                                        <span className="text-sm font-medium">Change Due: </span>
+                                        <span className="font-bold text-lg">৳ {Math.max(0, changeDue).toFixed(2)}</span>
+                                        {changeDue < 0 && <p className="text-xs">Need ৳{Math.abs(changeDue).toFixed(2)} more</p>}
+                                    </div>
+                                </div>
+                            )}
+
                             <Button 
                                 size="lg" 
-                                disabled={cart.length === 0 || isProcessing}
+                                disabled={cart.length === 0 || isProcessing || (paymentMethod === 'cash' && cashReceived < cartSubtotal)}
                                 onClick={handleCompleteSale}
                                 className="h-14 text-lg"
                             >
