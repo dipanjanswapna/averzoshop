@@ -8,6 +8,7 @@ import { usePathname } from 'next/navigation';
 import { MobileBottomNav } from '@/components/mobile-bottom-nav';
 import { Providers } from '@/components/providers';
 import { ToastProvider } from '@/components/ui/toast';
+import React, { useState, useEffect } from 'react';
 
 // export const metadata: Metadata = {
 //   title: 'Averzo',
@@ -20,8 +21,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  const protectedPrefixes = ['/dashboard', '/outlet', '/vendor', '/rider', '/customer', '/login', '/register'];
-  const showMobileNav = !protectedPrefixes.some(prefix => pathname.startsWith(prefix));
+  const [showMobileNav, setShowMobileNav] = useState(false);
+
+  useEffect(() => {
+    if (pathname) {
+      const protectedPrefixes = ['/dashboard', '/outlet', '/vendor', '/rider', '/customer', '/login', '/register'];
+      const shouldShow = !protectedPrefixes.some(prefix => pathname.startsWith(prefix));
+      setShowMobileNav(shouldShow);
+    } else {
+      setShowMobileNav(false);
+    }
+  }, [pathname]);
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -34,7 +44,10 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Saira:wght@600;700;800&display=swap" rel="stylesheet" />
       </head>
-      <body className={cn('font-body antialiased min-h-screen bg-background pb-16 lg:pb-0')}>
+      <body className={cn(
+        'font-body antialiased min-h-screen bg-background',
+        showMobileNav && 'pb-16 lg:pb-0'
+      )}>
         <ToastProvider>
           <Providers>
             {children}
