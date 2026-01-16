@@ -24,7 +24,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { useToast } from "@/hooks/use-toast";
 import { useFirebase } from '@/firebase';
 import { useAuth } from '@/hooks/use-auth';
-import { collection, addDoc, serverTimestamp, Timestamp, doc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { CalendarIcon, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
@@ -80,9 +80,16 @@ export function AddVendorCouponDialog({ open, onOpenChange }: AddVendorCouponDia
     setIsLoading(true);
 
     try {
-        const newCouponRef = doc(collection(firestore, "coupons"));
+        const couponRef = doc(firestore, 'coupons', values.code);
+        const couponSnap = await getDoc(couponRef);
+        if (couponSnap.exists()) {
+            toast({ variant: "destructive", title: "Coupon code already exists", description: "Please choose a unique code." });
+            setIsLoading(false);
+            return;
+        }
+
         const couponData = {
-            id: newCouponRef.id,
+            id: values.code,
             ...values,
             expiryDate: Timestamp.fromDate(values.expiryDate),
             creatorType: 'vendor' as const,
@@ -92,7 +99,7 @@ export function AddVendorCouponDialog({ open, onOpenChange }: AddVendorCouponDia
             applicableProducts: values.applicableProducts || [], 
         };
         
-        await addDoc(collection(firestore, 'coupons'), couponData);
+        await setDoc(couponRef, couponData);
         
         toast({ title: "Coupon Created!", description: `Code ${values.code} has been added for your products.` });
         form.reset();

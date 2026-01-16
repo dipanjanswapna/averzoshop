@@ -23,6 +23,9 @@ export interface Order {
     customerId: string;
     shippingAddress: ShippingAddress;
     items: OrderItem[];
+    subtotal: number;
+    discountAmount?: number;
+    promoCode?: string;
     totalAmount: number;
     assignedOutletId: string;
     status: OrderStatus;

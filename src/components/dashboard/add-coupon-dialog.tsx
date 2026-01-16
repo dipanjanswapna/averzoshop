@@ -24,7 +24,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { useToast } from "@/hooks/use-toast";
 import { useFirebase } from '@/firebase';
 import { useAuth } from '@/hooks/use-auth';
-import { collection, addDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -67,8 +67,17 @@ export function AddCouponDialog({ open, onOpenChange }: AddCouponDialogProps) {
     setIsLoading(true);
 
     try {
-        await addDoc(collection(firestore, 'coupons'), {
+        const couponRef = doc(firestore, 'coupons', values.code);
+        const couponSnap = await getDoc(couponRef);
+        if (couponSnap.exists()) {
+             toast({ variant: "destructive", title: "Coupon code already exists", description: "Please use a different code." });
+             setIsLoading(false);
+             return;
+        }
+
+        await setDoc(couponRef, {
             ...values,
+            id: values.code,
             expiryDate: Timestamp.fromDate(values.expiryDate),
             creatorType: 'admin',
             creatorId: user.uid,

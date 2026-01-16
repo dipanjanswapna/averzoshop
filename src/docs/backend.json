@@ -118,6 +118,9 @@
             }
           }
         },
+        "subtotal": { "type": "number" },
+        "discountAmount": { "type": "number" },
+        "promoCode": { "type": "string" },
         "totalAmount": { "type": "number" },
         "assignedOutletId": { "type": "string" },
         "riderId": { "type": "string", "description": "The UID of the rider assigned to this delivery." },
