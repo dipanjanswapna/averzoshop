@@ -1,10 +1,10 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { format } from "date-fns";
 import {
   Dialog,
   DialogContent,
@@ -25,11 +25,14 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { categoriesData } from '@/lib/categories';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
-import { Trash2 } from 'lucide-react';
+import { CalendarIcon, Trash2 } from 'lucide-react';
 import { Switch } from '../ui/switch';
 import { CreatableSelect } from '../ui/creatable-select';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import type { Product } from '@/types/product';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Calendar } from '../ui/calendar';
+import { cn } from '@/lib/utils';
 
 
 interface AddProductDialogProps {
@@ -65,6 +68,13 @@ const formSchema = z.object({
     enabled: z.boolean().default(false),
     description: z.string().optional(),
   }).optional(),
+  preOrder: z.object({
+    enabled: z.boolean().default(false),
+    releaseDate: z.date().optional(),
+    depositType: z.enum(['percentage', 'fixed']).optional(),
+    depositAmount: z.coerce.number().optional(),
+    limit: z.coerce.number().int().optional(),
+  }).optional(),
 });
 
 export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) {
@@ -92,6 +102,9 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
         enabled: false,
         description: '',
       },
+      preOrder: {
+        enabled: false,
+      },
     },
   });
 
@@ -102,6 +115,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
 
   const selectedCategory = form.watch('category');
   const giftEnabled = form.watch('giftWithPurchase.enabled');
+  const preOrderEnabled = form.watch('preOrder.enabled');
 
   const availableGroups = useMemo(() => {
     if (!allProducts || !selectedCategory) return [];
@@ -186,6 +200,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
         colors: values.variantColors?.split(',').map(s => s.trim()).filter(Boolean) || [],
         sizes: values.variantSizes?.split(',').map(c => c.trim()).filter(Boolean) || [],
         giftWithPurchase: values.giftWithPurchase || { enabled: false, description: '' },
+        preOrder: values.preOrder,
         vendorId: user.uid,
         status: status,
         createdAt: serverTimestamp(),
@@ -355,6 +370,86 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
                       </FormItem>
                     )}
                   />
+                )}
+            </div>
+
+             <div className="space-y-4 rounded-lg border p-4">
+                <FormField
+                  control={form.control}
+                  name="preOrder.enabled"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between">
+                      <div className="space-y-0.5">
+                        <FormLabel>Enable Pre-order</FormLabel>
+                        <FormDescription>
+                          Allow customers to order this product before it's in stock.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                {preOrderEnabled && (
+                  <div className="space-y-4 pt-4 border-t">
+                      <FormField
+                          control={form.control}
+                          name="preOrder.releaseDate"
+                          render={({ field }) => (
+                          <FormItem className="flex flex-col"><FormLabel>Release Date</FormLabel>
+                              <Popover>
+                              <PopoverTrigger asChild>
+                                  <FormControl>
+                                  <Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                                      {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                  </Button>
+                                  </FormControl>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                  <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                              </PopoverContent>
+                              </Popover>
+                              <FormMessage /></FormItem>
+                      )} />
+                      <div className="grid grid-cols-2 gap-4">
+                          <FormField
+                              control={form.control}
+                              name="preOrder.depositType"
+                              render={({ field }) => (
+                              <FormItem>
+                                  <FormLabel>Deposit Type</FormLabel>
+                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                      <FormControl><SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger></FormControl>
+                                      <SelectContent>
+                                          <SelectItem value="percentage">Percentage (%)</SelectItem>
+                                          <SelectItem value="fixed">Fixed Amount (৳)</SelectItem>
+                                      </SelectContent>
+                                  </Select>
+                                  <FormMessage />
+                              </FormItem>
+                              )}
+                          />
+                          <FormField
+                              control={form.control}
+                              name="preOrder.depositAmount"
+                              render={({ field }) => (
+                                  <FormItem><FormLabel>Deposit Amount</FormLabel><FormControl><Input type="number" placeholder="e.g., 20 or 500" {...field} /></FormControl><FormMessage /></FormItem>
+                              )}
+                          />
+                      </div>
+                       <FormField
+                          control={form.control}
+                          name="preOrder.limit"
+                          render={({ field }) => (
+                              <FormItem><FormLabel>Pre-order Limit</FormLabel><FormControl><Input type="number" placeholder="Max pre-orders" {...field} /></FormControl><FormMessage /></FormItem>
+                          )}
+                      />
+                  </div>
                 )}
             </div>
 
