@@ -576,6 +576,20 @@ export default function POSPage() {
                 return;
             }
 
+            let latestReleaseDate: Date | null = null;
+            cart.forEach(item => {
+                if (item.product.preOrder?.enabled && item.product.preOrder.releaseDate) {
+                    const releaseDateValue = item.product.preOrder.releaseDate as any;
+                    const itemReleaseDate = releaseDateValue?.toDate ? releaseDateValue.toDate() : new Date(releaseDateValue);
+                    
+                    if (itemReleaseDate instanceof Date && !isNaN(itemReleaseDate.getTime())) {
+                        if (!latestReleaseDate || itemReleaseDate > latestReleaseDate) {
+                            latestReleaseDate = itemReleaseDate;
+                        }
+                    }
+                }
+            });
+
             const orderId = doc(collection(firestore, 'id_generator')).id;
 
             const preOrderData: Omit<Order, 'id'> & { id: string } = {
@@ -611,7 +625,8 @@ export default function POSPage() {
                     ...preOrderData,
                     paymentMethod: paymentMethod,
                     cashReceived: cashReceived,
-                    changeDue: cashReceived - grandTotal
+                    changeDue: cashReceived - grandTotal,
+                    releaseDate: latestReleaseDate,
                 };
                 
                 setLastSale(receiptData);

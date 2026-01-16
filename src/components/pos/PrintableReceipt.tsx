@@ -26,16 +26,7 @@ export function PrintableReceipt({ sale, outletId }: PrintableReceiptProps) {
     
     const isPreOrder = sale.orderType === 'pre-order';
     
-    let releaseDate: Date | null = null;
-    if (isPreOrder && sale.items && sale.items.length > 0) {
-        // This assumes the product data with preOrder info is passed in the sale object,
-        // which we are not doing. A better approach would be to fetch product details if needed.
-        // For now, let's assume it might come from the `handleCompleteSale` logic.
-        const firstItemReleaseDate = sale.releaseDate;
-        if(firstItemReleaseDate) {
-             releaseDate = firstItemReleaseDate.toDate ? firstItemReleaseDate.toDate() : new Date(firstItemReleaseDate);
-        }
-    }
+    const releaseDate = sale.releaseDate ? new Date(sale.releaseDate) : null;
 
 
     if (isLoading && !outlet) {
@@ -126,7 +117,7 @@ export function PrintableReceipt({ sale, outletId }: PrintableReceiptProps) {
                     <Barcode value={sale.id} height={30} width={1} fontSize={8} margin={0} />
                 </div>
                 {isPreOrder && releaseDate && (
-                    <p className="font-bold text-xs mt-2">Expected Delivery: {releaseDate.toLocaleDateString()}</p>
+                    <p className="font-bold text-xs mt-2">Expected Delivery: {releaseDate.toLocaleDateString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
                 )}
                 <p className="font-bold italic mt-2">Thank you for shopping!</p>
                 <p>Software by: Averzo</p>
