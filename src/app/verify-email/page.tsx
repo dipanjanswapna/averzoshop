@@ -38,43 +38,43 @@ function VerifyEmailPageContent() {
     });
 
     useEffect(() => {
-        const verifyAndPrepareForPassword = async () => {
-            if (!auth || !isSignInWithEmailLink(auth, window.location.href)) {
-                 if (!window.localStorage.getItem('emailForSignIn')) {
-                     setStatus('Verification link is invalid or expired. Please try registering again.');
-                     setStep('error');
-                     router.push('/register');
-                 }
-                return;
-            }
-            
-            setStatus('Email verified. Please set your password.');
-            let email = window.localStorage.getItem('emailForSignIn');
-            if (!email) {
-                // This case should be rare, but good to handle
-                setStatus('Could not find your email. Please try registering again.');
-                setStep('error');
-                router.push('/register');
-                return;
+        const completeSignIn = async () => {
+            if (!auth || !firestore) {
+                return; // Wait for firebase to initialize
             }
 
-            try {
-                const result = await signInWithEmailLink(auth, email, window.location.href);
-                setUserCredential(result);
-                setStep('setPassword');
-            } catch (error: any) {
-                console.error(error);
-                setStatus(`Verification Failed: The link may be expired or invalid.`);
+            if (isSignInWithEmailLink(auth, window.location.href)) {
+                let email = window.localStorage.getItem('emailForSignIn');
+                
+                if (!email) {
+                    email = window.prompt('Please provide your email for confirmation');
+                }
+
+                if (!email) {
+                    setStatus('Could not find your email. Please try registering again.');
+                    setStep('error');
+                    return;
+                }
+
+                try {
+                    const result = await signInWithEmailLink(auth, email, window.location.href);
+                    setUserCredential(result);
+                    setStatus('Email verified. Please set your password.');
+                    setStep('setPassword');
+                } catch (error: any) {
+                    console.error("Verification Error:", error);
+                    setStatus(`Verification Failed: The link may be expired or invalid.`);
+                    setStep('error');
+                    toast({ variant: 'destructive', title: 'Verification Failed', description: 'The link may be expired or invalid. Please try again.' });
+                }
+            } else {
+                setStatus('Invalid verification link. Please try registering again.');
                 setStep('error');
-                toast({ variant: 'destructive', title: 'Verification Failed', description: 'The link may be expired or invalid. Please try again.' });
-                router.push('/register');
             }
         };
-        
-        if(auth && firestore) {
-          verifyAndPrepareForPassword();
-        }
-    }, [auth, firestore, router, toast]);
+
+        completeSignIn();
+    }, [auth, firestore, toast]);
 
     const onPasswordSubmit = async (values: z.infer<typeof passwordSchema>) => {
         if (!userCredential || !firestore) {
