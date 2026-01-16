@@ -84,7 +84,7 @@ export function AddUserDialog({ open, onOpenChange }: AddUserDialogProps) {
             displayName: values.name,
             role: values.role,
             status: 'approved', // Admin-created users are pre-approved
-            createdAt: new Date().toISOString(),
+            createdAt: serverTimestamp(),
             loyaltyPoints: 0,
             totalSpent: 0,
             membershipTier: 'silver',

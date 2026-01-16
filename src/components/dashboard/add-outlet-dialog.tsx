@@ -88,7 +88,7 @@ export function AddOutletDialog({ open, onOpenChange }: AddOutletDialogProps) {
             role: 'outlet',
             status: 'approved',
             outletId: outletId, // Link user to the outlet
-            createdAt: new Date().toISOString()
+            createdAt: serverTimestamp()
         });
         
         // 4. Update the outlet with the manager's UID
