@@ -1,4 +1,5 @@
 'use client';
+
 import { useState, useMemo, useEffect, Dispatch, SetStateAction } from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -14,7 +15,6 @@ import { SaleTimer } from './sale-timer';
 import { ShareButtons } from './share-buttons';
 import { SizeGuideDialog } from './size-guide-dialog';
 import { useCart } from '@/hooks/use-cart';
-import Barcode from 'react-barcode';
 import { ProductSticker } from './product-sticker';
 import { StoreAvailabilityDialog } from './store-availability-dialog';
 
@@ -208,7 +208,15 @@ export function ProductDetails({
           <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
               <span>By <Link href="#" className="text-primary font-semibold hover:underline">{product.brand}</Link></span>
               <span className="h-4 border-l border-border"></span>
-              <span>SKU: {selectedVariant?.sku || product.baseSku}</span>
+              <div className="flex items-center gap-2">
+                <span>SKU: {selectedVariant?.sku || product.baseSku}</span>
+                {selectedVariant && (
+                    <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-primary" onClick={handlePrint} title="Print Sticker">
+                        <Printer size={14} />
+                        <span className="sr-only">Print Sticker</span>
+                    </Button>
+                )}
+               </div>
           </div>
         </div>
 
@@ -319,7 +327,7 @@ export function ProductDetails({
                 </div>
             ) : isOutOfStock ? (
               <div className="flex w-full items-center gap-4">
-                <Button size="lg" disabled className="flex-1">
+                <Button size="lg" disabled className="flex-1 h-12">
                   Out of Stock
                 </Button>
                 <Button variant="outline" size="icon" className="h-12 w-12" onClick={handleWishlistToggle}>
@@ -327,44 +335,27 @@ export function ProductDetails({
                 </Button>
               </div>
             ) : (
-              <div className="flex flex-col gap-4">
-                <div className="flex flex-col sm:flex-row items-center gap-4">
+               <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-4">
                   <div className="flex items-center border border-border rounded-md w-fit">
-                      <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => setQuantity(q => Math.max(1, q - 1))}><Minus size={14}/></Button>
-                      <span className="w-10 text-center font-bold">{quantity}</span>
-                      <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => setQuantity(q => q + 1)} disabled={quantity >= stock}><Plus size={14}/></Button>
+                      <Button variant="ghost" size="icon" className="h-12 w-12" onClick={() => setQuantity(q => Math.max(1, q - 1))}><Minus size={16}/></Button>
+                      <span className="w-12 text-center text-lg font-bold">{quantity}</span>
+                      <Button variant="ghost" size="icon" className="h-12 w-12" onClick={() => setQuantity(q => q + 1)} disabled={quantity >= stock}><Plus size={16}/></Button>
                   </div>
-                  <div className="flex items-center gap-2 w-full">
-                      <Button size="lg" variant="outline" className="w-full" onClick={handleAddToCart}>
-                          <ShoppingBag size={20} className="mr-2" /> Add to Bag
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={handleWishlistToggle} className={cn("border", isWishlisted ? 'bg-destructive/20 text-destructive border-destructive' : '')}>
-                          <Heart size={20} className={cn(isWishlisted ? 'fill-current' : '')} />
-                      </Button>
-                  </div>
+                   <Button size="lg" variant="outline" className="w-full h-12" onClick={handleAddToCart}>
+                      <ShoppingBag size={20} className="mr-2" /> Add to Bag
+                  </Button>
                 </div>
-                <Button size="lg" className="w-full" onClick={handleBuyNow}>Buy Now</Button>
+                <div className="flex items-center gap-2">
+                    <Button size="lg" className="w-full h-12" onClick={handleBuyNow}>Buy Now</Button>
+                    <Button variant="outline" size="icon" className="h-12 w-12" onClick={handleWishlistToggle}>
+                        <Heart size={20} className={cn(isWishlisted ? 'text-destructive fill-destructive' : 'text-foreground')} />
+                    </Button>
+                </div>
               </div>
             )}
           </div>
         </div>
-
-
-         {selectedVariant && (
-          <div className="border rounded-lg p-4 space-y-3 flex flex-col items-center">
-              <h4 className="font-bold text-sm">Product Variant SKU</h4>
-               <Barcode 
-                value={selectedVariant.sku}
-                width={2}
-                height={50}
-                fontSize={14}
-               />
-               <Button variant="outline" size="sm" onClick={handlePrint}>
-                  <Printer className="mr-2 h-4 w-4" />
-                  Print Sticker
-               </Button>
-          </div>
-         )}
 
          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t pt-6">
              <div className="border rounded-lg p-4 space-y-3">
