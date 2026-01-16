@@ -1,8 +1,9 @@
 
 'use client';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import type { Product } from '@/types/product';
+import type { Order } from '@/types/order'; // Import Order type
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import { AddProductDialog } from '@/components/dashboard/add-product-dialog';
@@ -15,10 +16,35 @@ import Image from 'next/image';
 
 export default function VendorProductsPage() {
   const { user } = useAuth();
-  const { data: products, isLoading } = useFirestoreQuery<Product>('products');
+  const { data: products, isLoading: productsLoading } = useFirestoreQuery<Product>('products');
+  const { data: orders, isLoading: ordersLoading } = useFirestoreQuery<Order>('orders'); // Fetch orders
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-  const vendorProducts = products?.filter(p => p.vendorId === user?.uid) || [];
+  const isLoading = productsLoading || ordersLoading;
+
+  const preOrderCounts = useMemo(() => {
+    if (!orders) return new Map<string, number>();
+
+    const counts = new Map<string, number>();
+    orders.forEach(order => {
+        if (order.status === 'pre-ordered') {
+            order.items.forEach(item => {
+                counts.set(item.productId, (counts.get(item.productId) || 0) + item.quantity);
+            });
+        }
+    });
+    return counts;
+  }, [orders]);
+
+  const vendorProducts = useMemo(() => {
+    if (!products || !user) return [];
+    return products
+      .filter(p => p.vendorId === user.uid)
+      .map(p => ({
+        ...p,
+        preOrderCount: preOrderCounts.get(p.id) || 0,
+      }));
+  }, [products, user, preOrderCounts]);
 
   const renderSkeleton = () => (
     [...Array(3)].map((_, i) => (
@@ -27,6 +53,7 @@ export default function VendorProductsPage() {
         <TableCell><Skeleton className="h-5 w-40" /></TableCell>
         <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
         <TableCell><Skeleton className="h-5 w-12" /></TableCell>
+        <TableCell><Skeleton className="h-5 w-16" /></TableCell> {/* Pre-order count skeleton */}
         <TableCell className="text-right"><Skeleton className="h-5 w-16 ml-auto" /></TableCell>
       </TableRow>
     ))
@@ -55,6 +82,7 @@ export default function VendorProductsPage() {
                   <TableHead>Name</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Total Stock</TableHead>
+                  <TableHead>Pre-orders</TableHead>
                   <TableHead className="text-right">Price</TableHead>
                 </TableRow>
               </TableHeader>
@@ -81,11 +109,18 @@ export default function VendorProductsPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>{product.total_stock}</TableCell>
+                      <TableCell>
+                        {product.preOrder?.enabled ? (
+                            <span className="font-bold">{product.preOrderCount}</span>
+                        ) : (
+                            <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
                       <TableCell className="text-right">৳{product.price.toFixed(2)}</TableCell>
                     </TableRow>
                   ))
                 ) : (
-                  <TableRow><TableCell colSpan={5} className="h-24 text-center">No products listed yet.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={6} className="h-24 text-center">No products listed yet.</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>
