@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -189,7 +188,7 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
       const { price, compareAtPrice } = values;
       let discount = 0;
       if (compareAtPrice && compareAtPrice > price) {
-          discount = ((compareAtPrice - price) / compareAtPrice) * 100;
+          discount = ((compareAtPrice - price) / price) * 100;
       }
       
       // Preserve stock from original product object

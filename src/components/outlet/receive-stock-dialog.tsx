@@ -1,4 +1,3 @@
-
 'use client';
 import { useState } from 'react';
 import {
@@ -17,6 +16,7 @@ import { useFirebase } from '@/firebase';
 import { doc, runTransaction, increment } from 'firebase/firestore';
 import type { DeliveryChallan } from '@/types/logistics';
 import { useAuth } from '@/hooks/use-auth';
+import type { Product } from '@/types/product';
 
 interface ReceiveStockDialogProps {
   open: boolean;
@@ -46,10 +46,34 @@ export function ReceiveStockDialog({ open, onOpenChange, challan }: ReceiveStock
                 // Update product stocks
                 for (const item of challan.items) {
                     const productRef = doc(firestore, 'products', item.productId);
-                    transaction.update(productRef, {
+                    const productDoc = await transaction.get(productRef);
+                    if (!productDoc.exists()) {
+                        throw new Error(`Product with ID ${item.productId} not found.`);
+                    }
+
+                    const productData = productDoc.data() as Product;
+                    const variantIndex = productData.variants.findIndex(v => v.sku === item.variantSku);
+
+                    if (variantIndex === -1) {
+                        throw new Error(`Variant with SKU ${item.variantSku} not found for product ${item.productName}.`);
+                    }
+
+                    const updates: { [key: string]: any } = {
                         total_stock: increment(item.quantity),
                         [`outlet_stocks.${userData.outletId}`]: increment(item.quantity),
-                    });
+                    };
+
+                    // To update an item in an array, you need to read the whole array, modify it, and write it back.
+                    // Firestore transactions don't support `array-union` or direct indexed updates in this way.
+                    // A safer approach is to update the entire variants array.
+                    const newVariants = [...productData.variants];
+                    newVariants[variantIndex] = {
+                        ...newVariants[variantIndex],
+                        stock: newVariants[variantIndex].stock + item.quantity
+                    };
+                    updates.variants = newVariants;
+                    
+                    transaction.update(productRef, updates);
                 }
                 
                 // Update challan status
@@ -82,7 +106,7 @@ export function ReceiveStockDialog({ open, onOpenChange, challan }: ReceiveStock
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Product Name</TableHead>
-                                <TableHead>Product ID</TableHead>
+                                <TableHead>Variant SKU</TableHead>
                                 <TableHead className="text-right">Expected Quantity</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -90,7 +114,7 @@ export function ReceiveStockDialog({ open, onOpenChange, challan }: ReceiveStock
                             {challan.items.map((item, index) => (
                                 <TableRow key={index}>
                                     <TableCell className="font-medium">{item.productName}</TableCell>
-                                    <TableCell>{item.productId}</TableCell>
+                                    <TableCell className="font-mono text-xs">{item.variantSku}</TableCell>
                                     <TableCell className="text-right">{item.quantity}</TableCell>
                                 </TableRow>
                             ))}

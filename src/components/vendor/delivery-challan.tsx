@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -54,16 +53,16 @@ export function DeliveryChallan({ challan, vendor, outlet }: ChallanProps) {
             <tr>
               <th className="p-3 font-bold uppercase text-gray-600">#</th>
               <th className="p-3 font-bold uppercase text-gray-600">Product Name</th>
-              <th className="p-3 font-bold uppercase text-gray-600">Product ID</th>
+              <th className="p-3 font-bold uppercase text-gray-600">Variant SKU</th>
               <th className="p-3 font-bold uppercase text-gray-600 text-right">Quantity</th>
             </tr>
           </thead>
           <tbody>
             {challan.items.map((item, index) => (
-              <tr key={item.productId} className="border-b">
+              <tr key={item.productId + item.variantSku} className="border-b">
                 <td className="p-3">{index + 1}</td>
                 <td className="p-3 font-medium">{item.productName}</td>
-                <td className="p-3 font-mono text-xs">{item.productId}</td>
+                <td className="p-3 font-mono text-xs">{item.variantSku}</td>
                 <td className="p-3 text-right font-medium">{item.quantity}</td>
               </tr>
             ))}

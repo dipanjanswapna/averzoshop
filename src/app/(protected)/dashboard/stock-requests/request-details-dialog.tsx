@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -39,7 +38,7 @@ export function RequestDetailsDialog({ open, onOpenChange, request }: RequestDet
                 <TableHeader>
                     <TableRow>
                         <TableHead>Product Name</TableHead>
-                        <TableHead>Product ID</TableHead>
+                        <TableHead>Variant SKU</TableHead>
                         <TableHead className="text-right">Quantity</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -47,7 +46,7 @@ export function RequestDetailsDialog({ open, onOpenChange, request }: RequestDet
                     {request.items.map((item, index) => (
                         <TableRow key={index}>
                             <TableCell className="font-medium">{item.productName}</TableCell>
-                            <TableCell>{item.productId}</TableCell>
+                            <TableCell className="font-mono text-xs">{item.variantSku}</TableCell>
                             <TableCell className="text-right">{item.quantity}</TableCell>
                         </TableRow>
                     ))}

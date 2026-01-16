@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -23,7 +22,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
-import { Product } from '@/types/product';
+import { Product, ProductVariant } from '@/types/product';
 import { Trash2, PlusCircle } from 'lucide-react';
 import type { Outlet } from '@/types/outlet';
 
@@ -35,6 +34,7 @@ interface CreateStockRequestDialogProps {
 const itemSchema = z.object({
     productId: z.string().min(1, 'Product must be selected'),
     productName: z.string(),
+    variantSku: z.string().min(1, 'Variant must be selected'),
     quantity: z.coerce.number().int().min(1, 'Quantity must be at least 1'),
 });
 
@@ -46,9 +46,8 @@ const formSchema = z.object({
 export function CreateStockRequestDialog({ open, onOpenChange }: CreateStockRequestDialogProps) {
   const { toast } = useToast();
   const { firestore } = useFirebase();
-  const { user } = useAuth();
+  const { user, userData } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const { userData } = useAuth();
 
   const { data: allOutlets, isLoading: isLoadingOutlets } = useFirestoreQuery<Outlet>('outlets');
   const { data: vendorProducts, isLoading: isLoadingProducts } = useFirestoreQuery<Product>(`products`);
@@ -68,7 +67,7 @@ export function CreateStockRequestDialog({ open, onOpenChange }: CreateStockRequ
     resolver: zodResolver(formSchema),
     defaultValues: {
       outletId: '',
-      items: [{ productId: '', productName: '', quantity: 1 }],
+      items: [{ productId: '', productName: '', variantSku: '', quantity: 1 }],
     },
   });
 
@@ -76,6 +75,8 @@ export function CreateStockRequestDialog({ open, onOpenChange }: CreateStockRequ
     control: form.control,
     name: "items"
   });
+
+  const watchItems = form.watch('items');
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!firestore || !user) return;
@@ -112,7 +113,7 @@ export function CreateStockRequestDialog({ open, onOpenChange }: CreateStockRequ
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Create Stock Request</DialogTitle>
           <DialogDescription>
@@ -154,64 +155,76 @@ export function CreateStockRequestDialog({ open, onOpenChange }: CreateStockRequ
 
             <div className="space-y-4">
                 <FormLabel>Products</FormLabel>
-                {fields.map((field, index) => (
-                    <div key={field.id} className="flex items-end gap-2 p-3 border rounded-md">
-                        <FormField
-                            control={form.control}
-                            name={`items.${index}.productId`}
-                            render={({ field }) => (
-                                <FormItem className="flex-1">
-                                    <Select 
-                                        onValueChange={(value) => {
-                                            const selectedProduct = availableProducts.find(p => p.id === value);
-                                            field.onChange(value);
-                                            form.setValue(`items.${index}.productName`, selectedProduct?.name || '');
-                                        }} 
-                                        defaultValue={field.value}
-                                    >
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select a product" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {isLoadingProducts ? (
-                                                <SelectItem value="loading" disabled>Loading...</SelectItem>
-                                            ) : (
-                                                availableProducts.map(p => (
-                                                    <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
-                                                ))
-                                            )}
-                                        </SelectContent>
-                                    </Select>
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name={`items.${index}.quantity`}
-                            render={({ field }) => (
-                                <FormItem className="w-24">
-                                    <FormControl>
-                                        <Input type="number" placeholder="Qty" {...field} />
-                                    </FormControl>
-                                </FormItem>
-                            )}
-                        />
-                        <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}>
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
-                    </div>
-                ))}
+                {fields.map((field, index) => {
+                    const selectedProductId = watchItems[index]?.productId;
+                    const productVariants = availableProducts.find(p => p.id === selectedProductId)?.variants || [];
+                    
+                    return (
+                        <div key={field.id} className="grid grid-cols-[1fr,1fr,100px,auto] items-end gap-2 p-3 border rounded-md">
+                            <FormField
+                                control={form.control}
+                                name={`items.${index}.productId`}
+                                render={({ field }) => (
+                                    <FormItem>
+                                        {index === 0 && <FormLabel>Product</FormLabel>}
+                                        <Select 
+                                            onValueChange={(value) => {
+                                                const selectedProduct = availableProducts.find(p => p.id === value);
+                                                field.onChange(value);
+                                                form.setValue(`items.${index}.productName`, selectedProduct?.name || '');
+                                                form.setValue(`items.${index}.variantSku`, ''); // Reset variant
+                                            }} 
+                                            defaultValue={field.value}
+                                        >
+                                            <FormControl><SelectTrigger><SelectValue placeholder="Select Product" /></SelectTrigger></FormControl>
+                                            <SelectContent>{isLoadingProducts ? <SelectItem value="loading" disabled>Loading...</SelectItem> : availableProducts.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
+                                        </Select>
+                                        <FormMessage/>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name={`items.${index}.variantSku`}
+                                render={({ field }) => (
+                                    <FormItem>
+                                       {index === 0 && <FormLabel>Variant</FormLabel>}
+                                       <Select onValueChange={field.onChange} value={field.value} disabled={!selectedProductId}>
+                                            <FormControl><SelectTrigger><SelectValue placeholder="Select Variant" /></SelectTrigger></FormControl>
+                                            <SelectContent>
+                                                {productVariants.map((v: ProductVariant) => (
+                                                    <SelectItem key={v.sku} value={v.sku}>{`${v.sku} (${v.color || ''} ${v.size || ''})`.trim()}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                       </Select>
+                                       <FormMessage/>
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name={`items.${index}.quantity`}
+                                render={({ field }) => (
+                                    <FormItem>
+                                        {index === 0 && <FormLabel>Quantity</FormLabel>}
+                                        <FormControl><Input type="number" placeholder="Qty" {...field} /></FormControl>
+                                        <FormMessage/>
+                                    </FormItem>
+                                )}
+                            />
+                            <Button type="button" variant="destructive" size="icon" onClick={() => remove(index)}><Trash2 className="h-4 w-4" /></Button>
+                        </div>
+                    )
+                })}
                  <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     className="mt-2"
-                    onClick={() => append({ productId: '', productName: '', quantity: 1 })}
+                    onClick={() => append({ productId: '', productName: '', variantSku: '', quantity: 1 })}
                     >
                     <PlusCircle className="mr-2 h-4 w-4"/>
-                    Add Product
+                    Add Another Product
                 </Button>
                 {form.formState.errors.items && (
                   <p className="text-sm font-medium text-destructive">{form.formState.errors.items.message}</p>
@@ -219,14 +232,8 @@ export function CreateStockRequestDialog({ open, onOpenChange }: CreateStockRequ
             </div>
 
             <DialogFooter className="pt-4">
-              <DialogClose asChild>
-                <Button type="button" variant="secondary" disabled={isLoading}>
-                  Cancel
-                </Button>
-              </DialogClose>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Submitting...' : 'Submit Request'}
-              </Button>
+              <DialogClose asChild><Button type="button" variant="secondary" disabled={isLoading}>Cancel</Button></DialogClose>
+              <Button type="submit" disabled={isLoading}>{isLoading ? 'Submitting...' : 'Submit Request'}</Button>
             </DialogFooter>
           </form>
         </Form>

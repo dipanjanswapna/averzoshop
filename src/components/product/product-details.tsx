@@ -274,10 +274,21 @@ export function ProductDetails({ product }: { product: Product }) {
               {uniqueSizes.map(size => {
                   const isAvailable = uniqueColors.length === 0 ? product.variants.some(v => v.size === size && v.stock > 0) : availableSizesForSelectedColor.has(size);
                   return (
-                <Button key={size} variant={selectedSize === size ? 'default' : 'outline'} onClick={() => handleSelectSize(size)} className="w-14" disabled={!isAvailable}>
-                  {size}
-                  {!isAvailable && <div className="absolute inset-0 bg-background/80" />}
-                </Button>
+                    <Button 
+                    key={size} 
+                    variant={selectedSize === size ? 'default' : 'outline'} 
+                    onClick={() => handleSelectSize(size)} 
+                    className="w-14 relative overflow-hidden" // relative এবং overflow-hidden যোগ করা হয়েছে
+                    disabled={!isAvailable}
+                  >
+                    {size}
+                    {/* নিচে সাদা পর্দার পরিবর্তে একটি লাল ক্রস (X) আইকন দেওয়া হয়েছে */}
+                    {!isAvailable && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/5"> 
+                         <X size={14} className="text-destructive opacity-40 rotate-12" />
+                      </div>
+                    )}
+                  </Button>
               )})}
             </div>
           </div>

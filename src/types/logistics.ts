@@ -1,4 +1,3 @@
-
 export type StockRequest = {
   id: string;
   vendorId: string;

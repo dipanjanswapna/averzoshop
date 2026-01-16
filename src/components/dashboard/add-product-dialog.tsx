@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -156,7 +155,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
       const { price, compareAtPrice } = values;
       let discount = 0;
       if (compareAtPrice && compareAtPrice > price) {
-          discount = ((compareAtPrice - price) / compareAtPrice) * 100;
+          discount = ((compareAtPrice - price) / price) * 100;
       }
 
       await addDoc(collection(firestore, 'products'), {
