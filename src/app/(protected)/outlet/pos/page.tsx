@@ -3,7 +3,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Search, PlusCircle, MinusCircle, XCircle, ShoppingCart, Banknote, CreditCard, Smartphone, Camera } from 'lucide-react';
+import { Search, PlusCircle, MinusCircle, XCircle, ShoppingCart, Banknote, CreditCard, Smartphone } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { Product, ProductVariant } from '@/types/product';
@@ -15,7 +15,7 @@ import { doc, runTransaction, serverTimestamp, collection } from 'firebase/fires
 import type { POSSale } from '@/types/pos';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ReceiptPreviewDialog } from '@/components/pos/ReceiptPreviewDialog';
-import { CameraScannerDialog } from '@/components/pos/CameraScannerDialog';
+import { CameraScanner } from '@/components/pos/CameraScanner';
 
 
 type CartItem = {
@@ -23,6 +23,12 @@ type CartItem = {
     variant: ProductVariant;
     quantity: number;
 };
+
+type SearchableVariant = ProductVariant & {
+  product: Product;
+  searchableTerms: string;
+};
+
 
 export default function POSPage() {
     const { user, userData } = useAuth();
@@ -36,50 +42,46 @@ export default function POSPage() {
     const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'mobile'>('cash');
     const [lastSale, setLastSale] = useState<POSSale | null>(null);
     const [isReceiptPreviewOpen, setIsReceiptPreviewOpen] = useState(false);
-    const [isScannerOpen, setIsScannerOpen] = useState(false);
 
 
     const outletId = useMemo(() => userData?.outletId, [userData]);
 
-    const availableProducts = useMemo(() => {
+    const availableVariants = useMemo(() => {
         if (!allProducts || !outletId) return [];
 
-        const productsInOutlet = allProducts
-            .map(p => {
-                const variantsArray = Array.isArray(p.variants) ? p.variants : Object.values(p.variants);
-                const stockInOutlet = variantsArray.some(v => (v.outlet_stocks?.[outletId] ?? 0) > 0);
-                
-                if (p.status !== 'approved' || !stockInOutlet) return null;
+        const variants: SearchableVariant[] = [];
+        allProducts.forEach(product => {
+            if (product.status !== 'approved') return;
 
-                const searchableTerms = [
-                    p.name.toLowerCase(),
-                    p.baseSku.toLowerCase(),
-                    ...variantsArray.map(v => v.sku.toLowerCase())
-                ].join(' ');
+            const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants || {});
 
-                return { ...p, searchableTerms };
-            })
-            .filter((p): p is Product & { searchableTerms: string } => !!p);
+            variantsArray.forEach(variant => {
+                const stockInOutlet = variant.outlet_stocks?.[outletId] ?? 0;
+                if (stockInOutlet > 0) {
+                    const searchableTerms = [
+                        product.name.toLowerCase(),
+                        product.baseSku.toLowerCase(),
+                        variant.sku.toLowerCase(),
+                        variant.color?.toLowerCase(),
+                        variant.size?.toLowerCase()
+                    ].filter(Boolean).join(' ');
+
+                    variants.push({
+                        ...variant,
+                        product: product,
+                        searchableTerms: searchableTerms
+                    });
+                }
+            });
+        });
 
         if (!searchTerm) {
-            return productsInOutlet;
+            return variants;
         }
+        
+        return variants.filter(v => v.searchableTerms.includes(searchTerm.toLowerCase()));
 
-        return productsInOutlet.filter(p => p.searchableTerms.includes(searchTerm.toLowerCase()));
     }, [allProducts, outletId, searchTerm]);
-
-    const findVariantInStock = (product: Product, sku?: string): ProductVariant | null => {
-        if (!outletId) return null;
-        const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants);
-
-        if (sku) {
-            const variantBySku = variantsArray.find(v => v.sku.toLowerCase() === sku.toLowerCase() && (v.outlet_stocks?.[outletId] ?? 0) > 0);
-            return variantBySku || null;
-        }
-
-        const variantInStock = variantsArray.find(v => (v.outlet_stocks?.[outletId] ?? 0) > 0);
-        return variantInStock || null;
-    }
 
     const addToCart = (product: Product, variant: ProductVariant | null) => {
         if (!variant || !outletId) {
@@ -134,31 +136,36 @@ export default function POSPage() {
         for (const product of allProducts) {
             const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants);
             const variant = variantsArray.find(v => v.sku.toLowerCase() === trimmedSku);
-
+            
             if (variant) {
-                addToCart(product, variant);
-                return true; // Found and added
+                const stockInOutlet = variant.outlet_stocks?.[outletId] ?? 0;
+                if (stockInOutlet > 0) {
+                    addToCart(product, variant);
+                    return true; // Successfully found and added to cart
+                }
             }
         }
-        return false; // Not found
+        return false; // Not found or out of stock in this outlet
     };
+
 
     const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const found = findAndAddToCartBySku(searchTerm);
         if (found) {
             setSearchTerm('');
-        } else if (availableProducts.length === 0) {
+        } else if (availableVariants.length === 0) {
             toast({ variant: 'destructive', title: 'Product Not Found', description: `No product matches "${searchTerm}".` });
         }
     };
 
-    const handleScanSuccess = (decodedText: string) => {
+    const handleCameraScan = (decodedText: string) => {
         const found = findAndAddToCartBySku(decodedText);
         if (found) {
             toast({ title: "Product Added", description: `Scanned item added to cart.` });
+            setSearchTerm('');
         } else {
-             toast({ variant: 'destructive', title: 'Product Not Found', description: `No product with barcode "${decodedText}" found.` });
+             toast({ variant: 'destructive', title: 'Product Not Found', description: `No product with barcode "${decodedText}" found in this outlet.` });
         }
     };
 
@@ -276,43 +283,38 @@ export default function POSPage() {
                             <Input
                                 ref={searchInputRef}
                                 placeholder="Scan Barcode or Search products by name/SKU..."
-                                className="pl-10 pr-12 h-12 text-base"
+                                className="pl-10 h-12 text-base"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
-                             <Button
-                                type="button"
-                                size="icon"
-                                variant="ghost"
-                                className="absolute right-1 top-1/2 -translate-y-1/2"
-                                onClick={() => setIsScannerOpen(true)}
-                            >
-                                <Camera className="h-5 w-5 text-muted-foreground" />
-                            </Button>
                         </div>
                     </form>
+
+                    <CameraScanner onScan={handleCameraScan} />
+
                     <Card className="flex-1">
-                        <ScrollArea className="h-[calc(100vh-230px)] rounded-lg">
+                        <ScrollArea className="h-[calc(100vh-320px)] rounded-lg">
                             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-4">
                                 {isLoading ? renderProductSkeletons() : 
-                                availableProducts.map(product => {
-                                    if(!product) return null;
-                                    const variant = findVariantInStock(product);
+                                availableVariants.map(variant => {
+                                    const { product } = variant;
+                                    const variantImage = variant.image || product.image;
                                     return (
-                                    <Card key={product.id} onClick={() => addToCart(product, variant)} className="cursor-pointer hover:border-primary transition-colors flex flex-col shadow-sm">
+                                    <Card key={variant.sku} onClick={() => addToCart(product, variant)} className="cursor-pointer hover:border-primary transition-colors flex flex-col shadow-sm">
                                         <CardContent className="p-0 flex-grow">
                                             <div className="relative aspect-square">
-                                                <Image src={product.image || 'https://placehold.co/300'} alt={product.name} fill className="object-cover rounded-t-lg" />
+                                                <Image src={variantImage || 'https://placehold.co/300'} alt={product.name} fill className="object-cover rounded-t-lg" />
                                             </div>
                                         </CardContent>
                                         <CardFooter className="p-2 flex-col items-start">
                                             <p className="text-xs font-semibold truncate w-full">{product.name}</p>
-                                            <p className="text-sm font-bold text-primary">৳{variant?.price ?? product.price}</p>
+                                             <p className="text-[10px] text-muted-foreground">{[variant.color, variant.size].filter(Boolean).join(' / ')}</p>
+                                            <p className="text-sm font-bold text-primary">৳{variant.price.toFixed(2)}</p>
                                         </CardFooter>
                                     </Card>
                                 )})}
                             </div>
-                            {!isLoading && availableProducts.length === 0 && (
+                            {!isLoading && availableVariants.length === 0 && (
                                 <div className="flex items-center justify-center h-full text-muted-foreground p-10 text-center">
                                     <p>{searchTerm ? `No products found for "${searchTerm}"` : 'No products available in this outlet. Check inventory.'}</p>
                                 </div>
@@ -385,11 +387,6 @@ export default function POSPage() {
                     outletId={userData.outletId}
                 />
             )}
-            <CameraScannerDialog
-                open={isScannerOpen}
-                onOpenChange={setIsScannerOpen}
-                onScanSuccess={handleScanSuccess}
-            />
         </>
     );
 }
