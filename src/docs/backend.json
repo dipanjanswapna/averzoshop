@@ -118,9 +118,6 @@
             }
           }
         },
-        "subtotal": { "type": "number" },
-        "discountAmount": { "type": "number" },
-        "promoCode": { "type": "string" },
         "totalAmount": { "type": "number" },
         "assignedOutletId": { "type": "string" },
         "riderId": { "type": "string", "description": "The UID of the rider assigned to this delivery." },
@@ -183,6 +180,17 @@
             "enabled": { "type": "boolean" },
             "description": { "type": "string", "description": "A short description of the free gift." }
           }
+        },
+        "preOrder": {
+            "type": "object",
+            "description": "Pre-order specific settings for the product.",
+            "properties": {
+                "enabled": { "type": "boolean" },
+                "releaseDate": { "type": "string", "format": "date-time" },
+                "depositType": { "type": "string", "enum": ["percentage", "fixed"] },
+                "depositAmount": { "type": "number" },
+                "limit": { "type": "number" }
+            }
         }
       },
       "required": ["name", "price", "total_stock", "vendorId", "status", "category", "group", "subcategory", "brand", "image", "baseSku", "variants"]

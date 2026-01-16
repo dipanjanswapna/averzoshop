@@ -39,6 +39,13 @@ export type Product = {
         enabled: boolean;
         description: string;
     };
+    preOrder?: {
+        enabled: boolean;
+        releaseDate: string;
+        depositType?: 'percentage' | 'fixed';
+        depositAmount?: number;
+        limit?: number;
+    };
     vendorId: string;
     status: 'pending' | 'approved' | 'rejected';
     createdAt: any; // Can be Timestamp or string
