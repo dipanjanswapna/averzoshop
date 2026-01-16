@@ -15,7 +15,6 @@ import { SaleTimer } from './sale-timer';
 import { ShareButtons } from './share-buttons';
 import { SizeGuideDialog } from './size-guide-dialog';
 import { useCart } from '@/hooks/use-cart';
-import { ProductSticker } from './product-sticker';
 import { StoreAvailabilityDialog } from './store-availability-dialog';
 
 interface ProductDetailsProps {
@@ -50,9 +49,6 @@ export function ProductDetails({
   const { user, firestore, userData } = useAuth();
   const { toast } = useToast();
   
-  const handlePrint = () => {
-    window.print();
-  };
 
   const isPreOrder = product.preOrder?.enabled;
   const releaseDate = isPreOrder && product.preOrder.releaseDate
@@ -186,15 +182,6 @@ export function ProductDetails({
 
   return (
     <>
-      <div className="printable-area">
-        {selectedVariant && (
-          <ProductSticker
-            product={product}
-            variant={selectedVariant}
-          />
-        )}
-      </div>
-
       <div className="flex flex-col gap-6 no-print">
         <div>
            <div className="flex items-center justify-between">
@@ -210,12 +197,6 @@ export function ProductDetails({
               <span className="h-4 border-l border-border"></span>
               <div className="flex items-center gap-2">
                 <span>SKU: {selectedVariant?.sku || product.baseSku}</span>
-                {selectedVariant && (
-                    <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-primary" onClick={handlePrint} title="Print Sticker">
-                        <Printer size={14} />
-                        <span className="sr-only">Print Sticker</span>
-                    </Button>
-                )}
                </div>
           </div>
         </div>
