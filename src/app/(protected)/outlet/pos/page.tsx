@@ -18,7 +18,13 @@ import { ReceiptPreviewDialog } from '@/components/pos/ReceiptPreviewDialog';
 import { CameraScanner } from '@/components/pos/CameraScanner';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 type CartItem = {
     product: Product;
@@ -30,6 +36,123 @@ type SearchableVariant = ProductVariant & {
   product: Product;
   searchableTerms: string;
 };
+
+const CartPanel = ({
+    cart,
+    updateQuantity,
+    totalItems,
+    cartSubtotal,
+    paymentMethod,
+    setPaymentMethod,
+    cashReceived,
+    setCashReceived,
+    changeDue,
+    isProcessing,
+    handleCompleteSale
+}: any) => (
+    <div className="flex flex-col gap-4 h-full">
+        {/* Customer Card */}
+        <Card className="shadow-md flex-shrink-0">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                    <User /> Customer
+                </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+                <div className="flex gap-2">
+                    <Input placeholder="Search by phone number..." />
+                    <Button variant="outline">Search</Button>
+                </div>
+                <div className="text-sm text-center text-muted-foreground p-4 border-2 border-dashed rounded-lg">
+                    Default: Walk-in Customer
+                </div>
+            </CardContent>
+        </Card>
+        
+        {/* Cart Section */}
+        <Card className="flex-1 flex flex-col shadow-lg">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                   <ShoppingCart /> Current Sale
+                </CardTitle>
+            </CardHeader>
+            <ScrollArea className="flex-grow">
+                 <CardContent className="space-y-4">
+                     {cart.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
+                            <ShoppingCart className="w-16 h-16" />
+                            <p className="mt-4">Your cart is empty</p>
+                        </div>
+                    ) : cart.map((item: CartItem) => (
+                        <div key={item.variant.sku} className="flex items-center gap-4 border-b pb-2">
+                            <div className="flex-grow">
+                                <p className="text-sm font-medium truncate">{item.product.name} <span className="text-muted-foreground text-xs">({item.variant.sku})</span></p>
+                                <p className="text-xs text-muted-foreground">৳{item.variant.price.toFixed(2)}</p>
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => updateQuantity(item.variant.sku, item.quantity - 1)}><MinusCircle className="h-4 w-4" /></Button>
+                                <span className="font-bold text-sm w-6 text-center">{item.quantity}</span>
+                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => updateQuantity(item.variant.sku, item.quantity + 1)}><PlusCircle className="h-4 w-4" /></Button>
+                            </div>
+                             <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => updateQuantity(item.variant.sku, 0)}><XCircle className="h-4 w-4" /></Button>
+                        </div>
+                    ))}
+                </CardContent>
+            </ScrollArea>
+            <CardFooter className="flex-col items-stretch space-y-4 border-t p-4 bg-muted/30">
+                <div className="flex justify-between font-bold text-lg">
+                    <span>Total ({totalItems} items)</span>
+                    <span>৳{cartSubtotal.toFixed(2)}</span>
+                </div>
+                <div className='space-y-2'>
+                    <Label className='text-sm font-medium'>Payment Method</Label>
+                    <div className='grid grid-cols-3 gap-2'>
+                        <Button variant={paymentMethod === 'cash' ? 'default' : 'outline'} onClick={() => setPaymentMethod('cash')} className="flex-col h-16 gap-1"><Banknote size={20}/>Cash</Button>
+                        <Button variant={paymentMethod === 'card' ? 'default' : 'outline'} onClick={() => setPaymentMethod('card')} className="flex-col h-16 gap-1"><CreditCard size={20}/>Card</Button>
+                        <Button variant={paymentMethod === 'mobile' ? 'default' : 'outline'} onClick={() => setPaymentMethod('mobile')} className="flex-col h-16 gap-1"><Smartphone size={20}/>Mobile</Button>
+                    </div>
+                </div>
+                
+                {paymentMethod === 'cash' && cart.length > 0 && (
+                    <div className="space-y-4 p-4 border rounded-lg bg-background">
+                        <div className="space-y-2">
+                            <Label htmlFor="cash-received">Cash Received</Label>
+                            <Input
+                                id="cash-received"
+                                type="number"
+                                value={cashReceived || ''}
+                                onChange={(e) => setCashReceived(Number(e.target.value))}
+                                placeholder="Enter amount received"
+                                className="h-12 text-lg font-bold"
+                            />
+                        </div>
+                        <div className="grid grid-cols-3 gap-2">
+                            {[500, 1000, 2000].map(amt => (
+                                <Button key={amt} type="button" variant="outline" onClick={() => setCashReceived((prev: number) => prev + amt)}>+ ৳{amt}</Button>
+                            ))}
+                             <Button type="button" variant="outline" onClick={() => setCashReceived(cartSubtotal)}>Exact</Button>
+                             <Button type="button" variant="ghost" className="col-span-2 text-destructive hover:bg-destructive/10" onClick={() => setCashReceived(0)}>Clear</Button>
+                        </div>
+                        <div className={cn("p-3 rounded-md text-center", changeDue >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')}>
+                            <span className="text-sm font-medium">Change Due: </span>
+                            <span className="font-bold text-lg">৳ {Math.max(0, changeDue).toFixed(2)}</span>
+                            {changeDue < 0 && <p className="text-xs">Need ৳{Math.abs(changeDue).toFixed(2)} more</p>}
+                        </div>
+                    </div>
+                )}
+
+                <Button 
+                    size="lg" 
+                    disabled={cart.length === 0 || isProcessing || (paymentMethod === 'cash' && cashReceived < cartSubtotal)}
+                    onClick={handleCompleteSale}
+                    className="h-14 text-lg"
+                >
+                    {isProcessing ? 'Processing...' : 'Complete Sale'}
+                </Button>
+            </CardFooter>
+        </Card>
+    </div>
+);
 
 
 export default function POSPage() {
@@ -281,12 +404,26 @@ export default function POSPage() {
             </div>
         ))
     );
+    
+    const cartPanelProps = {
+        cart,
+        updateQuantity,
+        totalItems,
+        cartSubtotal,
+        paymentMethod,
+        setPaymentMethod,
+        cashReceived,
+        setCashReceived,
+        changeDue,
+        isProcessing,
+        handleCompleteSale
+    };
 
     return (
          <>
-            <div className="h-full grid grid-cols-1 lg:grid-cols-5 gap-4 p-4 no-print bg-muted/30">
+            <div className="grid grid-cols-1 lg:grid-cols-5 no-print">
                 {/* Product Grid Section */}
-                <div className="lg:col-span-3 flex flex-col gap-4 h-full">
+                <div className="lg:col-span-3 flex flex-col gap-4 p-4 h-screen overflow-y-auto">
                     <h1 className="text-2xl font-bold font-headline">Point of Sale</h1>
                     <form onSubmit={handleSearchSubmit}>
                         <div className="relative">
@@ -334,110 +471,37 @@ export default function POSPage() {
                     </Card>
                 </div>
 
-                {/* Right Column: Customer + Cart */}
-                <div className="lg:col-span-2 h-fit lg:h-full flex flex-col gap-4">
-                     {/* Customer Card */}
-                    <Card className="shadow-md">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-lg">
-                                <User /> Customer
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                            <div className="flex gap-2">
-                                <Input placeholder="Search by phone number..." />
-                                <Button variant="outline">Search</Button>
-                            </div>
-                            <div className="text-sm text-center text-muted-foreground p-4 border-2 border-dashed rounded-lg">
-                                Default: Walk-in Customer
-                            </div>
-                        </CardContent>
-                    </Card>
-                    
-                    {/* Cart Section */}
-                    <Card className="flex-1 flex flex-col shadow-lg">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                               <ShoppingCart /> Current Sale
-                            </CardTitle>
-                        </CardHeader>
-                        <ScrollArea className="flex-grow">
-                             <CardContent className="space-y-4">
-                                 {cart.length === 0 ? (
-                                    <div className="flex flex-col items-center justify-center h-48 text-muted-foreground">
-                                        <ShoppingCart className="w-16 h-16" />
-                                        <p className="mt-4">Your cart is empty</p>
-                                    </div>
-                                ) : cart.map(item => (
-                                    <div key={item.variant.sku} className="flex items-center gap-4 border-b pb-2">
-                                        <div className="flex-grow">
-                                            <p className="text-sm font-medium truncate">{item.product.name} <span className="text-muted-foreground text-xs">({item.variant.sku})</span></p>
-                                            <p className="text-xs text-muted-foreground">৳{item.variant.price.toFixed(2)}</p>
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => updateQuantity(item.variant.sku, item.quantity - 1)}><MinusCircle className="h-4 w-4" /></Button>
-                                            <span className="font-bold text-sm w-6 text-center">{item.quantity}</span>
-                                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => updateQuantity(item.variant.sku, item.quantity + 1)}><PlusCircle className="h-4 w-4" /></Button>
-                                        </div>
-                                         <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => updateQuantity(item.variant.sku, 0)}><XCircle className="h-4 w-4" /></Button>
-                                    </div>
-                                ))}
-                            </CardContent>
-                        </ScrollArea>
-                        <CardFooter className="flex-col items-stretch space-y-4 border-t p-4 bg-muted/30">
-                            <div className="flex justify-between font-bold text-lg">
-                                <span>Total ({totalItems} items)</span>
-                                <span>৳{cartSubtotal.toFixed(2)}</span>
-                            </div>
-                            <div className='space-y-2'>
-                                <Label className='text-sm font-medium'>Payment Method</Label>
-                                <div className='grid grid-cols-3 gap-2'>
-                                    <Button variant={paymentMethod === 'cash' ? 'default' : 'outline'} onClick={() => setPaymentMethod('cash')} className="flex-col h-16 gap-1"><Banknote size={20}/>Cash</Button>
-                                    <Button variant={paymentMethod === 'card' ? 'default' : 'outline'} onClick={() => setPaymentMethod('card')} className="flex-col h-16 gap-1"><CreditCard size={20}/>Card</Button>
-                                    <Button variant={paymentMethod === 'mobile' ? 'default' : 'outline'} onClick={() => setPaymentMethod('mobile')} className="flex-col h-16 gap-1"><Smartphone size={20}/>Mobile</Button>
-                                </div>
-                            </div>
-                            
-                            {paymentMethod === 'cash' && cart.length > 0 && (
-                                <div className="space-y-4 p-4 border rounded-lg bg-background">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="cash-received">Cash Received</Label>
-                                        <Input
-                                            id="cash-received"
-                                            type="number"
-                                            value={cashReceived || ''}
-                                            onChange={(e) => setCashReceived(Number(e.target.value))}
-                                            placeholder="Enter amount received"
-                                            className="h-12 text-lg font-bold"
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-2">
-                                        {[500, 1000, 2000].map(amt => (
-                                            <Button key={amt} type="button" variant="outline" onClick={() => setCashReceived(prev => prev + amt)}>+ ৳{amt}</Button>
-                                        ))}
-                                         <Button type="button" variant="outline" onClick={() => setCashReceived(cartSubtotal)}>Exact</Button>
-                                         <Button type="button" variant="ghost" className="col-span-2 text-destructive hover:bg-destructive/10" onClick={() => setCashReceived(0)}>Clear</Button>
-                                    </div>
-                                    <div className={cn("p-3 rounded-md text-center", changeDue >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')}>
-                                        <span className="text-sm font-medium">Change Due: </span>
-                                        <span className="font-bold text-lg">৳ {Math.max(0, changeDue).toFixed(2)}</span>
-                                        {changeDue < 0 && <p className="text-xs">Need ৳{Math.abs(changeDue).toFixed(2)} more</p>}
-                                    </div>
-                                </div>
-                            )}
-
-                            <Button 
-                                size="lg" 
-                                disabled={cart.length === 0 || isProcessing || (paymentMethod === 'cash' && cashReceived < cartSubtotal)}
-                                onClick={handleCompleteSale}
-                                className="h-14 text-lg"
-                            >
-                                {isProcessing ? 'Processing...' : 'Complete Sale'}
-                            </Button>
-                        </CardFooter>
-                    </Card>
+                {/* Desktop Right Column: Customer + Cart */}
+                <div className="hidden lg:block lg:col-span-2 h-screen sticky top-0 overflow-y-auto p-4 border-l bg-muted/30">
+                     <CartPanel {...cartPanelProps} />
                 </div>
             </div>
+
+             {/* Mobile "View Cart" Button & Sheet */}
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm p-3 border-t no-print">
+                 <Sheet>
+                    <SheetTrigger asChild>
+                       <Button size="lg" className="w-full h-14 text-lg font-bold flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <ShoppingCart />
+                                <span>{totalItems} Items</span>
+                            </div>
+                            <span>৳{cartSubtotal.toFixed(2)}</span>
+                       </Button>
+                    </SheetTrigger>
+                    <SheetContent side="bottom" className="h-[90vh] flex flex-col p-0">
+                        <SheetHeader className="p-4 border-b">
+                            <SheetTitle>Current Sale</SheetTitle>
+                        </SheetHeader>
+                        <ScrollArea className="flex-1">
+                            <div className="p-4">
+                                <CartPanel {...cartPanelProps} />
+                            </div>
+                        </ScrollArea>
+                    </SheetContent>
+                 </Sheet>
+            </div>
+            
             {lastSale && userData?.outletId && (
                 <ReceiptPreviewDialog
                     open={isReceiptPreviewOpen}
