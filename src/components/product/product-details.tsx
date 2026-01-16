@@ -55,12 +55,13 @@ export function ProductDetails({
     window.print();
   };
 
-  const variantsArray = useMemo(() =>
-    Array.isArray(product.variants)
-      ? product.variants
-      : product.variants && typeof product.variants === 'object'
-      ? Object.values(product.variants)
-      : [],
+  const variantsArray = useMemo(
+    () =>
+      Array.isArray(product.variants)
+        ? product.variants
+        : product.variants && typeof product.variants === 'object'
+        ? Object.values(product.variants)
+        : [],
     [product.variants]
   );
 
@@ -122,8 +123,8 @@ export function ProductDetails({
     setQuantity(1);
   }, [selectedVariant]);
 
-  const displayPrice = selectedVariant ? selectedVariant.price : product.price;
-  const originalPrice = selectedVariant ? selectedVariant.compareAtPrice : product.compareAtPrice;
+  const displayPrice = selectedVariant?.price ?? product.price;
+  const originalPrice = selectedVariant?.compareAtPrice ?? product.compareAtPrice;
   const savings = originalPrice && originalPrice > displayPrice ? originalPrice - displayPrice : 0;
   
   const stock = selectedVariant ? selectedVariant.stock : 0;
