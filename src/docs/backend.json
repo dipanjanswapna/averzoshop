@@ -272,6 +272,24 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["sourceOutletId", "destinationOutletId", "productId", "quantity", "status", "requestedBy", "createdAt"]
+    },
+    "coupon": {
+      "title": "Coupon",
+      "description": "A promotional code for discounts.",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string", "description": "The unique code for the coupon (e.g., WINTER20)." },
+        "discountType": { "type": "string", "enum": ["percentage", "fixed"], "description": "The type of discount." },
+        "value": { "type": "number", "description": "The discount value (either percentage or fixed amount)." },
+        "minimumSpend": { "type": "number", "description": "The minimum purchase amount to apply the coupon." },
+        "usageLimit": { "type": "number", "description": "Total number of times the coupon can be used." },
+        "usedCount": { "type": "number", "description": "How many times the coupon has been used." },
+        "expiryDate": { "type": "string", "format": "date-time", "description": "The expiration date of the coupon." },
+        "creatorType": { "type": "string", "enum": ["admin", "vendor"], "description": "Who created the coupon." },
+        "creatorId": { "type": "string", "description": "The UID of the admin or vendor who created it." },
+        "applicableProducts": { "type": "array", "items": { "type": "string" }, "description": "Array of product IDs this coupon applies to. Empty means all." }
+      },
+      "required": ["code", "discountType", "value", "expiryDate", "creatorType", "creatorId"]
     }
   },
   "auth": {
@@ -287,6 +305,7 @@
     "/stock_requests/{requestId}": { "schema": { "$ref": "#/entities/stock_request" }, "description": "Tracks stock movement requests from vendors to outlets." },
     "/delivery_challans/{challanId}": { "schema": { "$ref": "#/entities/delivery_challan" }, "description": "Stores delivery challans generated after stock request approvals." },
     "/orders/{orderId}": { "schema": { "$ref": "#/entities/order" }, "description": "Stores customer online orders routed to specific outlets for fulfillment." },
-    "/stock_transfers/{transferId}": { "schema": { "$ref": "#/entities/stock_transfer" }, "description": "Tracks inter-outlet stock transfers initiated by admins." }
+    "/stock_transfers/{transferId}": { "schema": { "$ref": "#/entities/stock_transfer" }, "description": "Tracks inter-outlet stock transfers initiated by admins." },
+    "/coupons/{couponId}": { "schema": { "$ref": "#/entities/coupon" }, "description": "Stores all promotional codes for discounts." }
   }
 }
