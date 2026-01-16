@@ -10,4 +10,5 @@ export interface UserData {
   outletId?: string;
   assignedOutlets?: string[];
   createdAt?: string;
+  phone?: string;
 }

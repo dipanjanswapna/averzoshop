@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/sheet";
 import { Separator } from '@/components/ui/separator';
 import type { Coupon } from '@/types/coupon';
+import { UserData } from '@/types/user';
 
 
 type CartItem = {
@@ -63,7 +64,13 @@ const CartPanel = ({
     isProcessing,
     handleCompleteSale,
     isPreOrderCart,
-    fullOrderTotal
+    fullOrderTotal,
+    selectedCustomer,
+    customerSearch,
+    setCustomerSearch,
+    filteredCustomers,
+    handleSelectCustomer,
+    handleClearCustomer
 }: any) => (
     <div className="flex flex-col gap-4 h-full">
         {/* Customer Card */}
@@ -74,13 +81,48 @@ const CartPanel = ({
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-                <div className="flex gap-2">
-                    <Input placeholder="Search by phone number..." />
-                    <Button variant="outline">Search</Button>
-                </div>
-                <div className="text-sm text-center text-muted-foreground p-4 border-2 border-dashed rounded-lg">
-                    Default: Walk-in Customer
-                </div>
+               {selectedCustomer ? (
+                    <div className="flex items-center justify-between p-3 border-2 border-dashed rounded-lg bg-green-50">
+                        <div>
+                            <p className="font-bold text-sm text-green-800">{selectedCustomer.displayName}</p>
+                            <p className="text-xs text-muted-foreground">{selectedCustomer.email}</p>
+                        </div>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={handleClearCustomer}><XCircle className="h-4 w-4" /></Button>
+                    </div>
+                ) : (
+                    <div className="relative">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Search by name, email, or phone..."
+                            value={customerSearch}
+                            onChange={(e) => setCustomerSearch(e.target.value)}
+                            className="pl-8"
+                        />
+                        {customerSearch && (
+                             <div className="absolute top-full left-0 right-0 bg-background border rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
+                                {filteredCustomers.length > 0 ? filteredCustomers.map((cust: UserData) => (
+                                    <div
+                                        key={cust.uid}
+                                        onClick={() => handleSelectCustomer(cust)}
+                                        className="p-3 hover:bg-muted cursor-pointer border-b"
+                                    >
+                                        <p className="font-semibold text-sm">{cust.displayName}</p>
+                                        <p className="text-xs text-muted-foreground">{cust.email}</p>
+                                    </div>
+                                )) : (
+                                    <div className="p-3 text-center text-xs text-muted-foreground">
+                                        No customers found.
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
+                 {!selectedCustomer && (
+                    <div className="text-sm text-center text-muted-foreground p-2 border-2 border-dashed rounded-lg">
+                        Default: Walk-in Customer
+                    </div>
+                 )}
             </CardContent>
         </Card>
         
@@ -234,7 +276,9 @@ const CartPanel = ({
 
 export default function POSPage() {
     const { user, userData } = useAuth();
-    const { data: allProducts, isLoading } = useFirestoreQuery<Product>('products');
+    const { data: allProducts, isLoading: productsLoading } = useFirestoreQuery<Product>('products');
+    const { data: allUsers, isLoading: usersLoading } = useFirestoreQuery<UserData>('users');
+
     const [searchTerm, setSearchTerm] = useState('');
     const [cart, setCart] = useState<CartItem[]>([]);
     const [isProcessing, setIsProcessing] = useState(false);
@@ -250,9 +294,32 @@ export default function POSPage() {
     const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
     const [discountAmount, setDiscountAmount] = useState(0);
     const [isApplyingPromo, setIsApplyingPromo] = useState(false);
+    
+    const [customerSearch, setCustomerSearch] = useState('');
+    const [selectedCustomer, setSelectedCustomer] = useState<UserData | null>(null);
 
+    const isLoading = productsLoading || usersLoading;
 
     const outletId = useMemo(() => userData?.outletId, [userData]);
+
+    const filteredCustomers = useMemo(() => {
+        if (!customerSearch || !allUsers) return [];
+        return allUsers.filter(u => u.role === 'customer' &&
+            (u.displayName?.toLowerCase().includes(customerSearch.toLowerCase()) ||
+             u.email?.toLowerCase().includes(customerSearch.toLowerCase()) ||
+             u.phone?.includes(customerSearch)
+            )
+        ).slice(0, 5); // limit results
+    }, [customerSearch, allUsers]);
+
+    const handleSelectCustomer = (customer: UserData) => {
+        setSelectedCustomer(customer);
+        setCustomerSearch('');
+    };
+
+    const handleClearCustomer = () => {
+        setSelectedCustomer(null);
+    };
 
     const availableVariants = useMemo(() => {
         if (!allProducts || !outletId) return [];
@@ -490,6 +557,8 @@ export default function POSPage() {
         setPromoCodeInput('');
         setAppliedCoupon(null);
         setDiscountAmount(0);
+        setSelectedCustomer(null);
+        setCustomerSearch('');
     };
 
     const handleCompleteSale = async () => {
@@ -501,15 +570,20 @@ export default function POSPage() {
         setIsProcessing(true);
         
         if (isPreOrderCart) {
+            if (!selectedCustomer) {
+                toast({ variant: 'destructive', title: 'Customer Required', description: 'Please select a customer for pre-orders.' });
+                setIsProcessing(false);
+                return;
+            }
+
             const orderId = doc(collection(firestore, 'id_generator')).id;
-            const firstItem = cart[0];
 
             const preOrderData: Omit<Order, 'id'> & { id: string } = {
                 id: orderId,
-                customerId: user.uid,
+                customerId: selectedCustomer.uid,
                 shippingAddress: { 
-                    name: 'In-Store Pre-order Customer',
-                    phone: userData?.email || 'N/A',
+                    name: selectedCustomer.displayName || 'In-Store Customer',
+                    phone: selectedCustomer.phone || 'N/A',
                     address: `Pickup at Outlet ID: ${outletId}`,
                     city: 'In-Store',
                 },
@@ -679,7 +753,13 @@ export default function POSPage() {
         isProcessing,
         handleCompleteSale,
         isPreOrderCart,
-        fullOrderTotal
+        fullOrderTotal,
+        selectedCustomer,
+        customerSearch,
+        setCustomerSearch,
+        filteredCustomers,
+        handleSelectCustomer,
+        handleClearCustomer
     };
 
     return (
