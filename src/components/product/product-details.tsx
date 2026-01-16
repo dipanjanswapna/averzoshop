@@ -241,17 +241,17 @@ export function ProductDetails({
               You save ৳{savings.toFixed(2)}!
            </div>
          )}
-
-        {product.giftWithPurchase?.enabled && product.giftWithPurchase.description && (
-          <div className="bg-green-100 text-green-800 border-l-4 border-green-500 p-4 rounded-md flex items-center gap-4">
-            <Gift size={24} className="flex-shrink-0" />
-            <div>
-              <p className="font-bold">Free Gift with Purchase!</p>
-              <p className="text-sm">{product.giftWithPurchase.description}</p>
-            </div>
-          </div>
-        )}
         
+        {product.giftWithPurchase?.enabled && product.giftWithPurchase.description && (
+            <div className="bg-green-100 text-green-800 border-l-4 border-green-500 p-4 rounded-md flex items-center gap-4">
+                <Gift size={24} className="flex-shrink-0" />
+                <div>
+                <p className="font-bold">Free Gift with Purchase!</p>
+                <p className="text-sm">{product.giftWithPurchase.description}</p>
+                </div>
+            </div>
+        )}
+
         {uniqueColors.length > 0 && (
           <div className="space-y-3">
             <h3 className="text-sm font-bold uppercase text-muted-foreground">Color: <span className="text-foreground capitalize">{selectedColor}</span></h3>
