@@ -134,7 +134,7 @@
         "category": { "type": "string" },
         "group": { "type": "string" },
         "subcategory": { "type": "string" },
-        "price": { "type": "number", "description": "The final selling price of the product." },
+        "price": { "type": "number", "description": "The base selling price of the product if no variants have specific prices." },
         "compareAtPrice": { "type": "number", "description": "The original price (MRP) to show a discount." },
         "baseSku": { "type": "string", "description": "The base Stock Keeping Unit for the product." },
         "total_stock": { "type": "number", "description": "Aggregated stock from all variants." },
@@ -147,6 +147,7 @@
               "sku": { "type": "string", "description": "Unique SKU for the variant." },
               "color": { "type": "string" },
               "size": { "type": "string" },
+              "image": { "type": "string", "format": "uri", "description": "Image URL specific to this variant." },
               "stock": { "type": "number" },
               "price": { "type": "number", "description": "Price specific to this variant." },
               "compareAtPrice": { "type": "number", "description": "The original price (MRP) for this specific variant." }
@@ -155,7 +156,9 @@
           }
         },
         "outlet_stocks": { "type": "object", "description": "Stock count per outlet", "additionalProperties": { "type": "number" } },
-        "image": { "type": "string", "format": "uri" },
+        "image": { "type": "string", "format": "uri", "description": "Main product image." },
+        "gallery": { "type": "array", "items": { "type": "string", "format": "uri" }, "description": "A gallery of additional product images." },
+        "videos": { "type": "array", "items": { "type": "string", "format": "uri" }, "description": "A list of product video URLs (e.g., YouTube embeds)." },
         "brand": { "type": "string" },
         "colors": { "type": "array", "items": { "type": "string" } },
         "sizes": { "type": "array", "items": { "type": "string" } },

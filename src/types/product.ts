@@ -1,9 +1,9 @@
 
-
 export type ProductVariant = {
     sku: string;
     color?: string;
     size?: string;
+    image?: string;
     stock: number;
     price: number;
     compareAtPrice?: number;

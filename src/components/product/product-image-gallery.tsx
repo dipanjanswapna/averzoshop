@@ -1,26 +1,52 @@
 
 'use client';
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
-import type { products } from '@/lib/data';
+import type { Product, ProductVariant } from '@/types/product';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { motion } from 'framer-motion';
 import { Youtube } from 'lucide-react';
 
+interface ProductImageGalleryProps {
+  product: Product;
+  selectedVariant: ProductVariant | null;
+}
 
-type Product = (typeof products)[0];
-
-export function ProductImageGallery({ product }: { product: Product }) {
+export function ProductImageGallery({ product, selectedVariant }: ProductImageGalleryProps) {
   const [activeMedia, setActiveMedia] = useState({ type: 'image', src: product.image });
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
-  
-  const allMedia = [
-    { type: 'image', src: product.image },
-    ...(product.gallery?.map(src => ({ type: 'image', src })) || []),
-    ...(product.videos?.map(src => ({ type: 'video', src })) || [])
-  ];
 
+  const allMedia = useMemo(() => {
+    const mediaSet = new Map<string, { type: 'image' | 'video', src: string }>();
+    
+    // Add main product image
+    mediaSet.set(product.image, { type: 'image', src: product.image });
+    
+    // Add gallery images
+    product.gallery?.forEach(src => mediaSet.set(src, { type: 'image', src }));
+
+    // Add unique variant images
+    product.variants?.forEach(v => {
+      if (v.image) {
+        mediaSet.set(v.image, { type: 'image', src: v.image });
+      }
+    });
+
+    // Add videos
+    product.videos?.forEach(src => mediaSet.set(src, { type: 'video', src }));
+
+    return Array.from(mediaSet.values());
+  }, [product]);
+
+  useEffect(() => {
+    if (selectedVariant?.image) {
+      setActiveMedia({ type: 'image', src: selectedVariant.image });
+    } else {
+      setActiveMedia({ type: 'image', src: product.image });
+    }
+  }, [selectedVariant, product.image]);
+  
   const isOutOfStock = product.total_stock <= 0;
 
   return (
@@ -43,7 +69,7 @@ export function ProductImageGallery({ product }: { product: Product }) {
             alt={product.name}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="object-cover"
+            className={cn("object-cover", isOutOfStock && "grayscale")}
           />
         </motion.div>
         

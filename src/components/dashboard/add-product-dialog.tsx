@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -36,6 +37,7 @@ const variantSchema = z.object({
   sku: z.string().min(1, 'SKU is required'),
   color: z.string().optional(),
   size: z.string().optional(),
+  image: z.string().url().optional().or(z.literal('')),
   stock: z.coerce.number().int().min(0),
   price: z.coerce.number().min(0),
   compareAtPrice: z.coerce.number().min(0).optional(),
@@ -117,27 +119,27 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
     remove(); // Clear existing variants
 
     if (colors.length === 0 && sizes.length === 0) {
-      append({ sku: `${baseSku}-DEFAULT`, color: '', size: '', stock: 0, price, compareAtPrice });
+      append({ sku: `${baseSku}-DEFAULT`, color: '', size: '', image: '', stock: 0, price, compareAtPrice });
       return;
     }
 
     if (colors.length > 0 && sizes.length === 0) {
       colors.forEach(color => {
-        append({ sku: `${baseSku}-${color.toUpperCase()}`, color, size: '', stock: 0, price, compareAtPrice });
+        append({ sku: `${baseSku}-${color.toUpperCase()}`, color, size: '', image: '', stock: 0, price, compareAtPrice });
       });
       return;
     }
     
     if (colors.length === 0 && sizes.length > 0) {
       sizes.forEach(size => {
-        append({ sku: `${baseSku}-${size.toUpperCase()}`, color: '', size, stock: 0, price, compareAtPrice });
+        append({ sku: `${baseSku}-${size.toUpperCase()}`, color: '', size: '', image: '', stock: 0, price, compareAtPrice });
       });
       return;
     }
 
     colors.forEach(color => {
       sizes.forEach(size => {
-        append({ sku: `${baseSku}-${color.toUpperCase()}-${size.toUpperCase()}`, color, size, stock: 0, price, compareAtPrice });
+        append({ sku: `${baseSku}-${color.toUpperCase()}-${size.toUpperCase()}`, color, size, image: '', stock: 0, price, compareAtPrice });
       });
     });
   };
@@ -224,20 +226,20 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
                <FormField control={form.control} name="category" render={({ field }) => (
                   <FormItem><FormLabel>Mother Category</FormLabel><Select onValueChange={(value) => { field.onChange(value); form.setValue('group', ''); form.setValue('subcategory', ''); }} value={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select Category" /></SelectTrigger></FormControl><SelectContent>{categoriesData.map(cat => <SelectItem key={cat.mother_name} value={cat.mother_name}>{cat.mother_name}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>
               )} />
-               <FormField control={form.control} name="group" render={({ field }) => (
-                  <FormItem><FormLabel>Group</FormLabel><Select onValueChange={(value) => { field.onChange(value); form.setValue('subcategory', ''); }} value={field.value} disabled={!selectedCategory}><FormControl><SelectTrigger><SelectValue placeholder="Select Group" /></SelectTrigger></FormControl><SelectContent>{availableGroups.map(grp => <SelectItem key={grp.group_name} value={grp.group_name}>{grp.group_name}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>
+              <FormField control={form.control} name="group" render={({ field }) => (
+                <FormItem><FormLabel>Group</FormLabel><FormControl><Input placeholder="e.g., Topwear" {...field} /></FormControl><FormMessage /></FormItem>
               )} />
-               <FormField control={form.control} name="subcategory" render={({ field }) => (
-                  <FormItem><FormLabel>Subcategory</FormLabel><Select onValueChange={field.onChange} value={field.value} disabled={!selectedGroup}><FormControl><SelectTrigger><SelectValue placeholder="Select Subcategory" /></SelectTrigger></FormControl><SelectContent>{availableSubcategories.map(sub => <SelectItem key={sub} value={sub}>{sub}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>
+              <FormField control={form.control} name="subcategory" render={({ field }) => (
+                <FormItem><FormLabel>Subcategory</FormLabel><FormControl><Input placeholder="e.g., T-Shirts" {...field} /></FormControl><FormMessage /></FormItem>
               )} />
             </div>
             <div className="grid grid-cols-2 gap-4">
                  <FormField control={form.control} name="brand" render={({ field }) => (<FormItem><FormLabel>Brand</FormLabel><FormControl><Input placeholder="e.g., Averzo Basics" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                 <FormField control={form.control} name="image" render={({ field }) => (<FormItem><FormLabel>Image URL</FormLabel><FormControl><Input placeholder="https://example.com/image.jpg" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                 <FormField control={form.control} name="image" render={({ field }) => (<FormItem><FormLabel>Main Image URL</FormLabel><FormControl><Input placeholder="https://example.com/image.jpg" {...field} /></FormControl><FormMessage /></FormItem>)} />
             </div>
             <div className="grid grid-cols-3 gap-4">
-                <FormField control={form.control} name="price" render={({ field }) => (<FormItem><FormLabel>Price (৳)</FormLabel><FormControl><Input type="number" placeholder="999" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={form.control} name="compareAtPrice" render={({ field }) => (<FormItem><FormLabel>Compare-at Price (MRP ৳)</FormLabel><FormControl><Input type="number" placeholder="1299" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField control={form.control} name="price" render={({ field }) => (<FormItem><FormLabel>Base Price (৳)</FormLabel><FormControl><Input type="number" placeholder="999" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField control={form.control} name="compareAtPrice" render={({ field }) => (<FormItem><FormLabel>Base Compare-at Price (MRP ৳)</FormLabel><FormControl><Input type="number" placeholder="1299" {...field} /></FormControl><FormMessage /></FormItem>)} />
                 <FormField control={form.control} name="baseSku" render={({ field }) => (<FormItem><FormLabel>Base SKU</FormLabel><FormControl><Input placeholder="AV-TSH-001" {...field} /></FormControl><FormMessage /></FormItem>)} />
             </div>
 
@@ -259,6 +261,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
                       <TableHead>Color</TableHead>
                       <TableHead>Size</TableHead>
                       <TableHead>SKU</TableHead>
+                      <TableHead>Image URL</TableHead>
                       <TableHead>Stock</TableHead>
                       <TableHead>Price (৳)</TableHead>
                       <TableHead>Compare-at (MRP ৳)</TableHead>
@@ -271,6 +274,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
                         <TableCell>{field.color || 'N/A'}</TableCell>
                         <TableCell>{field.size || 'N/A'}</TableCell>
                         <TableCell><FormField control={form.control} name={`variants.${index}.sku`} render={({ field }) => (<Input {...field} />)} /></TableCell>
+                        <TableCell><FormField control={form.control} name={`variants.${index}.image`} render={({ field }) => (<Input placeholder="https://..." {...field} />)} /></TableCell>
                         <TableCell>
                             <Input
                                 type="number"

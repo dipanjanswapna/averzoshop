@@ -1,10 +1,10 @@
 
 'use client';
 
-import { Suspense, useMemo } from 'react';
-import { useParams } from 'next/navigation';
+import { Suspense, useMemo, useState, useEffect } from 'react';
+import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
-import type { Product } from '@/types/product';
+import type { Product, ProductVariant } from '@/types/product';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -24,7 +24,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 function ProductPageContent() {
     const params = useParams();
     const { id } = params;
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    
     const { data: products, isLoading } = useFirestoreQuery<Product>('products');
+
+    const [selectedSize, setSelectedSize] = useState<string | null>(null);
+    const [selectedColor, setSelectedColor] = useState<string | null>(null);
+    const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
 
     const { product, relatedProducts, frequentlyBoughtTogether } = useMemo(() => {
         if (!products) return { product: null, relatedProducts: [], frequentlyBoughtTogether: [] };
@@ -39,6 +46,53 @@ function ProductPageContent() {
         return { product: currentProduct, relatedProducts: related, frequentlyBoughtTogether: frequentlyBought };
     }, [products, id]);
     
+    // Effect to set initial selections from URL or defaults
+    useEffect(() => {
+        if (!product) return;
+
+        const skuFromUrl = searchParams.get('sku');
+        let initialVariant: ProductVariant | null = null;
+        
+        if (skuFromUrl) {
+            initialVariant = product.variants?.find(v => v.sku === skuFromUrl) || null;
+        }
+
+        if (!initialVariant) {
+            initialVariant = product.variants?.find(v => v.stock > 0) || product.variants?.[0] || null;
+        }
+
+        if (initialVariant) {
+            setSelectedColor(initialVariant.color || null);
+            setSelectedSize(initialVariant.size || null);
+        }
+
+    }, [product, searchParams]);
+
+    // Effect to update the selected variant and URL
+    useEffect(() => {
+        if (!product) return;
+
+        const uniqueColors = [...new Set(product.variants?.map(v => v.color).filter(Boolean))];
+        const uniqueSizes = [...new Set(product.variants?.map(v => v.size).filter(Boolean))];
+
+        const variant = product.variants?.find(v => {
+            const colorMatch = uniqueColors.length === 0 || v.color === selectedColor;
+            const sizeMatch = uniqueSizes.length === 0 || v.size === selectedSize;
+            return colorMatch && sizeMatch;
+        }) || null;
+        
+        setSelectedVariant(variant);
+
+        // Update URL with SKU
+        if (variant) {
+            const currentUrl = new URL(window.location.href);
+            currentUrl.searchParams.set('sku', variant.sku);
+            window.history.replaceState({ ...window.history.state, as: currentUrl.href, url: currentUrl.href }, '', currentUrl.href);
+        }
+
+    }, [selectedColor, selectedSize, product]);
+
+
     if (isLoading) {
         return (
             <div className="container py-8">
@@ -99,8 +153,15 @@ function ProductPageContent() {
                 </Breadcrumb>
                 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                    <ProductImageGallery product={product} />
-                    <ProductDetails product={product} />
+                    <ProductImageGallery product={product} selectedVariant={selectedVariant} />
+                    <ProductDetails 
+                        product={product} 
+                        selectedVariant={selectedVariant}
+                        selectedColor={selectedColor}
+                        setSelectedColor={setSelectedColor}
+                        selectedSize={selectedSize}
+                        setSelectedSize={setSelectedSize}
+                    />
                 </div>
             </div>
             

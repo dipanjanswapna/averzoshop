@@ -1,7 +1,7 @@
 
 'use client';
-import { useState, useMemo, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useMemo, useEffect, Dispatch, SetStateAction } from 'react';
+import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Minus, Plus, ShoppingBag, Heart, HelpCircle, MapPin, Share2, Printer, Gift, X, Store } from 'lucide-react';
@@ -19,13 +19,26 @@ import Barcode from 'react-barcode';
 import { ProductSticker } from './product-sticker';
 import { StoreAvailabilityDialog } from './store-availability-dialog';
 
-export function ProductDetails({ product }: { product: Product }) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+interface ProductDetailsProps {
+    product: Product;
+    selectedVariant: ProductVariant | null;
+    selectedColor: string | null;
+    setSelectedColor: Dispatch<SetStateAction<string | null>>;
+    selectedSize: string | null;
+    setSelectedSize: Dispatch<SetStateAction<string | null>>;
+}
 
-  const [selectedSize, setSelectedSize] = useState<string | null>(null);
-  const [selectedColor, setSelectedColor] = useState<string | null>(null);
-  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
+
+export function ProductDetails({ 
+    product, 
+    selectedVariant,
+    selectedColor,
+    setSelectedColor,
+    selectedSize,
+    setSelectedSize
+}: ProductDetailsProps) {
+  const router = useRouter();
+
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showShare, setShowShare] = useState(false);
@@ -85,47 +98,6 @@ export function ProductDetails({ product }: { product: Product }) {
     }
   }
 
-
-  // Effect to set initial selections from URL or defaults
-  useEffect(() => {
-    const skuFromUrl = searchParams.get('sku');
-    let initialVariant: ProductVariant | null = null;
-    
-    if (skuFromUrl) {
-      initialVariant = product.variants?.find(v => v.sku === skuFromUrl) || null;
-    }
-
-    if (!initialVariant) {
-        initialVariant = product.variants?.find(v => v.stock > 0) || product.variants?.[0] || null;
-    }
-
-    if (initialVariant) {
-      setSelectedColor(initialVariant.color || null);
-      setSelectedSize(initialVariant.size || null);
-    }
-
-  }, [product.variants, searchParams]);
-
-  // Effect to update the selected variant and URL
-  useEffect(() => {
-    const variant = product.variants?.find(v => {
-      const colorMatch = uniqueColors.length === 0 || v.color === selectedColor;
-      const sizeMatch = uniqueSizes.length === 0 || v.size === selectedSize;
-      return colorMatch && sizeMatch;
-    }) || null;
-    
-    setSelectedVariant(variant);
-    setQuantity(1);
-
-    // Update URL with SKU
-    if (variant) {
-        const currentUrl = new URL(window.location.href);
-        currentUrl.searchParams.set('sku', variant.sku);
-        window.history.replaceState({ ...window.history.state, as: currentUrl.href, url: currentUrl.href }, '', currentUrl.href);
-    }
-
-  }, [selectedColor, selectedSize, product.variants, uniqueColors.length, uniqueSizes.length]);
-
   // Check wishlist status
   useEffect(() => {
     if (userData?.wishlist?.includes(product.id)) {
@@ -134,6 +106,10 @@ export function ProductDetails({ product }: { product: Product }) {
       setIsWishlisted(false);
     }
   }, [userData, product.id]);
+  
+  useEffect(() => {
+    setQuantity(1);
+  }, [selectedVariant]);
 
   const displayPrice = selectedVariant ? selectedVariant.price : product.price;
   const originalPrice = selectedVariant ? selectedVariant.compareAtPrice : product.compareAtPrice;
@@ -295,35 +271,37 @@ export function ProductDetails({ product }: { product: Product }) {
         )}
         
         <div className="pt-4">
-          {isOutOfStock ? (
-            <div className="flex w-full items-center gap-4">
-              <Button size="lg" disabled className="flex-1">
-                Out of Stock
-              </Button>
-              <Button variant="outline" size="icon" className="h-12 w-12" onClick={handleWishlistToggle}>
-                  <Heart size={20} className={cn(isWishlisted ? 'text-destructive fill-destructive' : 'text-foreground')} />
-              </Button>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col sm:flex-row items-center gap-4">
-                <div className="flex items-center border border-border rounded-md w-fit">
-                    <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => setQuantity(q => Math.max(1, q - 1))}><Minus size={14}/></Button>
-                    <span className="w-10 text-center font-bold">{quantity}</span>
-                    <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => setQuantity(q => q + 1)} disabled={quantity >= stock}><Plus size={14}/></Button>
-                </div>
-                <div className="flex items-center gap-2 w-full">
-                    <Button size="lg" variant="outline" className="w-full" onClick={handleAddToCart}>
-                        <ShoppingBag size={20} className="mr-2" /> Add to Bag
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={handleWishlistToggle} className={cn("border", isWishlisted ? 'bg-destructive/20 text-destructive border-destructive' : '')}>
-                        <Heart size={20} className={cn(isWishlisted ? 'fill-current' : '')} />
-                    </Button>
-                </div>
+          <div className='min-h-[104px]'>
+            {isOutOfStock ? (
+              <div className="flex w-full items-center gap-4">
+                <Button size="lg" disabled className="flex-1">
+                  Out of Stock
+                </Button>
+                <Button variant="outline" size="icon" className="h-12 w-12" onClick={handleWishlistToggle}>
+                    <Heart size={20} className={cn(isWishlisted ? 'text-destructive fill-destructive' : 'text-foreground')} />
+                </Button>
               </div>
-              <Button size="lg" className="w-full" onClick={handleBuyNow}>Buy Now</Button>
-            </div>
-          )}
+            ) : (
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <div className="flex items-center border border-border rounded-md w-fit">
+                      <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => setQuantity(q => Math.max(1, q - 1))}><Minus size={14}/></Button>
+                      <span className="w-10 text-center font-bold">{quantity}</span>
+                      <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => setQuantity(q => q + 1)} disabled={quantity >= stock}><Plus size={14}/></Button>
+                  </div>
+                  <div className="flex items-center gap-2 w-full">
+                      <Button size="lg" variant="outline" className="w-full" onClick={handleAddToCart}>
+                          <ShoppingBag size={20} className="mr-2" /> Add to Bag
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={handleWishlistToggle} className={cn("border", isWishlisted ? 'bg-destructive/20 text-destructive border-destructive' : '')}>
+                          <Heart size={20} className={cn(isWishlisted ? 'fill-current' : '')} />
+                      </Button>
+                  </div>
+                </div>
+                <Button size="lg" className="w-full" onClick={handleBuyNow}>Buy Now</Button>
+              </div>
+            )}
+          </div>
         </div>
 
 
