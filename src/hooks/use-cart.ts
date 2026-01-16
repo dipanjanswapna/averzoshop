@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Product, ProductVariant } from '@/types/product';
@@ -94,10 +93,12 @@ export const useCart = create<CartState>()(
         const existingItem = currentItems.find((item) => item.variant && item.variant.sku === variant.sku);
 
         let newQuantity = existingItem ? existingItem.quantity + quantity : quantity;
-        if (newQuantity > variant.stock) {
-            toast({ variant: 'destructive', title: 'Stock limit reached', description: `Only ${variant.stock} items available.` });
-            newQuantity = variant.stock;
+        const stock = variant.stock || product.total_stock;
+        if (newQuantity > stock) {
+            toast({ variant: 'destructive', title: 'Stock limit reached', description: `Only ${stock} items available.` });
+            newQuantity = stock;
         }
+        if (newQuantity <= 0) return;
 
         const newItems = existingItem
             ? currentItems.map(item => item.variant.sku === variant.sku ? { ...item, quantity: newQuantity } : item)
@@ -124,9 +125,10 @@ export const useCart = create<CartState>()(
         const itemToUpdate = get().items.find(item => item.variant && item.variant.sku === variantSku);
         if (!itemToUpdate) return;
         
-        if (quantity > itemToUpdate.variant.stock) {
-            toast({ variant: 'destructive', title: 'Stock limit reached', description: `Only ${itemToUpdate.variant.stock} items available.`});
-            quantity = itemToUpdate.variant.stock;
+        const stock = itemToUpdate.variant.stock || itemToUpdate.product.total_stock;
+        if (quantity > stock) {
+            toast({ variant: 'destructive', title: 'Stock limit reached', description: `Only ${stock} items available.`});
+            quantity = stock;
         }
 
         if (quantity <= 0) {

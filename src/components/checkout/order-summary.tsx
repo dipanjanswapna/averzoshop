@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -47,7 +46,7 @@ export function CheckoutOrderSummary() {
 
       const coupon = { id: couponSnap.id, ...couponSnap.data() } as Coupon;
       
-      if (coupon.expiryDate.toDate() < new Date()) {
+      if (new Date(coupon.expiryDate.seconds * 1000) < new Date()) {
         toast({ variant: 'destructive', title: 'Promo code expired.' });
         applyPromoCode(null);
         return;
