@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -16,15 +15,25 @@ import type { Coupon } from '@/types/coupon';
 export function CheckoutOrderSummary() {
   const {
     items,
-    subtotal,
     discount,
     promoCode,
     shippingFee,
     totalPayable,
-    fullOrderTotal,
-    isPartialPayment,
-    applyPromoCode,
-  } = useCart();
+    regularItemsSubtotal,
+    preOrderItemsSubtotal,
+    preOrderDepositPayable,
+  } = useCart(state => ({
+    items: state.items,
+    discount: state.discount,
+    promoCode: state.promoCode,
+    shippingFee: state.shippingFee,
+    totalPayable: state.totalPayable,
+    regularItemsSubtotal: state.regularItemsSubtotal,
+    preOrderItemsSubtotal: state.preOrderItemsSubtotal,
+    preOrderDepositPayable: state.preOrderDepositPayable,
+  }));
+  const applyPromoCode = useCart(state => state.applyPromoCode);
+
   const { firestore } = useFirebase();
   const { toast } = useToast();
   const [promoCodeInput, setPromoCodeInput] = useState('');
@@ -38,8 +47,8 @@ export function CheckoutOrderSummary() {
       toast({ variant: 'destructive', title: 'Please enter a promo code.' });
       return;
     }
-    if (hasPreOrderItems && !hasRegularItems) {
-        toast({ variant: 'destructive', title: 'Promo codes cannot be applied to pre-orders.' });
+    if (!hasRegularItems) {
+        toast({ variant: 'destructive', title: 'Promo codes can only be applied to regular items.' });
         return;
     }
 
@@ -78,7 +87,7 @@ export function CheckoutOrderSummary() {
     <Card className="shadow-lg">
       <CardHeader>
         <CardTitle className="font-headline text-xl">
-           {hasPreOrderItems && hasRegularItems ? 'Mixed Order Summary' : isPartialPayment ? 'Pre-order Summary' : 'Order Summary'}
+           Order Summary
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -92,6 +101,7 @@ export function CheckoutOrderSummary() {
                        <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] w-5 h-5 rounded-full flex items-center justify-center">
                           {item.quantity}
                       </div>
+                      {item.isPreOrder && <div className="absolute bottom-0 left-0 right-0 bg-purple-600/80 text-white text-center text-[9px] font-bold uppercase py-0.5">Pre-order</div>}
                   </div>
                 <div className="flex-1">
                   <p className="font-medium truncate">{item.product.name}</p>
@@ -105,42 +115,46 @@ export function CheckoutOrderSummary() {
         <Separator />
         
         <div className="space-y-2 text-sm">
-             <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span className="font-medium">৳{subtotal.toFixed(2)}</span>
-            </div>
-            {discount > 0 && (
-                <div className="flex justify-between text-green-600">
-                    <span>Discount ({promoCode?.code})</span>
-                    <span className="font-medium">- ৳{discount.toFixed(2)}</span>
+            {hasRegularItems && (
+              <div className="space-y-2 py-2">
+                <p className="font-bold text-muted-foreground">Regular Items</p>
+                <div className="flex justify-between">
+                    <span>Subtotal</span>
+                    <span>৳{regularItemsSubtotal.toFixed(2)}</span>
                 </div>
+                {discount > 0 && (
+                    <div className="flex justify-between text-green-600">
+                        <span>Discount ({promoCode?.code})</span>
+                        <span>- ৳{discount.toFixed(2)}</span>
+                    </div>
+                )}
+                 <div className="flex justify-between font-medium border-t pt-2 mt-1">
+                    <span>Payable for regular items</span>
+                    <span>৳{(regularItemsSubtotal - discount).toFixed(2)}</span>
+                </div>
+              </div>
             )}
-             <div className="flex justify-between">
-                <span>Shipping Fee</span>
-                <span className="font-medium">{shippingFee > 0 ? `৳${shippingFee.toFixed(2)}` : 'Free'}</span>
-            </div>
+            
+            {hasPreOrderItems && hasRegularItems && <Separator />}
+
+            {hasPreOrderItems && (
+              <div className="space-y-2 py-2">
+                 <p className="font-bold text-muted-foreground">Pre-order Items</p>
+                <div className="flex justify-between">
+                    <span>Total Value</span>
+                    <span>৳{preOrderItemsSubtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between font-medium text-primary border-t pt-2 mt-1">
+                    <span>Deposit Payable Now</span>
+                    <span>৳{preOrderDepositPayable.toFixed(2)}</span>
+                </div>
+                 <p className='text-xs text-blue-600 mt-2'>The remaining amount for pre-orders is due upon fulfillment.</p>
+              </div>
+            )}
         </div>
 
         <Separator />
         
-        {isPartialPayment && (
-             <div className="space-y-2 text-sm bg-blue-50 p-3 rounded-lg border border-blue-200">
-                 <div className="flex justify-between font-bold">
-                    <span>Total Order Value</span>
-                    <span>৳{fullOrderTotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-blue-700">
-                    <span>Payable Now</span>
-                    <span>৳{(totalPayable).toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-muted-foreground">
-                    <span>Remaining Due</span>
-                    <span>৳{(fullOrderTotal - (totalPayable - shippingFee)).toFixed(2)}</span>
-                </div>
-                 <p className='text-xs text-blue-600 mt-2'>Your cart contains pre-order items. The remaining amount is due upon fulfillment.</p>
-            </div>
-        )}
-
         <div className="flex items-end gap-2">
             <div className="flex-1 space-y-1">
             <label htmlFor="promo-code" className="text-xs font-medium text-muted-foreground">Promo Code</label>
@@ -149,18 +163,24 @@ export function CheckoutOrderSummary() {
                 placeholder="Enter code" 
                 value={promoCodeInput}
                 onChange={(e) => setPromoCodeInput(e.target.value)}
-                disabled={isApplying || (hasPreOrderItems && !hasRegularItems)}
+                disabled={isApplying || !hasRegularItems}
             />
             </div>
-            <Button onClick={handleApplyPromoCode} disabled={isApplying || (hasPreOrderItems && !hasRegularItems)}>
+            <Button onClick={handleApplyPromoCode} disabled={isApplying || !hasRegularItems}>
             {isApplying ? 'Applying...' : 'Apply'}
             </Button>
         </div>
          
         <Separator />
-        <div className="flex justify-between font-bold text-lg">
-          <span>Total Payable Today</span>
-          <span>৳{totalPayable.toFixed(2)}</span>
+        <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+                <span>Shipping Fee</span>
+                <span className="font-medium">{shippingFee > 0 ? `৳${shippingFee.toFixed(2)}` : 'Free'}</span>
+            </div>
+            <div className="flex justify-between font-bold text-lg pt-2 border-t">
+              <span>Total Payable Today</span>
+              <span>৳{totalPayable.toFixed(2)}</span>
+            </div>
         </div>
       </CardContent>
     </Card>

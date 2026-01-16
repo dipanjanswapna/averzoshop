@@ -1,3 +1,4 @@
+'use client';
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
@@ -21,6 +22,9 @@ type CartState = {
   totalPayable: number;
   fullOrderTotal: number;
   isPartialPayment: boolean;
+  regularItemsSubtotal: number;
+  preOrderItemsSubtotal: number;
+  preOrderDepositPayable: number;
   addItem: (product: Product, variant: ProductVariant, quantity?: number) => void;
   removeItem: (variantSku: string) => void;
   updateQuantity: (variantSku: string, quantity: number) => void;
@@ -79,31 +83,34 @@ export const useCart = create<CartState>()(
       totalPayable: 0,
       fullOrderTotal: 0,
       isPartialPayment: false,
+      regularItemsSubtotal: 0,
+      preOrderItemsSubtotal: 0,
+      preOrderDepositPayable: 0,
       
       _recalculate: () => {
         const items = get().items;
         const promoCode = get().promoCode;
-        const subtotal = calculateSubtotal(items);
-        const shippingFee = subtotal > 500 || subtotal === 0 ? 0 : 50;
-
+        
         let regularItemsSubtotal = 0;
-        let preOrderPayableNow = 0;
+        let preOrderItemsSubtotal = 0;
+        let preOrderDepositPayable = 0;
         let isPartialPaymentInCart = false;
 
         items.forEach(item => {
-            const itemTotal = item.variant.price * item.quantity;
+            const itemTotal = (item.variant?.price || 0) * item.quantity;
             if (item.isPreOrder) {
+                preOrderItemsSubtotal += itemTotal;
                 const preOrderInfo = item.product.preOrder;
                 if (preOrderInfo?.enabled && preOrderInfo.depositAmount != null && preOrderInfo.depositAmount > 0) {
                     isPartialPaymentInCart = true;
                     if (preOrderInfo.depositType === 'percentage') {
-                        preOrderPayableNow += (itemTotal * preOrderInfo.depositAmount) / 100;
+                        preOrderDepositPayable += (itemTotal * preOrderInfo.depositAmount) / 100;
                     } else { // fixed
-                        preOrderPayableNow += (preOrderInfo.depositAmount * item.quantity);
+                        preOrderDepositPayable += (preOrderInfo.depositAmount * item.quantity);
                     }
                 } else {
                     // Pre-order with 100% upfront
-                    preOrderPayableNow += itemTotal;
+                    preOrderDepositPayable += itemTotal;
                 }
             } else {
                 // Regular item
@@ -111,18 +118,24 @@ export const useCart = create<CartState>()(
             }
         });
 
+        const subtotal = regularItemsSubtotal + preOrderItemsSubtotal;
+        const shippingFee = subtotal > 500 || subtotal === 0 ? 0 : 50;
+
         const regularItemsForDiscount = items.filter(item => !item.isPreOrder);
         const discount = calculateDiscount(regularItemsForDiscount, promoCode);
         
-        const totalPayable = (regularItemsSubtotal - discount) + preOrderPayableNow + shippingFee;
+        const totalPayable = (regularItemsSubtotal - discount) + preOrderDepositPayable + shippingFee;
 
         set({
-            subtotal: subtotal,
-            discount: discount,
-            shippingFee: shippingFee,
-            totalPayable: totalPayable,
+            subtotal,
+            discount,
+            shippingFee,
+            totalPayable,
             fullOrderTotal: subtotal,
             isPartialPayment: isPartialPaymentInCart,
+            regularItemsSubtotal,
+            preOrderItemsSubtotal,
+            preOrderDepositPayable,
         });
       },
 
@@ -192,7 +205,19 @@ export const useCart = create<CartState>()(
       },
 
       clearCart: () => {
-        set({ items: [], promoCode: null, subtotal: 0, discount: 0, shippingFee: 0, totalPayable: 0, fullOrderTotal: 0, isPartialPayment: false });
+        set({ 
+            items: [], 
+            promoCode: null, 
+            subtotal: 0, 
+            discount: 0, 
+            shippingFee: 0, 
+            totalPayable: 0, 
+            fullOrderTotal: 0, 
+            isPartialPayment: false,
+            regularItemsSubtotal: 0,
+            preOrderItemsSubtotal: 0,
+            preOrderDepositPayable: 0,
+        });
       },
 
       applyPromoCode: (coupon) => {
