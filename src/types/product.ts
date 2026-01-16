@@ -52,3 +52,6 @@ export type Product = {
     createdAt: any; // Can be Timestamp or string
 };
 
+
+
+    

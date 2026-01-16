@@ -102,3 +102,5 @@ export function CompareTable({ items }: CompareTableProps) {
     </div>
   );
 }
+
+    
