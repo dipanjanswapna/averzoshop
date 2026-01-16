@@ -126,7 +126,7 @@ function ProductPageContent() {
         );
     }
     
-    const isProductOutOfStock = selectedVariant ? (selectedVariant.stock || 0) <= 0 : product.total_stock <= 0;
+    const isProductOutOfStock = !product.preOrder?.enabled && (selectedVariant ? (selectedVariant.stock || 0) <= 0 : product.total_stock <= 0);
 
 
     return (

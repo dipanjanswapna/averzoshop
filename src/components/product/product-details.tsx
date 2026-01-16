@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, Dispatch, SetStateAction } from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Minus, Plus, ShoppingBag, Heart, HelpCircle, MapPin, Share2, Printer, Gift, X, Store } from 'lucide-react';
+import { Minus, Plus, ShoppingBag, Heart, HelpCircle, MapPin, Share2, Printer, Gift, X, Store, Calendar } from 'lucide-react';
 import type { Product, ProductVariant } from '@/types/product';
 import { TrustBadges } from './trust-badges';
 import Link from 'next/link';
@@ -54,6 +54,12 @@ export function ProductDetails({
   const handlePrint = () => {
     window.print();
   };
+
+  const isPreOrder = product.preOrder?.enabled;
+  const releaseDate = isPreOrder && product.preOrder.releaseDate
+    ? (product.preOrder.releaseDate.toDate ? product.preOrder.releaseDate.toDate() : new Date(product.preOrder.releaseDate))
+    : null;
+
 
   const variantsArray = useMemo(
     () =>
@@ -171,6 +177,15 @@ export function ProductDetails({
     router.push('/checkout');
   };
 
+  const handlePreOrder = () => {
+    if (!product || !selectedVariant) {
+        toast({ variant: "destructive", title: "Variant not selected", description: "Please select a color and size." });
+        return;
+    }
+    addItem(product, selectedVariant, quantity);
+    toast({ title: "Pre-ordered!", description: `${product.name} has been added to your bag.`});
+  };
+
   return (
     <>
       <div className="printable-area">
@@ -200,6 +215,21 @@ export function ProductDetails({
         </div>
 
          {product.flashSale && <SaleTimer endDate={product.flashSale.endDate} />}
+        
+        {isPreOrder && releaseDate && (
+            <div className="bg-blue-100 text-blue-800 border-l-4 border-blue-500 p-4 rounded-md flex items-center gap-4">
+                <Calendar size={24} className="flex-shrink-0" />
+                <div>
+                    <p className="font-bold">This is a Pre-order item.</p>
+                    <p className="text-sm">Expected to ship on or after: {releaseDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+                    {product.preOrder.depositAmount > 0 && (
+                        <p className="text-sm mt-1">
+                            Requires a <span className="font-bold">{product.preOrder.depositType === 'percentage' ? `${product.preOrder.depositAmount}%` : `৳${product.preOrder.depositAmount}`}</span> deposit.
+                        </p>
+                    )}
+                </div>
+            </div>
+        )}
 
         <div className="flex items-center justify-between">
            <div className="flex items-baseline gap-3">
@@ -208,12 +238,14 @@ export function ProductDetails({
                <span className="text-lg text-muted-foreground line-through font-roboto">৳{originalPrice.toFixed(2)}</span>
             )}
           </div>
-          <div className={cn("text-sm font-semibold", stockColor)}>
-            {stockStatus}
-          </div>
+          {!isPreOrder && (
+            <div className={cn("text-sm font-semibold", stockColor)}>
+                {stockStatus}
+            </div>
+          )}
         </div>
 
-         {savings > 0 && (
+         {savings > 0 && !isPreOrder && (
            <div className="bg-primary/10 text-primary font-bold text-sm p-2 rounded-md text-center">
               You save ৳{savings.toFixed(2)}!
            </div>
@@ -239,10 +271,10 @@ export function ProductDetails({
                 <button key={color} onClick={() => handleSelectColor(color)}
                   className={cn("h-8 w-8 rounded-full border-2 transition-all relative", 
                       selectedColor === color ? 'border-primary ring-2 ring-primary/50' : 'border-border',
-                      !isAvailable && 'opacity-50 cursor-not-allowed'
+                      !isAvailable && !isPreOrder && 'opacity-50 cursor-not-allowed'
                   )}
-                  style={{ backgroundColor: color.toLowerCase() }} title={color} disabled={!isAvailable}>
-                      {!isAvailable && <div className="absolute inset-0 bg-white/70 flex items-center justify-center"><X size={16} className="text-destructive" /></div>}
+                  style={{ backgroundColor: color.toLowerCase() }} title={color} disabled={!isAvailable && !isPreOrder}>
+                      {!isAvailable && !isPreOrder && <div className="absolute inset-0 bg-white/70 flex items-center justify-center"><X size={16} className="text-destructive" /></div>}
                   </button>
               )})}
             </div>
@@ -265,12 +297,11 @@ export function ProductDetails({
                     key={size} 
                     variant={selectedSize === size ? 'default' : 'outline'} 
                     onClick={() => handleSelectSize(size)} 
-                    className="w-14 relative overflow-hidden" // relative এবং overflow-hidden যোগ করা হয়েছে
-                    disabled={!isAvailable}
+                    className="w-14 relative overflow-hidden"
+                    disabled={!isAvailable && !isPreOrder}
                   >
                     {size}
-                    {/* নিচে সাদা পর্দার পরিবর্তে একটি লাল ক্রস (X) আইকন দেওয়া হয়েছে */}
-                    {!isAvailable && (
+                    {!isAvailable && !isPreOrder && (
                       <div className="absolute inset-0 flex items-center justify-center bg-black/5"> 
                          <X size={14} className="text-destructive opacity-40 rotate-12" />
                       </div>
@@ -283,7 +314,26 @@ export function ProductDetails({
         
         <div className="pt-4">
           <div className='min-h-[104px]'>
-            {isOutOfStock ? (
+             {isPreOrder ? (
+                <div className="flex flex-col gap-4">
+                    <div className="flex flex-col sm:flex-row items-center gap-4">
+                        <div className="flex items-center border border-border rounded-md w-fit">
+                            <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => setQuantity(q => Math.max(1, q - 1))}><Minus size={14}/></Button>
+                            <span className="w-10 text-center font-bold">{quantity}</span>
+                            <Button variant="ghost" size="icon" className="h-10 w-10" onClick={() => setQuantity(q => q + 1)} disabled={product.preOrder?.limit != null && quantity >= product.preOrder.limit}><Plus size={14}/></Button>
+                        </div>
+                        <div className="flex items-center gap-2 w-full">
+                            <Button size="lg" className="w-full" onClick={handlePreOrder}>
+                                <ShoppingBag size={20} className="mr-2" /> Pre-order Now
+                            </Button>
+                            <Button variant="ghost" size="icon" onClick={handleWishlistToggle} className={cn("border", isWishlisted ? 'bg-destructive/20 text-destructive border-destructive' : '')}>
+                                <Heart size={20} className={cn(isWishlisted ? 'fill-current' : '')} />
+                            </Button>
+                        </div>
+                    </div>
+                    {product.preOrder?.limit && <p className="text-xs text-center text-muted-foreground">Limited to {product.preOrder.limit} pre-orders.</p>}
+                </div>
+            ) : isOutOfStock ? (
               <div className="flex w-full items-center gap-4">
                 <Button size="lg" disabled className="flex-1">
                   Out of Stock
