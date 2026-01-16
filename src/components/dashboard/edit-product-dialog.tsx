@@ -198,13 +198,13 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
           discount = ((compareAtPrice - price) / price) * 100;
       }
       
-      // Preserve stock from original product object
       const originalVariantsArray = getVariantsAsArray(product.variants);
       const updatedVariants = values.variants.map(formVariant => {
           const originalVariant = originalVariantsArray.find(v => v.sku === formVariant.sku);
           return {
               ...formVariant,
-              stock: originalVariant ? originalVariant.stock : 0, // Preserve stock for existing, 0 for new
+              stock: originalVariant ? originalVariant.stock : 0,
+              outlet_stocks: originalVariant ? (originalVariant.outlet_stocks || {}) : {}
           };
       });
 

@@ -179,9 +179,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
         discount: Math.round(discount),
         baseSku: values.baseSku,
         total_stock: totalStock,
-        variants: values.variants.map(v => ({...v, stock: 0})), // Ensure stock is 0
-        outlet_stocks: {},
-        brand: values.brand,
+        variants: values.variants.map(v => ({...v, stock: 0, outlet_stocks: {}})),
         image: values.image,
         colors: values.variantColors?.split(',').map(s => s.trim()).filter(Boolean) || [],
         sizes: values.variantSizes?.split(',').map(c => c.trim()).filter(Boolean) || [],
@@ -190,6 +188,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
         status: status,
         createdAt: serverTimestamp(),
         isBundle: false,
+        brand: values.brand
       });
 
       toast({
