@@ -183,7 +183,6 @@ export function ProductDetails({
         return;
     }
     addItem(product, selectedVariant, quantity);
-    toast({ title: "Pre-ordered!", description: `${product.name} has been added to your bag.`});
   };
 
   return (

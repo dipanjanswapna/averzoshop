@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Product, ProductVariant } from '@/types/product';
@@ -8,6 +9,7 @@ export type CartItem = {
   product: Product;
   variant: ProductVariant;
   quantity: number;
+  isPreOrder?: boolean;
 };
 
 type CartState = {
@@ -88,13 +90,27 @@ export const useCart = create<CartState>()(
           toast({ variant: "destructive", title: "An error occurred", description: "Could not add item to cart." });
           return;
         }
-
+        
+        const isPreOrderItem = !!product.preOrder?.enabled;
         const currentItems = get().items;
+
+        if (currentItems.length > 0) {
+            const cartIsPreOrder = !!currentItems[0].isPreOrder;
+            if (isPreOrderItem !== cartIsPreOrder) {
+                toast({
+                    variant: 'destructive',
+                    title: 'Mixing Items Not Allowed',
+                    description: 'Pre-order items and regular items must be purchased in separate orders.',
+                });
+                return;
+            }
+        }
+
         const existingItem = currentItems.find((item) => item.variant && item.variant.sku === variant.sku);
 
         let newQuantity = existingItem ? existingItem.quantity + quantity : quantity;
         const stock = variant.stock || product.total_stock;
-        if (newQuantity > stock) {
+        if (!isPreOrderItem && newQuantity > stock) {
             toast({ variant: 'destructive', title: 'Stock limit reached', description: `Only ${stock} items available.` });
             newQuantity = stock;
         }
@@ -102,14 +118,14 @@ export const useCart = create<CartState>()(
 
         const newItems = existingItem
             ? currentItems.map(item => item.variant.sku === variant.sku ? { ...item, quantity: newQuantity } : item)
-            : [...currentItems, { product, variant, quantity: newQuantity }];
+            : [...currentItems, { product, variant, quantity: newQuantity, isPreOrder: isPreOrderItem }];
 
         set({ items: newItems });
         get()._recalculate();
 
         toast({
-          title: 'Added to cart',
-          description: `${product.name} (${variant.size || ''} ${variant.color || ''}) has been added.`,
+          title: isPreOrderItem ? 'Pre-ordered!' : 'Added to cart',
+          description: `${product.name} has been added to your bag.`,
         });
       },
 
@@ -125,8 +141,10 @@ export const useCart = create<CartState>()(
         const itemToUpdate = get().items.find(item => item.variant && item.variant.sku === variantSku);
         if (!itemToUpdate) return;
         
+        const isPreOrderItem = !!itemToUpdate.product.preOrder?.enabled;
         const stock = itemToUpdate.variant.stock || itemToUpdate.product.total_stock;
-        if (quantity > stock) {
+
+        if (!isPreOrderItem && quantity > stock) {
             toast({ variant: 'destructive', title: 'Stock limit reached', description: `Only ${stock} items available.`});
             quantity = stock;
         }

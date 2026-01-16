@@ -16,7 +16,7 @@ export interface ShippingAddress {
     city: string;
 }
 
-export type OrderStatus = 'new' | 'preparing' | 'ready_for_pickup' | 'out_for_delivery' | 'delivered' | 'canceled';
+export type OrderStatus = 'new' | 'preparing' | 'ready_for_pickup' | 'out_for_delivery' | 'delivered' | 'canceled' | 'pre-ordered';
 
 export interface Order {
     id: string;
@@ -29,6 +29,8 @@ export interface Order {
     totalAmount: number;
     assignedOutletId: string;
     status: OrderStatus;
+    orderType: 'regular' | 'pre-order';
     createdAt: Timestamp;
     riderId?: string;
 }
+
