@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { isSignInWithEmailLink, signInWithEmailLink, updatePassword, updateProfile } from 'firebase/auth';
+import { isSignInWithEmailLink, signInWithEmailLink, updatePassword, updateProfile, type UserCredential } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { useFirebase, FirebaseClientProvider } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
@@ -14,6 +14,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 
 // Zod schema for the password form
 const passwordSchema = z.object({
@@ -29,52 +31,67 @@ function VerifyEmailPageContent() {
     const router = useRouter();
     const { toast } = useToast();
     const [status, setStatus] = useState('Verifying your email...');
-    const [step, setStep] = useState<'verifying' | 'setPassword' | 'error'>('verifying');
-    const [userCredential, setUserCredential] = useState<any>(null); // To store the user credential after email link sign-in
+    const [step, setStep] = useState<'verifying' | 'setPassword' | 'error' | 'promptEmail'>('verifying');
+    const [userCredential, setUserCredential] = useState<UserCredential | null>(null);
+    const [emailForVerification, setEmailForVerification] = useState('');
 
     const form = useForm<z.infer<typeof passwordSchema>>({
         resolver: zodResolver(passwordSchema),
         defaultValues: { password: '', confirmPassword: '' },
     });
+    
+    const processSignIn = async (email: string) => {
+        if (!auth) return;
+        try {
+            const result = await signInWithEmailLink(auth, email, window.location.href);
+            setUserCredential(result);
+            setStatus('Email verified. Please set your password.');
+            setStep('setPassword');
+             window.localStorage.removeItem('emailForSignIn');
+        } catch (error: any) {
+            console.error("Verification Error:", error);
+            setStatus(`Verification Failed: The link may be expired or invalid.`);
+            setStep('error');
+            toast({ variant: 'destructive', title: 'Verification Failed', description: 'The link may be expired or invalid. Please try again.' });
+        }
+    };
+
 
     useEffect(() => {
         const completeSignIn = async () => {
             if (!auth || !firestore) {
-                return; // Wait for firebase to initialize
+                return;
             }
 
             if (isSignInWithEmailLink(auth, window.location.href)) {
                 let email = window.localStorage.getItem('emailForSignIn');
                 
                 if (!email) {
-                    email = window.prompt('Please provide your email for confirmation');
+                    setStep('promptEmail');
+                } else {
+                    await processSignIn(email);
                 }
 
-                if (!email) {
-                    setStatus('Could not find your email. Please try registering again.');
-                    setStep('error');
-                    return;
-                }
-
-                try {
-                    const result = await signInWithEmailLink(auth, email, window.location.href);
-                    setUserCredential(result);
-                    setStatus('Email verified. Please set your password.');
-                    setStep('setPassword');
-                } catch (error: any) {
-                    console.error("Verification Error:", error);
-                    setStatus(`Verification Failed: The link may be expired or invalid.`);
-                    setStep('error');
-                    toast({ variant: 'destructive', title: 'Verification Failed', description: 'The link may be expired or invalid. Please try again.' });
-                }
             } else {
                 setStatus('Invalid verification link. Please try registering again.');
                 setStep('error');
             }
         };
 
-        completeSignIn();
-    }, [auth, firestore, toast]);
+        if(auth && firestore) {
+          completeSignIn();
+        }
+    }, [auth, firestore]);
+
+    const handleEmailPromptSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (emailForVerification) {
+            setStep('verifying');
+            await processSignIn(emailForVerification);
+        } else {
+            toast({ variant: 'destructive', title: 'Email required', description: 'Please enter your email address.' });
+        }
+    };
 
     const onPasswordSubmit = async (values: z.infer<typeof passwordSchema>) => {
         if (!userCredential || !firestore) {
@@ -87,10 +104,8 @@ function VerifyEmailPageContent() {
         const user = userCredential.user;
 
         try {
-            // 1. Set the password for the new user
             await updatePassword(user, values.password);
 
-            // 2. Create the user document in Firestore
             const userDocRef = doc(firestore, 'users', user.uid);
             const userDoc = await getDoc(userDocRef);
 
@@ -119,8 +134,6 @@ function VerifyEmailPageContent() {
                 toast({ title: "Welcome!", description: "Your account is created. You've been awarded 100 bonus points!" });
             }
 
-            // 3. Clean up and redirect
-            window.localStorage.removeItem('emailForSignIn');
             window.localStorage.removeItem('registrationDetails');
             
             setStatus('All set! Redirecting...');
@@ -146,6 +159,44 @@ function VerifyEmailPageContent() {
               {step === 'error' && <Button onClick={() => router.push('/register')}>Go to Registration</Button>}
           </div>
       );
+    }
+
+     if (step === 'promptEmail') {
+        return (
+             <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-background">
+                <Dialog open={true} onOpenChange={() => setStep('error')}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Confirm Your Email</DialogTitle>
+                            <DialogDescription>
+                                To complete verification, please provide the email address where you received the link.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <form onSubmit={handleEmailPromptSubmit}>
+                            <div className="grid gap-4 py-4">
+                                <Label htmlFor="email-prompt">Email Address</Label>
+                                <Input
+                                    id="email-prompt"
+                                    type="email"
+                                    placeholder="name@example.com"
+                                    value={emailForVerification}
+                                    onChange={(e) => setEmailForVerification(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <DialogFooter>
+                                <Button type="submit">Confirm Email</Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+                {/* Background content */}
+                 <AverzoLogo />
+                <div className="flex items-center gap-2 text-muted-foreground">
+                    <p className="font-medium">Waiting for email confirmation...</p>
+                </div>
+            </div>
+        );
     }
     
     if (step === 'setPassword') {
