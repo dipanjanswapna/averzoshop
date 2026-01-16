@@ -159,29 +159,31 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
     const sizes = variantSizes?.split(',').map(s => s.trim()).filter(Boolean) || [];
     
     remove(); // Clear existing variants
+    
+    const newCompareAtPrice = compareAtPrice ?? 0;
 
     if (colors.length === 0 && sizes.length === 0) {
-      append({ sku: `${baseSku}-DEFAULT`, color: '', size: '', image: '', stock: 0, price, compareAtPrice });
+      append({ sku: `${baseSku}-DEFAULT`, color: '', size: '', image: '', stock: 0, price, compareAtPrice: newCompareAtPrice });
       return;
     }
 
     if (colors.length > 0 && sizes.length === 0) {
       colors.forEach(color => {
-        append({ sku: `${baseSku}-${color.toUpperCase()}`, color, size: '', image: '', stock: 0, price, compareAtPrice });
+        append({ sku: `${baseSku}-${color.toUpperCase()}`, color, size: '', image: '', stock: 0, price, compareAtPrice: newCompareAtPrice });
       });
       return;
     }
     
     if (colors.length === 0 && sizes.length > 0) {
       sizes.forEach(size => {
-        append({ sku: `${baseSku}-${size.toUpperCase()}`, color: '', size: '', image: '', stock: 0, price, compareAtPrice });
+        append({ sku: `${baseSku}-${size.toUpperCase()}`, color: '', size: '', image: '', stock: 0, price, compareAtPrice: newCompareAtPrice });
       });
       return;
     }
 
     colors.forEach(color => {
       sizes.forEach(size => {
-        append({ sku: `${baseSku}-${color.toUpperCase()}-${size.toUpperCase()}`, color, size, image: '', stock: 0, price, compareAtPrice });
+        append({ sku: `${baseSku}-${color.toUpperCase()}-${size.toUpperCase()}`, color, size, image: '', stock: 0, price, compareAtPrice: newCompareAtPrice });
       });
     });
   };
@@ -349,7 +351,7 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
                           />
                         </TableCell>
                         <TableCell><FormField control={form.control} name={`variants.${index}.price`} render={({ field }) => (<Input type="number" {...field} />)} /></TableCell>
-                        <TableCell><FormField control={form.control} name={`variants.${index}.compareAtPrice`} render={({ field }) => (<Input type="number" {...field} />)} /></TableCell>
+                        <TableCell><FormField control={form.control} name={`variants.${index}.compareAtPrice`} render={({ field }) => (<Input type="number" {...field} value={field.value ?? ''} />)} /></TableCell>
                         <TableCell><Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button></TableCell>
                       </TableRow>
                     ))}
