@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, Dispatch, SetStateAction } from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Minus, Plus, ShoppingBag, Heart, HelpCircle, MapPin, Share2, Printer, Gift, X, Store, Calendar, CalendarDays } from 'lucide-react';
+import { Minus, Plus, ShoppingBag, Heart, HelpCircle, MapPin, Share2, Printer, Gift, X, Store, CalendarDays } from 'lucide-react';
 import type { Product, ProductVariant } from '@/types/product';
 import { TrustBadges } from './trust-badges';
 import Link from 'next/link';
@@ -17,6 +17,7 @@ import { SizeGuideDialog } from './size-guide-dialog';
 import { useCart } from '@/hooks/use-cart';
 import { StoreAvailabilityDialog } from './store-availability-dialog';
 import Barcode from 'react-barcode';
+import { BarcodePopup } from './barcode-popup';
 
 interface ProductDetailsProps {
     product: Product;
@@ -45,6 +46,7 @@ export function ProductDetails({
   const [showShare, setShowShare] = useState(false);
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
   const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(false);
+  const [isBarcodeOpen, setIsBarcodeOpen] = useState(false);
 
   const { addItem } = useCart();
   const { user, firestore, userData } = useAuth();
@@ -184,16 +186,16 @@ export function ProductDetails({
   return (
     <>
       <div className="flex flex-col gap-4 no-print">
-        <div>
+        <div className="space-y-4">
            <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-primary uppercase">{product.group}</span>
               <div className="relative">
                   <Button variant="ghost" size="icon" onClick={() => setShowShare(!showShare)}><Share2 size={20} /></Button>
-                  {showShare && <ShareButtons url={typeof window !== 'undefined' ? window.location.href : ''} />}
+                  {showShare && <ShareButtons url={typeof window !== 'undefined' ? window.location.href : ''} className="absolute right-0 top-12 mt-2 w-48 bg-background border rounded-lg shadow-lg p-2 z-10 flex-col items-stretch space-y-1" />}
               </div>
            </div>
-          <h1 className="text-3xl lg:text-4xl font-extrabold font-headline text-foreground mt-2">{product.name}</h1>
-          <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
+          <h1 className="text-3xl lg:text-4xl font-extrabold font-headline text-foreground">{product.name}</h1>
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <span>By <Link href="#" className="text-primary font-semibold hover:underline">{product.brand}</Link></span>
            </div>
         </div>
@@ -215,38 +217,11 @@ export function ProductDetails({
         </div>
 
         {savings > 0 && !isPreOrder && (
-           <div className="bg-primary/10 text-primary font-bold text-sm p-3 rounded-md text-center mt-2">
+           <div className="bg-primary/10 text-primary font-bold text-sm p-3 rounded-md text-center">
               You save ৳{savings.toFixed(2)}!
            </div>
          )}
         
-         <div className="space-y-4 py-4">
-            {product.giftWithPurchase?.enabled && product.giftWithPurchase.description && (
-                <div className="bg-green-100 text-green-800 border-l-4 border-green-500 p-4 rounded-md flex items-center gap-4">
-                    <Gift size={24} className="flex-shrink-0" />
-                    <div>
-                    <p className="font-bold">Free Gift with Purchase!</p>
-                    <p className="text-sm">{product.giftWithPurchase.description}</p>
-                    </div>
-                </div>
-            )}
-        </div>
-        
-        {selectedVariant?.sku && (
-          <div className="border rounded-lg p-4 bg-muted/20">
-            <div className="grid grid-cols-2 gap-x-4">
-              <div>
-                <p className="text-sm font-bold">{product.name}</p>
-                <p className="text-xs text-muted-foreground mt-1">Brand: {product.brand}</p>
-                <p className="text-xs text-muted-foreground">Sold by: Vendor ID {product.vendorId}</p>
-              </div>
-              <div className="flex items-center justify-end">
-                <Barcode value={selectedVariant.sku} height={40} width={1.5} displayValue={true} fontSize={10} />
-              </div>
-            </div>
-          </div>
-        )}
-
         {uniqueColors.length > 0 && (
           <div className="space-y-3">
             <h3 className="text-sm font-bold uppercase text-muted-foreground">Color: <span className="text-foreground capitalize">{selectedColor}</span></h3>
@@ -298,6 +273,36 @@ export function ProductDetails({
           </div>
         )}
         
+        <div className="space-y-4 py-4 border-t">
+            {product.giftWithPurchase?.enabled && product.giftWithPurchase.description && (
+                <div className="bg-green-100 text-green-800 border-l-4 border-green-500 p-4 rounded-md flex items-center gap-4">
+                    <Gift size={24} className="flex-shrink-0" />
+                    <div>
+                    <p className="font-bold">Free Gift with Purchase!</p>
+                    <p className="text-sm">{product.giftWithPurchase.description}</p>
+                    </div>
+                </div>
+            )}
+            
+            {selectedVariant?.sku && (
+                <button 
+                  onClick={() => setIsBarcodeOpen(true)}
+                  className="w-full text-left border rounded-lg p-4 bg-muted/20 hover:bg-muted/40 transition-colors"
+                >
+                  <div className="grid grid-cols-2 gap-x-4">
+                    <div>
+                      <p className="text-sm font-bold">{product.name}</p>
+                      <p className="text-xs text-muted-foreground mt-1">Brand: {product.brand}</p>
+                      <p className="text-xs text-muted-foreground">Sold by: Vendor ID {product.vendorId}</p>
+                    </div>
+                    <div className="flex items-center justify-end">
+                      <Barcode value={selectedVariant.sku} height={40} width={1.5} displayValue={true} fontSize={10} />
+                    </div>
+                  </div>
+                </button>
+            )}
+        </div>
+
         <div className="pt-4">
           <div className='min-h-[104px]'>
              {isPreOrder ? (
@@ -378,8 +383,13 @@ export function ProductDetails({
         <TrustBadges />
         <SizeGuideDialog open={isSizeGuideOpen} onOpenChange={setIsSizeGuideOpen} />
         <StoreAvailabilityDialog open={isAvailabilityOpen} onOpenChange={setIsAvailabilityOpen} product={product} />
-
       </div>
+      <BarcodePopup 
+        open={isBarcodeOpen} 
+        onOpenChange={setIsBarcodeOpen}
+        product={product}
+        variant={selectedVariant}
+      />
     </>
   );
 }

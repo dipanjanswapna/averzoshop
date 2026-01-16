@@ -3,12 +3,14 @@
 import { Facebook, Twitter, Linkedin, Copy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '../ui/button';
+import { cn } from '@/lib/utils';
 
 interface ShareButtonsProps {
   url: string;
+  className?: string;
 }
 
-export function ShareButtons({ url }: ShareButtonsProps) {
+export function ShareButtons({ url, className }: ShareButtonsProps) {
   const { toast } = useToast();
 
   const copyToClipboard = () => {
@@ -17,34 +19,34 @@ export function ShareButtons({ url }: ShareButtonsProps) {
   };
 
   return (
-    <div className="absolute right-0 top-12 mt-2 w-48 bg-background border rounded-lg shadow-lg p-2 z-10 space-y-2">
+    <div className={cn("flex items-center justify-center gap-2", className)}>
       <Button
-        variant="ghost"
-        className="w-full justify-start gap-2"
+        variant="outline"
+        size="icon"
         onClick={() => window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank')}
       >
-        <Facebook size={16} /> Facebook
+        <Facebook size={16} />
       </Button>
       <Button
-         variant="ghost"
-        className="w-full justify-start gap-2"
+         variant="outline"
+         size="icon"
         onClick={() => window.open(`https://twitter.com/intent/tweet?url=${encodeURIComponent(url)}`, '_blank')}
       >
-        <Twitter size={16} /> Twitter
+        <Twitter size={16} />
       </Button>
        <Button
-         variant="ghost"
-        className="w-full justify-start gap-2"
+         variant="outline"
+         size="icon"
         onClick={() => window.open(`https://www.linkedin.com/shareArticle?mini=true&url=${encodeURIComponent(url)}`, '_blank')}
       >
-        <Linkedin size={16} /> LinkedIn
+        <Linkedin size={16} />
       </Button>
       <Button
-        variant="ghost"
-        className="w-full justify-start gap-2"
+        variant="outline"
+        size="icon"
         onClick={copyToClipboard}
       >
-        <Copy size={16} /> Copy Link
+        <Copy size={16} />
       </Button>
     </div>
   );
