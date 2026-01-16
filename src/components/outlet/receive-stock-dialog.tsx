@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from 'react';
 import {
@@ -43,10 +44,17 @@ export function ReceiveStockDialog({ open, onOpenChange, challan }: ReceiveStock
                 const challanRef = doc(firestore, 'delivery_challans', challan.id);
                 const stockRequestRef = doc(firestore, 'stock_requests', challan.stockRequestId);
                 
-                // Update product stocks
-                for (const item of challan.items) {
-                    const productRef = doc(firestore, 'products', item.productId);
-                    const productDoc = await transaction.get(productRef);
+                // 1. All reads first
+                const productRefs = challan.items.map(item => doc(firestore, 'products', item.productId));
+                const productDocs = await Promise.all(productRefs.map(ref => transaction.get(ref)));
+
+                const updatesToPerform: { ref: any, data: any }[] = [];
+
+                // 2. Process data and prepare writes
+                for (let i = 0; i < challan.items.length; i++) {
+                    const item = challan.items[i];
+                    const productDoc = productDocs[i];
+
                     if (!productDoc.exists()) {
                         throw new Error(`Product with ID ${item.productId} not found.`);
                     }
@@ -58,27 +66,28 @@ export function ReceiveStockDialog({ open, onOpenChange, challan }: ReceiveStock
                         throw new Error(`Variant with SKU ${item.variantSku} not found for product ${item.productName}.`);
                     }
 
-                    const updates: { [key: string]: any } = {
-                        total_stock: increment(item.quantity),
-                        [`outlet_stocks.${userData.outletId}`]: increment(item.quantity),
-                    };
-
-                    // To update an item in an array, you need to read the whole array, modify it, and write it back.
-                    // Firestore transactions don't support `array-union` or direct indexed updates in this way.
-                    // A safer approach is to update the entire variants array.
                     const newVariants = [...productData.variants];
                     newVariants[variantIndex] = {
                         ...newVariants[variantIndex],
                         stock: newVariants[variantIndex].stock + item.quantity
                     };
-                    updates.variants = newVariants;
                     
-                    transaction.update(productRef, updates);
+                    updatesToPerform.push({
+                        ref: productRefs[i],
+                        data: {
+                            total_stock: increment(item.quantity),
+                            [`outlet_stocks.${userData.outletId}`]: increment(item.quantity),
+                            variants: newVariants
+                        }
+                    });
                 }
                 
-                // Update challan status
+                // 3. All writes last
+                updatesToPerform.forEach(update => {
+                    transaction.update(update.ref, update.data);
+                });
+
                 transaction.update(challanRef, { status: 'received' });
-                // Update stock request status
                 transaction.update(stockRequestRef, { status: 'received' });
             });
 

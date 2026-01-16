@@ -128,42 +128,54 @@ export default function POSPage() {
             toast({ variant: 'destructive', title: 'Error', description: 'Cannot complete sale. Check login and cart.' });
             return;
         }
-
+    
         setIsProcessing(true);
-
+    
         try {
             await runTransaction(firestore, async (transaction) => {
-                const saleItems = [];
-
-                for (const cartItem of cart) {
-                    const productRef = doc(firestore, 'products', cartItem.product.id);
-                    const productDoc = await transaction.get(productRef);
-
-                    if (!productDoc.exists()) throw new Error(`Product ${cartItem.product.name} not found.`);
-
+                // 1. All reads first
+                const productRefs = cart.map(item => doc(firestore, 'products', item.product.id));
+                const productDocs = await Promise.all(productRefs.map(ref => transaction.get(ref)));
+    
+                const saleItems: any[] = [];
+                const productUpdates: any[] = [];
+    
+                // 2. Process data and prepare writes
+                for (let i = 0; i < cart.length; i++) {
+                    const cartItem = cart[i];
+                    const productDoc = productDocs[i];
+    
+                    if (!productDoc.exists()) {
+                        throw new Error(`Product ${cartItem.product.name} not found.`);
+                    }
+    
                     const currentData = productDoc.data() as Product;
                     const currentOutletStock = currentData.outlet_stocks?.[outletId] ?? 0;
                     
                     const variantIndex = currentData.variants.findIndex(v => v.sku === cartItem.variant.sku);
-                    if (variantIndex === -1) throw new Error(`Variant ${cartItem.variant.sku} not found.`);
+                    if (variantIndex === -1) {
+                        throw new Error(`Variant ${cartItem.variant.sku} not found.`);
+                    }
                     
                     const currentVariantStock = currentData.variants[variantIndex].stock;
-
+    
                     if (currentOutletStock < cartItem.quantity || currentVariantStock < cartItem.quantity) {
                         throw new Error(`Not enough stock for ${cartItem.product.name}. Available: ${Math.min(currentOutletStock, currentVariantStock)}`);
                     }
+    
+                    // Prepare updates without actually writing them yet
+                    const newVariants = [...currentData.variants];
+                    newVariants[variantIndex].stock -= cartItem.quantity;
                     
-                    const newOutletStock = currentOutletStock - cartItem.quantity;
-                    const newTotalStock = currentData.total_stock - cartItem.quantity;
-                    const newVariantStock = currentVariantStock - cartItem.quantity;
-
-                    // Update product-level stock and outlet-level stock
-                    transaction.update(productRef, {
-                        [`outlet_stocks.${outletId}`]: newOutletStock,
-                        total_stock: newTotalStock,
-                        [`variants.${variantIndex}.stock`]: newVariantStock
+                    productUpdates.push({
+                        ref: productRefs[i],
+                        data: {
+                            [`outlet_stocks.${outletId}`]: currentOutletStock - cartItem.quantity,
+                            total_stock: currentData.total_stock - cartItem.quantity,
+                            variants: newVariants,
+                        }
                     });
-
+    
                     saleItems.push({
                         productId: cartItem.product.id,
                         productName: cartItem.product.name,
@@ -172,10 +184,15 @@ export default function POSPage() {
                         price: cartItem.variant.price,
                     });
                 }
+    
+                // 3. All writes last
+                productUpdates.forEach(update => {
+                    transaction.update(update.ref, update.data);
+                });
                 
                 const salesRef = collection(firestore, 'pos_sales');
                 transaction.set(doc(salesRef), {
-                    outletId: outletId,
+                    outletId,
                     soldBy: user.uid,
                     items: saleItems,
                     totalAmount: cartSubtotal,
@@ -183,10 +200,10 @@ export default function POSPage() {
                     createdAt: serverTimestamp(),
                 });
             });
-
+    
             toast({ title: 'Sale Completed!', description: `Successfully recorded sale of ${totalItems} items.` });
             setCart([]);
-
+    
         } catch (error: any) {
             console.error('Sale transaction failed: ', error);
             toast({ variant: 'destructive', title: 'Sale Failed', description: error.message || 'An unexpected error occurred.' });
@@ -294,4 +311,3 @@ export default function POSPage() {
         </div>
     );
 }
-
