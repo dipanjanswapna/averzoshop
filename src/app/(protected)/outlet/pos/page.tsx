@@ -3,7 +3,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Search, PlusCircle, MinusCircle, XCircle, ShoppingCart, Banknote, CreditCard, Smartphone } from 'lucide-react';
+import { Search, PlusCircle, MinusCircle, XCircle, ShoppingCart, Banknote, CreditCard, Smartphone, User } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { Product, ProductVariant } from '@/types/product';
@@ -334,8 +334,27 @@ export default function POSPage() {
                     </Card>
                 </div>
 
-                {/* Cart Section */}
-                <div className="lg:col-span-2 h-fit lg:h-full flex flex-col">
+                {/* Right Column: Customer + Cart */}
+                <div className="lg:col-span-2 h-fit lg:h-full flex flex-col gap-4">
+                     {/* Customer Card */}
+                    <Card className="shadow-md">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2 text-lg">
+                                <User /> Customer
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            <div className="flex gap-2">
+                                <Input placeholder="Search by phone number..." />
+                                <Button variant="outline">Search</Button>
+                            </div>
+                            <div className="text-sm text-center text-muted-foreground p-4 border-2 border-dashed rounded-lg">
+                                Default: Walk-in Customer
+                            </div>
+                        </CardContent>
+                    </Card>
+                    
+                    {/* Cart Section */}
                     <Card className="flex-1 flex flex-col shadow-lg">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
