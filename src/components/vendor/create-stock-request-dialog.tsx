@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -50,7 +51,7 @@ export function CreateStockRequestDialog({ open, onOpenChange }: CreateStockRequ
   const [isLoading, setIsLoading] = useState(false);
 
   const { data: allOutlets, isLoading: isLoadingOutlets } = useFirestoreQuery<Outlet>('outlets');
-  const { data: vendorProducts, isLoading: isLoadingProducts } = useFirestoreQuery<Product>(`products`);
+  const { data: allProducts, isLoading: isLoadingProducts } = useFirestoreQuery<Product>(`products`);
 
   const assignedOutlets = useMemo(() => {
     if (!allOutlets || !userData?.assignedOutlets) {
@@ -60,8 +61,9 @@ export function CreateStockRequestDialog({ open, onOpenChange }: CreateStockRequ
   }, [allOutlets, userData]);
 
   const availableProducts = useMemo(() => {
-    return vendorProducts?.filter(p => p.vendorId === user?.uid) || [];
-  }, [vendorProducts, user]);
+    if (!allProducts) return [];
+    return allProducts.filter(p => p.vendorId === user?.uid);
+  }, [allProducts, user]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -157,7 +159,8 @@ export function CreateStockRequestDialog({ open, onOpenChange }: CreateStockRequ
                 <FormLabel>Products</FormLabel>
                 {fields.map((field, index) => {
                     const selectedProductId = watchItems[index]?.productId;
-                    const productVariants = availableProducts.find(p => p.id === selectedProductId)?.variants || [];
+                    const selectedProduct = availableProducts.find(p => p.id === selectedProductId);
+                    const productVariants = selectedProduct?.variants || [];
                     
                     return (
                         <div key={field.id} className="grid grid-cols-[1fr,1fr,100px,auto] items-end gap-2 p-3 border rounded-md">
@@ -169,9 +172,9 @@ export function CreateStockRequestDialog({ open, onOpenChange }: CreateStockRequ
                                         {index === 0 && <FormLabel>Product</FormLabel>}
                                         <Select 
                                             onValueChange={(value) => {
-                                                const selectedProduct = availableProducts.find(p => p.id === value);
+                                                const product = availableProducts.find(p => p.id === value);
                                                 field.onChange(value);
-                                                form.setValue(`items.${index}.productName`, selectedProduct?.name || '');
+                                                form.setValue(`items.${index}.productName`, product?.name || '');
                                                 form.setValue(`items.${index}.variantSku`, ''); // Reset variant
                                             }} 
                                             defaultValue={field.value}
@@ -183,12 +186,12 @@ export function CreateStockRequestDialog({ open, onOpenChange }: CreateStockRequ
                                     </FormItem>
                                 )}
                             />
-                            <FormField
+                             <FormField
                                 control={form.control}
                                 name={`items.${index}.variantSku`}
                                 render={({ field }) => (
                                     <FormItem>
-                                       {index === 0 && <FormLabel>Variant</FormLabel>}
+                                       {index === 0 && <FormLabel>Variant (SKU)</FormLabel>}
                                        <Select onValueChange={field.onChange} value={field.value} disabled={!selectedProductId}>
                                             <FormControl><SelectTrigger><SelectValue placeholder="Select Variant" /></SelectTrigger></FormControl>
                                             <SelectContent>

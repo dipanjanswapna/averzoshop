@@ -27,6 +27,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Trash2 } from 'lucide-react';
 import { Switch } from '../ui/switch';
+import { CreatableSelect } from '../ui/creatable-select';
+import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
+import type { Product } from '@/types/product';
+
 
 interface AddProductDialogProps {
   open: boolean;
@@ -68,6 +72,8 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
   const { firestore } = useFirebase();
   const { user, userData } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  
+  const { data: allProducts, isLoading: isLoadingProducts } = useFirestoreQuery<Product>('products');
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -95,21 +101,23 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
   });
 
   const selectedCategory = form.watch('category');
-  const selectedGroup = form.watch('group');
   const giftEnabled = form.watch('giftWithPurchase.enabled');
 
   const availableGroups = useMemo(() => {
-    if (!selectedCategory) return [];
-    const category = categoriesData.find(cat => cat.mother_name === selectedCategory);
-    return category ? category.groups : [];
-  }, [selectedCategory]);
+    if (!allProducts || !selectedCategory) return [];
+    const groups = allProducts
+        .filter(p => p.category === selectedCategory && p.group)
+        .map(p => p.group);
+    return [...new Set(groups)].map(g => ({ value: g, label: g }));
+  }, [allProducts, selectedCategory]);
 
   const availableSubcategories = useMemo(() => {
-    if (!selectedGroup) return [];
-    const category = categoriesData.find(cat => cat.mother_name === selectedCategory);
-    const group = category?.groups.find(g => g.group_name === selectedGroup);
-    return group ? group.subs : [];
-  }, [selectedCategory, selectedGroup]);
+    if (!allProducts || !selectedCategory) return [];
+    const subcats = allProducts
+        .filter(p => p.category === selectedCategory && p.subcategory)
+        .map(p => p.subcategory);
+    return [...new Set(subcats)].map(s => ({ value: s, label: s }));
+  }, [allProducts, selectedCategory]);
 
   const handleGenerateVariants = () => {
     const { variantColors, variantSizes, baseSku, price, compareAtPrice } = form.getValues();
@@ -227,10 +235,26 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
                   <FormItem><FormLabel>Mother Category</FormLabel><Select onValueChange={(value) => { field.onChange(value); form.setValue('group', ''); form.setValue('subcategory', ''); }} value={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select Category" /></SelectTrigger></FormControl><SelectContent>{categoriesData.map(cat => <SelectItem key={cat.mother_name} value={cat.mother_name}>{cat.mother_name}</SelectItem>)}</SelectContent></Select><FormMessage /></FormItem>
               )} />
               <FormField control={form.control} name="group" render={({ field }) => (
-                <FormItem><FormLabel>Group</FormLabel><FormControl><Input placeholder="e.g., Topwear" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Group</FormLabel>
+                <CreatableSelect
+                    value={field.value}
+                    onChange={field.onChange}
+                    options={availableGroups}
+                    placeholder="Select or create a group"
+                    disabled={!selectedCategory || isLoadingProducts}
+                />
+                <FormMessage /></FormItem>
               )} />
               <FormField control={form.control} name="subcategory" render={({ field }) => (
-                <FormItem><FormLabel>Subcategory</FormLabel><FormControl><Input placeholder="e.g., T-Shirts" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Subcategory</FormLabel>
+                <CreatableSelect
+                    value={field.value}
+                    onChange={field.onChange}
+                    options={availableSubcategories}
+                    placeholder="Select or create a subcategory"
+                    disabled={!selectedCategory || isLoadingProducts}
+                />
+                <FormMessage /></FormItem>
               )} />
             </div>
             <div className="grid grid-cols-2 gap-4">
