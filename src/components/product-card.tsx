@@ -7,27 +7,45 @@ import Link from 'next/link';
 import { Button } from './ui/button';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
+import { useMemo } from 'react';
 
 export const ProductCard = ({ product }: { product: Product }) => {
-  const finalPrice = product.price;
-  const originalPrice = product.compareAtPrice;
-  
-  const stock = product.total_stock;
-  const stockStatus = stock > 0 && stock < 10 ? 'Low Stock' : null;
-
   const { addItem } = useCart();
   const { toast } = useToast();
+
+  const { defaultVariant, displayPrice, displayOriginalPrice, isOutOfStock } = useMemo(() => {
+    const variantsArray = Array.isArray(product.variants)
+      ? product.variants
+      : product.variants ? Object.values(product.variants) : [];
+
+    // Find the first variant in stock, or fall back to the very first variant if all are out of stock.
+    const determinedVariant = variantsArray.find(v => v.stock > 0) || variantsArray[0];
+    
+    const price = determinedVariant?.price ?? product.price;
+    const originalPrice = determinedVariant?.compareAtPrice ?? product.compareAtPrice;
+
+    // A product is out of stock only if its total aggregated stock is zero or less.
+    const outOfStock = product.total_stock <= 0;
+
+    return {
+      defaultVariant: determinedVariant,
+      displayPrice: price,
+      displayOriginalPrice: originalPrice,
+      isOutOfStock: outOfStock,
+    };
+  }, [product]);
+
+  const stockStatus = !isOutOfStock && product.total_stock < 10 ? 'Low Stock' : null;
 
   const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
     
-    const defaultVariant = product.variants?.find(v => v.stock > 0) || product.variants?.[0];
     if (!defaultVariant) {
         toast({
           variant: "destructive",
           title: 'Product Unavailable',
-          description: 'This product has no available variants.',
+          description: 'This product has no available variants to add.',
         });
         return;
     }
@@ -51,7 +69,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
         {/* Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
           <span className="bg-black/80 text-white text-[9px] font-saira px-2 py-0.5 rounded-full uppercase">{product.group}</span>
-          {product.discount > 0 && (
+          {product.discount > 0 && !isOutOfStock && (
             <span className="bg-primary text-primary-foreground text-[9px] font-bold px-2 py-0.5 rounded-full">{Math.round(product.discount)}% OFF</span>
           )}
            {product.giftWithPurchase?.enabled && (
@@ -63,6 +81,14 @@ export const ProductCard = ({ product }: { product: Product }) => {
              <span className="bg-destructive text-destructive-foreground text-[9px] font-bold px-2 py-0.5 rounded-full animate-pulse">{stockStatus}</span>
           )}
         </div>
+
+        {/* Out of Stock Overlay */}
+        {isOutOfStock && (
+          <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
+             <span className="bg-destructive text-destructive-foreground text-xs font-bold px-3 py-1 rounded-full -rotate-12">OUT OF STOCK</span>
+          </div>
+        )}
+
 
         {/* Hover Actions (Hidden on Mobile, Visible on Desktop Hover) */}
         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
@@ -82,9 +108,9 @@ export const ProductCard = ({ product }: { product: Product }) => {
         
         {/* Price Section */}
         <div className="flex items-baseline gap-2 mt-1">
-          <span className="text-base font-bold text-primary font-roboto">৳{finalPrice.toFixed(2)}</span>
-          {originalPrice && originalPrice > finalPrice && (
-            <span className="text-[10px] text-muted-foreground line-through">৳{originalPrice.toFixed(2)}</span>
+          <span className="text-base font-bold text-primary font-roboto">৳{displayPrice.toFixed(2)}</span>
+          {displayOriginalPrice && displayOriginalPrice > displayPrice && (
+            <span className="text-[10px] text-muted-foreground line-through">৳{displayOriginalPrice.toFixed(2)}</span>
           )}
         </div>
 
@@ -100,14 +126,14 @@ export const ProductCard = ({ product }: { product: Product }) => {
         </div>
 
         {/* Quick Add Button (Mobile Friendly) */}
-        <Button onClick={handleAddToCart} className="w-full mt-2 flex items-center justify-center gap-2 bg-foreground text-background py-2 rounded-lg text-[10px] font-bold hover:bg-primary hover:text-primary-foreground transition-colors" disabled={stock <= 0}>
-          {stock > 0 ? (
+        <Button onClick={handleAddToCart} className="w-full mt-2 flex items-center justify-center gap-2 bg-foreground text-background py-2 rounded-lg text-[10px] font-bold hover:bg-primary hover:text-primary-foreground transition-colors" disabled={isOutOfStock}>
+          {isOutOfStock ? (
+            'Out of Stock'
+          ) : (
             <>
               <ShoppingBag size={12} />
               ADD TO CART
             </>
-          ) : (
-            'Out of Stock'
           )}
         </Button>
       </div>
