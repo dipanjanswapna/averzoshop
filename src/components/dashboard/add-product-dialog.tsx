@@ -78,7 +78,6 @@ const formSchema = z.object({
   flashSale: z.object({
     enabled: z.boolean().default(false),
     endDate: z.date().optional(),
-    giftDescription: z.string().optional(),
   }).optional(),
 });
 
@@ -112,7 +111,6 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
       },
       flashSale: {
         enabled: false,
-        giftDescription: '',
       },
     },
   });
@@ -223,7 +221,6 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
         flashSale: {
           enabled: values.flashSale?.enabled ?? false,
           endDate: values.flashSale?.endDate ?? null,
-          giftDescription: values.flashSale?.giftDescription ?? "",
         },
         vendorId: user.uid,
         status: status,
@@ -523,22 +520,6 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
                               </Popover>
                               <FormMessage /></FormItem>
                       )} />
-                      <FormField
-                        control={form.control}
-                        name="flashSale.giftDescription"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Flash Sale Gift Description</FormLabel>
-                            <FormControl>
-                              <Input placeholder="e.g., Free screen protector!" {...field} />
-                            </FormControl>
-                            <FormDescription>
-                              Describe the free gift offered during this flash sale.
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
                   </div>
                 )}
             </div>

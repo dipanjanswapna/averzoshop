@@ -216,22 +216,12 @@ export function ProductDetails({
 
         {product.flashSale?.enabled && <FlashSaleTimer endDate={product.flashSale.endDate} />}
         
-        {product.flashSale?.enabled && product.flashSale.giftDescription && (
-             <div className="bg-green-100 text-green-800 border-l-4 border-green-500 p-4 rounded-md flex items-center gap-4 animate-pulse">
-                <Gift size={24} className="flex-shrink-0" />
-                <div>
-                <p className="font-bold">Flash Sale Offer!</p>
-                <p className="text-sm">Buy now and get a free: {product.flashSale.giftDescription}</p>
-                </div>
-            </div>
-        )}
-        
         {savings > 0 && !isPreOrder && (
            <div className="bg-primary/10 text-primary font-bold text-sm p-3 rounded-md text-center mt-4">
               You save ৳{savings.toFixed(2)}!
            </div>
          )}
-
+        
         <div className="flex items-center justify-between pt-2">
            <div className="flex items-baseline gap-3">
             <span className="text-3xl font-bold text-primary font-roboto">৳{displayPrice.toFixed(2)}</span>

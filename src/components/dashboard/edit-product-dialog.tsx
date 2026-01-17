@@ -78,7 +78,6 @@ const formSchema = z.object({
   flashSale: z.object({
     enabled: z.boolean().default(false),
     endDate: z.date().optional(),
-    giftDescription: z.string().optional(),
   }).optional(),
 });
 
@@ -148,7 +147,6 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
       flashSale: {
           enabled: product.flashSale?.enabled || false,
           endDate: flashSaleEndDateObj,
-          giftDescription: product.flashSale?.giftDescription || '',
       },
     });
   }, [product, form]);
@@ -260,7 +258,6 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
         flashSale: {
           enabled: values.flashSale?.enabled ?? false,
           endDate: values.flashSale?.endDate ?? null,
-          giftDescription: values.flashSale?.giftDescription ?? "",
         },
         discount: Math.round(discount),
         variants: updatedVariants,
@@ -559,22 +556,6 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
                               </Popover>
                               <FormMessage /></FormItem>
                       )} />
-                      <FormField
-                        control={form.control}
-                        name="flashSale.giftDescription"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Flash Sale Gift Description</FormLabel>
-                            <FormControl>
-                              <Input placeholder="e.g., Free screen protector!" {...field} value={field.value ?? ''} />
-                            </FormControl>
-                            <FormDescription>
-                              Describe the free gift offered during this flash sale.
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
                   </div>
                 )}
             </div>

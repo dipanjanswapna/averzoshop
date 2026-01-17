@@ -13,6 +13,7 @@
         "role": { "type": "string", "description": "The role of the user.", "enum": ["customer", "admin", "outlet", "vendor", "rider"] },
         "status": { "type": "string", "description": "The approval status of the user.", "enum": ["pending", "approved", "rejected"] },
         "wishlist": { "type": "array", "description": "An array of product IDs that the user has added to their wishlist.", "items": { "type": "string" } },
+        "addresses": { "type": "array", "items": { "$ref": "#/entities/address" } },
         "outletId": { "type": "string", "description": "The ID of the outlet this user manages, if applicable." },
         "assignedOutlets": {
             "type": "array",
@@ -25,6 +26,30 @@
         "membershipTier": { "type": "string", "enum": ["silver", "gold", "platinum"], "description": "The user's membership level." }
       },
       "required": ["uid", "email", "role", "status"]
+    },
+    "address": {
+      "title": "Address",
+      "description": "A structured address for deliveries and locations.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "label": { "type": "string", "enum": ["Home", "Office", "Other"] },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "division": { "type": "string" },
+        "district": { "type": "string" },
+        "upazila": { "type": "string" },
+        "area": { "type": "string" },
+        "streetAddress": { "type": "string" },
+        "coordinates": {
+          "type": "object",
+          "properties": {
+            "lat": { "type": "number" },
+            "lng": { "type": "number" }
+          }
+        }
+      },
+      "required": ["label", "name", "phone", "district", "upazila", "area", "streetAddress"]
     },
     "point_transaction": {
       "title": "Point Transaction",
@@ -118,8 +143,11 @@
           "properties": {
             "name": { "type": "string" },
             "phone": { "type": "string" },
-            "address": { "type": "string" },
-            "city": { "type": "string" }
+            "division": { "type": "string" },
+            "district": { "type": "string" },
+            "upazila": { "type": "string" },
+            "area": { "type": "string" },
+            "streetAddress": { "type": "string" }
           }
         },
         "items": {
@@ -221,8 +249,7 @@
             "description": "Details for a limited-time flash sale on the product.",
             "properties": {
                 "enabled": { "type": "boolean" },
-                "endDate": { "type": "string", "format": "date-time" },
-                "giftDescription": { "type": "string", "description": "A free gift offered during the flash sale." }
+                "endDate": { "type": "string", "format": "date-time" }
             }
         }
       },
