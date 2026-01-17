@@ -113,7 +113,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
           {variantDiscount > 0 && !isOutOfStock && (
             <span className="bg-primary text-primary-foreground text-[9px] font-bold px-2 py-0.5 rounded-full">{variantDiscount}% OFF</span>
           )}
-           {product.giftWithPurchase?.enabled && !isFlashSaleActive && (
+           {product.giftWithPurchase?.enabled && product.giftWithPurchase.description && !isFlashSaleActive && (
             <span className="bg-green-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
               <Gift size={10} /> GIFT
             </span>

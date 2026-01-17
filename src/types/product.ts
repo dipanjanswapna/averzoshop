@@ -36,7 +36,6 @@ export type Product = {
     flashSale?: {
         enabled: boolean;
         endDate: any;
-        giftDescription?: string;
     };
     giftWithPurchase?: {
         enabled: boolean;
@@ -61,4 +60,5 @@ export type Product = {
     
 
     
+
 

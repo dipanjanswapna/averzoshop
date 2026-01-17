@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect, Dispatch, SetStateAction, useCallback } from 'react';
@@ -221,6 +222,16 @@ export function ProductDetails({
               You save ৳{savings.toFixed(2)}!
            </div>
          )}
+
+        {product.giftWithPurchase?.enabled && product.giftWithPurchase.description && !product.flashSale?.enabled && (
+            <div className="bg-green-100 text-green-800 border-l-4 border-green-500 p-4 rounded-md flex items-center gap-4">
+                <Gift size={24} className="flex-shrink-0" />
+                <div>
+                <p className="font-bold">Free Gift with Purchase!</p>
+                <p className="text-sm">{product.giftWithPurchase.description}</p>
+                </div>
+            </div>
+        )}
         
         <div className="flex items-center justify-between pt-2">
            <div className="flex items-baseline gap-3">
@@ -288,15 +299,6 @@ export function ProductDetails({
         )}
         
         <div className="space-y-4 py-4 border-t">
-            {product.giftWithPurchase?.enabled && product.giftWithPurchase.description && !product.flashSale?.enabled && (
-                <div className="bg-green-100 text-green-800 border-l-4 border-green-500 p-4 rounded-md flex items-center gap-4">
-                    <Gift size={24} className="flex-shrink-0" />
-                    <div>
-                    <p className="font-bold">Free Gift with Purchase!</p>
-                    <p className="text-sm">{product.giftWithPurchase.description}</p>
-                    </div>
-                </div>
-            )}
             
             {selectedVariant?.sku && (
                 <button 
