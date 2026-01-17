@@ -175,14 +175,21 @@ export function ShippingForm() {
                     ? { lat: selectedAddress.coordinates.lat, lng: selectedAddress.coordinates.lng } 
                     : { lat: 23.8103, lng: 90.4125 }; // Fallback to Dhaka center
                 
-                const nearestOutlet = suitableOutlets.reduce((closest, outlet) => {
-                    const distance = calculateDistance(customerCoords.lat, customerCoords.lng, outlet.location.lat, outlet.location.lng);
-                    if (!closest || distance < closest.distance) return { ...outlet, distance };
-                    return closest;
-                }, null as (Outlet & { distance: number }) | null);
-    
-                if (!nearestOutlet) throw new Error('Could not find a suitable outlet.');
+                const outletsWithDistance = suitableOutlets.map(outlet => ({
+                    ...outlet,
+                    distance: calculateDistance(customerCoords.lat, customerCoords.lng, outlet.location.lat, outlet.location.lng),
+                }));
+            
+                const sortedOutlets = outletsWithDistance.sort((a, b) => a.distance - b.distance);
                 
+                // As per the prompt, prioritize outlets within a 5km range for express delivery.
+                const hyperlocalOutlet = sortedOutlets.find(o => o.distance <= 5); 
+                
+                // Fallback to the absolute nearest outlet if no hyperlocal option is available.
+                const assignedOutlet = hyperlocalOutlet || sortedOutlets[0];
+
+                if (!assignedOutlet) throw new Error('Could not find a suitable outlet.');
+    
                 for (const cartItem of regularItems) {
                     const productRef = doc(firestore, 'products', cartItem.product.id);
                     const productDoc = await transaction.get(productRef);
@@ -194,11 +201,11 @@ export function ShippingForm() {
                     if (variantIndex === -1) throw new Error(`Variant ${cartItem.variant.sku} not found.`);
 
                     const variant = variantsArray[variantIndex];
-                    const currentStock = variant.outlet_stocks?.[nearestOutlet.id] ?? 0;
+                    const currentStock = variant.outlet_stocks?.[assignedOutlet.id] ?? 0;
                     if (currentStock < cartItem.quantity) throw new Error(`Not enough stock for ${productData.name}.`);
 
                     variantsArray[variantIndex].stock = (variant.stock || 0) - cartItem.quantity;
-                    variantsArray[variantIndex].outlet_stocks![nearestOutlet.id] = currentStock - cartItem.quantity;
+                    variantsArray[variantIndex].outlet_stocks![assignedOutlet.id] = currentStock - cartItem.quantity;
                     const newTotalStock = productData.total_stock - cartItem.quantity;
                     transaction.update(productRef, { variants: variantsArray, total_stock: newTotalStock });
                 }
@@ -212,7 +219,7 @@ export function ShippingForm() {
                     promoCode: promoCode?.code,
                     totalAmount: totalPayable,
                     fullOrderValue: fullOrderTotal,
-                    assignedOutletId: nearestOutlet.id,
+                    assignedOutletId: assignedOutlet.id,
                     status: isPreOrderCart ? 'pre-ordered' : 'new',
                     orderType: isPreOrderCart ? 'pre-order' : 'regular',
                     createdAt: serverTimestamp(),
