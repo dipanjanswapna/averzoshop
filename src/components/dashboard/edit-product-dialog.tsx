@@ -155,14 +155,14 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
       giftWithPurchase: product.giftWithPurchase || { enabled: false, description: '' },
       preOrder: {
           enabled: product.preOrder?.enabled || false,
-          releaseDate: releaseDateObj,
+          releaseDate: releaseDateObj || null,
           depositType: product.preOrder?.depositType,
           depositAmount: product.preOrder?.depositAmount,
           limit: product.preOrder?.limit,
       },
       flashSale: {
           enabled: product.flashSale?.enabled || false,
-          endDate: flashSaleEndDateObj,
+          endDate: flashSaleEndDateObj || null,
       },
     });
   }, [product, form]);

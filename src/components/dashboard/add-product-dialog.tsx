@@ -123,9 +123,13 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
       },
       preOrder: {
         enabled: false,
+        releaseDate: null,
+        depositAmount: null,
+        limit: null,
       },
       flashSale: {
         enabled: false,
+        endDate: null,
       },
     },
   });
@@ -451,7 +455,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
                       <FormItem>
                         <FormLabel>Gift Description</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., Free leather wallet with this purchase" {...field} />
+                          <Input placeholder="e.g., Free leather wallet" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
