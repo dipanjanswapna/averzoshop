@@ -75,6 +75,10 @@ const formSchema = z.object({
     depositAmount: z.coerce.number().optional(),
     limit: z.coerce.number().int().optional(),
   }).optional(),
+  flashSale: z.object({
+    enabled: z.boolean().default(false),
+    endDate: z.date().optional(),
+  }).optional(),
 });
 
 export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) {
@@ -105,6 +109,9 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
       preOrder: {
         enabled: false,
       },
+      flashSale: {
+        enabled: false,
+      },
     },
   });
 
@@ -116,6 +123,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
   const selectedCategory = form.watch('category');
   const giftEnabled = form.watch('giftWithPurchase.enabled');
   const preOrderEnabled = form.watch('preOrder.enabled');
+  const flashSaleEnabled = form.watch('flashSale.enabled');
 
   const availableGroups = useMemo(() => {
     if (!allProducts || !selectedCategory) return [];
@@ -201,6 +209,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
         sizes: values.variantSizes?.split(',').map(c => c.trim()).filter(Boolean) || [],
         giftWithPurchase: values.giftWithPurchase || { enabled: false, description: '' },
         preOrder: values.preOrder,
+        flashSale: values.flashSale,
         vendorId: user.uid,
         status: status,
         createdAt: serverTimestamp(),
@@ -449,6 +458,53 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
                               <FormItem><FormLabel>Pre-order Limit</FormLabel><FormControl><Input type="number" placeholder="Max pre-orders" {...field} /></FormControl><FormMessage /></FormItem>
                           )}
                       />
+                  </div>
+                )}
+            </div>
+
+            <div className="space-y-4 rounded-lg border p-4">
+                <FormField
+                  control={form.control}
+                  name="flashSale.enabled"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between">
+                      <div className="space-y-0.5">
+                        <FormLabel>Enable Flash Sale</FormLabel>
+                        <FormDescription>
+                          Create urgency with a limited-time offer.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                {flashSaleEnabled && (
+                  <div className="space-y-4 pt-4 border-t">
+                      <FormField
+                          control={form.control}
+                          name="flashSale.endDate"
+                          render={({ field }) => (
+                          <FormItem className="flex flex-col"><FormLabel>End Date</FormLabel>
+                              <Popover>
+                              <PopoverTrigger asChild>
+                                  <FormControl>
+                                  <Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                                      {field.value ? format(field.value, "PPP") : <span>Pick an end date</span>}
+                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                  </Button>
+                                  </FormControl>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                  <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                              </PopoverContent>
+                              </Popover>
+                              <FormMessage /></FormItem>
+                      )} />
                   </div>
                 )}
             </div>
