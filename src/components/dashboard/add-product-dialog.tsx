@@ -25,7 +25,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { categoriesData } from '@/lib/categories';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
-import { CalendarIcon, Trash2 } from 'lucide-react';
+import { CalendarIcon, Trash2, PlusCircle } from 'lucide-react';
 import { Switch } from '../ui/switch';
 import { CreatableSelect } from '../ui/creatable-select';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
@@ -33,6 +33,7 @@ import type { Product } from '@/types/product';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
 import { cn } from '@/lib/utils';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 
 
 interface AddProductDialogProps {
@@ -64,22 +65,33 @@ const formSchema = z.object({
   variantSizes: z.string().optional(),
   variantColors: z.string().optional(),
   variants: z.array(variantSchema).min(1, 'At least one variant is required.'),
+  specifications: z.array(z.object({
+    key: z.string().min(1, "Key cannot be empty"),
+    value: z.string().min(1, "Value cannot be empty"),
+  })).optional(),
+  gallery: z.array(z.object({
+    url: z.string().url("Must be a valid URL").or(z.literal('')),
+  })).optional(),
+  videos: z.array(z.object({
+    url: z.string().url("Must be a valid URL").or(z.literal('')),
+  })).optional(),
   giftWithPurchase: z.object({
     enabled: z.boolean().default(false),
     description: z.string().optional(),
   }).optional(),
   preOrder: z.object({
     enabled: z.boolean().default(false),
-    releaseDate: z.date().optional(),
+    releaseDate: z.date().optional().nullable(),
     depositType: z.enum(['percentage', 'fixed']).optional(),
-    depositAmount: z.coerce.number().optional(),
-    limit: z.coerce.number().int().optional(),
+    depositAmount: z.coerce.number().optional().nullable(),
+    limit: z.coerce.number().int().optional().nullable(),
   }).optional(),
   flashSale: z.object({
     enabled: z.boolean().default(false),
-    endDate: z.date().optional(),
+    endDate: z.date().optional().nullable(),
   }).optional(),
 });
+
 
 export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) {
   const { toast } = useToast();
@@ -102,6 +114,9 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
       variantSizes: '',
       variantColors: '',
       variants: [],
+      specifications: [],
+      gallery: [],
+      videos: [],
       giftWithPurchase: {
         enabled: false,
         description: '',
@@ -115,10 +130,11 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: "variants"
-  });
+  const { fields, append, remove } = useFieldArray({ control: form.control, name: "variants" });
+  const { fields: specFields, append: appendSpec, remove: removeSpec } = useFieldArray({ control: form.control, name: "specifications" });
+  const { fields: galleryFields, append: appendGallery, remove: removeGallery } = useFieldArray({ control: form.control, name: "gallery" });
+  const { fields: videoFields, append: appendVideo, remove: removeVideo } = useFieldArray({ control: form.control, name: "videos" });
+
 
   const selectedCategory = form.watch('category');
   const giftEnabled = form.watch('giftWithPurchase.enabled');
@@ -146,7 +162,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
     const colors = variantColors?.split(',').map(c => c.trim()).filter(Boolean) || [];
     const sizes = variantSizes?.split(',').map(s => s.trim()).filter(Boolean) || [];
     
-    remove(); // Clear existing variants
+    remove(); 
 
     const newCompareAtPrice = compareAtPrice ?? 0;
 
@@ -164,7 +180,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
     
     if (colors.length === 0 && sizes.length > 0) {
       sizes.forEach(size => {
-        append({ sku: `${baseSku}-${size.toUpperCase()}`, color: '', size: '', image: '', stock: 0, price, compareAtPrice: newCompareAtPrice });
+        append({ sku: `${baseSku}-${size.toUpperCase()}`, color: '', size, image: '', stock: 0, price, compareAtPrice: newCompareAtPrice });
       });
       return;
     }
@@ -184,12 +200,12 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
     setIsLoading(true);
     try {
       const status = userData.role === 'admin' ? 'approved' : 'pending';
-      const totalStock = 0; // Always 0 on creation
+      const totalStock = 0; 
       
       const { price, compareAtPrice } = values;
       let discount = 0;
       if (compareAtPrice && compareAtPrice > price) {
-          discount = ((compareAtPrice - price) / price) * 100;
+          discount = ((compareAtPrice - price) / compareAtPrice) * 100;
       }
       
       const productData = {
@@ -207,6 +223,12 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
         image: values.image,
         colors: values.variantColors?.split(',').map(s => s.trim()).filter(Boolean) ?? [],
         sizes: values.variantSizes?.split(',').map(c => c.trim()).filter(Boolean) ?? [],
+        specifications: values.specifications ? values.specifications.reduce((acc, { key, value }) => {
+          if (key) acc[key] = value;
+          return acc;
+        }, {} as { [key: string]: string }) : {},
+        gallery: values.gallery ? values.gallery.map(item => item.url).filter(Boolean) : [],
+        videos: values.videos ? values.videos.map(item => item.url).filter(Boolean) : [],
         giftWithPurchase: values.giftWithPurchase?.enabled
           ? { enabled: true, description: values.giftWithPurchase.description ?? "" }
           : { enabled: false, description: "" },
@@ -312,7 +334,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
             
             {fields.length > 0 && (
               <div className="space-y-2">
-                <label className="text-sm font-medium">Product Variants</label>
+                <Label className="text-sm font-medium">Product Variants</Label>
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -352,6 +374,53 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
               </div>
             )}
             {form.formState.errors.variants && <p className="text-sm font-medium text-destructive">{form.formState.errors.variants.message}</p>}
+            
+            <Accordion type="multiple" className="w-full">
+              <AccordionItem value="specifications">
+                <AccordionTrigger>Additional Specifications</AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4">
+                    {specFields.map((field, index) => (
+                      <div key={field.id} className="flex items-end gap-2">
+                        <FormField control={form.control} name={`specifications.${index}.key`} render={({ field }) => (<FormItem className="flex-1"><FormLabel>Key</FormLabel><FormControl><Input placeholder="e.g., Material" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                        <FormField control={form.control} name={`specifications.${index}.value`} render={({ field }) => (<FormItem className="flex-1"><FormLabel>Value</FormLabel><FormControl><Input placeholder="e.g., Cotton" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                        <Button type="button" variant="ghost" size="icon" onClick={() => removeSpec(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      </div>
+                    ))}
+                     <Button type="button" variant="outline" size="sm" onClick={() => appendSpec({ key: '', value: '' })}><PlusCircle className="mr-2 h-4 w-4" /> Add Specification</Button>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="gallery">
+                <AccordionTrigger>Image Gallery</AccordionTrigger>
+                <AccordionContent>
+                   <div className="space-y-4">
+                    {galleryFields.map((field, index) => (
+                      <div key={field.id} className="flex items-end gap-2">
+                        <FormField control={form.control} name={`gallery.${index}.url`} render={({ field }) => (<FormItem className="flex-1"><FormLabel>Image URL</FormLabel><FormControl><Input placeholder="https://example.com/image.jpg" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                        <Button type="button" variant="ghost" size="icon" onClick={() => removeGallery(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      </div>
+                    ))}
+                    <Button type="button" variant="outline" size="sm" onClick={() => appendGallery({ url: '' })}><PlusCircle className="mr-2 h-4 w-4" /> Add Image</Button>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+               <AccordionItem value="videos">
+                <AccordionTrigger>Videos</AccordionTrigger>
+                <AccordionContent>
+                   <div className="space-y-4">
+                    {videoFields.map((field, index) => (
+                      <div key={field.id} className="flex items-end gap-2">
+                        <FormField control={form.control} name={`videos.${index}.url`} render={({ field }) => (<FormItem className="flex-1"><FormLabel>YouTube Embed URL</FormLabel><FormControl><Input placeholder="https://www.youtube.com/embed/..." {...field} /></FormControl><FormMessage /></FormItem>)} />
+                        <Button type="button" variant="ghost" size="icon" onClick={() => removeVideo(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                      </div>
+                    ))}
+                    <Button type="button" variant="outline" size="sm" onClick={() => appendVideo({ url: '' })}><PlusCircle className="mr-2 h-4 w-4" /> Add Video</Button>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+
 
              <div className="space-y-4 rounded-lg border p-4">
                 <FormField
@@ -429,7 +498,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
                                   </FormControl>
                               </PopoverTrigger>
                               <PopoverContent className="w-auto p-0" align="start">
-                                  <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                                  <Calendar mode="single" selected={field.value || undefined} onSelect={field.onChange} initialFocus />
                               </PopoverContent>
                               </Popover>
                               <FormMessage /></FormItem>
@@ -509,7 +578,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
                                   </FormControl>
                               </PopoverTrigger>
                               <PopoverContent className="w-auto p-0" align="start">
-                                  <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus />
+                                  <Calendar mode="single" selected={field.value || undefined} onSelect={field.onChange} initialFocus />
                               </PopoverContent>
                               </Popover>
                               <FormMessage /></FormItem>
