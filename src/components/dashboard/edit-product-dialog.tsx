@@ -244,21 +244,15 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
         image: values.image,
         sizes: values.variantSizes ? values.variantSizes.split(',').map(s => s.trim()) : [],
         colors: values.variantColors ? values.variantColors.split(',').map(c => c.trim()) : [],
-        giftWithPurchase: {
-          enabled: values.giftWithPurchase?.enabled ?? false,
-          description: values.giftWithPurchase?.description ?? "",
-        },
-        preOrder: {
-          enabled: values.preOrder?.enabled ?? false,
-          releaseDate: values.preOrder?.releaseDate ?? null,
-          depositType: values.preOrder?.depositType ?? null,
-          depositAmount: values.preOrder?.depositAmount ?? null,
-          limit: values.preOrder?.limit ?? null,
-        },
-        flashSale: {
-          enabled: values.flashSale?.enabled ?? false,
-          endDate: values.flashSale?.endDate ?? null,
-        },
+        giftWithPurchase: values.giftWithPurchase?.enabled
+          ? { enabled: true, description: values.giftWithPurchase.description ?? "" }
+          : { enabled: false, description: "" },
+        preOrder: values.preOrder?.enabled
+          ? { enabled: true, releaseDate: values.preOrder.releaseDate ?? null, depositType: values.preOrder.depositType ?? null, depositAmount: values.preOrder.depositAmount ?? null, limit: values.preOrder.limit ?? null }
+          : { enabled: false, releaseDate: null, depositType: null, depositAmount: null, limit: null },
+        flashSale: values.flashSale?.enabled
+          ? { enabled: true, endDate: values.flashSale.endDate ?? null }
+          : { enabled: false, endDate: null },
         discount: Math.round(discount),
         variants: updatedVariants,
         total_stock: totalStock,
