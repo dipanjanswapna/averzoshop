@@ -12,8 +12,11 @@ export interface OrderItem {
 export interface ShippingAddress {
     name: string;
     phone: string;
-    address: string;
-    city: string;
+    division: string;
+    district: string;
+    upazila: string;
+    area: string;
+    streetAddress: string;
 }
 
 export type OrderStatus = 'new' | 'preparing' | 'ready_for_pickup' | 'out_for_delivery' | 'delivered' | 'canceled' | 'pre-ordered' | 'fulfilled';
@@ -34,4 +37,3 @@ export interface Order {
     createdAt: Timestamp;
     riderId?: string;
 }
-
