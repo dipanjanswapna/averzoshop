@@ -77,6 +77,8 @@ export function ShippingForm() {
     },
   });
   
+  const watchedDistrict = form.watch('district');
+
   useEffect(() => {
     if (userData?.addresses && userData.addresses.length > 0 && !selectedAddressId) {
         setSelectedAddressId(userData.addresses[0].id);
@@ -111,8 +113,7 @@ export function ShippingForm() {
             return;
         }
 
-        if (!allOutlets || !allProducts || !userData?.addresses || !selectedAddressId) {
-            setShippingInfo({ fee: 60, outletId: null, distance: null, estimate: '2-3 Days' }); // Default fallback
+        if (!allOutlets || !allProducts) {
             return;
         }
         
@@ -124,43 +125,66 @@ export function ShippingForm() {
             return (variant?.outlet_stocks?.[outlet.id] ?? 0) >= cartItem.quantity;
         }));
 
-        if (suitableOutlets.length === 0) {
+        const selectedAddress = userData?.addresses?.find(a => a.id === selectedAddressId);
+        if (selectedAddress?.coordinates?.lat && selectedAddress?.coordinates?.lng && suitableOutlets.length > 0) {
+            const customerCoords = { lat: selectedAddress.coordinates.lat, lng: selectedAddress.coordinates.lng };
+            
+            const outletsWithDistance = suitableOutlets.map(outlet => ({
+                ...outlet,
+                distance: calculateDistance(customerCoords.lat, customerCoords.lng, outlet.location.lat, outlet.location.lng),
+            }));
+        
+            const sortedOutlets = outletsWithDistance.sort((a, b) => a.distance - b.distance);
+            const assignedOutlet = sortedOutlets.find(o => o.distance <= 5) || sortedOutlets[0];
+
+            let fee = 0;
+            let estimate = '';
+            if (assignedOutlet.distance <= 5) {
+                fee = 40;
+                estimate = '1-2 Hours (Express)';
+            } else if ((watchedDistrict || '').toLowerCase().includes('dhaka')) {
+                fee = 60;
+                estimate = '1-2 Days';
+            } else {
+                fee = 120;
+                estimate = '3-5 Days';
+            }
+            setShippingInfo({ fee, outletId: assignedOutlet.id, distance: assignedOutlet.distance, estimate });
+            return;
+        }
+
+        // Fallback to district-based calculation
+        let fee = 0;
+        let estimate = '';
+        const district = (watchedDistrict || '').toLowerCase();
+
+        if (district.includes('dhaka')) {
+            fee = 60;
+            estimate = '1-2 Days';
+        } else if (district) { 
+            fee = 120;
+            estimate = '3-5 Days';
+        } else { 
+            fee = 60; // Default
+            estimate = '2-4 Days';
+        }
+
+        let bestOutletId: string | null = null;
+        if (suitableOutlets.length > 0) {
+            bestOutletId = suitableOutlets[0].id;
+        }
+
+        if (!bestOutletId && regularItems.length > 0) {
             toast({ variant: 'destructive', title: 'No Fulfillment Outlet', description: 'Sorry, no single outlet can fulfill your entire order at the moment.' });
             setShippingInfo({ fee: 0, outletId: null, distance: null, estimate: 'Unavailable' });
             return;
         }
-        
-        const selectedAddress = userData.addresses.find(a => a.id === selectedAddressId);
-        const customerCoords = selectedAddress?.coordinates?.lat && selectedAddress?.coordinates?.lng 
-            ? { lat: selectedAddress.coordinates.lat, lng: selectedAddress.coordinates.lng } 
-            : { lat: 23.8103, lng: 90.4125 };
-        
-        const outletsWithDistance = suitableOutlets.map(outlet => ({
-            ...outlet,
-            distance: calculateDistance(customerCoords.lat, customerCoords.lng, outlet.location.lat, outlet.location.lng),
-        }));
-    
-        const sortedOutlets = outletsWithDistance.sort((a, b) => a.distance - b.distance);
-        const assignedOutlet = sortedOutlets.find(o => o.distance <= 5) || sortedOutlets[0];
 
-        let fee = 0;
-        let estimate = '';
-        if (assignedOutlet.distance <= 5) {
-            fee = 40;
-            estimate = '1-2 Hours (Express)';
-        } else if (selectedAddress?.district === 'Dhaka') {
-            fee = 60;
-            estimate = '1-2 Days';
-        } else {
-            fee = 120;
-            estimate = '3-5 Days';
-        }
-
-        setShippingInfo({ fee, outletId: assignedOutlet.id, distance: assignedOutlet.distance, estimate });
+        setShippingInfo({ fee, outletId: bestOutletId, distance: null, estimate });
     };
 
     calculateShipping();
-  }, [selectedAddressId, cartItems, allProducts, allOutlets, userData, setShippingInfo, toast]);
+  }, [selectedAddressId, watchedDistrict, cartItems, allProducts, allOutlets, userData, setShippingInfo, toast]);
 
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -195,10 +219,8 @@ export function ShippingForm() {
         const isPreOrderCart = cartItems.some(item => item.isPreOrder);
         const regularItems = cartItems.filter(item => !item.isPreOrder);
         
-        // This is the assigned outlet calculated in the useEffect
         const assignedOutletId = shippingInfo.outletId!;
 
-        // Handle stock deduction for regular items
         if (regularItems.length > 0) {
             for (const cartItem of regularItems) {
                 const productRef = doc(firestore, 'products', cartItem.product.id);
@@ -223,7 +245,6 @@ export function ShippingForm() {
             }
         }
 
-        // Set order data
         transaction.set(orderRef, {
             customerId: user.uid,
             shippingAddress: finalShippingAddress,
@@ -239,7 +260,6 @@ export function ShippingForm() {
             createdAt: serverTimestamp(),
         });
 
-        // Update user points
         const pointsEarned = Math.floor(totalPayable / 100) * 5;
         transaction.update(userRef, { loyaltyPoints: increment(pointsEarned), totalSpent: increment(totalPayable) });
         const pointsHistoryRef = doc(collection(firestore, `users/${user.uid}/points_history`));
