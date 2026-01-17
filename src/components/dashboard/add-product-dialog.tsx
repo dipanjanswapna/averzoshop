@@ -247,10 +247,10 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
             description: values.giftWithPurchase.description || "",
         };
       } else {
-          productData.giftWithPurchase = {
-              enabled: false,
-              description: "",
-          };
+        productData.giftWithPurchase = {
+            enabled: false,
+            description: "",
+        };
       }
   
       if (values.preOrder?.enabled) {

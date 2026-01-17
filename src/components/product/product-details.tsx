@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect, Dispatch, SetStateAction, useCallback } from 'react';
@@ -223,7 +222,7 @@ export function ProductDetails({
            </div>
          )}
 
-        {product.giftWithPurchase?.enabled && product.giftWithPurchase.description && !product.flashSale?.enabled && (
+        {product.giftWithPurchase?.enabled && product.giftWithPurchase.description && (
             <div className="bg-green-100 text-green-800 border-l-4 border-green-500 p-4 rounded-md flex items-center gap-4">
                 <Gift size={24} className="flex-shrink-0" />
                 <div>
