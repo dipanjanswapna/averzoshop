@@ -106,6 +106,11 @@ export const ProductCard = ({ product }: { product: Product }) => {
           {isFlashSaleActive && (
             <span className="bg-destructive text-destructive-foreground text-[9px] font-bold px-2 py-0.5 rounded-full animate-pulse">FLASH SALE</span>
           )}
+          {isFlashSaleActive && product.flashSale?.giftDescription && (
+            <span className="bg-green-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+              <Gift size={10} /> FREE GIFT
+            </span>
+          )}
           {product.preOrder?.enabled && (
             <span className="bg-purple-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">Pre-order</span>
           )}
@@ -113,7 +118,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
           {variantDiscount > 0 && !isOutOfStock && (
             <span className="bg-primary text-primary-foreground text-[9px] font-bold px-2 py-0.5 rounded-full">{variantDiscount}% OFF</span>
           )}
-           {product.giftWithPurchase?.enabled && (
+           {product.giftWithPurchase?.enabled && !isFlashSaleActive && (
             <span className="bg-green-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
               <Gift size={10} /> GIFT
             </span>
@@ -194,5 +199,3 @@ export const ProductCard = ({ product }: { product: Product }) => {
     </Link>
   );
 };
-
-    

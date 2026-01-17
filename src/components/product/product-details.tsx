@@ -171,6 +171,16 @@ export function ProductDetails({
         </div>
 
         {product.flashSale?.enabled && <FlashSaleTimer endDate={product.flashSale.endDate} />}
+        
+        {product.flashSale?.enabled && product.flashSale.giftDescription && (
+             <div className="bg-green-100 text-green-800 border-l-4 border-green-500 p-4 rounded-md flex items-center gap-4 animate-pulse">
+                <Gift size={24} className="flex-shrink-0" />
+                <div>
+                <p className="font-bold">Flash Sale Offer!</p>
+                <p className="text-sm">Buy now and get a free: {product.flashSale.giftDescription}</p>
+                </div>
+            </div>
+        )}
 
         <div className="flex items-center justify-between pt-2">
            <div className="flex items-baseline gap-3">
@@ -244,7 +254,7 @@ export function ProductDetails({
         )}
         
         <div className="space-y-4 py-4 border-t">
-            {product.giftWithPurchase?.enabled && product.giftWithPurchase.description && (
+            {product.giftWithPurchase?.enabled && product.giftWithPurchase.description && !product.flashSale?.enabled && (
                 <div className="bg-green-100 text-green-800 border-l-4 border-green-500 p-4 rounded-md flex items-center gap-4">
                     <Gift size={24} className="flex-shrink-0" />
                     <div>
