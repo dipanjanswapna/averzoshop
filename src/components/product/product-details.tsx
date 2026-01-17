@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect, Dispatch, SetStateAction } from 'react';
@@ -358,3 +359,5 @@ export function ProductDetails({
     </>
   );
 }
+
+    

@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "user": {
@@ -214,6 +215,13 @@
                 "depositAmount": { "type": "number" },
                 "limit": { "type": "number" }
             }
+        },
+        "flashSale": {
+            "type": "object",
+            "description": "Details for a limited-time flash sale on the product.",
+            "properties": {
+                "endDate": { "type": "string", "format": "date-time" }
+            }
         }
       },
       "required": ["name", "price", "total_stock", "vendorId", "status", "category", "group", "subcategory", "brand", "image", "baseSku", "variants"]
@@ -349,4 +357,5 @@
     "/coupons/{couponId}": { "schema": { "$ref": "#/entities/coupon" }, "description": "Stores all promotional codes for discounts." }
   }
 }
+
     
