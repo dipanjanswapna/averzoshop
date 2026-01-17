@@ -220,6 +220,7 @@
             "type": "object",
             "description": "Details for a limited-time flash sale on the product.",
             "properties": {
+                "enabled": { "type": "boolean" },
                 "endDate": { "type": "string", "format": "date-time" }
             }
         }

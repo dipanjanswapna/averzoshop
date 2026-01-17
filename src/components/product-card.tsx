@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -38,6 +39,14 @@ export const ProductCard = ({ product }: { product: Product }) => {
       isOutOfStock: outOfStock,
     };
   }, [product]);
+
+  const isFlashSaleActive = useMemo(() => {
+    if (!product.flashSale?.enabled || !product.flashSale.endDate) {
+      return false;
+    }
+    const endDate = product.flashSale.endDate.toDate ? product.flashSale.endDate.toDate() : new Date(product.flashSale.endDate);
+    return endDate > new Date();
+  }, [product.flashSale]);
 
   const variantDiscount = useMemo(() => {
     if (displayOriginalPrice && displayOriginalPrice > displayPrice) {
@@ -94,6 +103,9 @@ export const ProductCard = ({ product }: { product: Product }) => {
         
         {/* Badges */}
         <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
+          {isFlashSaleActive && (
+            <span className="bg-destructive text-destructive-foreground text-[9px] font-bold px-2 py-0.5 rounded-full animate-pulse">FLASH SALE</span>
+          )}
           {product.preOrder?.enabled && (
             <span className="bg-purple-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full uppercase">Pre-order</span>
           )}
@@ -182,3 +194,5 @@ export const ProductCard = ({ product }: { product: Product }) => {
     </Link>
   );
 };
+
+    
