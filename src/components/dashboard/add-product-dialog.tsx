@@ -82,7 +82,7 @@ const formSchema = z.object({
   preOrder: z.object({
     enabled: z.boolean().default(false),
     releaseDate: z.date().optional().nullable(),
-    depositType: z.enum(['percentage', 'fixed']).optional(),
+    depositType: z.enum(['percentage', 'fixed']).optional().nullable(),
     depositAmount: z.coerce.number().optional().nullable(),
     limit: z.coerce.number().int().optional().nullable(),
   }).optional(),
@@ -124,6 +124,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
       preOrder: {
         enabled: false,
         releaseDate: null,
+        depositType: undefined,
         depositAmount: null,
         limit: null,
       },
@@ -212,7 +213,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
           discount = ((compareAtPrice - price) / compareAtPrice) * 100;
       }
       
-      const productData = {
+      const productData: any = {
         name: values.name,
         description: values.description,
         category: values.category,
@@ -233,21 +234,54 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
         }, {} as { [key: string]: string }) : {},
         gallery: values.gallery ? values.gallery.map(item => item.url).filter(Boolean) : [],
         videos: values.videos ? values.videos.map(item => item.url).filter(Boolean) : [],
-        giftWithPurchase: values.giftWithPurchase?.enabled
-          ? { enabled: true, description: values.giftWithPurchase.description ?? "" }
-          : { enabled: false, description: "" },
-        preOrder: values.preOrder?.enabled
-          ? { enabled: true, releaseDate: values.preOrder.releaseDate ?? null, depositType: values.preOrder.depositType ?? null, depositAmount: values.preOrder.depositAmount ?? null, limit: values.preOrder.limit ?? null }
-          : { enabled: false, releaseDate: null, depositType: null, depositAmount: null, limit: null },
-        flashSale: values.flashSale?.enabled
-          ? { enabled: true, endDate: values.flashSale.endDate ?? null }
-          : { enabled: false, endDate: null },
         vendorId: user.uid,
         status: status,
         createdAt: serverTimestamp(),
         isBundle: false,
         brand: values.brand
       };
+
+      if (values.giftWithPurchase?.enabled) {
+        productData.giftWithPurchase = {
+            enabled: true,
+            description: values.giftWithPurchase.description || "",
+        };
+      } else {
+          productData.giftWithPurchase = {
+              enabled: false,
+              description: "",
+          };
+      }
+  
+      if (values.preOrder?.enabled) {
+          productData.preOrder = {
+              enabled: true,
+              releaseDate: values.preOrder.releaseDate || null,
+              depositType: values.preOrder.depositType || null,
+              depositAmount: values.preOrder.depositAmount || null,
+              limit: values.preOrder.limit || null,
+          };
+      } else {
+          productData.preOrder = {
+              enabled: false,
+              releaseDate: null,
+              depositType: null,
+              depositAmount: null,
+              limit: null,
+          };
+      }
+  
+      if (values.flashSale?.enabled) {
+          productData.flashSale = {
+              enabled: true,
+              endDate: values.flashSale.endDate || null,
+          };
+      } else {
+          productData.flashSale = {
+              enabled: false,
+              endDate: null,
+          };
+      }
 
 
       await addDoc(collection(firestore, 'products'), productData);
@@ -455,7 +489,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
                       <FormItem>
                         <FormLabel>Gift Description</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., Free leather wallet" {...field} />
+                          <Input placeholder="e.g., Free leather wallet" {...field} value={field.value ?? ''} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -514,7 +548,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
                               render={({ field }) => (
                               <FormItem>
                                   <FormLabel>Deposit Type</FormLabel>
-                                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                                       <FormControl><SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger></FormControl>
                                       <SelectContent>
                                           <SelectItem value="percentage">Percentage (%)</SelectItem>

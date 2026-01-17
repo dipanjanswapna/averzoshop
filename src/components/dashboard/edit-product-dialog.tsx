@@ -82,7 +82,7 @@ const formSchema = z.object({
   preOrder: z.object({
     enabled: z.boolean().default(false),
     releaseDate: z.date().optional().nullable(),
-    depositType: z.enum(['percentage', 'fixed']).optional(),
+    depositType: z.enum(['percentage', 'fixed']).optional().nullable(),
     depositAmount: z.coerce.number().optional().nullable(),
     limit: z.coerce.number().int().optional().nullable(),
   }).optional(),
@@ -156,7 +156,7 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
       preOrder: {
           enabled: product.preOrder?.enabled || false,
           releaseDate: releaseDateObj || null,
-          depositType: product.preOrder?.depositType,
+          depositType: product.preOrder?.depositType ?? undefined,
           depositAmount: product.preOrder?.depositAmount,
           limit: product.preOrder?.limit,
       },
@@ -240,14 +240,14 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
           const originalVariant = originalVariantsArray.find(v => v.sku === formVariant.sku);
           return {
               ...formVariant,
-              stock: originalVariant ? originalVariant.stock : 0,
+              stock: Number(originalVariant?.stock || 0),
               outlet_stocks: originalVariant ? (originalVariant.outlet_stocks || {}) : {}
           };
       });
 
       const totalStock = updatedVariants.reduce((sum, v) => sum + v.stock, 0);
 
-      const dataToUpdate = {
+      const dataToUpdate: any = {
         name: values.name,
         description: values.description,
         category: values.category,
@@ -266,19 +266,52 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
         }, {} as { [key: string]: string }) : {},
         gallery: values.gallery ? values.gallery.map(item => item.url).filter(Boolean) : [],
         videos: values.videos ? values.videos.map(item => item.url).filter(Boolean) : [],
-        giftWithPurchase: values.giftWithPurchase?.enabled
-          ? { enabled: true, description: values.giftWithPurchase.description ?? "" }
-          : { enabled: false, description: "" },
-        preOrder: values.preOrder?.enabled
-          ? { enabled: true, releaseDate: values.preOrder.releaseDate ?? null, depositType: values.preOrder.depositType ?? null, depositAmount: values.preOrder.depositAmount ?? null, limit: values.preOrder.limit ?? null }
-          : { enabled: false, releaseDate: null, depositType: null, depositAmount: null, limit: null },
-        flashSale: values.flashSale?.enabled
-          ? { enabled: true, endDate: values.flashSale.endDate ?? null }
-          : { enabled: false, endDate: null },
         discount: Math.round(discount),
         variants: updatedVariants,
         total_stock: totalStock,
       };
+
+      if (values.giftWithPurchase?.enabled) {
+        dataToUpdate.giftWithPurchase = {
+            enabled: true,
+            description: values.giftWithPurchase.description || "",
+        };
+      } else {
+          dataToUpdate.giftWithPurchase = {
+              enabled: false,
+              description: "",
+          };
+      }
+  
+      if (values.preOrder?.enabled) {
+          dataToUpdate.preOrder = {
+              enabled: true,
+              releaseDate: values.preOrder.releaseDate || null,
+              depositType: values.preOrder.depositType || null,
+              depositAmount: values.preOrder.depositAmount || null,
+              limit: values.preOrder.limit || null,
+          };
+      } else {
+          dataToUpdate.preOrder = {
+              enabled: false,
+              releaseDate: null,
+              depositType: null,
+              depositAmount: null,
+              limit: null,
+          };
+      }
+  
+      if (values.flashSale?.enabled) {
+          dataToUpdate.flashSale = {
+              enabled: true,
+              endDate: values.flashSale.endDate || null,
+          };
+      } else {
+          dataToUpdate.flashSale = {
+              enabled: false,
+              endDate: null,
+          };
+      }
 
       await updateDoc(productRef, dataToUpdate);
 
@@ -487,7 +520,7 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
                       <FormItem>
                         <FormLabel>Gift Description</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., Free leather wallet" {...field} />
+                          <Input placeholder="e.g., Free leather wallet" {...field} value={field.value ?? ''} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -545,7 +578,7 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
                               render={({ field }) => (
                               <FormItem>
                                   <FormLabel>Deposit Type</FormLabel>
-                                  <Select onValueChange={field.onChange} value={field.value ?? ''}>
+                                  <Select onValueChange={field.onChange} value={field.value ?? undefined}>
                                       <FormControl><SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger></FormControl>
                                       <SelectContent>
                                           <SelectItem value="percentage">Percentage (%)</SelectItem>
