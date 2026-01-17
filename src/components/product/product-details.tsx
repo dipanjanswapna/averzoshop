@@ -57,13 +57,13 @@ export function ProductDetails({
   const { addItem } = useCart();
   const { toast } = useToast();
   
-  const checkDelivery = useCallback((area?: string) => {
-    const checkValue = (area || pincode).toLowerCase();
+  const checkDelivery = useCallback((area: string) => {
+    const checkValue = (area || '').toLowerCase();
     
     const getEstimateString = (days: number) => {
       const deliveryDate = new Date();
       deliveryDate.setDate(deliveryDate.getDate() + days);
-      const formatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
+      const formatter = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric' });
       return `${days} Days (${formatter.format(deliveryDate)})`;
     };
 
@@ -72,26 +72,30 @@ export function ProductDetails({
       setDeliveryEstimate(getEstimateString(2));
       setDeliveryCharge(60);
     } else {
-      setDeliveryArea('Outside Dhaka');
+      setDeliveryArea(area || 'Outside Dhaka');
       setDeliveryEstimate(getEstimateString(5));
       setDeliveryCharge(120);
     }
-  }, [pincode]);
+  }, []);
 
   useEffect(() => {
-    // Pre-fill delivery info if user is logged in and has addresses
     if (userData?.addresses && userData.addresses.length > 0) {
-      const defaultAddress = userData.addresses[0]; // Assuming first is default
+      const defaultAddress = userData.addresses[0];
       const areaIdentifier = defaultAddress.district || '';
       if (areaIdentifier) {
         setPincode(areaIdentifier);
         checkDelivery(areaIdentifier);
       }
     } else {
-        // Default check for non-logged in users
-        checkDelivery('dhaka');
+        checkDelivery('Dhaka');
+        setPincode('Dhaka');
     }
-  }, [userData, checkDelivery]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userData]); 
+
+  const handlePincodeCheck = () => {
+    checkDelivery(pincode);
+  };
   
   const isPreOrder = product.preOrder?.enabled;
   const releaseDate = isPreOrder && product.preOrder.releaseDate
@@ -391,7 +395,7 @@ export function ProductDetails({
                     />
                     <Button 
                       variant="ghost"
-                      onClick={() => checkDelivery()}
+                      onClick={handlePincodeCheck}
                       className="absolute right-1 top-1/2 -translate-y-1/2 h-8 text-primary font-bold hover:text-primary"
                     >
                       Check
@@ -401,7 +405,7 @@ export function ProductDetails({
                     <Truck size={20} className="text-gray-400" />
                     <div>
                         <p className="text-sm text-muted-foreground">
-                            Estimated delivery: <span className="font-bold text-foreground">{deliveryEstimate}</span>
+                            Estimated delivery by: <span className="font-bold text-foreground">{deliveryEstimate}</span>
                         </p>
                         <p className="text-xs text-green-600 font-semibold">Shipping Charge: ৳{deliveryCharge}</p>
                     </div>
