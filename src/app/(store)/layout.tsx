@@ -4,6 +4,7 @@ import { MobileBottomNav } from '@/components/mobile-bottom-nav';
 import AverzoNavbar from '@/components/store-header';
 import Link from 'next/link';
 import { CompareBar } from '@/components/compare/compare-bar';
+import { CartExpirationChecker } from '@/components/cart/cart-expiration-checker';
 
 export default function StoreLayout({
   children,
@@ -14,6 +15,7 @@ export default function StoreLayout({
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground font-body">
       <AverzoNavbar />
+      <CartExpirationChecker />
       <main className="flex-1 pt-[108px] pb-24 lg:pb-0">{children}</main>
       {/* --- Desktop Footer --- */}
       <footer className="bg-secondary text-secondary-foreground hidden lg:block">
@@ -140,5 +142,3 @@ export default function StoreLayout({
     </div>
   );
 }
-
-    

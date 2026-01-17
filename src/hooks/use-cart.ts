@@ -11,6 +11,7 @@ export type CartItem = {
   variant: ProductVariant;
   quantity: number;
   isPreOrder?: boolean;
+  reservedUntil?: number;
 };
 
 type CartState = {
@@ -30,6 +31,7 @@ type CartState = {
   updateQuantity: (variantSku: string, quantity: number) => void;
   clearCart: () => void;
   applyPromoCode: (coupon: Coupon | null) => void;
+  removeExpiredItems: () => void;
   _recalculate: () => void;
 };
 
@@ -148,6 +150,7 @@ export const useCart = create<CartState>()(
         
         const isPreOrderItem = !!product.preOrder?.enabled;
         const currentItems = get().items;
+        const RESERVATION_TIME = 10 * 60 * 1000; // 10 minutes
 
         const existingItem = currentItems.find((item) => item.variant && item.variant.sku === variant.sku);
 
@@ -160,8 +163,8 @@ export const useCart = create<CartState>()(
         if (newQuantity <= 0) return;
 
         const newItems = existingItem
-            ? currentItems.map(item => item.variant.sku === variant.sku ? { ...item, quantity: newQuantity } : item)
-            : [...currentItems, { product, variant, quantity: newQuantity, isPreOrder: isPreOrderItem }];
+            ? currentItems.map(item => item.variant.sku === variant.sku ? { ...item, quantity: newQuantity, reservedUntil: !isPreOrderItem ? Date.now() + RESERVATION_TIME : undefined } : item)
+            : [...currentItems, { product, variant, quantity: newQuantity, isPreOrder: isPreOrderItem, reservedUntil: !isPreOrderItem ? Date.now() + RESERVATION_TIME : undefined }];
 
         set({ items: newItems });
         get()._recalculate();
@@ -186,6 +189,7 @@ export const useCart = create<CartState>()(
         
         const isPreOrderItem = !!itemToUpdate.product.preOrder?.enabled;
         const stock = itemToUpdate.variant.stock || itemToUpdate.product.total_stock;
+        const RESERVATION_TIME = 10 * 60 * 1000; // 10 minutes
 
         if (!isPreOrderItem && quantity > stock) {
             toast({ variant: 'destructive', title: 'Stock limit reached', description: `Only ${stock} items available.`});
@@ -197,7 +201,7 @@ export const useCart = create<CartState>()(
         } else {
           set({
             items: get().items.map((item) =>
-              item.variant && item.variant.sku === variantSku ? { ...item, quantity } : item
+              item.variant && item.variant.sku === variantSku ? { ...item, quantity, reservedUntil: !isPreOrderItem ? Date.now() + RESERVATION_TIME : undefined } : item
             ),
           });
           get()._recalculate();
@@ -241,6 +245,25 @@ export const useCart = create<CartState>()(
           
           set({ promoCode: coupon });
           get()._recalculate();
+      },
+
+      removeExpiredItems: () => {
+        const now = Date.now();
+        const currentItems = get().items;
+        const itemsToRemove = currentItems.filter(item => item.reservedUntil && item.reservedUntil <= now);
+        const freshItems = currentItems.filter(item => !item.reservedUntil || item.reservedUntil > now);
+        
+        if (freshItems.length < currentItems.length) {
+            set({ items: freshItems });
+            get()._recalculate();
+            if (itemsToRemove.length > 0) {
+                toast({
+                    variant: "destructive",
+                    title: "Item Reservation Expired",
+                    description: `${itemsToRemove.map(i => i.product.name).join(', ')} was removed from your cart.`,
+                });
+            }
+        }
       },
 
     }),

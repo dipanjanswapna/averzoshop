@@ -11,7 +11,7 @@ import { TrustBadges } from './trust-badges';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { SaleTimer } from './sale-timer';
+import { FlashSaleTimer } from './flash-sale-timer';
 import { ShareButtons } from './share-buttons';
 import { SizeGuideDialog } from './size-guide-dialog';
 import { useCart } from '@/hooks/use-cart';
@@ -170,7 +170,7 @@ export function ProductDetails({
            </div>
         </div>
 
-        {product.flashSale && <SaleTimer endDate={product.flashSale.endDate} />}
+        {product.flashSale?.enabled && <FlashSaleTimer endDate={product.flashSale.endDate} />}
 
         <div className="flex items-center justify-between pt-2">
            <div className="flex items-baseline gap-3">
@@ -359,5 +359,3 @@ export function ProductDetails({
     </>
   );
 }
-
-    

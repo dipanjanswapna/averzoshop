@@ -3,10 +3,11 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Minus, Plus, Trash2 } from 'lucide-react';
+import { Minus, Plus, Trash2, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCart, type CartItem as CartItemType } from '@/hooks/use-cart';
 import { cn } from '@/lib/utils';
+import Countdown from './countdown';
 
 
 interface CartItemProps {
@@ -20,7 +21,7 @@ export function CartItem({ item }: CartItemProps) {
     return null;
   }
 
-  const { product, variant, quantity } = item;
+  const { product, variant, quantity, reservedUntil } = item;
 
   return (
     <div className="flex items-start gap-4 border-b pb-6 last:border-b-0 last:pb-0">
@@ -44,6 +45,14 @@ export function CartItem({ item }: CartItemProps) {
             {variant.size && `Size: ${variant.size}`}
             {!variant.color && !variant.size && 'Standard'}
         </p>
+
+        {reservedUntil && !item.isPreOrder && (
+            <div className="mt-2 flex items-center gap-2 text-xs bg-secondary p-2 rounded-md">
+                <Clock size={14} className="text-primary"/>
+                <span className="text-muted-foreground">Reserved for:</span>
+                <Countdown expiryTimestamp={reservedUntil} />
+            </div>
+        )}
 
         <div className="flex items-center justify-between mt-4">
           <div className="flex items-center border rounded-md w-fit">
