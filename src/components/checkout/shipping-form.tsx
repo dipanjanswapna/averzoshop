@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -170,7 +169,11 @@ export function ShippingForm() {
 
                 if (suitableOutlets.length === 0) throw new Error('Sorry, no single outlet can fulfill your entire order.');
                 
-                const customerCoords = { lat: 23.8103, lng: 90.4125 }; // Dummy coordinates
+                const selectedAddress = userData?.addresses?.find(a => a.id === selectedAddressId);
+                const customerCoords = selectedAddress?.coordinates?.lat && selectedAddress?.coordinates?.lng 
+                    ? { lat: selectedAddress.coordinates.lat, lng: selectedAddress.coordinates.lng } 
+                    : { lat: 23.8103, lng: 90.4125 }; // Fallback to Dhaka center
+                
                 const nearestOutlet = suitableOutlets.reduce((closest, outlet) => {
                     const distance = calculateDistance(customerCoords.lat, customerCoords.lng, outlet.location.lat, outlet.location.lng);
                     if (!closest || distance < closest.distance) return { ...outlet, distance };
@@ -342,5 +345,3 @@ export function ShippingForm() {
       </Form>
   );
 }
-
-    

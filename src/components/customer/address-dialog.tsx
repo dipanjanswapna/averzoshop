@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect } from 'react';
@@ -37,6 +36,10 @@ const formSchema = z.object({
   upazila: z.string().min(1, 'Upazila/Thana is required.'),
   area: z.string().min(1, 'Area/Post Office is required.'),
   streetAddress: z.string().min(1, 'Street address is required.'),
+  coordinates: z.object({
+    lat: z.coerce.number().optional(),
+    lng: z.coerce.number().optional(),
+  }).optional(),
 });
 
 export function AddressDialog({ open, onOpenChange, onSave, addressToEdit, isLoading }: AddressDialogProps) {
@@ -51,16 +54,23 @@ export function AddressDialog({ open, onOpenChange, onSave, addressToEdit, isLoa
       upazila: '',
       area: '',
       streetAddress: '',
+      coordinates: { lat: undefined, lng: undefined },
     },
   });
 
   useEffect(() => {
     if (addressToEdit) {
-      form.reset(addressToEdit);
+      form.reset({
+        ...addressToEdit,
+        coordinates: {
+            lat: addressToEdit.coordinates?.lat,
+            lng: addressToEdit.coordinates?.lng,
+        }
+      });
     } else {
       form.reset({
         label: 'Home', name: '', phone: '', division: 'Dhaka', district: 'Dhaka',
-        upazila: '', area: '', streetAddress: '',
+        upazila: '', area: '', streetAddress: '', coordinates: { lat: undefined, lng: undefined },
       });
     }
   }, [addressToEdit, form]);
@@ -114,6 +124,23 @@ export function AddressDialog({ open, onOpenChange, onSave, addressToEdit, isLoa
                 <FormItem><FormLabel>Street Address / House No.</FormLabel><FormControl><Input placeholder="e.g., House 123, Road 45" {...field} /></FormControl><FormMessage /></FormItem>
             )} />
 
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField control={form.control} name="coordinates.lat" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Latitude (Optional)</FormLabel>
+                  <FormControl><Input type="number" step="any" placeholder="e.g., 23.8103" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+              <FormField control={form.control} name="coordinates.lng" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Longitude (Optional)</FormLabel>
+                  <FormControl><Input type="number" step="any" placeholder="e.g., 90.4125" {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+            </div>
+
             <DialogFooter className="pt-4">
               <DialogClose asChild><Button type="button" variant="secondary" disabled={isLoading}>Cancel</Button></DialogClose>
               <Button type="submit" disabled={isLoading}>{isLoading ? 'Saving...' : 'Save Address'}</Button>
@@ -124,5 +151,3 @@ export function AddressDialog({ open, onOpenChange, onSave, addressToEdit, isLoa
     </Dialog>
   );
 }
-
-    
