@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { AddressManager } from '@/components/customer/address-manager';
 
 
 export default function CustomerProfilePage() {
@@ -45,6 +46,8 @@ export default function CustomerProfilePage() {
                     <Button>Save Changes</Button>
                 </CardContent>
             </Card>
+
+            <AddressManager />
         </div>
     );
 }

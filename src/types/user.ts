@@ -1,4 +1,6 @@
 
+import type { Address } from './address';
+
 export interface UserData {
   uid: string;
   email: string | null;
@@ -7,6 +9,7 @@ export interface UserData {
   role: 'customer' | 'vendor' | 'rider' | 'admin' | 'outlet';
   status: 'pending' | 'approved' | 'rejected';
   wishlist?: string[];
+  addresses?: Address[];
   outletId?: string;
   assignedOutlets?: string[];
   createdAt?: string;
