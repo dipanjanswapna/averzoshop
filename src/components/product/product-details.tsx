@@ -49,9 +49,9 @@ export function ProductDetails({
   const [isBarcodeOpen, setIsBarcodeOpen] = useState(false);
   
   const { userData } = useAuth();
-  const [deliveryArea, setDeliveryArea] = useState('Dhaka');
-  const [deliveryEstimate, setDeliveryEstimate] = useState('2 Days');
-  const [deliveryCharge, setDeliveryCharge] = useState(60);
+  const [deliveryArea, setDeliveryArea] = useState('');
+  const [deliveryEstimate, setDeliveryEstimate] = useState('');
+  const [deliveryCharge, setDeliveryCharge] = useState(0);
   const [pincode, setPincode] = useState('');
 
   const { addItem } = useCart();
@@ -59,14 +59,21 @@ export function ProductDetails({
   
   const checkDelivery = useCallback((area?: string) => {
     const checkValue = (area || pincode).toLowerCase();
-    // Mock logic based on district for now
+    
+    const getEstimateString = (days: number) => {
+      const deliveryDate = new Date();
+      deliveryDate.setDate(deliveryDate.getDate() + days);
+      const formatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
+      return `${days} Days (${formatter.format(deliveryDate)})`;
+    };
+
     if (checkValue.includes('dhaka')) {
       setDeliveryArea('Dhaka');
-      setDeliveryEstimate('2 Days');
+      setDeliveryEstimate(getEstimateString(2));
       setDeliveryCharge(60);
     } else {
       setDeliveryArea('Outside Dhaka');
-      setDeliveryEstimate('4-5 Days');
+      setDeliveryEstimate(getEstimateString(5));
       setDeliveryCharge(120);
     }
   }, [pincode]);
@@ -80,6 +87,9 @@ export function ProductDetails({
         setPincode(areaIdentifier);
         checkDelivery(areaIdentifier);
       }
+    } else {
+        // Default check for non-logged in users
+        checkDelivery('dhaka');
     }
   }, [userData, checkDelivery]);
   
