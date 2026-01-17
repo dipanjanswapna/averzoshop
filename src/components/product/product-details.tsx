@@ -90,8 +90,7 @@ export function ProductDetails({
         checkDelivery('Dhaka');
         setPincode('Dhaka');
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userData]); 
+  }, [userData, checkDelivery]); 
 
   const handlePincodeCheck = () => {
     checkDelivery(pincode);

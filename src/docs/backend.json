@@ -387,5 +387,3 @@
     "/coupons/{couponId}": { "schema": { "$ref": "#/entities/coupon" }, "description": "Stores all promotional codes for discounts." }
   }
 }
-
-    
