@@ -193,31 +193,47 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
       if (compareAtPrice && compareAtPrice > price) {
           discount = ((compareAtPrice - price) / price) * 100;
       }
-
-      await addDoc(collection(firestore, 'products'), {
+      
+      const productData = {
         name: values.name,
         description: values.description,
         category: values.category,
         group: values.group,
         subcategory: values.subcategory,
         price: values.price,
-        compareAtPrice: values.compareAtPrice || null,
+        compareAtPrice: values.compareAtPrice ?? null,
         discount: Math.round(discount),
         baseSku: values.baseSku,
         total_stock: totalStock,
         variants: values.variants.map(v => ({...v, stock: 0, outlet_stocks: {}})),
         image: values.image,
-        colors: values.variantColors?.split(',').map(s => s.trim()).filter(Boolean) || [],
-        sizes: values.variantSizes?.split(',').map(c => c.trim()).filter(Boolean) || [],
-        giftWithPurchase: values.giftWithPurchase || { enabled: false, description: '' },
-        preOrder: values.preOrder,
-        flashSale: values.flashSale,
+        colors: values.variantColors?.split(',').map(s => s.trim()).filter(Boolean) ?? [],
+        sizes: values.variantSizes?.split(',').map(c => c.trim()).filter(Boolean) ?? [],
+        giftWithPurchase: {
+          enabled: values.giftWithPurchase?.enabled ?? false,
+          description: values.giftWithPurchase?.description ?? "",
+        },
+        preOrder: {
+          enabled: values.preOrder?.enabled ?? false,
+          releaseDate: values.preOrder?.releaseDate ?? null,
+          depositType: values.preOrder?.depositType ?? null,
+          depositAmount: values.preOrder?.depositAmount ?? null,
+          limit: values.preOrder?.limit ?? null,
+        },
+        flashSale: {
+          enabled: values.flashSale?.enabled ?? false,
+          endDate: values.flashSale?.endDate ?? null,
+          giftDescription: values.flashSale?.giftDescription ?? "",
+        },
         vendorId: user.uid,
         status: status,
         createdAt: serverTimestamp(),
         isBundle: false,
         brand: values.brand
-      });
+      };
+
+
+      await addDoc(collection(firestore, 'products'), productData);
 
       toast({
         title: status === 'approved' ? "Product Added!" : "Product Submitted!",

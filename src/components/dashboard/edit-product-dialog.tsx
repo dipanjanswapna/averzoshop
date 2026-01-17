@@ -233,26 +233,41 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
 
       const totalStock = updatedVariants.reduce((sum, v) => sum + v.stock, 0);
 
-      await updateDoc(productRef, {
+      const dataToUpdate = {
         name: values.name,
         description: values.description,
         category: values.category,
         group: values.group,
         subcategory: values.subcategory,
         price: values.price,
-        compareAtPrice: values.compareAtPrice || null,
+        compareAtPrice: values.compareAtPrice ?? null,
         baseSku: values.baseSku,
         brand: values.brand,
         image: values.image,
         sizes: values.variantSizes ? values.variantSizes.split(',').map(s => s.trim()) : [],
         colors: values.variantColors ? values.variantColors.split(',').map(c => c.trim()) : [],
-        giftWithPurchase: values.giftWithPurchase || { enabled: false, description: '' },
-        preOrder: values.preOrder,
-        flashSale: values.flashSale,
+        giftWithPurchase: {
+          enabled: values.giftWithPurchase?.enabled ?? false,
+          description: values.giftWithPurchase?.description ?? "",
+        },
+        preOrder: {
+          enabled: values.preOrder?.enabled ?? false,
+          releaseDate: values.preOrder?.releaseDate ?? null,
+          depositType: values.preOrder?.depositType ?? null,
+          depositAmount: values.preOrder?.depositAmount ?? null,
+          limit: values.preOrder?.limit ?? null,
+        },
+        flashSale: {
+          enabled: values.flashSale?.enabled ?? false,
+          endDate: values.flashSale?.endDate ?? null,
+          giftDescription: values.flashSale?.giftDescription ?? "",
+        },
         discount: Math.round(discount),
         variants: updatedVariants,
         total_stock: totalStock,
-      });
+      };
+
+      await updateDoc(productRef, dataToUpdate);
 
       toast({
         title: "Product Updated!",
