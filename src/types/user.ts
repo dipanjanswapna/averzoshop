@@ -16,6 +16,7 @@ export interface UserData {
   loyaltyPoints?: number;
   totalSpent?: number;
   membershipTier?: 'silver' | 'gold' | 'platinum';
+  phone?: string;
 }
 
     
