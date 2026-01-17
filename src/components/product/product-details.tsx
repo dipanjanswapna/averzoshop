@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect, Dispatch, SetStateAction } from 'react';
+import { useState, useMemo, useEffect, Dispatch, SetStateAction, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -47,7 +47,8 @@ export function ProductDetails({
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
   const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(false);
   const [isBarcodeOpen, setIsBarcodeOpen] = useState(false);
-
+  
+  const { userData } = useAuth();
   const [deliveryArea, setDeliveryArea] = useState('Dhaka');
   const [deliveryEstimate, setDeliveryEstimate] = useState('2 Days');
   const [deliveryCharge, setDeliveryCharge] = useState(60);
@@ -56,9 +57,10 @@ export function ProductDetails({
   const { addItem } = useCart();
   const { toast } = useToast();
   
-  const checkDelivery = () => {
-    // Mock logic based on pincode for now
-    if (pincode.startsWith('12')) { // Simple check for Dhaka area codes
+  const checkDelivery = useCallback((area?: string) => {
+    const checkValue = (area || pincode).toLowerCase();
+    // Mock logic based on district for now
+    if (checkValue.includes('dhaka')) {
       setDeliveryArea('Dhaka');
       setDeliveryEstimate('2 Days');
       setDeliveryCharge(60);
@@ -67,9 +69,20 @@ export function ProductDetails({
       setDeliveryEstimate('4-5 Days');
       setDeliveryCharge(120);
     }
-  };
+  }, [pincode]);
 
-
+  useEffect(() => {
+    // Pre-fill delivery info if user is logged in and has addresses
+    if (userData?.addresses && userData.addresses.length > 0) {
+      const defaultAddress = userData.addresses[0]; // Assuming first is default
+      const areaIdentifier = defaultAddress.district || '';
+      if (areaIdentifier) {
+        setPincode(areaIdentifier);
+        checkDelivery(areaIdentifier);
+      }
+    }
+  }, [userData, checkDelivery]);
+  
   const isPreOrder = product.preOrder?.enabled;
   const releaseDate = isPreOrder && product.preOrder.releaseDate
     ? (product.preOrder.releaseDate.toDate ? product.preOrder.releaseDate.toDate() : new Date(product.preOrder.releaseDate))
@@ -368,7 +381,7 @@ export function ProductDetails({
                     />
                     <Button 
                       variant="ghost"
-                      onClick={checkDelivery}
+                      onClick={() => checkDelivery()}
                       className="absolute right-1 top-1/2 -translate-y-1/2 h-8 text-primary font-bold hover:text-primary"
                     >
                       Check
