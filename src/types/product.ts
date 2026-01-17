@@ -34,7 +34,7 @@ export type Product = {
     gallery?: string[];
     videos?: string[];
     flashSale?: {
-        enabled?: boolean;
+        enabled: boolean;
         endDate: any;
     };
     giftWithPurchase?: {
