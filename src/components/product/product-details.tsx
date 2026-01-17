@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect, Dispatch, SetStateAction, useCallback } from 'react';
@@ -226,6 +225,12 @@ export function ProductDetails({
                 </div>
             </div>
         )}
+        
+        {savings > 0 && !isPreOrder && (
+           <div className="bg-primary/10 text-primary font-bold text-sm p-3 rounded-md text-center mt-4">
+              You save ৳{savings.toFixed(2)}!
+           </div>
+         )}
 
         <div className="flex items-center justify-between pt-2">
            <div className="flex items-baseline gap-3">
@@ -240,12 +245,6 @@ export function ProductDetails({
             </div>
           )}
         </div>
-
-        {savings > 0 && !isPreOrder && (
-           <div className="bg-primary/10 text-primary font-bold text-sm p-3 rounded-md text-center">
-              You save ৳{savings.toFixed(2)}!
-           </div>
-         )}
         
         {uniqueColors.length > 0 && (
           <div className="space-y-3">
