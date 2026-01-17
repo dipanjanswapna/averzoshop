@@ -17,9 +17,14 @@ export type CartItem = {
 type CartState = {
   items: CartItem[];
   promoCode: Coupon | null;
+  shippingInfo: {
+    fee: number;
+    outletId: string | null;
+    distance: number | null;
+    estimate: string | null;
+  };
   subtotal: number;
   discount: number;
-  shippingFee: number;
   totalPayable: number;
   fullOrderTotal: number;
   isPartialPayment: boolean;
@@ -31,6 +36,7 @@ type CartState = {
   updateQuantity: (variantSku: string, quantity: number) => void;
   clearCart: () => void;
   applyPromoCode: (coupon: Coupon | null) => void;
+  setShippingInfo: (info: Partial<CartState['shippingInfo']>) => void;
   removeExpiredItems: () => void;
   _recalculate: () => void;
 };
@@ -79,9 +85,9 @@ export const useCart = create<CartState>()(
     (set, get) => ({
       items: [],
       promoCode: null,
+      shippingInfo: { fee: 0, outletId: null, distance: null, estimate: null },
       subtotal: 0,
       discount: 0,
-      shippingFee: 0,
       totalPayable: 0,
       fullOrderTotal: 0,
       isPartialPayment: false,
@@ -121,7 +127,7 @@ export const useCart = create<CartState>()(
         });
 
         const subtotal = regularItemsSubtotal + preOrderItemsSubtotal;
-        const shippingFee = subtotal > 500 || subtotal === 0 ? 0 : 50;
+        const shippingFee = get().shippingInfo.fee;
 
         const regularItemsForDiscount = items.filter(item => !item.isPreOrder);
         const discount = calculateDiscount(regularItemsForDiscount, promoCode);
@@ -131,7 +137,6 @@ export const useCart = create<CartState>()(
         set({
             subtotal,
             discount,
-            shippingFee,
             totalPayable,
             fullOrderTotal: subtotal,
             isPartialPayment: isPartialPaymentInCart,
@@ -139,6 +144,11 @@ export const useCart = create<CartState>()(
             preOrderItemsSubtotal,
             preOrderDepositPayable,
         });
+      },
+      
+      setShippingInfo: (info) => {
+          set(state => ({ shippingInfo: { ...state.shippingInfo, ...info } }));
+          get()._recalculate();
       },
 
       addItem: (product, variant, quantity = 1) => {
@@ -214,7 +224,7 @@ export const useCart = create<CartState>()(
             promoCode: null, 
             subtotal: 0, 
             discount: 0, 
-            shippingFee: 0, 
+            shippingInfo: { fee: 0, outletId: null, distance: null, estimate: null },
             totalPayable: 0, 
             fullOrderTotal: 0, 
             isPartialPayment: false,

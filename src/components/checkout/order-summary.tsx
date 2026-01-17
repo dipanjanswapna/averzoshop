@@ -17,7 +17,7 @@ export function CheckoutOrderSummary() {
     items,
     discount,
     promoCode,
-    shippingFee,
+    shippingInfo,
     totalPayable,
     regularItemsSubtotal,
     preOrderItemsSubtotal,
@@ -26,7 +26,7 @@ export function CheckoutOrderSummary() {
     items: state.items,
     discount: state.discount,
     promoCode: state.promoCode,
-    shippingFee: state.shippingFee,
+    shippingInfo: state.shippingInfo,
     totalPayable: state.totalPayable,
     regularItemsSubtotal: state.regularItemsSubtotal,
     preOrderItemsSubtotal: state.preOrderItemsSubtotal,
@@ -175,8 +175,14 @@ export function CheckoutOrderSummary() {
         <div className="space-y-2 text-sm">
             <div className="flex justify-between">
                 <span>Shipping Fee</span>
-                <span className="font-medium">{shippingFee > 0 ? `৳${shippingFee.toFixed(2)}` : 'Free'}</span>
+                <span className="font-medium">{shippingInfo.fee > 0 ? `৳${shippingInfo.fee.toFixed(2)}` : 'Free'}</span>
             </div>
+             {shippingInfo.estimate && (
+                <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Estimated Delivery</span>
+                    <span>{shippingInfo.estimate}</span>
+                </div>
+            )}
             <div className="flex justify-between font-bold text-lg pt-2 border-t">
               <span>Total Payable Today</span>
               <span>৳{totalPayable.toFixed(2)}</span>
