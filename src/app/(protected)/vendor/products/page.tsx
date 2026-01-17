@@ -4,8 +4,9 @@ import { useState, useMemo } from 'react';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import type { Product } from '@/types/product';
 import type { Order } from '@/types/order'; // Import Order type
+import type { UserData } from '@/types/user';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Heart } from 'lucide-react';
 import { AddProductDialog } from '@/components/dashboard/add-product-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/hooks/use-auth';
@@ -18,9 +19,10 @@ export default function VendorProductsPage() {
   const { user } = useAuth();
   const { data: products, isLoading: productsLoading } = useFirestoreQuery<Product>('products');
   const { data: orders, isLoading: ordersLoading } = useFirestoreQuery<Order>('orders'); // Fetch orders
+  const { data: users, isLoading: usersLoading } = useFirestoreQuery<UserData>('users');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-  const isLoading = productsLoading || ordersLoading;
+  const isLoading = productsLoading || ordersLoading || usersLoading;
 
   const preOrderCounts = useMemo(() => {
     if (!orders) return new Map<string, number>();
@@ -35,6 +37,23 @@ export default function VendorProductsPage() {
     });
     return counts;
   }, [orders]);
+  
+  const wishlistedCounts = useMemo(() => {
+    if (!users || !products) return new Map<string, number>();
+
+    const counts = new Map<string, number>();
+    products.forEach(p => counts.set(p.id, 0)); // Initialize all products with 0
+
+    users.forEach(u => {
+      u.wishlist?.forEach(productId => {
+        if (counts.has(productId)) {
+          counts.set(productId, counts.get(productId)! + 1);
+        }
+      });
+    });
+
+    return counts;
+  }, [users, products]);
 
   const vendorProducts = useMemo(() => {
     if (!products || !user) return [];
@@ -43,8 +62,9 @@ export default function VendorProductsPage() {
       .map(p => ({
         ...p,
         preOrderCount: preOrderCounts.get(p.id) || 0,
+        wishlistedCount: wishlistedCounts.get(p.id) || 0,
       }));
-  }, [products, user, preOrderCounts]);
+  }, [products, user, preOrderCounts, wishlistedCounts]);
 
   const renderSkeleton = () => (
     [...Array(3)].map((_, i) => (
@@ -53,7 +73,8 @@ export default function VendorProductsPage() {
         <TableCell><Skeleton className="h-5 w-40" /></TableCell>
         <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
         <TableCell><Skeleton className="h-5 w-12" /></TableCell>
-        <TableCell><Skeleton className="h-5 w-16" /></TableCell> {/* Pre-order count skeleton */}
+        <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+        <TableCell><Skeleton className="h-5 w-16" /></TableCell>
         <TableCell className="text-right"><Skeleton className="h-5 w-16 ml-auto" /></TableCell>
       </TableRow>
     ))
@@ -83,6 +104,7 @@ export default function VendorProductsPage() {
                   <TableHead>Status</TableHead>
                   <TableHead>Total Stock</TableHead>
                   <TableHead>Pre-orders</TableHead>
+                  <TableHead>Wishlisted</TableHead>
                   <TableHead className="text-right">Price</TableHead>
                 </TableRow>
               </TableHeader>
@@ -116,11 +138,17 @@ export default function VendorProductsPage() {
                             <span className="text-muted-foreground">-</span>
                         )}
                       </TableCell>
+                       <TableCell>
+                        <div className="flex items-center gap-1 font-bold">
+                          <Heart className="h-4 w-4 text-red-400" />
+                          {product.wishlistedCount}
+                        </div>
+                      </TableCell>
                       <TableCell className="text-right">৳{product.price.toFixed(2)}</TableCell>
                     </TableRow>
                   ))
                 ) : (
-                  <TableRow><TableCell colSpan={6} className="h-24 text-center">No products listed yet.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={7} className="h-24 text-center">No products listed yet.</TableCell></TableRow>
                 )}
               </TableBody>
             </Table>
