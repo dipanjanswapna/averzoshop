@@ -1,11 +1,10 @@
-
 'use client';
 
 import { useState, useMemo, useEffect, Dispatch, SetStateAction } from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Minus, Plus, ShoppingBag, Heart, HelpCircle, MapPin, Share2, Printer, Gift, X, Store, CalendarDays } from 'lucide-react';
+import { Minus, Plus, ShoppingBag, Heart, HelpCircle, MapPin, Share2, Printer, Gift, X, Store, CalendarDays, Truck } from 'lucide-react';
 import type { Product, ProductVariant } from '@/types/product';
 import { TrustBadges } from './trust-badges';
 import Link from 'next/link';
@@ -19,6 +18,7 @@ import { StoreAvailabilityDialog } from './store-availability-dialog';
 import Barcode from 'react-barcode';
 import { BarcodePopup } from './barcode-popup';
 import { WishlistButton } from '../ui/wishlist-button';
+import { Input } from '../ui/input';
 
 interface ProductDetailsProps {
     product: Product;
@@ -48,9 +48,27 @@ export function ProductDetails({
   const [isAvailabilityOpen, setIsAvailabilityOpen] = useState(false);
   const [isBarcodeOpen, setIsBarcodeOpen] = useState(false);
 
+  const [deliveryArea, setDeliveryArea] = useState('Dhaka');
+  const [deliveryEstimate, setDeliveryEstimate] = useState('2 Days');
+  const [deliveryCharge, setDeliveryCharge] = useState(60);
+  const [pincode, setPincode] = useState('');
+
   const { addItem } = useCart();
   const { toast } = useToast();
   
+  const checkDelivery = () => {
+    // Mock logic based on pincode for now
+    if (pincode.startsWith('12')) { // Simple check for Dhaka area codes
+      setDeliveryArea('Dhaka');
+      setDeliveryEstimate('2 Days');
+      setDeliveryCharge(60);
+    } else {
+      setDeliveryArea('Outside Dhaka');
+      setDeliveryEstimate('4-5 Days');
+      setDeliveryCharge(120);
+    }
+  };
+
 
   const isPreOrder = product.preOrder?.enabled;
   const releaseDate = isPreOrder && product.preOrder.releaseDate
@@ -338,13 +356,33 @@ export function ProductDetails({
                   <h4 className="font-bold text-sm">Delivery Options</h4>
                   <div className="flex items-center gap-2">
                       <MapPin size={16} className="text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">Dhaka, Bangladesh</span>
+                      <span className="text-sm text-muted-foreground">{deliveryArea}, Bangladesh</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                      <input type="text" placeholder="Enter Pincode" className="text-sm border-b focus:outline-none focus:border-primary" />
-                      <button className="text-primary font-bold text-sm">Check</button>
+                  <div className="relative">
+                    <Input 
+                      type="text" 
+                      placeholder="Enter Area or Pincode" 
+                      className="w-full pr-16"
+                      value={pincode}
+                      onChange={(e) => setPincode(e.target.value)}
+                    />
+                    <Button 
+                      variant="ghost"
+                      onClick={checkDelivery}
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-8 text-primary font-bold hover:text-primary"
+                    >
+                      Check
+                    </Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">Estimated delivery by: <span className="font-bold text-foreground">{(new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</span></p>
+                  <div className="flex items-center gap-3 pt-2">
+                    <Truck size={20} className="text-gray-400" />
+                    <div>
+                        <p className="text-sm text-muted-foreground">
+                            Estimated delivery: <span className="font-bold text-foreground">{deliveryEstimate}</span>
+                        </p>
+                        <p className="text-xs text-green-600 font-semibold">Shipping Charge: ৳{deliveryCharge}</p>
+                    </div>
+                  </div>
              </div>
              <div className="border rounded-lg p-4 space-y-3 flex flex-col justify-center items-center text-center">
                  <Store className="h-8 w-8 text-muted-foreground" />
