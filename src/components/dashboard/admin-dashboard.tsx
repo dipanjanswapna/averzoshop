@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -32,6 +31,7 @@ import { useMemo } from 'react';
 import type { Order } from '@/types/order';
 import type { UserData } from '@/types/user';
 import type { Product } from '@/types/product';
+import { TopWishlistedProducts } from './top-wishlisted-products';
 
 export function AdminDashboard() {
   const { firestore } = useFirebase();
@@ -50,8 +50,6 @@ export function AdminDashboard() {
   const newOrdersCount = orders?.length || 0;
   const totalProductsCount = products?.length || 0;
   const activeUsersCount = users?.filter(u => u.status === 'approved').length || 0;
-
-  const recentOrders = orders?.slice(0, 5) || [];
 
   return (
     <div className="flex flex-col gap-6">
@@ -115,49 +113,7 @@ export function AdminDashboard() {
              <SalesChart />
           </CardContent>
         </Card>
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle className="font-headline">Recent Orders</CardTitle>
-            <CardDescription>
-              Showing the last 5 recorded sales.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  [...Array(5)].map((_, i) => (
-                    <TableRow key={i}>
-                      <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
-                      <TableCell className="text-right"><Skeleton className="h-5 w-16 ml-auto" /></TableCell>
-                    </TableRow>
-                  ))
-                ) : recentOrders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell>
-                      <div className="font-medium">{order.shippingAddress.name || 'N/A'}</div>
-                      <div className="hidden text-sm text-muted-foreground md:inline">
-                        ID: {order.id.substring(0,8)}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={order.status === 'delivered' ? 'default' : 'secondary'} className={order.status === 'delivered' ? 'bg-accent text-accent-foreground' : ''}>{order.status || 'Delivered'}</Badge>
-                    </TableCell>
-                    <TableCell className="text-right">৳{order.totalAmount.toFixed(2)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+        <TopWishlistedProducts products={products} users={users} isLoading={isLoading} />
       </div>
     </div>
   );
