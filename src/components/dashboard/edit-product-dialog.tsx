@@ -350,7 +350,7 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
             </div>
              <div className="grid grid-cols-3 gap-4">
                 <FormField control={form.control} name="price" render={({ field }) => (<FormItem><FormLabel>Base Price (৳)</FormLabel><FormControl><Input type="number" placeholder="999" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={form.control} name="compareAtPrice" render={({ field }) => (<FormItem><FormLabel>Base Compare-at Price (MRP ৳)</FormLabel><FormControl><Input type="number" placeholder="1299" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField control={form.control} name="compareAtPrice" render={({ field }) => (<FormItem><FormLabel>Base Compare-at Price (MRP ৳)</FormLabel><FormControl><Input type="number" placeholder="1299" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>)} />
                 <FormField control={form.control} name="baseSku" render={({ field }) => (<FormItem><FormLabel>Base SKU</FormLabel><FormControl><Input placeholder="AV-TSH-001" {...field} /></FormControl><FormMessage /></FormItem>)} />
             </div>
 
@@ -545,7 +545,7 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
                               render={({ field }) => (
                               <FormItem>
                                   <FormLabel>Deposit Type</FormLabel>
-                                  <Select onValueChange={field.onChange} value={field.value}>
+                                  <Select onValueChange={field.onChange} value={field.value ?? ''}>
                                       <FormControl><SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger></FormControl>
                                       <SelectContent>
                                           <SelectItem value="percentage">Percentage (%)</SelectItem>
@@ -560,7 +560,7 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
                               control={form.control}
                               name="preOrder.depositAmount"
                               render={({ field }) => (
-                                  <FormItem><FormLabel>Deposit Amount</FormLabel><FormControl><Input type="number" placeholder="e.g., 20 or 500" {...field} /></FormControl><FormMessage /></FormItem>
+                                  <FormItem><FormLabel>Deposit Amount</FormLabel><FormControl><Input type="number" placeholder="e.g., 20 or 500" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                               )}
                           />
                       </div>
@@ -568,7 +568,7 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
                           control={form.control}
                           name="preOrder.limit"
                           render={({ field }) => (
-                              <FormItem><FormLabel>Pre-order Limit</FormLabel><FormControl><Input type="number" placeholder="Max pre-orders" {...field} /></FormControl><FormMessage /></FormItem>
+                              <FormItem><FormLabel>Pre-order Limit</FormLabel><FormControl><Input type="number" placeholder="Max pre-orders" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                           )}
                       />
                   </div>
