@@ -61,9 +61,9 @@ export function ProductImageGallery({ product, selectedVariant }: ProductImageGa
   
   const getYouTubeThumbnail = (url: string) => {
     if (!url || !url.includes('embed/')) return 'https://placehold.co/120x90?text=Invalid+Video';
-    const videoId = url.split('embed/')[1];
+    const videoId = url.split('embed/')[1]?.split('?')[0];
     if (!videoId) return 'https://placehold.co/120x90?text=Invalid+Video';
-    return `https://img.youtube.com/vi/${videoId}/0.jpg`;
+    return `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
   };
 
   return (
