@@ -27,7 +27,7 @@ export default function CheckoutPage() {
 
   if (!isMounted) {
     return (
-        <div className="container mx-auto px-4 py-16 text-center">
+        <div className="container mx-auto py-16 text-center">
             <p>Loading checkout...</p>
         </div>
     );
@@ -35,7 +35,7 @@ export default function CheckoutPage() {
 
   if (items.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-16 text-center">
+      <div className="container mx-auto py-16 text-center">
         <ShoppingBag className="mx-auto h-24 w-24 text-muted-foreground" />
         <h1 className="mt-6 text-3xl font-extrabold font-headline tracking-tight">Your Bag is Empty</h1>
         <p className="mt-2 text-muted-foreground">You can't proceed to checkout with an empty bag.</p>
@@ -48,7 +48,7 @@ export default function CheckoutPage() {
 
   return (
     <div className="bg-secondary">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="container mx-auto py-12">
             <div className="mb-8">
                  <Breadcrumb>
                     <BreadcrumbList>

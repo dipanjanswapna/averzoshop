@@ -173,7 +173,7 @@ export default function CategoryPage() {
 
   return (
     <div>
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="container mx-auto">
         <div className="text-center pt-8 mb-8 md:pt-12 md:mb-12">
           <h1 className="text-4xl md:text-5xl font-extrabold font-headline tracking-tight">
             {CATEGORY_NAME}
@@ -212,7 +212,7 @@ export default function CategoryPage() {
       </div>
       
       <div className="bg-secondary py-8">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
             <Breadcrumb>
               <BreadcrumbList>
