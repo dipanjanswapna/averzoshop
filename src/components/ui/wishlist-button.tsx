@@ -50,6 +50,7 @@ export function WishlistButton({ productId, className, ...props }: AddToWishlist
     const list = currentWishlists.find(w => w.id === wishlistId);
     if (list && list.items.some(i => i.productId === productId)) {
       toast({ title: "Already in this list" });
+      setIsOpen(false);
       return;
     }
 
@@ -57,7 +58,7 @@ export function WishlistButton({ productId, className, ...props }: AddToWishlist
       if (w.id === wishlistId) {
         return {
           ...w,
-          items: [...w.items, { productId, addedAt: Timestamp.now() }],
+          items: [...w.items, { productId, addedAt: Timestamp.now(), quantity: 1 }],
           updatedAt: Timestamp.now(),
         };
       }
@@ -78,7 +79,7 @@ export function WishlistButton({ productId, className, ...props }: AddToWishlist
           id: Date.now().toString(),
           name: newListName,
           isPublic: false,
-          items: [{ productId, addedAt: Timestamp.now() }],
+          items: [{ productId, addedAt: Timestamp.now(), quantity: 1 }],
           createdAt: Timestamp.now(),
           updatedAt: Timestamp.now(),
       };
@@ -87,6 +88,25 @@ export function WishlistButton({ productId, className, ...props }: AddToWishlist
           toast({ title: `Created '${newListName}' and added product.` });
           setNewListName('');
           setIsOpen(false);
+      }
+  };
+  
+  const handleMainClick = async () => {
+      if (!user || !userData) {
+          toast({ variant: 'destructive', title: 'Please log in' });
+          return;
+      }
+      if (isWishlisted) {
+          toast({ title: 'Already in a wishlist' });
+          setIsOpen(true); // Open popover to manage
+          return;
+      }
+      
+      const defaultList = userData.wishlists?.find(w => w.isDefault);
+      if (defaultList) {
+          await handleSelectList(defaultList.id);
+      } else {
+          setIsOpen(true);
       }
   };
 
@@ -102,7 +122,7 @@ export function WishlistButton({ productId, className, ...props }: AddToWishlist
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button className={className} {...props}>
+        <Button className={className} {...props} onClick={handleMainClick}>
           <Heart className={cn('transition-colors', isWishlisted ? 'fill-destructive text-destructive' : 'text-current')} />
         </Button>
       </PopoverTrigger>
@@ -110,6 +130,7 @@ export function WishlistButton({ productId, className, ...props }: AddToWishlist
         <div className="space-y-2">
             <h4 className="font-medium text-center text-sm">Add to Wishlist</h4>
             <div className="space-y-1 max-h-40 overflow-y-auto">
+                {userData?.wishlists?.length === 0 && <p className="text-xs text-center text-muted-foreground p-2">No wishlists yet. Create one below!</p>}
                 {userData?.wishlists?.map(list => (
                     <Button key={list.id} variant="ghost" className="w-full justify-start" onClick={() => handleSelectList(list.id)}>
                         {list.name}

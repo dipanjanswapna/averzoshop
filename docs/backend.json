@@ -22,6 +22,7 @@
               "id": { "type": "string" },
               "name": { "type": "string" },
               "isPublic": { "type": "boolean" },
+              "isDefault": { "type": "boolean", "description": "Whether this is the default wishlist to add items to." },
               "createdAt": { "type": "string", "format": "date-time" },
               "updatedAt": { "type": "string", "format": "date-time" },
               "items": {
@@ -31,9 +32,10 @@
                   "properties": {
                     "productId": { "type": "string" },
                     "addedAt": { "type": "string", "format": "date-time" },
-                    "notes": { "type": "string" }
+                    "notes": { "type": "string" },
+                    "quantity": { "type": "number", "description": "Desired quantity for the item." }
                   },
-                  "required": ["productId", "addedAt"]
+                  "required": ["productId", "addedAt", "quantity"]
                 }
               }
             },
