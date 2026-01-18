@@ -20,6 +20,7 @@ export async function sendNotification(input: unknown) {
     getFirebaseAdminApp(); 
 
     // 3. Fetch all user tokens from Firestore
+    console.log('[Server Action] Fetching all user tokens...');
     const usersSnapshot = await firestore().collection('users').get();
     const tokens: string[] = [];
 
@@ -34,13 +35,15 @@ export async function sendNotification(input: unknown) {
     const uniqueTokens = [...new Set(tokens)].filter(t => t && typeof t === 'string');
 
     if (uniqueTokens.length === 0) {
+      console.warn("No valid FCM tokens found in the database. Cannot send notifications.");
       return { 
-        success: false, 
+        success: true, // The action itself succeeded, but no notifications were sent.
         successCount: 0, 
         failureCount: 0, 
         error: "No valid FCM tokens found in the database. Please ensure users have granted notification permissions." 
       };
     }
+    console.log(`[Server Action] Found ${uniqueTokens.length} unique tokens. Preparing to send notifications.`);
 
     // 5. Chunk tokens into groups of 500 (FCM multicast limit)
     const chunks = [];
@@ -74,9 +77,9 @@ export async function sendNotification(input: unknown) {
       });
     }
 
-    console.log(`Notifications Sent: ${totalSuccess} success, ${totalFailure} failures.`);
+    console.log(`[Server Action] Notifications Sent: ${totalSuccess} success, ${totalFailure} failures.`);
     if (totalFailure > 0) {
-        console.error("FCM Send Errors:", errors);
+        console.error("[Server Action] FCM Send Errors:", errors);
     }
 
     return {
@@ -86,7 +89,7 @@ export async function sendNotification(input: unknown) {
     };
 
   } catch (error: any) {
-    console.error('sendNotification action failed:', error);
+    console.error('[Server Action] sendNotification action failed:', error);
     let errorMessage = "Failed to send notifications.";
     if (error instanceof z.ZodError) {
         errorMessage = error.errors.map(e => e.message).join(' ');

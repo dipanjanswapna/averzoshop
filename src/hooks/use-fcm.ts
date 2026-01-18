@@ -2,35 +2,37 @@
 
 import { useEffect, useState } from 'react';
 import { getMessaging, getToken, isSupported } from 'firebase/messaging';
-import { useFirebase } from '@/firebase'; // Using the central provider
+import { useFirebase } from '@/firebase';
 import { updateFcmToken } from '@/actions/user-actions';
-import { useToast } from './use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 export const useFcmToken = (userId: string | undefined) => {
   const { toast } = useToast();
   const [token, setToken] = useState<string | null>(null);
-  const { firebaseApp } = useFirebase(); // Get app instance from provider
+  const { firebaseApp } = useFirebase();
 
   useEffect(() => {
     if (!userId || !firebaseApp) return;
 
     const retrieveToken = async () => {
-      console.log('FCM Hook: Checking notification support...');
-      const supported = await isSupported();
-      if (!supported) {
-        console.error('FCM Hook: Firebase Messaging is not supported in this browser.');
-        return;
-      }
-
-      console.log('FCM Hook: Requesting notification permission...');
-      const permission = await Notification.requestPermission();
-
-      if (permission === 'granted') {
-        console.log('FCM Hook: Notification permission granted.');
-        try {
+      try {
+        console.log('[FCM] Checking for browser support...');
+        const supported = await isSupported();
+        if (!supported || !('Notification' in window)) {
+          console.error('[FCM] Push notifications are not supported in this browser.');
+          return;
+        }
+        console.log('[FCM] Browser support confirmed.');
+        
+        console.log('[FCM] Requesting notification permission...');
+        const permission = await Notification.requestPermission();
+        
+        if (permission === 'granted') {
+          console.log('[FCM] Notification permission granted.');
+          
           const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
           if (!vapidKey) {
-            console.error('FCM Hook: VAPID key is not set in environment variables.');
+            console.error('[FCM] VAPID key is missing from environment variables.');
             toast({
               variant: 'destructive',
               title: 'Configuration Error',
@@ -38,36 +40,31 @@ export const useFcmToken = (userId: string | undefined) => {
             });
             return;
           }
+          console.log('[FCM] VAPID key found. Initializing messaging...');
           
-          console.log('FCM Hook: VAPID key found. Attempting to get token...');
           const messaging = getMessaging(firebaseApp);
+          console.log('[FCM] Attempting to get FCM token...');
           const currentToken = await getToken(messaging, { vapidKey });
 
           if (currentToken) {
             setToken(currentToken);
-            console.log('FCM Hook: Token generated:', currentToken);
+            console.log('[FCM] Token generated:', currentToken);
+            console.log('[FCM] Saving token to server for user:', userId);
             
-            console.log('FCM Hook: Attempting to save token to server for user:', userId);
             const result = await updateFcmToken(userId, currentToken);
-            
             if (result.success) {
-                console.log('FCM Hook: Token successfully saved to Firestore.');
+                console.log('[FCM] Token successfully saved to Firestore.');
             } else {
-                console.error('FCM Hook: Failed to save token to Firestore.', result.error);
+                console.error('[FCM] Failed to save token to Firestore:', result.error);
             }
           } else {
-            console.log('FCM Hook: No registration token available. Request permission to generate one.');
+            console.log('[FCM] No registration token available. Request permission to generate one.');
           }
-        } catch (error) {
-          console.error('FCM Hook: An error occurred while retrieving token.', error);
-          toast({
-              variant: 'destructive',
-              title: 'Notification Error',
-              description: 'Could not retrieve notification token.',
-          });
+        } else {
+          console.warn('[FCM] Notification permission denied by user.');
         }
-      } else {
-        console.log('FCM Hook: Notification permission denied.');
+      } catch (error) {
+        console.error('[FCM] An error occurred while retrieving token:', error);
       }
     };
 

@@ -1,36 +1,42 @@
-// Scripts for Firebase v9+
-importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
+// Give the service worker a name
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+});
 
-// Get Firebase config from URL query parameters
+// Import the Firebase scripts
+importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
+
+// Get Firebase config from URL
 const urlParams = new URLSearchParams(self.location.search);
 const firebaseConfigParam = urlParams.get('firebaseConfig');
 
 if (firebaseConfigParam) {
     try {
-        const firebaseConfig = JSON.parse(firebaseConfigParam);
-
+        const firebaseConfig = JSON.parse(decodeURIComponent(firebaseConfigParam));
+        
         // Initialize the Firebase app in the service worker
-        firebase.initializeApp(firebaseConfig);
+        if (firebase.apps.length === 0) {
+            firebase.initializeApp(firebaseConfig);
+        }
 
-        // Retrieve an instance of Firebase Messaging
         const messaging = firebase.messaging();
 
-        messaging.onBackgroundMessage(function(payload) {
+        messaging.onBackgroundMessage((payload) => {
           console.log('[firebase-messaging-sw.js] Received background message ', payload);
           
           // Customize the notification here
-          const notificationTitle = payload.notification.title;
+          const notificationTitle = payload.notification?.title || 'New Notification';
           const notificationOptions = {
-            body: payload.notification.body,
-            icon: payload.notification.icon || '/logo.png' // Default icon
+            body: payload.notification?.body || 'You have a new message.',
+            icon: '/logo.png' // Make sure you have a logo at public/logo.png
           };
 
           self.registration.showNotification(notificationTitle, notificationOptions);
         });
-    } catch (e) {
-        console.error('Error parsing Firebase config in service worker:', e);
+    } catch (error) {
+        console.error("Error parsing Firebase config in Service Worker:", error);
     }
 } else {
-    console.error('Firebase config not found in service worker URL.');
+    console.error("Service Worker: Firebase config not found in URL parameters.");
 }
