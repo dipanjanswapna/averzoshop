@@ -1,60 +1,59 @@
+// public/firebase-messaging-sw.js
+// This service worker handles background push notifications.
 
-// This service worker can be customized to your needs.
-// For more information, see: https://firebase.google.com/docs/cloud-messaging/js/client
+// Import the Firebase scripts
+importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
 
-// Scripts for Firebase products are imported on-demand
-importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
-
-self.addEventListener('install', function(event) {
-    console.log('[FCM SW] Service Worker installing.');
+self.addEventListener('install', (event) => {
+  console.log('[SW] Service Worker installing.');
 });
 
-self.addEventListener('activate', function(event) {
-    console.log('[FCM SW] Service Worker activating.');
+self.addEventListener('activate', (event) => {
+  console.log('[SW] Service Worker activating.');
 });
 
 
-// 1. Get Firebase config from URL
-const urlParams = new URLSearchParams(location.search);
+// We can't use process.env here, so we get the config from the query string
+const urlParams = new URLSearchParams(self.location.search);
 const firebaseConfigParam = urlParams.get('firebaseConfig');
-if (!firebaseConfigParam) {
-    console.error("[FCM SW] Firebase config not found in URL. Background notifications will not work.");
-} else {
-    try {
-        const firebaseConfig = JSON.parse(decodeURIComponent(firebaseConfigParam));
-        
-        // 2. Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        console.log("[FCM SW] Firebase initialized successfully.");
 
-        // 3. Get a Messaging instance
-        const messaging = firebase.messaging();
+if (firebaseConfigParam) {
+    try {
+        const firebaseConfig = JSON.parse(firebaseConfigParam);
         
-        // 4. Handle background messages
+        // Initialize the Firebase app in the service worker
+        firebase.initializeApp(firebaseConfig);
+
+        const messaging = firebase.messaging();
+        console.log('[SW] Firebase Messaging initialized in Service Worker.');
+        
         messaging.onBackgroundMessage((payload) => {
-            console.log('[FCM SW] Received background message: ', payload);
-            
-            const notificationTitle = payload.notification?.title || 'New Message';
+            console.log('[SW] Received background message ', payload);
+
+            const notificationTitle = payload.notification?.title || "New Notification";
             const notificationOptions = {
-                body: payload.notification?.body || 'You have a new message.',
-                icon: payload.notification?.icon || '/logo.png',
+                body: payload.notification?.body || "You have a new message.",
+                icon: payload.notification?.icon || '/logo.png', // Use icon from payload or default
                 data: {
-                    url: payload.fcmOptions?.link || '/'
+                    url: payload.fcmOptions?.link || '/' // URL to open on click
                 }
             };
 
             self.registration.showNotification(notificationTitle, notificationOptions);
         });
 
-        // 5. Handle notification click
         self.addEventListener('notificationclick', (event) => {
             event.notification.close();
-            const urlToOpen = event.notification.data.url;
-            event.waitUntil(clients.openWindow(urlToOpen));
+            const urlToOpen = event.notification.data.url || '/';
+            event.waitUntil(
+                self.clients.openWindow(urlToOpen)
+            );
         });
 
     } catch (error) {
-        console.error("[FCM SW] Error parsing Firebase config or initializing:", error);
+        console.error("[SW] Error parsing Firebase config or initializing app:", error);
     }
+} else {
+    console.error("[SW] Firebase config not found in service worker URL.");
 }

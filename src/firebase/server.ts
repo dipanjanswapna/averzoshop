@@ -20,16 +20,12 @@ export function getFirebaseAdminApp(): App {
 
   let serviceAccount;
   try {
-    // Trim and handle if the key is wrapped in single quotes
-    const rawKey = serviceAccountKey.trim();
-    if (rawKey.startsWith("'") && rawKey.endsWith("'")) {
-      serviceAccount = JSON.parse(rawKey.substring(1, rawKey.length - 1));
-    } else {
-      serviceAccount = JSON.parse(rawKey);
-    }
+    // The key from .env is a single-line string.
+    // It needs to be parsed into a JSON object.
+    serviceAccount = JSON.parse(serviceAccountKey);
   } catch (error: any) {
     console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY:", error.message);
-    throw new Error("Invalid JSON format in FIREBASE_SERVICE_ACCOUNT_KEY. Please ensure it's a valid, single-line JSON string.");
+    throw new Error("Invalid JSON format in FIREBASE_SERVICE_ACCOUNT_KEY. Please ensure it's a valid, single-line JSON string without extra quotes.");
   }
 
   return initializeApp({

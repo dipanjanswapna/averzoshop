@@ -23,6 +23,7 @@ export function FirebaseClientProvider({
       try {
         const supported = await isSupported();
         if (supported && firebaseInstance.firebaseApp) {
+          console.log('[FCM Provider] FCM is supported, setting up...');
           // 1. Service worker registration
           if ('serviceWorker' in navigator) {
             const firebaseConfig = {
@@ -35,20 +36,29 @@ export function FirebaseClientProvider({
             };
             const swUrl = `/firebase-messaging-sw.js?firebaseConfig=${encodeURIComponent(JSON.stringify(firebaseConfig))}`;
             
-            await navigator.serviceWorker.register(swUrl);
+            navigator.serviceWorker.register(swUrl)
+              .then((registration) => {
+                console.log('[FCM Provider] Service worker registered successfully. Scope:', registration.scope);
+              })
+              .catch((error) => {
+                console.error('[FCM Provider] Service worker registration failed:', error);
+              });
           }
 
           // 2. Foreground message listener
           const messaging = getMessaging(firebaseInstance.firebaseApp);
           onMessage(messaging, (payload) => {
+            console.log('[FCM Provider] Foreground message received:', payload);
             toast({
               title: payload.notification?.title,
               description: payload.notification?.body,
             });
           });
+        } else {
+           console.log('[FCM Provider] FCM is not supported in this browser.');
         }
       } catch (error) {
-        console.error("Messaging Setup Error:", error);
+        console.error("[FCM Provider] Error during FCM setup:", error);
       }
     };
     init();
