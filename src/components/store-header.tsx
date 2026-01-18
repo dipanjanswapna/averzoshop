@@ -1,7 +1,7 @@
 
 "use client";
 import React, { useState, useEffect, useCallback } from 'react';
-import { Search, ShoppingBag, User, Menu, ChevronDown, X, ChevronRight } from 'lucide-react';
+import { Search, ShoppingBag, User, Menu, ChevronDown, X, ChevronRight, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -102,6 +102,10 @@ const MobileSidebar = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
                <p className="text-[10px] text-muted-foreground">Login to your account</p>
              </div>
           </div>
+
+          <Link href="/flash-sale" onClick={onClose} className="block p-5 bg-destructive/10 text-destructive font-bold text-center uppercase tracking-widest">
+            ⚡ Flash Sale is Live!
+          </Link>
 
           {/* Accordion Menu */}
           <div className="py-2">
@@ -208,6 +212,11 @@ export default function AverzoNavbar() {
       )}>
         <div className="w-full overflow-x-auto whitespace-nowrap no-scrollbar">
             <div className="container mx-auto px-4 flex items-center gap-8 h-full">
+              <Link href="/flash-sale" className="h-full flex items-center">
+                <span className="text-sm font-bold uppercase tracking-widest flex items-center gap-1 text-destructive animate-pulse">
+                  <Zap size={14} /> Flash Sale
+                </span>
+              </Link>
             {categoriesData.map((item) => {
                 const motherCategoryPath = item.path || `/shop?${createQueryString({ mother_category: item.mother_name })}`;
                 return (

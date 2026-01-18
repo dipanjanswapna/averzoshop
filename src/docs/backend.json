@@ -249,8 +249,7 @@
             "description": "Details for a limited-time flash sale on the product.",
             "properties": {
                 "enabled": { "type": "boolean" },
-                "endDate": { "type": "string", "format": "date-time" },
-                "giftDescription": { "type": "string", "description": "A free gift offered during the flash sale." }
+                "endDate": { "type": "string", "format": "date-time" }
             }
         }
       },
