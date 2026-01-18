@@ -23,7 +23,7 @@ export function FirebaseClientProvider({
       try {
         const supported = await isSupported();
         if (supported && firebaseInstance.firebaseApp) {
-          // Register service worker
+          // 1. Service worker registration
           if ('serviceWorker' in navigator) {
             const firebaseConfig = {
               apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -33,19 +33,14 @@ export function FirebaseClientProvider({
               messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
               appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
             };
-            const url = `/firebase-messaging-sw.js?firebaseConfig=${encodeURIComponent(JSON.stringify(firebaseConfig))}`;
-            navigator.serviceWorker.register(url)
-              .then((registration) => {
-                console.log('Service Worker registered with scope:', registration.scope);
-              }).catch((error) => {
-                console.error('Service Worker registration failed:', error);
-              });
+            const swUrl = `/firebase-messaging-sw.js?firebaseConfig=${encodeURIComponent(JSON.stringify(firebaseConfig))}`;
+            
+            await navigator.serviceWorker.register(swUrl);
           }
 
-          // Set up foreground message listener
+          // 2. Foreground message listener
           const messaging = getMessaging(firebaseInstance.firebaseApp);
           onMessage(messaging, (payload) => {
-            console.log('Foreground message received. ', payload);
             toast({
               title: payload.notification?.title,
               description: payload.notification?.body,
@@ -53,16 +48,13 @@ export function FirebaseClientProvider({
           });
         }
       } catch (error) {
-        console.error("Error setting up Firebase messaging:", error);
+        console.error("Messaging Setup Error:", error);
       }
     };
     init();
   }, [toast]);
 
-  if (!firebase) {
-    // You can return a loading spinner here if you want
-    return <>{children}</>;
-  }
+  if (!firebase) return <>{children}</>;
 
   return (
     <FirebaseProvider

@@ -1,6 +1,4 @@
-
 'use client';
-import type { Metadata } from 'next';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
@@ -9,11 +7,8 @@ import { MobileBottomNav } from '@/components/mobile-bottom-nav';
 import { Providers } from '@/components/providers';
 import { ToastProvider } from '@/components/ui/toast';
 import React, { useState, useEffect } from 'react';
-
-// export const metadata: Metadata = {
-//   title: 'Averzo',
-//   description: 'The future of fashion and retail.',
-// };
+import { FcmHandler } from '@/components/fcm-handler'; // নিশ্চিত করুন এই ফাইলটি তৈরি করেছেন
+import { useAuth } from '@/hooks/use-auth'; // আপনার প্রোজেক্টের Auth হুক
 
 export default function RootLayout({
   children,
@@ -22,6 +17,7 @@ export default function RootLayout({
 }>) {
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
+  const { user } = useAuth(); // আপনার Auth সিস্টেম থেকে ইউজার সেশন নেওয়া হচ্ছে
 
   useEffect(() => {
     setIsClient(true);
@@ -53,6 +49,9 @@ export default function RootLayout({
       )}>
         <ToastProvider>
           <Providers>
+            {/* FCM Handler: এটি ব্যাকগ্রাউন্ডে টোকেন আপডেট করবে */}
+            {isClient && user?.uid && <FcmHandler userId={user.uid} />}
+            
             {children}
             <Toaster />
           </Providers>
