@@ -25,6 +25,9 @@ import { collection, query, where, orderBy, doc, updateDoc } from 'firebase/fire
 import type { Order, OrderStatus } from '@/types/order';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import type { Outlet } from '@/types/outlet';
+import type { UserData } from '@/types/user';
+import { MessageCircle } from 'lucide-react';
 
 const getStatusBadge = (status: OrderStatus) => {
     switch (status) {
@@ -57,7 +60,21 @@ export default function MyOrdersPage() {
     );
   }, [firestore, user]);
 
-  const { data: userOrders, isLoading } = useFirestoreQuery<Order>(userOrdersQuery);
+  const { data: userOrders, isLoading: ordersLoading } = useFirestoreQuery<Order>(userOrdersQuery);
+  const { data: outlets, isLoading: outletsLoading } = useFirestoreQuery<Outlet>('outlets');
+  const { data: users, isLoading: usersLoading } = useFirestoreQuery<UserData>('users');
+
+  const isLoading = ordersLoading || outletsLoading || usersLoading;
+
+  const outletMap = useMemo(() => {
+    if (!outlets) return new Map();
+    return new Map(outlets.map(o => [o.id, o]));
+  }, [outlets]);
+
+  const userMap = useMemo(() => {
+    if (!users) return new Map();
+    return new Map(users.map(u => [u.uid, u]));
+  }, [users]);
   
   const handleCompletePayment = async (orderId: string) => {
     if (!firestore) return;
@@ -105,23 +122,41 @@ export default function MyOrdersPage() {
             </TableHeader>
             <TableBody>
               {isLoading ? renderSkeleton() : userOrders && userOrders.length > 0 ? (
-                userOrders.map(order => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-medium font-mono text-xs">{order.id.substring(0, 8)}...</TableCell>
-                    <TableCell>{order.createdAt?.toDate().toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      {getStatusBadge(order.status)}
-                    </TableCell>
-                    <TableCell className="text-right">৳{order.totalAmount.toFixed(2)}</TableCell>
-                     <TableCell className="text-right">
-                        {order.orderType === 'pre-order' && order.status === 'new' && (
-                            <Button onClick={() => handleCompletePayment(order.id)} disabled={updatingId === order.id} size="sm">
-                                {updatingId === order.id ? 'Processing...' : 'Complete Payment'}
-                            </Button>
-                        )}
-                    </TableCell>
-                  </TableRow>
-                ))
+                userOrders.map(order => {
+                  const assignedOutlet = outletMap.get(order.assignedOutletId);
+                  const manager = assignedOutlet ? userMap.get(assignedOutlet.managerId) : null;
+                  const managerPhone = manager?.phone;
+                  const formattedPhone = managerPhone ? `88${managerPhone.replace(/\D/g, '').replace(/^0/, '')}` : null;
+                  
+                  return (
+                    <TableRow key={order.id}>
+                      <TableCell className="font-medium font-mono text-xs">{order.id.substring(0, 8)}...</TableCell>
+                      <TableCell>{order.createdAt?.toDate().toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        {getStatusBadge(order.status)}
+                      </TableCell>
+                      <TableCell className="text-right">৳{order.totalAmount.toFixed(2)}</TableCell>
+                       <TableCell className="text-right">
+                          {order.orderType === 'pre-order' && order.status === 'new' && (
+                              <Button onClick={() => handleCompletePayment(order.id)} disabled={updatingId === order.id} size="sm">
+                                  {updatingId === order.id ? 'Processing...' : 'Complete Payment'}
+                              </Button>
+                          )}
+                           {(order.status === 'new' || order.status === 'preparing') && formattedPhone && (
+                              <div className="mt-2 text-right">
+                                  <p className="text-xs text-muted-foreground">দ্রুত আপডেটের জন্য, আউটলেটে যোগাযোগ করুন।</p>
+                                  <Button asChild variant="outline" size="sm" className="mt-1 bg-green-50 hover:bg-green-100 border-green-200 text-green-800">
+                                      <a href={`https://wa.me/${formattedPhone}`} target="_blank" rel="noopener noreferrer">
+                                          <MessageCircle className="mr-2 h-4 w-4" />
+                                          WhatsApp
+                                      </a>
+                                  </Button>
+                              </div>
+                          )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               ) : (
                  <TableRow>
                     <TableCell colSpan={5} className="h-24 text-center">

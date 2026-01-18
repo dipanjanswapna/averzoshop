@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -34,6 +33,7 @@ const formSchema = z.object({
   longitude: z.coerce.number(),
   managerName: z.string().min(2, { message: 'Manager name is required.' }),
   managerEmail: z.string().email({ message: 'A valid email is required.' }),
+  managerPhone: z.string().min(11, { message: 'A valid 11-digit phone number is required.' }),
   managerPassword: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
 });
 
@@ -51,6 +51,7 @@ export function AddOutletDialog({ open, onOpenChange }: AddOutletDialogProps) {
       longitude: 0,
       managerName: '',
       managerEmail: '',
+      managerPhone: '',
       managerPassword: '',
     },
   });
@@ -85,6 +86,7 @@ export function AddOutletDialog({ open, onOpenChange }: AddOutletDialogProps) {
             uid: user.uid,
             email: values.managerEmail,
             displayName: values.managerName,
+            phone: values.managerPhone,
             role: 'outlet',
             status: 'approved',
             outletId: outletId, // Link user to the outlet
@@ -169,13 +171,22 @@ export function AddOutletDialog({ open, onOpenChange }: AddOutletDialogProps) {
                   <FormMessage />
                 </FormItem>
             )} />
-             <FormField control={form.control} name="managerEmail" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Manager&apos;s Email</FormLabel>
-                  <FormControl><Input type="email" placeholder="manager@example.com" {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
-            )} />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField control={form.control} name="managerEmail" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Manager&apos;s Email</FormLabel>
+                    <FormControl><Input type="email" placeholder="manager@example.com" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+              )} />
+              <FormField control={form.control} name="managerPhone" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Manager&apos;s Phone</FormLabel>
+                    <FormControl><Input type="tel" placeholder="01XXXXXXXXX" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+              )} />
+            </div>
              <FormField control={form.control} name="managerPassword" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Set Temporary Password</FormLabel>
