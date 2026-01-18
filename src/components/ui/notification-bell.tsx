@@ -74,8 +74,8 @@ export function NotificationBell() {
                 
                 if (fcmToken && user) {
                     const result = await updateFcmToken(user.uid, fcmToken);
-                    if (!result.success) {
-                        throw new Error(result.error);
+                    if (result && !result.success) { // Ensure result is not null before checking success
+                        throw new Error(result.error || "Failed to save token.");
                     }
                 }
                 
