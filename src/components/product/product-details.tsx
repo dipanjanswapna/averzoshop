@@ -1,201 +1,167 @@
-
 'use client';
 
-import { Suspense, useMemo, useState, useEffect, Dispatch, SetStateAction, useCallback } from 'react';
-import { useParams, useSearchParams, useRouter } from 'next/navigation';
-import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
+import { Dispatch, SetStateAction, useMemo, useState } from 'react';
 import type { Product, ProductVariant } from '@/types/product';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
-import { ProductImageGallery } from '@/components/product/product-image-gallery';
-import { ProductDetails } from '@/components/product/product-details';
-import { ProductTabs } from '@/components/product/product-tabs';
-import { RelatedProducts } from '@/components/product/related-products';
-import { MobileActionbar } from '@/components/product/mobile-action-bar';
-import { FrequentlyBought } from '@/components/product/frequently-bought';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Heart, ShoppingBag, Ruler, Barcode, MapPin, Share2, Star } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useCart } from '@/hooks/use-cart';
+import { useToast } from '@/hooks/use-toast';
+import { WishlistButton } from '../ui/wishlist-button';
+import { SizeGuideDialog } from './size-guide-dialog';
+import { BarcodePopup } from './barcode-popup';
+import { StoreAvailabilityDialog } from './store-availability-dialog';
 import { NotifyMeButton } from './notify-me-button';
+import { FlashSaleTimer } from './flash-sale-timer';
+import { TrustBadges } from './trust-badges';
 
-function ProductPageContent() {
-    const params = useParams();
-    const { id } = params;
-    const searchParams = useSearchParams();
-    
-    const { data: products, isLoading } = useFirestoreQuery<Product>('products');
+interface ProductDetailsProps {
+  product: Product;
+  selectedVariant: ProductVariant | null;
+  selectedColor: string | null;
+  setSelectedColor: Dispatch<SetStateAction<string | null>>;
+  selectedSize: string | null;
+  setSelectedSize: Dispatch<SetStateAction<string | null>>;
+  isOutOfStock: boolean;
+}
 
-    const [selectedSize, setSelectedSize] = useState<string | null>(null);
-    const [selectedColor, setSelectedColor] = useState<string | null>(null);
-    const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
+export function ProductDetails({
+  product,
+  selectedVariant,
+  selectedColor,
+  setSelectedColor,
+  selectedSize,
+  setSelectedSize,
+  isOutOfStock,
+}: ProductDetailsProps) {
+  const { addItem } = useCart();
+  const { toast } = useToast();
+  const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
+  const [isBarcodeOpen, setIsBarcodeOpen] = useState(false);
+  const [isStoreAvailabilityOpen, setIsStoreAvailabilityOpen] = useState(false);
 
-    const { product, relatedProducts, frequentlyBoughtTogether } = useMemo(() => {
-        if (!products) return { product: null, relatedProducts: [], frequentlyBoughtTogether: [] };
-        
-        const currentProduct = products.find((p) => p.id === id);
-        
-        if (!currentProduct) return { product: null, relatedProducts: [], frequentlyBoughtTogether: [] };
+  const availableColors = useMemo(() => {
+    if (!product?.variants) return [];
+    const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants);
+    return [...new Set(variantsArray.map(v => v.color).filter(Boolean))];
+  }, [product]);
 
-        const related = products.filter(p => p.status === 'approved' && p.category === currentProduct.category && p.id !== currentProduct.id).slice(0, 10);
-        const frequentlyBought = products.filter(p => p.status === 'approved' && p.isBestSeller && p.id !== currentProduct.id).slice(0, 2);
+  const availableSizes = useMemo(() => {
+    if (!product?.variants) return [];
+    const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants);
+    return [...new Set(variantsArray.map(v => v.size).filter(Boolean))];
+  }, [product]);
 
-        return { product: currentProduct, relatedProducts: related, frequentlyBoughtTogether: frequentlyBought };
-    }, [products, id]);
-    
-    // Effect to set initial selections from URL or defaults
-    useEffect(() => {
-        if (!product) return;
-
-        const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants || {});
-        const skuFromUrl = searchParams.get('sku');
-        let initialVariant: ProductVariant | null = null;
-        
-        if (skuFromUrl) {
-            initialVariant = variantsArray.find(v => v.sku === skuFromUrl) || null;
-        }
-
-        if (!initialVariant) {
-            initialVariant = variantsArray.find(v => (v.stock || 0) > 0) || variantsArray[0] || null;
-        }
-
-        if (initialVariant) {
-            setSelectedColor(initialVariant.color || null);
-            setSelectedSize(initialVariant.size || null);
-        }
-
-    }, [product, searchParams]);
-
-    // Effect to update the selected variant and URL
-    useEffect(() => {
-        if (!product) return;
-
-        const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants || {});
-        const uniqueColors = [...new Set(variantsArray.map(v => v.color).filter(Boolean))];
-        const uniqueSizes = [...new Set(variantsArray.map(v => v.size).filter(Boolean))];
-
-        const variant = variantsArray.find(v => {
-            const colorMatch = uniqueColors.length === 0 || v.color === selectedColor;
-            const sizeMatch = uniqueSizes.length === 0 || v.size === selectedSize;
-            return colorMatch && sizeMatch;
-        }) || null;
-        
-        setSelectedVariant(variant);
-
-        // Update URL with SKU
-        if (variant) {
-            const currentUrl = new URL(window.location.href);
-            currentUrl.searchParams.set('sku', variant.sku);
-            window.history.replaceState({ ...window.history.state, as: currentUrl.href, url: currentUrl.href }, '', currentUrl.href);
-        }
-
-    }, [selectedColor, selectedSize, product]);
-
-
-    if (isLoading) {
-        return (
-            <div className="container py-8">
-                <Skeleton className="h-6 w-1/2 mb-6" />
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                    <div>
-                        <Skeleton className="aspect-square w-full rounded-xl" />
-                        <div className="grid grid-cols-5 gap-2 mt-4">
-                            {[...Array(4)].map((_, i) => <Skeleton key={i} className="aspect-square w-full" />)}
-                        </div>
-                    </div>
-                    <div className="space-y-6">
-                        <Skeleton className="h-8 w-3/4" />
-                        <Skeleton className="h-10 w-1/2" />
-                        <Skeleton className="h-12 w-full" />
-                        <Skeleton className="h-12 w-full" />
-                        <Skeleton className="h-24 w-full" />
-                    </div>
-                </div>
-            </div>
-        );
+  const handleAddToCart = () => {
+    if (!selectedVariant) {
+      toast({
+        variant: 'destructive',
+        title: 'Unavailable',
+        description: 'Please select a size and color.',
+      });
+      return;
     }
-
-    if (!product) {
-        return (
-            <div className="container py-20 text-center">
-                <h1 className="text-2xl font-bold">Product not found</h1>
-                <p className="text-muted-foreground">The product you are looking for does not exist.</p>
-            </div>
-        );
+    addItem(product, selectedVariant);
+  };
+  
+  const isFlashSaleActive = useMemo(() => {
+    if (!product.flashSale?.enabled || !product.flashSale.endDate) {
+      return false;
     }
-    
-    const isOutOfStock = !product.preOrder?.enabled && (selectedVariant ? (selectedVariant.stock || 0) <= 0 : product.total_stock <= 0);
+    const endDate = product.flashSale.endDate.toDate ? product.flashSale.endDate.toDate() : new Date(product.flashSale.endDate);
+    return endDate > new Date();
+  }, [product.flashSale]);
+  
+  const displayPrice = selectedVariant?.price ?? product.price;
+  const displayOriginalPrice = selectedVariant?.compareAtPrice ?? product.compareAtPrice;
 
-
-    return (
-        <div className="bg-background">
-            <div className="container py-8">
-                 <Breadcrumb className="mb-6 overflow-x-auto whitespace-nowrap no-scrollbar">
-                    <BreadcrumbList>
-                        <BreadcrumbItem>
-                            <BreadcrumbLink href="/">Home</BreadcrumbLink>
-                        </BreadcrumbItem>
-                        <BreadcrumbSeparator />
-                        <BreadcrumbItem>
-                            <BreadcrumbLink href={`/shop?mother_category=${encodeURIComponent(product.category)}`}>{product.category}</BreadcrumbLink>
-                        </BreadcrumbItem>
-                        <BreadcrumbSeparator />
-                         {product.group && (
-                           <>
-                            <BreadcrumbItem>
-                                <BreadcrumbLink href={`/shop?mother_category=${encodeURIComponent(product.category)}&group=${encodeURIComponent(product.group)}`}>{product.group}</BreadcrumbLink>
-                            </BreadcrumbItem>
-                            <BreadcrumbSeparator />
-                           </>
-                        )}
-                        <BreadcrumbItem>
-                            <BreadcrumbPage className="max-w-48 truncate">{product.name}</BreadcrumbPage>
-                        </BreadcrumbItem>
-                    </BreadcrumbList>
-                </Breadcrumb>
-                
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                    <ProductImageGallery product={product} selectedVariant={selectedVariant} />
-                    <ProductDetails 
-                        product={product} 
-                        selectedVariant={selectedVariant}
-                        selectedColor={selectedColor}
-                        setSelectedColor={setSelectedColor}
-                        selectedSize={selectedSize}
-                        setSelectedSize={setSelectedSize}
-                        isOutOfStock={isOutOfStock}
-                    />
-                </div>
+  return (
+    <div className="space-y-6">
+      <div>
+        <p className="text-sm font-medium text-muted-foreground">{product.brand}</p>
+        <h1 className="text-3xl font-bold font-headline">{product.name}</h1>
+        <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-1 text-yellow-500">
+                {[...Array(4)].map((_, i) => <Star key={i} size={16} className="fill-current" />)}
+                <Star size={16} className="text-gray-300" />
             </div>
-            
-            {frequentlyBoughtTogether.length > 1 &&
-              <div className="container py-12">
-                  <FrequentlyBought products={frequentlyBoughtTogether} />
-              </div>
-            }
-
-
-            <div className="container py-12">
-                <ProductTabs product={product} />
-            </div>
-
-            <div className="container py-12">
-                <RelatedProducts products={relatedProducts} />
-            </div>
-
-            <MobileActionbar product={product} selectedVariant={selectedVariant} isOutOfStock={isOutOfStock}/>
+            <span className="text-sm text-muted-foreground">(123 reviews)</span>
         </div>
-    );
-}
+      </div>
+      
+      {isFlashSaleActive && product.flashSale?.endDate && <FlashSaleTimer endDate={product.flashSale.endDate} />}
+      
+      <div className="flex items-baseline gap-4">
+          <span className="text-4xl font-bold font-roboto text-primary">৳{displayPrice.toFixed(2)}</span>
+          {displayOriginalPrice && displayOriginalPrice > displayPrice && (
+            <span className="text-xl text-muted-foreground line-through">৳{displayOriginalPrice.toFixed(2)}</span>
+          )}
+      </div>
 
+      {availableColors.length > 0 && (
+        <div className="space-y-2">
+          <p className="font-semibold">Color: <span className="font-normal text-muted-foreground">{selectedColor}</span></p>
+          <div className="flex flex-wrap gap-2">
+            {availableColors.map(color => (
+              <button key={color} onClick={() => setSelectedColor(color)} className={cn('h-10 w-10 rounded-full border-2 transition-transform transform hover:scale-110', selectedColor === color ? 'border-primary ring-2 ring-primary/50' : 'border-border')} style={{ backgroundColor: color.toLowerCase() }} title={color} />
+            ))}
+          </div>
+        </div>
+      )}
 
-export default function ProductPage() {
-    return (
-        <Suspense fallback={<div>Loading...</div>}>
-            <ProductPageContent />
-        </Suspense>
-    )
+      {availableSizes.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <p className="font-semibold">Size: <span className="font-normal text-muted-foreground">{selectedSize}</span></p>
+            <button onClick={() => setIsSizeGuideOpen(true)} className="text-sm text-primary hover:underline flex items-center gap-1"><Ruler size={14} /> Size Guide</button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {availableSizes.map(size => (
+              <button key={size} onClick={() => setSelectedSize(size)} className={cn('h-10 px-4 border rounded-md text-sm font-medium transition-colors', selectedSize === size ? 'bg-primary text-primary-foreground' : 'bg-secondary hover:bg-muted')}>
+                {size}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center gap-2">
+        <p className="text-sm font-semibold">Availability:</p>
+        {isOutOfStock ? (
+          <Badge variant="destructive">Out of Stock</Badge>
+        ) : product.preOrder?.enabled ? (
+          <Badge className="bg-purple-100 text-purple-800">Pre-order</Badge>
+        ) : (
+          <Badge className="bg-green-100 text-green-800">In Stock</Badge>
+        )}
+      </div>
+
+      <div className="space-y-3 pt-6 border-t">
+        {isOutOfStock ? (
+          <NotifyMeButton productId={product.id} productName={product.name} />
+        ) : (
+           <div className="flex flex-col md:flex-row gap-3">
+              <Button onClick={handleAddToCart} size="lg" className="w-full h-12 flex items-center gap-2">
+                <ShoppingBag size={20} /> {product.preOrder?.enabled ? 'Pre-order Now' : 'Add to Bag'}
+              </Button>
+              <WishlistButton productId={product.id} size="lg" variant="outline" className="w-full h-12 flex items-center gap-2" />
+            </div>
+        )}
+      </div>
+
+       <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 pt-6 border-t">
+          <Button variant="ghost" onClick={() => setIsStoreAvailabilityOpen(true)} className="text-sm justify-start gap-2"><MapPin size={16}/> Check In-Store</Button>
+          <Button variant="ghost" onClick={() => setIsBarcodeOpen(true)} className="text-sm justify-start gap-2"><Barcode size={16}/> Show Barcode</Button>
+          <Button variant="ghost" className="text-sm justify-start gap-2"><Share2 size={16}/> Share</Button>
+      </div>
+
+      <TrustBadges /> 
+
+      <SizeGuideDialog open={isSizeGuideOpen} onOpenChange={setIsSizeGuideOpen} />
+      <BarcodePopup open={isBarcodeOpen} onOpenChange={setIsBarcodeOpen} product={product} variant={selectedVariant} />
+      <StoreAvailabilityDialog open={isStoreAvailabilityOpen} onOpenChange={setIsStoreAvailabilityOpen} product={product} />
+    </div>
+  );
 }
+    
