@@ -37,7 +37,7 @@ export async function sendNotification(input: unknown) {
     if (uniqueTokens.length === 0) {
       console.warn("No valid FCM tokens found in the database. Cannot send notifications.");
       return { 
-        success: true, // The action itself succeeded, but no notifications were sent.
+        success: true, 
         successCount: 0, 
         failureCount: 0, 
         error: "No valid FCM tokens found in the database. Please ensure users have granted notification permissions." 
