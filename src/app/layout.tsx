@@ -1,3 +1,4 @@
+
 'use client';
 
 import './globals.css';
@@ -8,7 +9,7 @@ import { MobileBottomNav } from '@/components/mobile-bottom-nav';
 import { Providers } from '@/components/providers';
 import { ToastProvider } from '@/components/ui/toast';
 import React, { useState, useEffect } from 'react';
-import { FcmHandler } from '@/components/fcm-handler'; // এই ফাইলটি টোকেন আপডেট হ্যান্ডেল করবে
+import { FcmHandler } from '@/components/fcm-handler';
 import { useAuth } from '@/hooks/use-auth'; 
 
 export default function RootLayout({
@@ -18,18 +19,16 @@ export default function RootLayout({
 }>) {
   const pathname = usePathname();
   const [isClient, setIsClient] = useState(false);
-  const { user } = useAuth(); // Auth হুক থেকে ইউজার ডেটা নেওয়া
+  const { user } = useAuth();
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // অ্যাডমিন এবং প্রোটেক্টেড রাউট ফিল্টারিং
-  const protectedPrefixes = ['/dashboard', '/outlet', '/vendor', '/rider', '/customer', '/login', '/register'];
+  const protectedPrefixes = ['/dashboard', '/outlet', '/vendor', '/rider', '/customer', '/login', '/register', '/forgot-password', '/verify-email'];
   const isAdminRoute = protectedPrefixes.some(prefix => pathname.startsWith(prefix));
   const isPosPage = pathname === '/outlet/pos';
 
-  // ন্যাভিগেশন বার দেখানোর লজিক
   const shouldShowNav = !isAdminRoute || isPosPage;
   const showMobileNav = isClient && shouldShowNav;
 
@@ -50,17 +49,14 @@ export default function RootLayout({
       )}>
         <ToastProvider>
           <Providers>
-            {/* FCM Handler: ইউজার লগইন থাকলে ব্যাকগ্রাউন্ডে টোকেন আপডেট করবে */}
             {isClient && user?.uid && <FcmHandler userId={user.uid} />}
             
             {children}
             
-            {/* ফোরগ্রাউন্ড নোটিফিকেশন দেখানোর জন্য Toaster */}
             <Toaster />
           </Providers>
         </ToastProvider>
 
-        {/* মোবাইল বটম ন্যাভিগেশন */}
         {showMobileNav && <MobileBottomNav />}
       </body>
     </html>

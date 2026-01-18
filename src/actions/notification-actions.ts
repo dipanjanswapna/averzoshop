@@ -1,3 +1,4 @@
+
 'use server';
 
 import * as admin from 'firebase-admin';
@@ -28,18 +29,20 @@ export async function sendNotification(input: unknown) {
     const snapshot = await firestore().collection('users').get();
 
     const tokens: string[] = [];
+    const tokenUserMap = new Map<string, string>();
 
     snapshot.forEach(doc => {
       const data = doc.data();
-      if (Array.isArray(data?.fcmTokens)) {
-        data.fcmTokens.forEach((token: string) => {
+      const userId = doc.id;
+      if (data?.fcmTokens && typeof data.fcmTokens === 'object') {
+        const userTokens = Object.keys(data.fcmTokens);
+          
+        userTokens.forEach((token: string) => {
           if (typeof token === 'string' && token.length > 0) {
             tokens.push(token);
+            tokenUserMap.set(token, userId);
           }
         });
-      } else if (typeof data?.fcmTokens === 'string' && data.fcmTokens.length > 0) {
-        // Handle legacy string tokens if they exist
-        tokens.push(data.fcmTokens);
       }
     });
 
@@ -99,25 +102,16 @@ export async function sendNotification(input: unknown) {
             errorCode === 'messaging/invalid-registration-token'
           ) {
             const invalidToken = chunk[idx];
-            console.warn(`[FCM Cleanup] Invalid token detected: ${invalidToken}. Scheduling for removal.`);
+            const userId = tokenUserMap.get(invalidToken);
+            console.warn(`[FCM Cleanup] Invalid token detected: ${invalidToken} for user ${userId}. Scheduling for removal.`);
             
-            // Find users with the invalid token and remove it
-            const promise = firestore()
-              .collection('users')
-              .where('fcmTokens', 'array-contains', invalidToken)
-              .get()
-              .then(snapshot => {
-                if (snapshot.empty) return;
-                const batch = firestore().batch();
-                snapshot.forEach(doc => {
-                  batch.update(doc.ref, {
-                    fcmTokens: admin.firestore.FieldValue.arrayRemove(invalidToken)
-                  });
-                });
-                return batch.commit();
+            if (userId) {
+              const userRef = firestore().collection('users').doc(userId);
+              const promise = userRef.update({
+                [`fcmTokens.${invalidToken}`]: admin.firestore.FieldValue.delete(),
               });
-
-            cleanupPromises.push(promise);
+              cleanupPromises.push(promise);
+            }
           } else {
              console.error(`[FCM] Failed to send to token ${chunk[idx]}:`, res.error);
           }

@@ -1,3 +1,4 @@
+
 'use client';
 import { useEffect } from 'react';
 import { getMessaging, getToken, isSupported } from 'firebase/messaging';
@@ -22,10 +23,8 @@ export const useFcmToken = (userId: string | undefined) => {
           return;
         }
 
-        // We only proceed if permission is already granted.
-        // The permission request logic is in NotificationBell component.
         if (Notification.permission !== 'granted') {
-          console.log('[FCM] Notification permission is not granted. User needs to enable it via the NotificationBell component.');
+          console.log('[FCM] Notification permission is not granted yet. Waiting for user action.');
           return;
         }
 
@@ -53,15 +52,10 @@ export const useFcmToken = (userId: string | undefined) => {
             console.error('[FCM] Failed to save token to server:', result.error);
           }
         } else {
-          console.log('[FCM] No registration token available. This can happen if permission was just granted. A page refresh might be needed.');
+          console.log('[FCM] No registration token available. A page refresh might be needed after granting permission for the first time.');
         }
       } catch (error) {
         console.error('[FCM] An error occurred while retrieving token:', error);
-        toast({
-            variant: 'destructive',
-            title: 'FCM Token Error',
-            description: 'Could not retrieve the notification token.',
-          });
       }
     };
     

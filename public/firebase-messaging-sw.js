@@ -1,57 +1,88 @@
-/* eslint-disable no-undef */
+// This file must be in the public folder.
 
-/* Firebase compat libraries (Service Worker compatible) */
-importScripts('https://www.gstatic.com/firebasejs/11.9.1/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/11.9.1/firebase-messaging-compat.js');
+// Initialize the Firebase app in the service worker by passing in
+// the messagingSenderId.
+import { initializeApp } from 'firebase/app';
+import { getMessaging, onBackgroundMessage } from 'firebase/messaging/sw';
 
-/* 🔥 Firebase config (PUBLIC – safe) */
-firebase.initializeApp({
-  apiKey: "AIzaSyBkcdN4P3xLedgQ2qU2ENtFuQIAYJ8ExuM",
-  authDomain: "averzo-home.firebaseapp.com",
-  databaseURL: "https://averzo-home-default-rtdb.firebaseio.com",
-  projectId: "averzo-home",
-  storageBucket: "averzo-home.firebasestorage.app",
-  messagingSenderId: "186569132518",
-  appId: "1:186569132518:web:e9109729290e7ee2326e27",
+// This is required to make the service worker work.
+self.addEventListener('install', () => {
+    self.skipWaiting();
 });
 
-/* Initialize messaging */
-const messaging = firebase.messaging();
-
-/* 🔔 Background notification handler */
-messaging.onBackgroundMessage(function (payload) {
-  console.log('[firebase-messaging-sw.js] Background message received:', payload);
-
-  const notificationTitle =
-    payload.notification?.title || 'Averzo Notification';
-
-  const notificationOptions = {
-    body: payload.notification?.body || '',
-    icon: payload.notification?.icon || '/logo.png',
-    data: {
-      url: payload.fcmOptions?.link || payload.notification?.click_action || '/',
-    },
-  };
-
-  self.registration.showNotification(notificationTitle, notificationOptions);
+self.addEventListener('push', (event) => {
+  try {
+    const notificationData = event.data.json();
+    const { title, body, icon, ...options } = notificationData.notification;
+    
+    event.waitUntil(
+      self.registration.showNotification(title, {
+        body,
+        icon,
+        ...options,
+      })
+    );
+  } catch (error) {
+    console.error('Error handling push event:', error);
+  }
 });
 
-/* 🔗 Notification click handler */
-self.addEventListener('notificationclick', function (event) {
+
+self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
-  const urlToOpen = event.notification?.data?.url || '/';
+  const openUrl = event.notification.data?.FCM_MSG?.notification?.fcmOptions?.link || '/';
 
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {
-      for (const client of clientList) {
-        if (client.url === urlToOpen && 'focus' in client) {
+    clients.matchAll({
+      type: "window",
+      includeUncontrolled: true,
+    }).then((clientList) => {
+      // If a window for the app is already open, focus it.
+      for (let i = 0; i < clientList.length; i++) {
+        let client = clientList[i];
+        if (client.url === openUrl && 'focus' in client) {
           return client.focus();
         }
       }
+      // Otherwise, open a new window.
       if (clients.openWindow) {
-        return clients.openWindow(urlToOpen);
+        return clients.openWindow(openUrl);
       }
     })
   );
 });
+
+
+// We need to initialize the app in the service worker
+const urlParams = new URL(location).searchParams;
+const firebaseConfigParam = urlParams.get('firebaseConfig');
+
+if (firebaseConfigParam) {
+    const firebaseConfig = JSON.parse(decodeURIComponent(firebaseConfigParam));
+    const app = initializeApp(firebaseConfig);
+    const messaging = getMessaging(app);
+
+    onBackgroundMessage(messaging, (payload) => {
+      console.log('[firebase-messaging-sw.js] Received background message ', payload);
+      
+      const notificationTitle = payload.notification?.title || 'New Message';
+      const notificationOptions = {
+        body: payload.notification?.body || '',
+        icon: payload.notification?.icon || '/logo.png',
+        data: {
+            FCM_MSG: {
+                notification: {
+                    fcmOptions: {
+                        link: payload.fcmOptions?.link
+                    }
+                }
+            }
+        }
+      };
+
+      self.registration.showNotification(notificationTitle, notificationOptions);
+    });
+} else {
+    console.error('[firebase-messaging-sw.js] Firebase config not found in URL. Background messaging will not work.');
+}

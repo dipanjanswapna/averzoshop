@@ -1,4 +1,3 @@
-
 import type { Address } from './address';
 
 export interface UserData {
@@ -17,10 +16,5 @@ export interface UserData {
   totalSpent?: number;
   membershipTier?: 'silver' | 'gold' | 'platinum';
   phone?: string;
-  fcmTokens?: string[];
+  fcmTokens?: { [key: string]: boolean; };
 }
-
-    
-
-    
-
