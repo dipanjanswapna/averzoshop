@@ -120,10 +120,10 @@ export default function StoreFrontPage() {
                 </div>
                 <div className="lg:col-span-4 relative">
                   <Carousel opts={{ align: "start" }} className="w-full">
-                    <CarouselContent className="-ml-4">
+                    <CarouselContent className="-ml-3">
                       {isLoading ? (
                         [...Array(4)].map((_, i) => (
-                          <CarouselItem key={i} className="basis-1/2 md:basis-1/3 lg:basis-1/4 pl-4">
+                          <CarouselItem key={i} className="basis-1/2 md:basis-1/3 lg:basis-1/4 pl-3">
                             <div className="bg-white p-4 rounded-lg space-y-2">
                               <Skeleton className="aspect-square w-full" />
                               <Skeleton className="h-4 w-3/4" />
@@ -132,7 +132,7 @@ export default function StoreFrontPage() {
                           </CarouselItem>
                         ))
                       ) : flashSaleProducts.slice(0, 8).map(product => ( 
-                        <CarouselItem key={product.id} className="basis-1/2 md:basis-1/3 lg:basis-1/4 pl-4">
+                        <CarouselItem key={product.id} className="basis-1/2 md:basis-1/3 lg:basis-1/4 pl-3">
                           <ProductCard product={product} />
                         </CarouselItem>
                       ))}
@@ -156,7 +156,7 @@ export default function StoreFrontPage() {
                 Don't miss out on these limited-time offers.
               </p>
             </div>
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-5">
+            <div className="grid grid-cols-2 gap-3 md:gap-5 md:grid-cols-4 lg:grid-cols-5">
               {isLoading ? renderSkeleton(4) : featuredProducts.map(product => (
                 <ProductCard key={product.id} product={product} />
               ))}
