@@ -108,22 +108,22 @@ export default function StoreFrontPage() {
         {flashSaleProducts.length > 0 && (
           <section className="py-12 md:py-16">
             <div className="container">
-              <div className="bg-gradient-to-r from-red-600 via-red-700 to-black rounded-xl grid grid-cols-1 lg:grid-cols-4 gap-6 items-center shadow-2xl">
+              <div className="bg-gradient-to-r from-red-600 via-red-700 to-black rounded-xl grid grid-cols-1 lg:grid-cols-5 gap-6 items-center shadow-2xl">
                 <div className="text-white p-8 lg:col-span-1">
-                  <h2 className="text-4xl font-extrabold uppercase leading-tight">This Week's<br />Must-Have</h2>
-                  <p className="mt-4 text-lg text-red-100">Trending Gadgets, Carefully Chosen for You</p>
+                  <h2 className="text-4xl font-extrabold uppercase leading-tight">Flash<br/>Sale</h2>
+                  <p className="mt-4 text-lg text-red-100">Grab it before it's gone!</p>
                   <Link href="/flash-sale">
                     <Button variant="secondary" className="mt-6 bg-black text-white hover:bg-gray-800 rounded-md px-6 py-3 group">
-                      Go Shopping <span className="ml-2 font-bold transition-transform group-hover:translate-x-1">&raquo;</span>
+                      View All <span className="ml-2 font-bold transition-transform group-hover:translate-x-1">&raquo;</span>
                     </Button>
                   </Link>
                 </div>
-                <div className="lg:col-span-3 py-8 pr-8 pl-4 lg:pl-0 relative">
+                <div className="lg:col-span-4 py-8 pr-8 pl-4 lg:pl-0 relative">
                   <Carousel opts={{ align: "start" }} className="w-full">
                     <CarouselContent className="-ml-4">
                       {isLoading ? (
                         [...Array(4)].map((_, i) => (
-                          <CarouselItem key={i} className="basis-full sm:basis-1/2 md:basis-1/2 lg:basis-1/3 pl-4">
+                          <CarouselItem key={i} className="basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4 pl-4">
                             <div className="bg-white p-4 rounded-lg space-y-2">
                               <Skeleton className="aspect-square w-full" />
                               <Skeleton className="h-4 w-3/4" />
@@ -132,7 +132,7 @@ export default function StoreFrontPage() {
                           </CarouselItem>
                         ))
                       ) : flashSaleProducts.slice(0, 8).map(product => ( 
-                        <CarouselItem key={product.id} className="basis-full sm:basis-1/2 md:basis-1/2 lg:basis-1/3 pl-4">
+                        <CarouselItem key={product.id} className="basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4 pl-4">
                           <FlashSaleProductCard product={product} />
                         </CarouselItem>
                       ))}
