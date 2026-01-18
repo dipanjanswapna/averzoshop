@@ -109,6 +109,12 @@ export function ProductTabs({ product }: { product: Product }) {
                         <TableCell className="text-muted-foreground">{product.baseSku}</TableCell>
                       </TableRow>
                     )}
+                    {product.specifications && Object.entries(product.specifications).map(([key, value]) => (
+                        <TableRow key={key}>
+                            <TableCell className="font-semibold text-foreground capitalize w-1/4">{key.replace(/_/g, ' ')}</TableCell>
+                            <TableCell className="text-muted-foreground">{value}</TableCell>
+                        </TableRow>
+                    ))}
                   </TableBody>
                 </Table>
             </TabsContent>

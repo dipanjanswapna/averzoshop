@@ -20,10 +20,12 @@ export function ProductImageGallery({ product, selectedVariant }: ProductImageGa
     const mediaSet = new Map<string, { type: 'image' | 'video', src: string }>();
     
     // Add main product image
-    mediaSet.set(product.image, { type: 'image', src: product.image });
+    if (product.image) mediaSet.set(product.image, { type: 'image', src: product.image });
     
     // Add gallery images
-    product.gallery?.forEach(src => mediaSet.set(src, { type: 'image', src }));
+    product.gallery?.forEach(src => {
+        if (src) mediaSet.set(src, { type: 'image', src });
+    });
 
     // Add unique variant images
     const variantsArray = Array.isArray(product.variants)
@@ -39,7 +41,9 @@ export function ProductImageGallery({ product, selectedVariant }: ProductImageGa
     });
 
     // Add videos
-    product.videos?.forEach(src => mediaSet.set(src, { type: 'video', src }));
+    product.videos?.forEach(src => {
+        if (src) mediaSet.set(src, { type: 'video', src });
+    });
 
     return Array.from(mediaSet.values());
   }, [product]);
@@ -65,22 +69,33 @@ export function ProductImageGallery({ product, selectedVariant }: ProductImageGa
         <motion.div
           className="w-full h-full"
            variants={{
-            hover: { scale: 1.2 },
+            hover: activeMedia.type === 'image' ? { scale: 1.1 } : {},
           }}
           transition={{ duration: 0.3 }}
         >
-          <Image
-            src={activeMedia.src}
-            alt={product.name}
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className={cn("object-cover")}
-          />
+          {activeMedia.type === 'video' ? (
+              <iframe
+                  className="w-full h-full"
+                  src={activeMedia.src}
+                  title={product.name}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+              ></iframe>
+          ) : (
+            <Image
+                src={activeMedia.src}
+                alt={product.name}
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                className={cn("object-cover", "cursor-pointer")}
+                onClick={() => setIsLightboxOpen(true)}
+            />
+          )}
         </motion.div>
         
         {isOutOfStock && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="bg-white text-destructive font-bold text-lg px-6 py-3 rounded-md uppercase tracking-widest -rotate-12 border-2 border-destructive">
+          <div className="absolute inset-0 bg-white/70 flex items-center justify-center pointer-events-none">
+            <div className="bg-destructive text-destructive-foreground font-bold text-lg px-6 py-3 rounded-md uppercase tracking-widest -rotate-12 border-2 border-destructive">
               Out of Stock
             </div>
           </div>

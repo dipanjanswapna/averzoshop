@@ -4,7 +4,7 @@ import { Dispatch, SetStateAction, useMemo, useState } from 'react';
 import type { Product, ProductVariant } from '@/types/product';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, ShoppingBag, Ruler, Barcode, MapPin, Share2, Star } from 'lucide-react';
+import { Heart, ShoppingBag, Ruler, Barcode, MapPin, Share2, Star, Gift } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
@@ -15,6 +15,8 @@ import { StoreAvailabilityDialog } from './store-availability-dialog';
 import { NotifyMeButton } from './notify-me-button';
 import { FlashSaleTimer } from './flash-sale-timer';
 import { TrustBadges } from './trust-badges';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ShareButtons } from './share-buttons';
 
 interface ProductDetailsProps {
   product: Product;
@@ -99,6 +101,16 @@ export function ProductDetails({
           )}
       </div>
 
+      {product.giftWithPurchase?.enabled && !isFlashSaleActive && (
+        <div className="bg-green-50 border-l-4 border-green-500 text-green-800 p-4 rounded-r-lg flex items-center gap-4 animate-pulse">
+            <Gift size={28} />
+            <div>
+            <p className="font-bold text-sm">FREE GIFT!</p>
+            <p className="text-xs">{product.giftWithPurchase.description}</p>
+            </div>
+        </div>
+      )}
+
       {availableColors.length > 0 && (
         <div className="space-y-2">
           <p className="font-semibold">Color: <span className="font-normal text-muted-foreground">{selectedColor}</span></p>
@@ -153,7 +165,14 @@ export function ProductDetails({
        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 pt-6 border-t">
           <Button variant="ghost" onClick={() => setIsStoreAvailabilityOpen(true)} className="text-sm justify-start gap-2"><MapPin size={16}/> Check In-Store</Button>
           <Button variant="ghost" onClick={() => setIsBarcodeOpen(true)} className="text-sm justify-start gap-2"><Barcode size={16}/> Show Barcode</Button>
-          <Button variant="ghost" className="text-sm justify-start gap-2"><Share2 size={16}/> Share</Button>
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button variant="ghost" className="text-sm justify-start gap-2"><Share2 size={16}/> Share</Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto">
+                    <ShareButtons url={typeof window !== 'undefined' ? window.location.href : ''} />
+                </PopoverContent>
+            </Popover>
       </div>
 
       <TrustBadges /> 
@@ -164,4 +183,3 @@ export function ProductDetails({
     </div>
   );
 }
-    
