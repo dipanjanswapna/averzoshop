@@ -1,5 +1,5 @@
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { Wishlist, WishlistItem } from '@/types/wishlist';
