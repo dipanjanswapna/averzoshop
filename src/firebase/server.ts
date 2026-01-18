@@ -2,7 +2,6 @@
 import * as admin from 'firebase-admin';
 import { getApps, initializeApp, App, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import { getAuth } from 'firebase-admin/auth';
 
 /**
  * Initializes and returns the Firebase Admin App instance.
@@ -39,4 +38,3 @@ export function getFirebaseAdminApp(): App {
 }
 
 export const firestore = () => getFirestore(getFirebaseAdminApp());
-export const auth = () => getAuth(getFirebaseAdminApp());
