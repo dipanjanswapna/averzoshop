@@ -39,7 +39,7 @@ export default function NotificationsPage() {
             const result = await sendNotification({
                 title: values.title,
                 body: values.message,
-                link: values.link,
+                link: values.link || undefined,
             });
 
             toast({

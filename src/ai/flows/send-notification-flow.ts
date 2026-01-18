@@ -55,24 +55,36 @@ const sendNotificationFlow = ai.defineFlow(
         return { successCount: 0, failureCount: 0 };
       }
       
-      const message = {
-        notification: {
-          title,
-          body,
-        },
-        webpush: {
-          fcmOptions: {
-            link: link || process.env.NEXT_PUBLIC_BASE_URL || '/',
-          },
-        },
-        tokens: uniqueTokens,
-      };
+      const chunks = [];
+      for (let i = 0; i < uniqueTokens.length; i += 500) {
+        chunks.push(uniqueTokens.slice(i, i + 500));
+      }
 
-      const response = await admin.messaging().sendEachForMulticast(message);
+      let totalSuccess = 0;
+      let totalFailure = 0;
+
+      for (const chunk of chunks) {
+          const message = {
+            notification: {
+              title,
+              body,
+            },
+            webpush: {
+              fcmOptions: {
+                link: link || process.env.NEXT_PUBLIC_BASE_URL || '/',
+              },
+            },
+            tokens: chunk,
+          };
+    
+          const response = await admin.messaging().sendEachForMulticast(message);
+          totalSuccess += response.successCount;
+          totalFailure += response.failureCount;
+      }
       
       return {
-        successCount: response.successCount,
-        failureCount: response.failureCount,
+        successCount: totalSuccess,
+        failureCount: totalFailure,
       };
 
     } catch (e: any) {
