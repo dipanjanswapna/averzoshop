@@ -1,33 +1,43 @@
-
-import { initializeApp, getApp, getApps, App } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
 import * as admin from 'firebase-admin';
+import { getApps, initializeApp, App, cert } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+import { getAuth } from 'firebase-admin/auth';
 
-let serviceAccount: admin.ServiceAccount | undefined;
-if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
-  try {
-    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
-  } catch (e: any) {
-    console.error(
-      'Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY. Make sure it is a valid, single-line JSON string in your .env file.',
-      e
-    );
-  }
-}
-
+/**
+ * Initializes and returns the Firebase Admin App instance.
+ * Ensures that the app is initialized only once.
+ */
 export function getFirebaseAdminApp(): App {
-  if (getApps().length > 0) {
-    return getApp();
+  const existingApps = getApps();
+  if (existingApps.length > 0) {
+    return existingApps[0]!;
   }
 
-  if (!serviceAccount) {
-    throw new Error('Missing or invalid FIREBASE_SERVICE_ACCOUNT_KEY for Firebase Admin SDK');
+  const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+  if (!serviceAccountKey) {
+    throw new Error("FIREBASE_SERVICE_ACCOUNT_KEY is not set in the environment variables.");
+  }
+
+  let serviceAccount;
+  try {
+    // The key might be a stringified JSON. If so, parse it.
+    // This logic handles cases where the env var might have extra quotes.
+    const rawKey = serviceAccountKey.trim();
+    if (rawKey.startsWith("{") && rawKey.endsWith("}")) {
+        serviceAccount = JSON.parse(rawKey);
+    } else {
+        // If it's not a raw object, it might be a string that needs parsing.
+        serviceAccount = JSON.parse(rawKey);
+    }
+  } catch (error) {
+    console.error("Failed to parse Firebase service account key:", error);
+    throw new Error("The FIREBASE_SERVICE_ACCOUNT_KEY is not a valid JSON string. Please check its format.");
   }
 
   return initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+    credential: cert(serviceAccount),
   });
 }
 
+export const firestore = () => getFirestore(getFirebaseAdminApp());
 export const auth = () => getAuth(getFirebaseAdminApp());
-export const firestore = () => admin.firestore(getFirebaseAdminApp());

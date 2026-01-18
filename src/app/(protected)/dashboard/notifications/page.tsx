@@ -14,7 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from '@/component
 import { sendNotification } from '@/ai/flows/send-notification-flow';
 import { useToast } from '@/hooks/use-toast';
 
-// ১. ফর্ম ভ্যালিডেশন স্কিমা
+// 1. Form validation schema
 const formSchema = z.object({
   title: z.string().min(1, { message: 'Title is required.' }),
   message: z.string().min(1, { message: 'Message is required.' }),
@@ -34,17 +34,14 @@ export default function NotificationsPage() {
     },
   });
 
-  // ২. সাবমিট ফাংশন (যেখানে এনকোডিং ফিক্স করা হয়েছে)
+  // 2. Submit function
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     try {
       const result = await sendNotification({
         title: values.title,
         body: values.message,
-        /** * সমাধান: লিঙ্কটিকে এনকোড করা হচ্ছে যাতে স্পেশাল ক্যারেক্টার (?, &, =) 
-         * JSON ফরম্যাট নষ্ট না করে।
-         */
-        link: values.link ? encodeURI(values.link.trim()) : undefined,
+        link: values.link || undefined,
       });
 
       toast({
@@ -52,7 +49,7 @@ export default function NotificationsPage() {
         description: `Successfully sent to ${result.successCount} users. Failed for ${result.failureCount}.`,
       });
       
-      form.reset(); // সফল হলে ফর্ম খালি করা
+      form.reset(); // Reset form on success
     } catch (error: any) {
       console.error("Submission error:", error);
       toast({
