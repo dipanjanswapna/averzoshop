@@ -9,6 +9,7 @@ import { MobileBottomNav } from '@/components/mobile-bottom-nav';
 import { Providers } from '@/components/providers';
 import { ToastProvider } from '@/components/ui/toast';
 import React, { useState, useEffect } from 'react';
+import { NotificationManager } from '@/components/NotificationManager';
 
 // export const metadata: Metadata = {
 //   title: 'Averzo',
@@ -54,6 +55,7 @@ export default function RootLayout({
         <ToastProvider>
           <Providers>
             {children}
+            <NotificationManager />
             <Toaster />
           </Providers>
         </ToastProvider>
