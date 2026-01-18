@@ -41,6 +41,7 @@
     "dotenv": "^16.5.0",
     "embla-carousel-autoplay": "^8.6.0",
     "embla-carousel-react": "^8.6.0",
+    "fast-sort": "^3.4.0",
     "firebase": "^11.9.1",
     "firebase-admin": "^12.1.0",
     "framer-motion": "^11.3.8",
