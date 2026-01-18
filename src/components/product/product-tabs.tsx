@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -76,47 +77,59 @@ export function ProductTabs({ product }: { product: Product }) {
             <TabsContent value="description" className="py-6 text-sm text-muted-foreground prose max-w-none">
                 <p>{product.description || "No description available for this product."}</p>
             </TabsContent>
-            <TabsContent value="specifications" className="py-6">
-                <Table className="text-sm">
-                  <TableBody>
-                    {product.brand && (
-                      <TableRow>
-                        <TableCell className="font-semibold text-foreground w-1/4">Brand</TableCell>
-                        <TableCell className="text-muted-foreground">{product.brand}</TableCell>
-                      </TableRow>
-                    )}
-                    {product.category && (
-                       <TableRow>
-                        <TableCell className="font-semibold text-foreground">Category</TableCell>
-                        <TableCell className="text-muted-foreground">{product.category}</TableCell>
-                      </TableRow>
-                    )}
-                     {product.group && (
-                       <TableRow>
-                        <TableCell className="font-semibold text-foreground">Group</TableCell>
-                        <TableCell className="text-muted-foreground">{product.group}</TableCell>
-                      </TableRow>
-                    )}
-                    {product.subcategory && (
-                       <TableRow>
-                        <TableCell className="font-semibold text-foreground">Subcategory</TableCell>
-                        <TableCell className="text-muted-foreground">{product.subcategory}</TableCell>
-                      </TableRow>
-                    )}
-                     {product.baseSku && (
-                       <TableRow>
-                        <TableCell className="font-semibold text-foreground">Base SKU</TableCell>
-                        <TableCell className="text-muted-foreground">{product.baseSku}</TableCell>
-                      </TableRow>
-                    )}
-                    {product.specifications && Object.entries(product.specifications).map(([key, value]) => (
-                        <TableRow key={key}>
-                            <TableCell className="font-semibold text-foreground capitalize w-1/4">{key.replace(/_/g, ' ')}</TableCell>
-                            <TableCell className="text-muted-foreground">{value}</TableCell>
+            <TabsContent value="specifications" className="py-6 space-y-6">
+                <div>
+                  <h4 className="font-bold text-lg mb-4">Product Details</h4>
+                  <Table className="text-sm">
+                    <TableBody>
+                      {product.brand && (
+                        <TableRow>
+                          <TableCell className="font-semibold text-foreground w-1/4">Brand</TableCell>
+                          <TableCell className="text-muted-foreground">{product.brand}</TableCell>
                         </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                      )}
+                      {product.category && (
+                        <TableRow>
+                          <TableCell className="font-semibold text-foreground">Category</TableCell>
+                          <TableCell className="text-muted-foreground">{product.category}</TableCell>
+                        </TableRow>
+                      )}
+                      {product.group && (
+                        <TableRow>
+                          <TableCell className="font-semibold text-foreground">Group</TableCell>
+                          <TableCell className="text-muted-foreground">{product.group}</TableCell>
+                        </TableRow>
+                      )}
+                      {product.subcategory && (
+                        <TableRow>
+                          <TableCell className="font-semibold text-foreground">Subcategory</TableCell>
+                          <TableCell className="text-muted-foreground">{product.subcategory}</TableCell>
+                        </TableRow>
+                      )}
+                      {product.baseSku && (
+                        <TableRow>
+                          <TableCell className="font-semibold text-foreground">Base SKU</TableCell>
+                          <TableCell className="text-muted-foreground">{product.baseSku}</TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+                {product.specifications && Object.keys(product.specifications).length > 0 && (
+                  <div>
+                    <h4 className="font-bold text-lg mb-4">Additional Specifications</h4>
+                    <Table className="text-sm">
+                      <TableBody>
+                        {Object.entries(product.specifications).map(([key, value]) => (
+                          <TableRow key={key}>
+                            <TableCell className="font-semibold text-foreground capitalize w-1/4">{key.replace(/_/g, ' ')}</TableCell>
+                            <TableCell className="text-muted-foreground">{String(value)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
             </TabsContent>
             <TabsContent value="reviews" className="py-6">
                 <ProductReviews />
