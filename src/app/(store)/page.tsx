@@ -62,8 +62,8 @@ export default function StoreFrontPage() {
     
   return (
     <>
-        <section className="py-4 md:py-6">
-          <div className="container mx-auto">
+        <section className="w-full py-4 md:py-6">
+          <div className="container">
               <Carousel
                 opts={{
                   align: 'start',
@@ -80,7 +80,7 @@ export default function StoreFrontPage() {
                   {heroCarouselImages.map((image, index) => (
                     <CarouselItem key={index}>
                       <Link href={image.link || '#'}>
-                        <div className="relative w-full aspect-[16/9] md:aspect-[21/9] overflow-hidden rounded-xl">
+                        <div className="relative w-full aspect-[16/9] md:aspect-[21/9] overflow-hidden rounded-xl md:rounded-2xl">
                           <Image
                             src={image.imageUrl}
                             alt={image.description}
@@ -175,5 +175,3 @@ export default function StoreFrontPage() {
     </>
   );
 }
-
-    

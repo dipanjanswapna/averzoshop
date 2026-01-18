@@ -212,19 +212,18 @@ export default function AverzoNavbar() {
           "bg-secondary text-secondary-foreground transition-all duration-300 origin-top",
           "hidden lg:flex h-10"
       )}>
-        <div className="w-full overflow-x-auto whitespace-nowrap no-scrollbar">
-            <div className="container mx-auto flex items-center justify-between h-full">
-              <Link href="/flash-sale" className="h-full flex items-center">
+        <div className="container mx-auto flex h-full items-center gap-6 overflow-x-auto no-scrollbar">
+            <Link href="/flash-sale" className="h-full flex items-center flex-shrink-0">
                 <span className="text-sm font-bold uppercase tracking-widest flex items-center gap-1 text-destructive animate-pulse">
                   <Zap size={14} /> Flash Sale
                 </span>
-              </Link>
+            </Link>
             {categoriesData.map((item) => {
                 const motherCategoryPath = item.path || `/shop?${createQueryString({ mother_category: item.mother_name })}`;
                 return (
                     <div 
                       key={item.mother_name} 
-                      className="group relative h-full flex items-center"
+                      className="group relative h-full flex items-center flex-shrink-0"
                       onMouseEnter={() => setActiveMenu(item.mother_name)}
                       onMouseLeave={() => setActiveMenu(null)}
                     >
@@ -275,7 +274,6 @@ export default function AverzoNavbar() {
                     </div>
                 )
             })}
-            </div>
         </div>
       </nav>
 
