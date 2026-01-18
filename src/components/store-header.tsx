@@ -9,6 +9,7 @@ import { categoriesData } from '@/lib/categories';
 import { motion, AnimatePresence } from 'framer-motion';
 import debounce from 'lodash/debounce';
 import { useCart } from '@/hooks/use-cart';
+import { NotificationBell } from '@/components/ui/notification-bell';
 
 
 const NestedAccordion = ({ category, onClose }: { category: any, onClose: () => void }) => {
@@ -189,7 +190,8 @@ export default function AverzoNavbar() {
         </div>
 
         {/* User Action Icons */}
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-2 md:gap-5">
+          <NotificationBell />
           <Link href="/login">
             <User size={22} className="cursor-pointer hover:text-primary transition-colors" />
           </Link>
