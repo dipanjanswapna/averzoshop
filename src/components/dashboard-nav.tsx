@@ -14,6 +14,7 @@ import {
   ClipboardList,
   ArrowRightLeft,
   BellRing,
+  Award,
 } from 'lucide-react';
 import {
   SidebarMenu,
@@ -24,7 +25,7 @@ import {
 const adminNavItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/dashboard/products', label: 'Products', icon: Package },
-  { href: '/dashboard/orders', label: 'Orders & Delivery', icon: ShoppingCart },
+  { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart },
   { href: '/dashboard/pre-orders', label: 'Pre-orders', icon: ClipboardList },
   { href: '/dashboard/users', label: 'Users', icon: Users },
   { href: '/dashboard/notifications', label: 'Notifications', icon: BellRing },
@@ -32,14 +33,12 @@ const adminNavItems = [
   { href: '/dashboard/stock-requests', label: 'Stock Requests', icon: ClipboardList },
   { href: '/dashboard/stock-transfers', label: 'Stock Transfers', icon: ArrowRightLeft },
   { href: '/dashboard/coupons', label: 'Coupons', icon: Tags },
-  { href: '/dashboard/sub-brands', label: 'Sub-Brands', icon: Tags },
   { href: '/dashboard/outlets', label: 'Offline Outlets', icon: Building },
 ];
 
 export function DashboardNav() {
   const pathname = usePathname();
   
-  // This nav is now only for Admins
   const navItems = adminNavItems;
 
   return (
@@ -48,7 +47,7 @@ export function DashboardNav() {
         <SidebarMenuItem key={item.href}>
           <Link href={item.href}>
             <SidebarMenuButton
-              isActive={pathname.startsWith(item.href)}
+              isActive={pathname.startsWith(item.href) && (item.href === '/dashboard' ? pathname === item.href : true)}
               tooltip={item.label}
               className="justify-start"
             >
