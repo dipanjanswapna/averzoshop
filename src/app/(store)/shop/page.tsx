@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useMemo, useCallback, Suspense } from 'react';
@@ -110,13 +111,13 @@ function ShopPageContent() {
         filtered = filtered.filter(p => p.subcategory === initialFilters.subcategory);
     }
     if (initialFilters.brands.length > 0) {
-        filtered = filtered.filter(p => initialFilters.brands.includes(p.brand));
+        filtered = filtered.filter(p => p.brand && initialFilters.brands.includes(p.brand));
     }
     if (initialFilters.colors.length > 0) {
-        filtered = filtered.filter(p => p.colors.some(color => initialFilters.colors.includes(color)));
+        filtered = filtered.filter(p => p.colors && p.colors.some(color => initialFilters.colors.includes(color)));
     }
     if (initialFilters.sizes.length > 0) {
-        filtered = filtered.filter(p => p.sizes.some(size => initialFilters.sizes.includes(size)));
+        filtered = filtered.filter(p => p.sizes && p.sizes.some(size => initialFilters.sizes.includes(size)));
     }
     if (initialFilters.price_range) {
         filtered = filtered.filter(p => p.price >= initialFilters.price_range[0] && p.price <= initialFilters.price_range[1]);
@@ -172,7 +173,7 @@ function ShopPageContent() {
 
   return (
     <div className="bg-secondary">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="container mx-auto py-8">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
           <div className="w-full overflow-x-auto whitespace-nowrap no-scrollbar">
             <Breadcrumb>

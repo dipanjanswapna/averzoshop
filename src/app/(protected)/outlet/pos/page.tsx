@@ -1,6 +1,7 @@
 
+
 'use client';
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,7 +13,7 @@ import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { useFirebase } from '@/firebase';
-import { doc, getDoc, runTransaction, serverTimestamp, collection, increment, setDoc } from 'firebase/firestore';
+import { doc, getDoc, runTransaction, serverTimestamp, collection, increment } from 'firebase/firestore';
 import type { Order } from '@/types/order';
 import type { POSSale } from '@/types/pos';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -74,7 +75,6 @@ const CartPanel = ({
     handleClearCustomer
 }: any) => (
     <div className="flex flex-col gap-4 h-full">
-        {/* Customer Card */}
         <Card className="shadow-md flex-shrink-0">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
@@ -127,7 +127,6 @@ const CartPanel = ({
             </CardContent>
         </Card>
         
-        {/* Cart Section */}
         <Card className="flex-1 flex flex-col shadow-lg">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -425,6 +424,7 @@ export default function POSPage() {
         if (!trimmedSku || !allProducts || !outletId) return false;
 
         for (const product of allProducts) {
+            if (product.status !== 'approved') continue;
             const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants);
             const variant = variantsArray.find(v => v.sku.toLowerCase() === trimmedSku);
             
@@ -520,7 +520,7 @@ export default function POSPage() {
             }
             const coupon = { id: couponSnap.id, ...couponSnap.data() } as Coupon;
             
-            if (coupon.expiryDate.toDate() < new Date()) {
+            if (new Date(coupon.expiryDate.seconds * 1000) < new Date()) {
                 toast({ variant: 'destructive', title: 'Promo code expired.' });
                 return;
             }
@@ -599,8 +599,11 @@ export default function POSPage() {
                 shippingAddress: { 
                     name: selectedCustomer.displayName || 'In-Store Customer',
                     phone: selectedCustomer.phone || 'N/A',
-                    address: `Pickup at Outlet ID: ${outletId}`,
-                    city: 'In-Store',
+                    streetAddress: `Pickup at Outlet ID: ${outletId}`,
+                    area: '',
+                    district: '',
+                    division: '',
+                    upazila: '',
                 },
                 items: cart.map(item => ({
                     productId: item.product.id,
@@ -795,7 +798,6 @@ export default function POSPage() {
     return (
          <>
             <div className="grid grid-cols-1 lg:grid-cols-5 no-print">
-                {/* Product Grid Section */}
                 <div className="lg:col-span-3 flex flex-col gap-4 p-4 h-screen overflow-y-auto">
                     <h1 className="text-2xl font-bold font-headline">Point of Sale</h1>
                     <form onSubmit={handleSearchSubmit}>
@@ -849,14 +851,12 @@ export default function POSPage() {
                     </Card>
                 </div>
 
-                {/* Desktop Right Column: Customer + Cart */}
                 <div className="hidden lg:block lg:col-span-2 h-screen sticky top-0 overflow-y-auto p-4 border-l bg-muted/30">
                      <CartPanel {...cartPanelProps} />
                 </div>
             </div>
 
-             {/* Mobile "View Cart" Button & Sheet */}
-            <div className="lg:hidden fixed bottom-16 left-0 right-0 bg-background/80 backdrop-blur-sm p-3 border-t no-print">
+             <div className="lg:hidden fixed bottom-16 left-0 right-0 bg-background/80 backdrop-blur-sm p-3 border-t no-print">
                  <Sheet>
                     <SheetTrigger asChild>
                        <Button size="lg" className="w-full h-14 text-lg font-bold flex items-center justify-between">

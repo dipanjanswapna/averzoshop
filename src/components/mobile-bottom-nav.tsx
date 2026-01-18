@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Link from 'next/link';
@@ -33,11 +34,13 @@ export function MobileBottomNav() {
     setIsMounted(true);
   }, []);
   
-  const protectedPrefixes = ['/dashboard', '/outlet', '/vendor', '/rider', '/customer'];
+  const protectedPrefixes = ['/dashboard', '/outlet', '/vendor', '/rider'];
   const isAdminRoute = protectedPrefixes.some(prefix => pathname.startsWith(prefix));
-  
-  if (isAdminRoute) return null;
 
+  // Also hide on customer dashboard for a cleaner experience there
+  if (isAdminRoute || pathname.startsWith('/customer')) {
+     return null;
+  }
 
   const getNavItem = (item: (typeof navItems)[0]) => {
      const href = (item.protected && user) ? `/customer` : item.href;

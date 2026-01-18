@@ -1,4 +1,5 @@
 
+
 'use client';
 import { ProductCard } from '@/components/product-card';
 import type { Product } from '@/types/product';
@@ -18,7 +19,7 @@ const SKELETON_COUNT = 12;
 export const ProductGrid = ({ products, isLoading, currentPage, totalPages, onPageChange }: ProductGridProps) => {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
         {Array.from({ length: SKELETON_COUNT }).map((_, index) => (
           <div key={index} className="space-y-2">
             <Skeleton className="aspect-square w-full rounded-xl" />

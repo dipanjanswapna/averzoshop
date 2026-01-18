@@ -1,10 +1,10 @@
 
+
 'use client';
 
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import {
   Carousel,
@@ -42,7 +42,7 @@ export default function StoreFrontPage() {
       <div key={i}>
         <Skeleton className="aspect-square w-full" />
         <Skeleton className="h-4 mt-2 w-3/4" />
-        <Skeleton className="h-4 mt-1 w-1/2" />
+        <Skeleton className="h-6 w-1/2" />
       </div>
     ))
   );
@@ -67,7 +67,7 @@ export default function StoreFrontPage() {
                   {heroCarouselImages.map((image, index) => (
                     <CarouselItem key={index}>
                       <Link href={image.link || '#'}>
-                        <div className="relative w-full aspect-[16/9] md:aspect-[21/9] lg:aspect-[2.8/1] rounded-xl overflow-hidden">
+                        <div className="relative w-full aspect-[16/9] md:aspect-[2.5/1] rounded-xl overflow-hidden">
                           <Image
                             src={image.imageUrl}
                             alt={image.description}

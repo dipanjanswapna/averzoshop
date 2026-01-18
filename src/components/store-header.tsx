@@ -1,14 +1,13 @@
 
 
 "use client";
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, ShoppingBag, User, Menu, ChevronDown, X, ChevronRight, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { categoriesData } from '@/lib/categories';
 import { motion, AnimatePresence } from 'framer-motion';
-import debounce from 'lodash/debounce';
 import { useCart } from '@/hooks/use-cart';
 import { NotificationBell } from '@/components/ui/notification-bell';
 
@@ -76,16 +75,13 @@ const NestedAccordion = ({ category, onClose }: { category: any, onClose: () => 
 const MobileSidebar = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
   return (
     <>
-      {/* Backdrop */}
       <div 
         className={`fixed inset-0 bg-black/60 backdrop-blur-sm z-[150] transition-opacity duration-300 lg:hidden ${isOpen ? "opacity-100 visible" : "opacity-0 invisible"}`}
         onClick={onClose}
       />
 
-      {/* Main Slide Panel */}
       <div className={`fixed top-0 left-0 h-full w-[80%] max-w-[300px] bg-white z-[160] shadow-2xl transform transition-transform duration-300 ease-in-out lg:hidden ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
         
-        {/* Drawer Header */}
         <div className="flex items-center justify-between p-5 border-b bg-foreground text-background">
           <span className="text-xl font-black font-saira uppercase">Averzo.</span>
           <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-full">
@@ -93,10 +89,8 @@ const MobileSidebar = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
           </button>
         </div>
 
-        {/* Drawer Content (Scrollable) */}
         <div className="h-[calc(100vh-70px)] overflow-y-auto pb-10">
           
-          {/* Profile Quick Link */}
           <div className="p-5 border-b flex items-center gap-3">
              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">U</div>
              <div>
@@ -109,7 +103,6 @@ const MobileSidebar = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
             ⚡ Flash Sale is Live!
           </Link>
 
-          {/* Accordion Menu */}
           <div className="py-2">
             <p className="px-5 py-2 text-[10px] font-black text-muted-foreground uppercase tracking-widest">All Categories</p>
             {categoriesData.map((cat, index) => (
@@ -126,19 +119,11 @@ const MobileSidebar = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
 export default function AverzoNavbar() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
-  const [isScrolled, setIsScrolled] = useState(false);
   const { items } = useCart();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
-    
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 0);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
   
   const createQueryString = (params: Record<string, string>) => {
@@ -159,7 +144,6 @@ export default function AverzoNavbar() {
   return (
     <header className="fixed top-0 left-0 w-full z-[100] bg-background shadow-sm transition-all duration-300">
       
-      {/* 1. Primary Master Header (Always Sticky) */}
       <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4 md:gap-8 h-[68px]">
         <div className="flex items-center gap-4">
              <button 
@@ -178,7 +162,6 @@ export default function AverzoNavbar() {
             </div>
         </div>
 
-        {/* Main Search Bar */}
         <div className="flex-1 max-w-2xl relative hidden md:block">
           <input 
             type="text" 
@@ -190,7 +173,6 @@ export default function AverzoNavbar() {
           </button>
         </div>
 
-        {/* User Action Icons */}
         <div className="flex items-center gap-2 md:gap-5">
           <NotificationBell />
           <Link href="/login">
@@ -207,7 +189,6 @@ export default function AverzoNavbar() {
         </div>
       </div>
 
-      {/* 2. Secondary Category Bar (Auto-hides) */}
       <nav 
         className={cn(
           "bg-secondary text-secondary-foreground transition-all duration-300 origin-top",
