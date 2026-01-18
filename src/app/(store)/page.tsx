@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, Zap } from 'lucide-react';
+import { ArrowRight, Zap, ChevronRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import {
@@ -106,39 +106,42 @@ export default function StoreFrontPage() {
         </section>
 
         {flashSaleProducts.length > 0 && (
-          <section className="py-16 md:py-24 bg-red-50/50">
+          <section className="py-12 md:py-16">
             <div className="container">
-              <div className="flex justify-between items-center mb-8">
-                <h2 className="font-headline text-3xl font-extrabold text-destructive flex items-center gap-2">
-                  <Zap /> Flash Sale
-                </h2>
-                <Link href="/flash-sale">
-                  <Button variant="ghost" className="flex items-center gap-2 text-destructive hover:text-destructive">
-                    View All <ArrowRight size={16} />
-                  </Button>
-                </Link>
+              <div className="bg-gradient-to-r from-red-600 via-red-700 to-black rounded-xl grid grid-cols-1 lg:grid-cols-4 gap-6 items-center shadow-2xl">
+                <div className="text-white p-8 lg:col-span-1">
+                  <h2 className="text-4xl font-extrabold uppercase leading-tight">This Week's<br />Must-Have</h2>
+                  <p className="mt-4 text-lg text-red-100">Trending Gadgets, Carefully Chosen for You</p>
+                  <Link href="/flash-sale">
+                    <Button variant="secondary" className="mt-6 bg-black text-white hover:bg-gray-800 rounded-md px-6 py-3 group">
+                      Go Shopping <span className="ml-2 font-bold transition-transform group-hover:translate-x-1">&raquo;</span>
+                    </Button>
+                  </Link>
+                </div>
+                <div className="lg:col-span-3 py-8 pr-8 pl-4 lg:pl-0 relative">
+                  <Carousel opts={{ align: "start" }} className="w-full">
+                    <CarouselContent className="-ml-4">
+                      {isLoading ? (
+                        [...Array(4)].map((_, i) => (
+                          <CarouselItem key={i} className="basis-full sm:basis-1/2 md:basis-1/2 lg:basis-1/3 pl-4">
+                            <div className="bg-white p-4 rounded-lg space-y-2">
+                              <Skeleton className="aspect-square w-full" />
+                              <Skeleton className="h-4 w-3/4" />
+                              <Skeleton className="h-6 w-1/2" />
+                            </div>
+                          </CarouselItem>
+                        ))
+                      ) : flashSaleProducts.slice(0, 8).map(product => ( 
+                        <CarouselItem key={product.id} className="basis-full sm:basis-1/2 md:basis-1/2 lg:basis-1/3 pl-4">
+                          <FlashSaleProductCard product={product} />
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-gray-800 shadow-md" />
+                    <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-gray-800 shadow-md" />
+                  </Carousel>
+                </div>
               </div>
-              <Carousel opts={{ align: "start" }} className="w-full">
-                <CarouselContent className="-ml-4">
-                  {isLoading ? (
-                    [...Array(5)].map((_, i) => (
-                      <CarouselItem key={i} className="basis-1/2 md:basis-1/4 lg:basis-1/5 pl-4">
-                        <div className="space-y-2">
-                          <Skeleton className="aspect-square w-full" />
-                          <Skeleton className="h-4 w-3/4" />
-                          <Skeleton className="h-6 w-1/2" />
-                        </div>
-                      </CarouselItem>
-                    ))
-                  ) : flashSaleProducts.map(product => (
-                    <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 pl-4">
-                      <FlashSaleProductCard product={product} />
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2" />
-                <CarouselNext className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2" />
-              </Carousel>
             </div>
           </section>
         )}
@@ -172,6 +175,6 @@ export default function StoreFrontPage() {
             </div>
           </div>
         </section>
-      </>
+    </>
   );
 }
