@@ -1,33 +1,37 @@
+// This service worker handles background notifications.
 
-// This import is needed for the service worker to work.
-importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
+// Import the Firebase app and messaging scripts.
+// Using -compat versions for easier integration with the v8 messaging API syntax.
+importScripts('https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.22.2/firebase-messaging-compat.js');
 
 try {
-    const params = new URL(location).searchParams;
-    const firebaseConfig = Object.fromEntries(params.entries());
+  // The service worker is registered with the config in the URL search params.
+  // This line parses them into a config object.
+  const firebaseConfig = Object.fromEntries(new URLSearchParams(location.search));
 
-    if (firebaseConfig.apiKey) {
-        firebase.initializeApp(firebaseConfig);
+  // Initialize Firebase if the config is present.
+  if (firebaseConfig.apiKey) {
+    firebase.initializeApp(firebaseConfig);
 
-        const messaging = firebase.messaging();
+    const messaging = firebase.messaging();
 
-        messaging.onBackgroundMessage(function(payload) {
-            console.log('[firebase-messaging-sw.js] Received background message ', payload);
+    // Add a listener for background messages.
+    messaging.onBackgroundMessage(function(payload) {
+      console.log('[firebase-messaging-sw.js] Received background message ', payload);
+      
+      const notificationTitle = payload.notification?.title;
+      const notificationOptions = {
+        body: payload.notification?.body,
+        icon: '/logo.png' // Optional: Make sure you have a logo.png in your /public folder
+      };
 
-            if (payload.notification) {
-                const notificationTitle = payload.notification.title;
-                const notificationOptions = {
-                    body: payload.notification.body,
-                    // icon: '/logo.png' // Optional: Add a logo to your public folder
-                };
-
-                self.registration.showNotification(notificationTitle, notificationOptions);
-            }
-        });
-    } else {
-        console.error('[firebase-messaging-sw.js] Firebase config not found in URL. Cannot initialize.');
-    }
-} catch (e) {
-    console.error('[firebase-messaging-sw.js] Error initializing service worker:', e);
+      // Show the notification to the user.
+      if (notificationTitle) {
+        self.registration.showNotification(notificationTitle, notificationOptions);
+      }
+    });
+  }
+} catch(e) {
+    console.error('Error in service worker', e);
 }
