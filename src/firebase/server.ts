@@ -1,3 +1,5 @@
+'use server';
+
 import * as admin from 'firebase-admin';
 import { getApps, initializeApp, App, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
@@ -20,18 +22,16 @@ export function getFirebaseAdminApp(): App {
 
   let serviceAccount;
   try {
-    // The key might be a stringified JSON. If so, parse it.
-    // This logic handles cases where the env var might have extra quotes.
     const rawKey = serviceAccountKey.trim();
-    if (rawKey.startsWith("{") && rawKey.endsWith("}")) {
-        serviceAccount = JSON.parse(rawKey);
-    } else {
-        // If it's not a raw object, it might be a string that needs parsing.
-        serviceAccount = JSON.parse(rawKey);
-    }
+    // This handles keys that might be stringified (e.g. from a CI/CD environment)
+    const cleanKey = (rawKey.startsWith("'") && rawKey.endsWith("'")) || 
+                     (rawKey.startsWith('"') && rawKey.endsWith('"'))
+                     ? JSON.parse(rawKey) : rawKey;
+    
+    serviceAccount = typeof cleanKey === 'string' ? JSON.parse(cleanKey) : cleanKey;
   } catch (error) {
-    console.error("Failed to parse Firebase service account key:", error);
-    throw new Error("The FIREBASE_SERVICE_ACCOUNT_KEY is not a valid JSON string. Please check its format.");
+    console.error("Firebase Key Parsing Error:", error);
+    throw new Error("Invalid JSON format in FIREBASE_SERVICE_ACCOUNT_KEY. Please ensure it is a valid JSON object or a stringified JSON.");
   }
 
   return initializeApp({

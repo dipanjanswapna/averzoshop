@@ -27,58 +27,53 @@ export const sendNotificationFlow = ai.defineFlow(
     outputSchema: SendNotificationOutputSchema,
   },
   async ({ title, body, link }) => {
-    try {
-      getFirebaseAdminApp(); // Ensure Firebase is initialized
-      
-      const usersSnapshot = await firestore().collection('users').get();
-      const tokens: string[] = [];
+    getFirebaseAdminApp(); // Ensure Firebase is initialized
+    
+    const usersSnapshot = await firestore().collection('users').get();
+    const tokens: string[] = [];
 
-      usersSnapshot.forEach(doc => {
-        const data = doc.data();
-        if (data.fcmTokens && Array.isArray(data.fcmTokens)) {
-          tokens.push(...data.fcmTokens);
-        }
-      });
-
-      const uniqueTokens = [...new Set(tokens)].filter(t => t && typeof t === 'string');
-
-      if (uniqueTokens.length === 0) {
-        console.warn("No valid FCM tokens found in Firestore users collection.");
-        return { successCount: 0, failureCount: 0 };
+    usersSnapshot.forEach(doc => {
+      const data = doc.data();
+      if (data.fcmTokens && Array.isArray(data.fcmTokens)) {
+        tokens.push(...data.fcmTokens);
       }
+    });
 
-      // Chunk tokens into groups of 500 (Firebase limit)
-      const chunks = [];
-      for (let i = 0; i < uniqueTokens.length; i += 500) {
-        chunks.push(uniqueTokens.slice(i, i + 500));
-      }
+    const uniqueTokens = [...new Set(tokens)].filter(t => t && typeof t === 'string');
 
-      let totalSuccess = 0;
-      let totalFailure = 0;
-
-      for (const chunk of chunks) {
-          const message = {
-            notification: { title, body },
-            webpush: {
-              fcmOptions: {
-                link: link || '/'
-              }
-            },
-            tokens: chunk
-          };
-          const response = await admin.messaging().sendEachForMulticast(message);
-          totalSuccess += response.successCount;
-          totalFailure += response.failureCount;
-      }
-      
-      return {
-        successCount: totalSuccess,
-        failureCount: totalFailure,
-      };
-    } catch (error: any) {
-      console.error("Flow Error:", error);
-      throw new Error(error.message);
+    if (uniqueTokens.length === 0) {
+      console.log("No users found with valid FCM tokens.");
+      return { successCount: 0, failureCount: 0 };
     }
+
+    // Chunk tokens into groups of 500 (Firebase limit)
+    const chunks = [];
+    for (let i = 0; i < uniqueTokens.length; i += 500) {
+      chunks.push(uniqueTokens.slice(i, i + 500));
+    }
+
+    let totalSuccess = 0;
+    let totalFailure = 0;
+
+    for (const chunk of chunks) {
+        const message = {
+          notification: { title, body },
+          webpush: {
+            fcmOptions: {
+              link: link || '/'
+            }
+          },
+          tokens: chunk
+        };
+        const response = await admin.messaging().sendEachForMulticast(message);
+        totalSuccess += response.successCount;
+        totalFailure += response.failureCount;
+    }
+    
+    return {
+      successCount: totalSuccess,
+      failureCount: totalFailure,
+    };
   }
 );
 
@@ -87,10 +82,5 @@ export const sendNotificationFlow = ai.defineFlow(
  * Call this directly from the dashboard.
  */
 export async function sendNotification(input: z.infer<typeof SendNotificationInputSchema>) {
-  try {
-    // Safest way to run the flow
-    return await sendNotificationFlow(input);
-  } catch (error: any) {
-    throw new Error(error.message || "Failed to execute flow");
-  }
+  return await sendNotificationFlow(input);
 }
