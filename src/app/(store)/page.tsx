@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -20,7 +21,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { useMemo } from 'react';
-import { FlashSaleProductCard } from '@/components/shop/flash-sale-product-card';
 import { Button } from '@/components/ui/button';
 
 
@@ -62,7 +62,7 @@ export default function StoreFrontPage() {
     
   return (
     <>
-        <section className="pb-8 md:pb-16">
+        <section className="pb-4 md:pb-8">
           <div className="container">
             {/* --- Hero Carousel --- */}
             <div>
@@ -106,24 +106,24 @@ export default function StoreFrontPage() {
         </section>
 
         {flashSaleProducts.length > 0 && (
-          <section className="py-12 md:py-16">
+          <section className="py-6 md:py-8">
             <div className="container">
-              <div className="bg-gradient-to-r from-red-600 via-red-700 to-black rounded-xl grid grid-cols-1 lg:grid-cols-5 gap-6 items-center shadow-2xl">
-                <div className="text-white p-8 lg:col-span-1">
-                  <h2 className="text-4xl font-extrabold uppercase leading-tight">Flash<br/>Sale</h2>
-                  <p className="mt-4 text-lg text-red-100">Grab it before it's gone!</p>
+               <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-black rounded-xl grid grid-cols-1 lg:grid-cols-5 gap-6 items-center shadow-2xl p-8">
+                <div className="text-white lg:col-span-1 text-center lg:text-left">
+                  <h2 className="text-2xl lg:text-3xl font-extrabold uppercase leading-tight font-headline">This Week's<br/>Must-Have</h2>
+                  <p className="mt-4 text-lg text-slate-300">Trending Gadgets, Carefully Chosen for You</p>
                   <Link href="/flash-sale">
-                    <Button variant="secondary" className="mt-6 bg-black text-white hover:bg-gray-800 rounded-md px-6 py-3 group">
-                      View All <span className="ml-2 font-bold transition-transform group-hover:translate-x-1">&raquo;</span>
+                    <Button variant="secondary" className="mt-6 bg-white text-black hover:bg-gray-200 rounded-md px-6 py-3 group">
+                      Go Shopping <span className="ml-2 font-bold transition-transform group-hover:translate-x-1">&raquo;</span>
                     </Button>
                   </Link>
                 </div>
-                <div className="lg:col-span-4 py-8 pr-8 pl-4 lg:pl-0 relative">
+                <div className="lg:col-span-4 relative">
                   <Carousel opts={{ align: "start" }} className="w-full">
                     <CarouselContent className="-ml-4">
                       {isLoading ? (
                         [...Array(4)].map((_, i) => (
-                          <CarouselItem key={i} className="basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4 pl-4">
+                          <CarouselItem key={i} className="basis-1/2 md:basis-1/3 lg:basis-1/4 pl-4">
                             <div className="bg-white p-4 rounded-lg space-y-2">
                               <Skeleton className="aspect-square w-full" />
                               <Skeleton className="h-4 w-3/4" />
@@ -132,8 +132,8 @@ export default function StoreFrontPage() {
                           </CarouselItem>
                         ))
                       ) : flashSaleProducts.slice(0, 8).map(product => ( 
-                        <CarouselItem key={product.id} className="basis-full sm:basis-1/2 md:basis-1/3 lg:basis-1/4 pl-4">
-                          <FlashSaleProductCard product={product} />
+                        <CarouselItem key={product.id} className="basis-1/2 md:basis-1/3 lg:basis-1/4 pl-4">
+                          <ProductCard product={product} />
                         </CarouselItem>
                       ))}
                     </CarouselContent>
