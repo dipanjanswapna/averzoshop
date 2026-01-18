@@ -1,39 +1,29 @@
-// This file needs to be in the public directory and named exactly this.
-// These scripts give the service worker access to Firebase.
-importScripts('https://www.gstatic.com/firebasejs/11.9.1/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/11.9.1/firebase-messaging-compat.js');
+// public/firebase-messaging-sw.js
+importScripts('https://www.gstatic.com/firebasejs/9.21.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.21.0/firebase-messaging-compat.js');
 
-// The config will be passed as URL search parameters from the client
-// when the service worker is registered.
-const searchParams = new URL(self.location).searchParams;
-
+const urlParams = new URLSearchParams(self.location.search);
 const firebaseConfig = {
-    apiKey: searchParams.get('apiKey'),
-    authDomain: searchParams.get('authDomain'),
-    projectId: searchParams.get('projectId'),
-    storageBucket: searchParams.get('storageBucket'),
-    messagingSenderId: searchParams.get('messagingSenderId'),
-    appId: searchParams.get('appId'),
+    apiKey: urlParams.get('apiKey'),
+    authDomain: urlParams.get('authDomain'),
+    projectId: urlParams.get('projectId'),
+    storageBucket: urlParams.get('storageBucket'),
+    messagingSenderId: urlParams.get('messagingSenderId'),
+    appId: urlParams.get('appId'),
 };
 
-// Initialize Firebase if the config is present and the app is not already initialized
-if (firebaseConfig.apiKey && firebase.apps.length === 0) {
+if (firebase.apps.length === 0) {
     firebase.initializeApp(firebaseConfig);
+}
+
+if (firebase.messaging.isSupported()) {
     const messaging = firebase.messaging();
-
-    // Handler for background messages
-    messaging.onBackgroundMessage(function(payload) {
-        console.log('Received background message ', payload);
-
-        const notificationTitle = payload.notification.title || 'New Message';
+    messaging.onBackgroundMessage(function (payload) {
+        console.log('[firebase-messaging-sw.js] Received background message ', payload);
+        const notificationTitle = payload.notification.title;
         const notificationOptions = {
             body: payload.notification.body,
-            icon: payload.notification.icon
         };
-
-        // The service worker shows the notification
-        return self.registration.showNotification(notificationTitle, notificationOptions);
+        self.registration.showNotification(notificationTitle, notificationOptions);
     });
-} else {
-    console.error("Firebase config not found in service worker or app already initialized. Push notifications in background might not work.");
 }

@@ -17,8 +17,10 @@ export interface UserData {
   totalSpent?: number;
   membershipTier?: 'silver' | 'gold' | 'platinum';
   phone?: string;
+  fcmTokens?: string[];
 }
 
     
 
     
+
