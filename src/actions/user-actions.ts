@@ -1,45 +1,42 @@
-
 'use server';
 
 import { firestore } from '@/firebase/server';
 import * as admin from 'firebase-admin';
 
 export async function updateFcmToken(userId: string, token: string) {
+  const userRef = firestore().collection('users').doc(userId);
+
   try {
-    const userRef = firestore().collection('users').doc(userId);
-    const userDoc = await userRef.get();
+    const doc = await userRef.get();
 
-    // If the document doesn't exist, create it with the token map.
-    if (!userDoc.exists) {
-      await userRef.set({
-        fcmTokens: {
-          [token]: true,
-        },
-      }, { merge: true });
-      return { success: true };
-    }
+    if (!doc.exists()) {
+      // If user document doesn't exist, create it with the token in an array.
+      await userRef.set({ fcmTokens: [token] }, { merge: true });
+    } else {
+      const data = doc.data();
+      const existingTokens = data?.fcmTokens;
 
-    // If doc exists, update it. This handles both string-to-map conversion and adding a new token.
-    await userRef.update({
-      [`fcmTokens.${token}`]: true,
-    });
-    
-    return { success: true };
-  } catch (error: any) {
-    console.error('FCM Token Update Error:', error);
-    // This is a fallback in case the initial `update` fails on a non-existent document
-    // for some reason, though the initial check should prevent it.
-    if (error.code === 5) {
-       try {
-        await firestore().collection('users').doc(userId).set({
-          fcmTokens: { [token]: true }
-        }, { merge: true });
-        return { success: true };
-      } catch (setError) {
-        console.error('[FCM] Token Set Error on Fallback:', setError);
-        return { success: false, error: (setError as Error).message };
+      if (Array.isArray(existingTokens)) {
+        // It's already an array, so just add the new token.
+        // arrayUnion handles duplicates automatically.
+        await userRef.update({
+          fcmTokens: admin.firestore.FieldValue.arrayUnion(token),
+        });
+      } else if (typeof existingTokens === 'string') {
+        // It's a string, so convert it to an array.
+        // This handles migrating old data.
+        const newTokens = [...new Set([existingTokens, token])];
+        await userRef.update({ fcmTokens: newTokens });
+      } else {
+        // The field doesn't exist or is a wrong type, so create/overwrite it.
+        await userRef.update({ fcmTokens: [token] });
       }
     }
+    return { success: true };
+
+  } catch (error: any) {
+    console.error('FCM Token Update Error:', error);
+    // As a final fallback if update fails for other reasons (e.g. permissions)
     return { success: false, error: error.message };
   }
 }

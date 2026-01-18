@@ -1,4 +1,3 @@
-
 'use server';
 
 import * as admin from 'firebase-admin';
@@ -29,20 +28,14 @@ export async function sendNotification(input: unknown) {
     const snapshot = await firestore().collection('users').get();
 
     const tokens: string[] = [];
-    const tokenUserMap = new Map<string, string>();
 
     snapshot.forEach(doc => {
       const data = doc.data();
-      const userId = doc.id;
-      if (data?.fcmTokens && typeof data.fcmTokens === 'object') {
-        const userTokens = Object.keys(data.fcmTokens);
-          
-        userTokens.forEach((token: string) => {
-          if (typeof token === 'string' && token.length > 0) {
-            tokens.push(token);
-            tokenUserMap.set(token, userId);
-          }
-        });
+      if (Array.isArray(data?.fcmTokens)) {
+        tokens.push(...data.fcmTokens.filter(t => typeof t === 'string' && t.length > 0));
+      } else if (typeof data?.fcmTokens === 'string' && data.fcmTokens.length > 0) {
+        // Also collect legacy string tokens for this send
+        tokens.push(data.fcmTokens);
       }
     });
 
@@ -66,8 +59,9 @@ export async function sendNotification(input: unknown) {
 
     let successCount = 0;
     let failureCount = 0;
+    const tokensToRemove: string[] = [];
     
-    /* 6️⃣ Send notifications and handle cleanup */
+    /* 6️⃣ Send notifications and collect invalid tokens */
     for (const chunk of chunks) {
       const message: admin.messaging.MulticastMessage = {
         tokens: chunk,
@@ -90,38 +84,46 @@ export async function sendNotification(input: unknown) {
       successCount += response.successCount;
       failureCount += response.failureCount;
 
-      const cleanupPromises: Promise<any>[] = [];
-
       response.responses.forEach((res, idx) => {
         if (!res.success) {
           const errorCode = res.error?.code;
-
-          // Check if the token is invalid and should be removed
           if (
             errorCode === 'messaging/registration-token-not-registered' ||
             errorCode === 'messaging/invalid-registration-token'
           ) {
-            const invalidToken = chunk[idx];
-            const userId = tokenUserMap.get(invalidToken);
-            console.warn(`[FCM Cleanup] Invalid token detected: ${invalidToken} for user ${userId}. Scheduling for removal.`);
-            
-            if (userId) {
-              const userRef = firestore().collection('users').doc(userId);
-              const promise = userRef.update({
-                [`fcmTokens.${invalidToken}`]: admin.firestore.FieldValue.delete(),
-              });
-              cleanupPromises.push(promise);
-            }
-          } else {
-             console.error(`[FCM] Failed to send to token ${chunk[idx]}:`, res.error);
+            tokensToRemove.push(chunk[idx]);
           }
         }
       });
-      
-      // Wait for all cleanup operations for this chunk to complete
-      await Promise.all(cleanupPromises);
     }
 
+    /* 7️⃣ Cleanup invalid tokens */
+    if (tokensToRemove.length > 0) {
+        const uniqueTokensToRemove = [...new Set(tokensToRemove)];
+        console.warn(`[FCM Cleanup] Removing ${uniqueTokensToRemove.length} invalid tokens.`);
+        
+        // Find all user documents that contain any of the invalid tokens
+        const usersToUpdateQuery = await firestore().collection('users').where('fcmTokens', 'array-contains-any', uniqueTokensToRemove).get();
+        
+        const batch = firestore().batch();
+        usersToUpdateQuery.forEach(doc => {
+            const userRef = firestore().collection('users').doc(doc.id);
+            batch.update(userRef, {
+                fcmTokens: admin.firestore.FieldValue.arrayRemove(...uniqueTokensToRemove)
+            });
+        });
+
+        // Also check for legacy string fields to clean them up
+        for (const token of uniqueTokensToRemove) {
+          const legacyUserQuery = await firestore().collection('users').where('fcmTokens', '==', token).get();
+          legacyUserQuery.forEach(doc => {
+            batch.update(doc.ref, { fcmTokens: admin.firestore.FieldValue.delete() });
+          });
+        }
+        
+        await batch.commit();
+        console.log('[FCM Cleanup] Invalid tokens have been removed from Firestore.');
+    }
 
     return {
       success: true,
