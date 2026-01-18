@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -21,10 +20,29 @@ export function FirebaseClientProvider({
       const firebaseInstance = await initializeFirebase();
       setFirebase(firebaseInstance);
 
-      // Set up foreground message listener
       try {
         const supported = await isSupported();
         if (supported && firebaseInstance.firebaseApp) {
+          // Register service worker
+          if ('serviceWorker' in navigator) {
+            const firebaseConfig = {
+              apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+              authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+              projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+              storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+              messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+              appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+            };
+            const url = `/firebase-messaging-sw.js?firebaseConfig=${encodeURIComponent(JSON.stringify(firebaseConfig))}`;
+            navigator.serviceWorker.register(url)
+              .then((registration) => {
+                console.log('Service Worker registered with scope:', registration.scope);
+              }).catch((error) => {
+                console.error('Service Worker registration failed:', error);
+              });
+          }
+
+          // Set up foreground message listener
           const messaging = getMessaging(firebaseInstance.firebaseApp);
           onMessage(messaging, (payload) => {
             console.log('Foreground message received. ', payload);
@@ -35,7 +53,7 @@ export function FirebaseClientProvider({
           });
         }
       } catch (error) {
-        console.error("Error setting up foreground message listener:", error);
+        console.error("Error setting up Firebase messaging:", error);
       }
     };
     init();
