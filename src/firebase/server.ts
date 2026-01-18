@@ -7,7 +7,7 @@ const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY
   ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY)
   : undefined;
 
-function getFirebaseAdminApp(): App {
+export function getFirebaseAdminApp(): App {
   if (getApps().length > 0) {
     return getApp();
   }
