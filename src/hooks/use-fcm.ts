@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect } from 'react';
@@ -11,7 +12,10 @@ export const useFcmToken = (userId: string | undefined) => {
   const { firebaseApp } = useFirebase();
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !userId || !firebaseApp) return;
+    if (typeof window === 'undefined' || !userId || !firebaseApp) {
+      console.log('[FCM] Pre-conditions not met. User ID:', userId, 'Firebase App:', !!firebaseApp);
+      return;
+    }
 
     const retrieveToken = async () => {
       try {
@@ -23,14 +27,9 @@ export const useFcmToken = (userId: string | undefined) => {
         }
         console.log('[FCM] Browser support confirmed.');
         
-        console.log('[FCM] Requesting notification permission...');
-        // Only request permission if it's not already granted or denied
-        if (Notification.permission === 'default') {
-            await Notification.requestPermission();
-        }
-        
+        console.log('[FCM] Current notification permission:', Notification.permission);
         if (Notification.permission === 'granted') {
-          console.log('[FCM] Notification permission granted.');
+          console.log('[FCM] Notification permission already granted. Proceeding to get token.');
           
           const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
           if (!vapidKey) {
@@ -59,8 +58,10 @@ export const useFcmToken = (userId: string | undefined) => {
                 console.error('[FCM] Failed to save token to Firestore:', result.error);
             }
           } else {
-            console.log('[FCM] No registration token available. Request permission to generate one.');
+            console.log('[FCM] No registration token available. This can happen if permission was just granted and the service worker is not yet active. Please refresh.');
           }
+        } else if (Notification.permission === 'default') {
+             console.log('[FCM] Notification permission is default. Waiting for user interaction (e.g., bell icon click).');
         } else {
           console.warn('[FCM] Notification permission denied by user.');
         }
@@ -72,5 +73,5 @@ export const useFcmToken = (userId: string | undefined) => {
     retrieveToken();
   }, [userId, firebaseApp, toast]);
 
-  return null; // This hook doesn't return anything, it just runs effects.
+  return null; 
 };

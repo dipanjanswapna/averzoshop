@@ -1,10 +1,11 @@
+
 import * as admin from 'firebase-admin';
 import { getApps, initializeApp, App, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 
 /**
- * এই ফাইলে 'use server' থাকবে না।
- * এটি শুধুমাত্র সার্ভার-সাইড হেল্পার হিসেবে কাজ করবে।
+ * This file does not have 'use server'.
+ * It acts as a server-side helper only.
  */
 export function getFirebaseAdminApp(): App {
   const existingApps = getApps();
@@ -14,19 +15,21 @@ export function getFirebaseAdminApp(): App {
 
   const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
   if (!serviceAccountKey) {
-    throw new Error("FIREBASE_SERVICE_ACCOUNT_KEY is not set.");
+    throw new Error("FIREBASE_SERVICE_ACCOUNT_KEY is not set in your .env file.");
   }
 
   let serviceAccount;
   try {
+    // Trim and handle if the key is wrapped in single quotes
     const rawKey = serviceAccountKey.trim();
-    const cleanKey = (rawKey.startsWith("'") && rawKey.endsWith("'")) || 
-                     (rawKey.startsWith('"') && rawKey.endsWith('"'))
-                     ? JSON.parse(rawKey) : rawKey;
-    
-    serviceAccount = typeof cleanKey === 'string' ? JSON.parse(cleanKey) : cleanKey;
-  } catch (error) {
-    throw new Error("Invalid JSON format in FIREBASE_SERVICE_ACCOUNT_KEY.");
+    if (rawKey.startsWith("'") && rawKey.endsWith("'")) {
+      serviceAccount = JSON.parse(rawKey.substring(1, rawKey.length - 1));
+    } else {
+      serviceAccount = JSON.parse(rawKey);
+    }
+  } catch (error: any) {
+    console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY:", error.message);
+    throw new Error("Invalid JSON format in FIREBASE_SERVICE_ACCOUNT_KEY. Please ensure it's a valid, single-line JSON string.");
   }
 
   return initializeApp({
@@ -34,5 +37,5 @@ export function getFirebaseAdminApp(): App {
   });
 }
 
-// ফাংশন হিসেবে এক্সপোর্ট করা হচ্ছে
+// Export as a function
 export const firestore = () => getFirestore(getFirebaseAdminApp());
