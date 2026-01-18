@@ -1,104 +1,152 @@
 'use server';
 
-import { firestore, getFirebaseAdminApp } from '@/firebase/server';
 import * as admin from 'firebase-admin';
 import { z } from 'zod';
+import { firestore, getFirebaseAdminApp } from '@/firebase/server';
 
+/* ================================
+   Zod Schema
+================================ */
 const SendNotificationSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  body: z.string().min(1, "Message is required"),
-  link: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
+  title: z.string().min(1, 'Title is required'),
+  body: z.string().min(1, 'Message is required'),
+  link: z.string().url().optional().or(z.literal('')),
 });
 
+/* ================================
+   Server Action
+================================ */
 export async function sendNotification(input: unknown) {
   try {
-    // 1. Validate input data
-    const validatedData = SendNotificationSchema.parse(input);
-    const { title, body, link } = validatedData;
-    
-    // 2. Initialize Firebase Admin
-    getFirebaseAdminApp(); 
+    /* 1️⃣ Validate input */
+    const { title, body, link } = SendNotificationSchema.parse(input);
 
-    // 3. Fetch all user tokens from Firestore
-    console.log('[Server Action] Fetching all user tokens...');
-    const usersSnapshot = await firestore().collection('users').get();
+    /* 2️⃣ Ensure Firebase Admin initialized */
+    getFirebaseAdminApp();
+
+    /* 3️⃣ Fetch all users FCM tokens */
+    const snapshot = await firestore().collection('users').get();
+
     const tokens: string[] = [];
 
-    usersSnapshot.forEach(doc => {
+    snapshot.forEach(doc => {
       const data = doc.data();
-      if (data.fcmTokens && Array.isArray(data.fcmTokens)) {
-        tokens.push(...data.fcmTokens);
+      if (Array.isArray(data?.fcmTokens)) {
+        data.fcmTokens.forEach((token: string) => {
+          if (typeof token === 'string' && token.length > 0) {
+            tokens.push(token);
+          }
+        });
+      } else if (typeof data?.fcmTokens === 'string' && data.fcmTokens.length > 0) {
+        // Handle legacy string tokens if they exist
+        tokens.push(data.fcmTokens);
       }
     });
 
-    // 4. Filter out duplicate or invalid tokens
-    const uniqueTokens = [...new Set(tokens)].filter(t => t && typeof t === 'string');
+    /* 4️⃣ Remove duplicates */
+    const uniqueTokens = [...new Set(tokens)];
 
     if (uniqueTokens.length === 0) {
-      console.warn("No valid FCM tokens found in the database. Cannot send notifications.");
-      return { 
-        success: true, 
-        successCount: 0, 
-        failureCount: 0, 
-        error: "No valid FCM tokens found in the database. Please ensure users have granted notification permissions." 
+      return {
+        success: true,
+        successCount: 0,
+        failureCount: 0,
+        message: 'No valid FCM tokens found',
       };
     }
-    console.log(`[Server Action] Found ${uniqueTokens.length} unique tokens. Preparing to send notifications.`);
 
-    // 5. Chunk tokens into groups of 500 (FCM multicast limit)
-    const chunks = [];
+    /* 5️⃣ Chunk (FCM limit = 500) */
+    const chunks: string[][] = [];
     for (let i = 0; i < uniqueTokens.length; i += 500) {
       chunks.push(uniqueTokens.slice(i, i + 500));
     }
 
-    let totalSuccess = 0;
-    let totalFailure = 0;
-    const errors: any[] = [];
-
-    // 6. Send notifications in chunks
+    let successCount = 0;
+    let failureCount = 0;
+    
+    /* 6️⃣ Send notifications and handle cleanup */
     for (const chunk of chunks) {
       const message: admin.messaging.MulticastMessage = {
-        notification: { title, body },
-        webpush: {
-          fcmOptions: { link: link || '/' },
-          notification: { icon: '/logo.png' } // Assuming you have a logo here
-        },
         tokens: chunk,
+        notification: {
+          title,
+          body,
+        },
+        webpush: {
+          fcmOptions: {
+            link: link || '/',
+          },
+          notification: {
+            icon: '/logo.png',
+          },
+        },
       };
 
       const response = await admin.messaging().sendEachForMulticast(message);
-      totalSuccess += response.successCount;
-      totalFailure += response.failureCount;
-      
-      response.responses.forEach(resp => {
-        if (!resp.success) {
-          errors.push(resp.error?.message);
+
+      successCount += response.successCount;
+      failureCount += response.failureCount;
+
+      const cleanupPromises: Promise<any>[] = [];
+
+      response.responses.forEach((res, idx) => {
+        if (!res.success) {
+          const errorCode = res.error?.code;
+
+          // Check if the token is invalid and should be removed
+          if (
+            errorCode === 'messaging/registration-token-not-registered' ||
+            errorCode === 'messaging/invalid-registration-token'
+          ) {
+            const invalidToken = chunk[idx];
+            console.warn(`[FCM Cleanup] Invalid token detected: ${invalidToken}. Scheduling for removal.`);
+            
+            // Find users with the invalid token and remove it
+            const promise = firestore()
+              .collection('users')
+              .where('fcmTokens', 'array-contains', invalidToken)
+              .get()
+              .then(snapshot => {
+                if (snapshot.empty) return;
+                const batch = firestore().batch();
+                snapshot.forEach(doc => {
+                  batch.update(doc.ref, {
+                    fcmTokens: admin.firestore.FieldValue.arrayRemove(invalidToken)
+                  });
+                });
+                return batch.commit();
+              });
+
+            cleanupPromises.push(promise);
+          } else {
+             console.error(`[FCM] Failed to send to token ${chunk[idx]}:`, res.error);
+          }
         }
       });
+      
+      // Wait for all cleanup operations for this chunk to complete
+      await Promise.all(cleanupPromises);
     }
 
-    console.log(`[Server Action] Notifications Sent: ${totalSuccess} success, ${totalFailure} failures.`);
-    if (totalFailure > 0) {
-        console.error("[Server Action] FCM Send Errors:", errors);
-    }
 
     return {
       success: true,
-      successCount: totalSuccess,
-      failureCount: totalFailure,
+      successCount,
+      failureCount,
     };
-
   } catch (error: any) {
-    console.error('[Server Action] sendNotification action failed:', error);
-    let errorMessage = "Failed to send notifications.";
+    console.error('[sendNotification error]', error);
+
     if (error instanceof z.ZodError) {
-        errorMessage = error.errors.map(e => e.message).join(' ');
-    } else if (error.message) {
-        errorMessage = error.message;
+      return {
+        success: false,
+        error: error.errors.map(e => e.message).join(', '),
+      };
     }
-    return { 
-      success: false, 
-      error: errorMessage,
+
+    return {
+      success: false,
+      error: error?.message || 'Notification send failed',
     };
   }
 }

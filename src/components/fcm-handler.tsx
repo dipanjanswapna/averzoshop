@@ -1,14 +1,12 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useFcmToken } from '@/hooks/use-fcm';
 
-/**
- * এই কম্পোনেন্টটি ব্যাকগ্রাউন্ডে ইউজারের টোকেন ম্যানেজ করবে
- */
 export function FcmHandler({ userId }: { userId: string | undefined }) {
-  // আপনার তৈরি করা হুকটি এখানে কল করুন
+  // This hook will handle the FCM token logic.
   useFcmToken(userId);
-
-  // এটি স্ক্রিনে কিছু দেখাবে না, শুধু লজিক রান করবে
+  
+  // This component renders nothing.
   return null;
 }
