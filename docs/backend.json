@@ -22,9 +22,9 @@
             "items": { "type": "string" }
         },
         "fcmTokens": {
-          "type": "array",
-          "description": "An array of Firebase Cloud Messaging tokens for push notifications.",
-          "items": { "type": "string" }
+          "type": "object",
+          "description": "A map of FCM tokens for push notifications, with the token as the key and a boolean as the value.",
+          "additionalProperties": { "type": "boolean" }
         },
         "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the user account was created." },
         "loyaltyPoints": { "type": "number", "description": "The user's current loyalty point balance." },
@@ -372,6 +372,20 @@
         "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the coupon was created." }
       },
       "required": ["code", "discountType", "value", "expiryDate", "creatorType", "creatorId"]
+    },
+    "notification_subscription": {
+      "title": "Notification Subscription",
+      "description": "Tracks user requests for back-in-stock notifications.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "userId": { "type": "string" },
+        "productId": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "sent"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "productId", "status", "createdAt"]
     }
   },
   "auth": {
@@ -389,7 +403,7 @@
     "/delivery_challans/{challanId}": { "schema": { "$ref": "#/entities/delivery_challan" }, "description": "Stores delivery challans generated after stock request approvals." },
     "/orders/{orderId}": { "schema": { "$ref": "#/entities/order" }, "description": "Stores customer online orders routed to specific outlets for fulfillment." },
     "/stock_transfers/{transferId}": { "schema": { "$ref": "#/entities/stock_transfer" }, "description": "Tracks inter-outlet stock transfers initiated by admins." },
-    "/coupons/{couponId}": { "schema": { "$ref": "#/entities/coupon" }, "description": "Stores all promotional codes for discounts." }
+    "/coupons/{couponId}": { "schema": { "$ref": "#/entities/coupon" }, "description": "Stores all promotional codes for discounts." },
+    "/notification_subscriptions/{subscriptionId}": { "schema": { "$ref": "#/entities/notification_subscription" }, "description": "Stores user requests for back-in-stock notifications." }
   }
 }
-
