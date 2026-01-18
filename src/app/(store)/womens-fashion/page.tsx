@@ -172,37 +172,36 @@ export default function CategoryPage() {
             {CATEGORY_NAME}
           </h1>
         </div>
-
-        <div className="mb-8">
-          <Carousel opts={{ align: 'start', loop: true }} plugins={[Autoplay({ delay: 4000 })]} className="w-full">
-            <CarouselContent>
-              {heroCarouselImages.map((image, index) => (
-                <CarouselItem key={index}>
-                  <Link href={image.link || '#'}>
-                    <div className="relative w-full aspect-[21/9] md:aspect-[4/1] rounded-lg overflow-hidden">
-                      <Image src={image.imageUrl} alt={image.description} data-ai-hint={image.imageHint} fill className="object-cover" priority={index === 0} />
-                    </div>
-                  </Link>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4">
-              <CarouselPrevious className="static -translate-y-0" />
-              <CarouselNext className="static -translate-y-0" />
-            </div>
-          </Carousel>
-        </div>
-
-        {bannerImage && (
-          <div className="mb-8">
-            <Link href={bannerImage.link || '#'}>
-              <div className="relative w-full aspect-[6/1] rounded-lg overflow-hidden">
-                <Image src={bannerImage.imageUrl} alt={bannerImage.description} data-ai-hint={bannerImage.imageHint} fill className="object-cover" />
-              </div>
-            </Link>
-          </div>
-        )}
       </div>
+      <div className="mb-8 w-full">
+        <Carousel opts={{ align: 'start', loop: true }} plugins={[Autoplay({ delay: 4000 })]} className="w-full">
+          <CarouselContent>
+            {heroCarouselImages.map((image, index) => (
+              <CarouselItem key={index}>
+                <Link href={image.link || '#'}>
+                  <div className="relative w-full aspect-[21/9] md:aspect-[4/1] overflow-hidden">
+                    <Image src={image.imageUrl} alt={image.description} data-ai-hint={image.imageHint} fill className="object-cover" priority={index === 0} />
+                  </div>
+                </Link>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4">
+            <CarouselPrevious className="static -translate-y-0" />
+            <CarouselNext className="static -translate-y-0" />
+          </div>
+        </Carousel>
+      </div>
+
+      {bannerImage && (
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 mb-8">
+          <Link href={bannerImage.link || '#'}>
+            <div className="relative w-full aspect-[6/1] rounded-lg overflow-hidden">
+              <Image src={bannerImage.imageUrl} alt={bannerImage.description} data-ai-hint={bannerImage.imageHint} fill className="object-cover" />
+            </div>
+          </Link>
+        </div>
+      )}
       
       <div className="bg-secondary py-8">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">

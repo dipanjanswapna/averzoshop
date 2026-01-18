@@ -63,9 +63,7 @@ export default function StoreFrontPage() {
   return (
     <>
         <section className="pb-4 md:pb-8">
-          <div className="container">
-            {/* --- Hero Carousel --- */}
-            <div>
+            <div className="w-full">
               <Carousel
                 opts={{
                   align: 'start',
@@ -82,7 +80,7 @@ export default function StoreFrontPage() {
                   {heroCarouselImages.map((image, index) => (
                     <CarouselItem key={index}>
                       <Link href={image.link || '#'}>
-                        <div className="relative w-full aspect-[21/9] md:aspect-[4/1] rounded-lg overflow-hidden">
+                        <div className="relative w-full aspect-[21/9] md:aspect-[4/1] overflow-hidden">
                           <Image
                             src={image.imageUrl}
                             alt={image.description}
@@ -102,7 +100,6 @@ export default function StoreFrontPage() {
                 </div>
               </Carousel>
             </div>
-          </div>
         </section>
 
         {flashSaleProducts.length > 0 && (
