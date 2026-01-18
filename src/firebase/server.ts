@@ -4,8 +4,7 @@ import { getApps, initializeApp, App, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 
 /**
- * This file does not have 'use server'.
- * It acts as a server-side helper only.
+ * This file acts as a server-side helper only.
  */
 export function getFirebaseAdminApp(): App {
   const existingApps = getApps();
@@ -21,7 +20,8 @@ export function getFirebaseAdminApp(): App {
   let serviceAccount;
   try {
     // The key from .env is a single-line string. It needs to be parsed into a JSON object.
-    serviceAccount = JSON.parse(serviceAccountKey);
+    const sanitizedKey = serviceAccountKey.replace(/\\n/g, '\n');
+    serviceAccount = JSON.parse(sanitizedKey);
   } catch (error: any) {
     console.error("Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY:", error.message);
     throw new Error("Invalid JSON format in FIREBASE_SERVICE_ACCOUNT_KEY. Please ensure it's a valid, single-line JSON string.");

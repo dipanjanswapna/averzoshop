@@ -1,4 +1,3 @@
-
 'use server';
 
 import { firestore, getFirebaseAdminApp } from '@/firebase/server';
@@ -8,7 +7,7 @@ import { z } from 'zod';
 const SendNotificationSchema = z.object({
   title: z.string().min(1, "Title is required"),
   body: z.string().min(1, "Message is required"),
-  link: z.string().optional().nullable(),
+  link: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
 });
 
 export async function sendNotification(input: unknown) {
