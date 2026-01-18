@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Dispatch, SetStateAction, useMemo, useState } from 'react';
@@ -112,7 +113,7 @@ export function ProductDetails({
           )}
       </div>
 
-      {product.giftWithPurchase?.enabled && !isFlashSaleActive && (
+      {product.giftWithPurchase?.enabled && product.giftWithPurchase.description && (
         <div className="bg-green-50 border-l-4 border-green-500 text-green-800 p-4 rounded-r-lg flex items-center gap-4 animate-pulse">
             <Gift size={28} />
             <div>
