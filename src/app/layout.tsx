@@ -1,37 +1,16 @@
 
-
 'use client';
-
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
-import { usePathname } from 'next/navigation';
-import { MobileBottomNav } from '@/components/mobile-bottom-nav';
 import { Providers } from '@/components/providers';
 import { ToastProvider } from '@/components/ui/toast';
-import React, { useState, useEffect } from 'react';
-import { FcmHandler } from '@/components/fcm-handler';
-import { useAuth } from '@/hooks/use-auth'; 
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const pathname = usePathname();
-  const [isClient, setIsClient] = useState(false);
-  const { user } = useAuth();
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  const protectedPrefixes = ['/dashboard', '/outlet', '/vendor', '/rider', '/customer', '/login', '/register', '/forgot-password', '/verify-email'];
-  const isAdminRoute = protectedPrefixes.some(prefix => pathname.startsWith(prefix));
-  const isPosPage = pathname === '/outlet/pos';
-
-  const shouldShowNav = !isAdminRoute || isPosPage;
-  const showMobileNav = isClient && shouldShowNav;
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -44,21 +23,13 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Saira:wght@600;700;800&display=swap" rel="stylesheet" />
       </head>
-      <body className={cn(
-        'font-body antialiased min-h-screen bg-background',
-        showMobileNav && 'pb-16 lg:pb-0'
-      )}>
+      <body className={cn('font-body antialiased min-h-screen bg-background')}>
         <ToastProvider>
           <Providers>
-            {isClient && user?.uid && <FcmHandler userId={user.uid} />}
-            
             {children}
-            
             <Toaster />
           </Providers>
         </ToastProvider>
-
-        {showMobileNav && <MobileBottomNav />}
       </body>
     </html>
   );

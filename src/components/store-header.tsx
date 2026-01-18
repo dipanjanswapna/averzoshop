@@ -1,4 +1,5 @@
 
+
 "use client";
 import React, { useState, useEffect, useCallback } from 'react';
 import { Search, ShoppingBag, User, Menu, ChevronDown, X, ChevronRight, Zap } from 'lucide-react';
@@ -159,7 +160,7 @@ export default function AverzoNavbar() {
     <header className="fixed top-0 left-0 w-full z-[100] bg-background shadow-sm transition-all duration-300">
       
       {/* 1. Primary Master Header (Always Sticky) */}
-      <div className="container mx-auto py-3 flex items-center justify-between gap-4 md:gap-8 h-[68px]">
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4 md:gap-8 h-[68px]">
         <div className="flex items-center gap-4">
              <button 
                 onClick={() => setIsDrawerOpen(true)}
@@ -212,18 +213,19 @@ export default function AverzoNavbar() {
           "bg-secondary text-secondary-foreground transition-all duration-300 origin-top",
           "hidden lg:flex h-10"
       )}>
-        <div className="container mx-auto flex h-full items-center gap-6 overflow-x-auto no-scrollbar">
-            <Link href="/flash-sale" className="h-full flex items-center flex-shrink-0">
+        <div className="w-full overflow-x-auto whitespace-nowrap no-scrollbar">
+            <div className="container mx-auto px-4 flex items-center gap-8 h-full">
+              <Link href="/flash-sale" className="h-full flex items-center">
                 <span className="text-sm font-bold uppercase tracking-widest flex items-center gap-1 text-destructive animate-pulse">
                   <Zap size={14} /> Flash Sale
                 </span>
-            </Link>
+              </Link>
             {categoriesData.map((item) => {
                 const motherCategoryPath = item.path || `/shop?${createQueryString({ mother_category: item.mother_name })}`;
                 return (
                     <div 
                       key={item.mother_name} 
-                      className="group relative h-full flex items-center flex-shrink-0"
+                      className="group relative h-full flex items-center"
                       onMouseEnter={() => setActiveMenu(item.mother_name)}
                       onMouseLeave={() => setActiveMenu(null)}
                     >
@@ -274,6 +276,7 @@ export default function AverzoNavbar() {
                     </div>
                 )
             })}
+            </div>
         </div>
       </nav>
 

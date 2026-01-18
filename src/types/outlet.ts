@@ -1,3 +1,4 @@
+
 export type Outlet = {
   id: string;
   name: string;

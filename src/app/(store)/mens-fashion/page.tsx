@@ -160,7 +160,7 @@ export default function MensFashionPage() {
 
   return (
     <div>
-      <div className="container mx-auto">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center pt-8 mb-8 md:pt-12 md:mb-12">
           <h1 className="text-4xl md:text-5xl font-extrabold font-headline tracking-tight">
             {CATEGORY_NAME}
@@ -172,7 +172,7 @@ export default function MensFashionPage() {
               {heroCarouselImages.map((image, index) => (
                 <CarouselItem key={index}>
                   <Link href={image.link || '#'}>
-                    <div className="relative w-full aspect-[21/9] md:aspect-[4/1] rounded-xl overflow-hidden">
+                    <div className="relative w-full aspect-[21/9] md:aspect-[4/1] rounded-lg overflow-hidden">
                       <Image src={image.imageUrl} alt={image.description} data-ai-hint={image.imageHint} fill className="object-cover" priority={index === 0} />
                     </div>
                   </Link>
@@ -197,7 +197,7 @@ export default function MensFashionPage() {
       </div>
       
       <div className="bg-secondary py-8">
-        <div className="container mx-auto">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
               <Breadcrumb>
                 <BreadcrumbList>
@@ -256,5 +256,3 @@ export default function MensFashionPage() {
     </div>
   );
 }
-
-    

@@ -45,12 +45,10 @@ export default function VendorProductsPage() {
     products.forEach(p => counts.set(p.id, 0)); // Initialize all products with 0
 
     users.forEach(u => {
-      u.wishlists?.forEach(list => {
-        list.items.forEach(item => {
-          if (counts.has(item.productId)) {
-            counts.set(item.productId, counts.get(item.productId)! + 1);
-          }
-        });
+      u.wishlist?.forEach(productId => {
+        if (counts.has(productId)) {
+          counts.set(productId, counts.get(productId)! + 1);
+        }
       });
     });
 

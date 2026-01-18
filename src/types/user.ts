@@ -1,7 +1,5 @@
 
-'use client';
 import type { Address } from './address';
-import type { Wishlist } from './wishlist';
 
 export interface UserData {
   uid: string;
@@ -10,7 +8,7 @@ export interface UserData {
   photoURL: string | null;
   role: 'customer' | 'vendor' | 'rider' | 'admin' | 'outlet';
   status: 'pending' | 'approved' | 'rejected';
-  wishlists?: Wishlist[];
+  wishlist?: string[];
   addresses?: Address[];
   outletId?: string;
   assignedOutlets?: string[];
@@ -19,5 +17,10 @@ export interface UserData {
   totalSpent?: number;
   membershipTier?: 'silver' | 'gold' | 'platinum';
   phone?: string;
-  fcmTokens?: { [key: string]: boolean; };
+  fcmTokens?: string[];
 }
+
+    
+
+    
+

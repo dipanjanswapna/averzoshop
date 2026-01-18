@@ -1,24 +1,35 @@
-
 'use server';
 
-import { firestore, admin } from '@/firebase/server';
+import { firestore } from '@/firebase/server';
+import * as admin from 'firebase-admin';
 
 export async function updateFcmToken(userId: string, token: string) {
-  const userRef = firestore.collection('users').doc(userId);
-
+  if (!userId || !token) {
+    return { success: false, error: "User ID and token are required." };
+  }
+  
   try {
-    // Using a map is better for ensuring uniqueness and easier cleanup.
-    // The key is the token, the value is true.
-    await userRef.set({
-      fcmTokens: {
-        [token]: true,
-      },
-    }, { merge: true });
+    const userRef = firestore().collection('users').doc(userId);
     
-    return { success: true };
-
-  } catch (error: any) {
-    console.error('FCM Token Update Error:', error);
-    return { success: false, error: error.message };
+    // Use arrayUnion to add the token only if it doesn't already exist in the array
+    await userRef.update({
+      fcmTokens: admin.firestore.FieldValue.arrayUnion(token)
+    });
+    
+    return { success: true, error: null };
+  } catch (error) {
+    console.error('Error saving FCM token:', error);
+    // It's possible the user document doesn't exist yet when this is first called.
+    // Let's try to set it with merge if update fails.
+    try {
+      const userRef = firestore().collection('users').doc(userId);
+      await userRef.set({
+        fcmTokens: [token]
+      }, { merge: true });
+      return { success: true, error: null };
+    } catch (e) {
+        console.error('Error setting FCM token:', e);
+        return { success: false, error: 'Could not save FCM token to the database.' };
+    }
   }
 }

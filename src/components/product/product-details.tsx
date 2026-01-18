@@ -1,13 +1,12 @@
 
-
 'use client';
 
 import { Dispatch, SetStateAction, useMemo, useState } from 'react';
 import type { Product, ProductVariant } from '@/types/product';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingBag, Ruler, Barcode, MapPin, Share2, Star, Gift } from 'lucide-react';
-import { cn, getVariantsAsArray } from '@/lib/utils';
+import { Heart, ShoppingBag, Ruler, Barcode, MapPin, Share2, Star, Gift } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
 import { WishlistButton } from '../ui/wishlist-button';
@@ -53,13 +52,13 @@ export function ProductDetails({
 
   const availableColors = useMemo(() => {
     if (!product?.variants) return [];
-    const variantsArray = getVariantsAsArray(product.variants);
+    const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants);
     return [...new Set(variantsArray.map(v => v.color).filter(Boolean))];
   }, [product]);
 
   const availableSizes = useMemo(() => {
     if (!product?.variants) return [];
-    const variantsArray = getVariantsAsArray(product.variants);
+    const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants);
     return [...new Set(variantsArray.map(v => v.size).filter(Boolean))];
   }, [product]);
   

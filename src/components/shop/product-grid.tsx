@@ -1,12 +1,12 @@
 
 'use client';
 import { ProductCard } from '@/components/product-card';
-import type { products } from '@/lib/data';
+import type { Product } from '@/types/product';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PaginationComponent } from './pagination';
 
 type ProductGridProps = {
-  products: (typeof products);
+  products: Product[];
   isLoading: boolean;
   currentPage: number;
   totalPages: number;
@@ -18,12 +18,12 @@ const SKELETON_COUNT = 12;
 export const ProductGrid = ({ products, isLoading, currentPage, totalPages, onPageChange }: ProductGridProps) => {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
         {Array.from({ length: SKELETON_COUNT }).map((_, index) => (
           <div key={index} className="space-y-2">
-            <Skeleton className="aspect-square w-full" />
-            <Skeleton className="h-4 w-3/4" />
-            <Skeleton className="h-4 w-1/2" />
+            <Skeleton className="aspect-square w-full rounded-xl" />
+            <Skeleton className="h-4 mt-2 w-3/4" />
+            <Skeleton className="h-6 w-1/2" />
           </div>
         ))}
       </div>
@@ -41,7 +41,7 @@ export const ProductGrid = ({ products, isLoading, currentPage, totalPages, onPa
 
   return (
     <div>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-5">
         {products.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}

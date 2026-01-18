@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from 'react';
 import { Settings, Save } from "lucide-react";
@@ -22,7 +23,7 @@ export function LoyaltySettings() {
         <CardHeader>
             <div className="flex items-center gap-3">
                  <Settings className="h-6 w-6 text-primary" />
-                 <CardTitle>Loyalty & Rewards</CardTitle>
+                 <CardTitle>Loyalty Points Configuration</CardTitle>
             </div>
             <CardDescription>
                 Set the rules for how customers earn and redeem loyalty points.

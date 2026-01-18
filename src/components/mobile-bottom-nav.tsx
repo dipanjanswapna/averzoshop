@@ -13,34 +13,43 @@ import {
 import { cn } from '@/lib/utils';
 import { useCart } from '@/hooks/use-cart';
 import { useEffect, useState } from 'react';
+import { useAuth } from '@/hooks/use-auth';
 
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/shop', label: 'Shop', icon: LayoutGrid },
   { href: '/cart', label: 'Bag', icon: ShoppingBag }, 
   { href: '/wishlist', label: 'Wishlist', icon: Heart },
-  { href: '/login', label: 'Profile', icon: User },
+  { href: '/login', label: 'Profile', icon: User, protected: true },
 ];
 
 export function MobileBottomNav() {
   const pathname = usePathname();
   const { items } = useCart();
   const [isMounted, setIsMounted] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+  
+  const protectedPrefixes = ['/dashboard', '/outlet', '/vendor', '/rider', '/customer'];
+  const isAdminRoute = protectedPrefixes.some(prefix => pathname.startsWith(prefix));
+  
+  if (isAdminRoute) return null;
+
 
   const getNavItem = (item: (typeof navItems)[0]) => {
+     const href = (item.protected && user) ? `/customer` : item.href;
      const isActive =
-      (item.href === '/' && pathname === '/') ||
-      (item.href !== '/' && pathname.startsWith(item.href));
+      (href === '/' && pathname === '/') ||
+      (href !== '/' && pathname.startsWith(href));
 
     if (item.label === 'Bag') {
       return (
          <Link
             key={item.label}
-            href={item.href}
+            href={href}
             className={cn(
                 'relative flex flex-col items-center justify-center gap-1 text-muted-foreground',
                 isActive && 'text-primary'
@@ -60,7 +69,7 @@ export function MobileBottomNav() {
     return (
        <Link
             key={item.label}
-            href={item.href}
+            href={href}
             className={cn(
                 'flex flex-col items-center justify-center gap-1 text-muted-foreground',
                 isActive && 'text-primary'
