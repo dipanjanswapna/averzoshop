@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -14,6 +13,7 @@ import {
   Settings,
   ClipboardList,
   ArrowRightLeft,
+  BellRing,
 } from 'lucide-react';
 import {
   SidebarMenu,
@@ -27,6 +27,7 @@ const adminNavItems = [
   { href: '/dashboard/orders', label: 'Orders & Delivery', icon: ShoppingCart },
   { href: '/dashboard/pre-orders', label: 'Pre-orders', icon: ClipboardList },
   { href: '/dashboard/users', label: 'Users', icon: Users },
+  { href: '/dashboard/notifications', label: 'Notifications', icon: BellRing },
   { href: '/dashboard/vendors', label: 'Vendors', icon: Truck },
   { href: '/dashboard/stock-requests', label: 'Stock Requests', icon: ClipboardList },
   { href: '/dashboard/stock-transfers', label: 'Stock Transfers', icon: ArrowRightLeft },
