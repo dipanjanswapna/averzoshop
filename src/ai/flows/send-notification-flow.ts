@@ -42,7 +42,7 @@ export const sendNotificationFlow = ai.defineFlow(
     const uniqueTokens = [...new Set(tokens)].filter(t => t && typeof t === 'string');
 
     if (uniqueTokens.length === 0) {
-      console.log("No users found with valid FCM tokens.");
+      console.warn("No users found with valid FCM tokens.");
       return { successCount: 0, failureCount: 0 };
     }
 

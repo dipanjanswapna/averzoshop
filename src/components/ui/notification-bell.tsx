@@ -1,17 +1,17 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { getMessaging, getToken, isSupported } from 'firebase/messaging';
 import { useFirebase } from '@/firebase';
 import { useAuth } from '@/hooks/use-auth';
-import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from './button';
 import { Bell, BellOff, BellRing } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './tooltip';
+import { updateFcmToken } from '@/actions/user-actions';
 
 export function NotificationBell() {
-    const { firebaseApp, firestore } = useFirebase();
+    const { firebaseApp } = useFirebase();
     const { user } = useAuth();
     const { toast } = useToast();
     const [permission, setPermission] = useState<NotificationPermission>('default');
@@ -64,23 +64,19 @@ export function NotificationBell() {
             setPermission(status);
             
             if (status === 'granted') {
-                if (!firebaseApp || !firestore) throw new Error('Firebase service is not available.');
+                if (!firebaseApp) throw new Error('Firebase service is not available.');
                 
                 const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
                 if (!vapidKey) throw new Error("VAPID key is missing from environment variables.");
-
-                const firebaseConfig = firebaseApp.options;
-                const configParams = new URLSearchParams(firebaseConfig as Record<string,string>).toString();
-                const swUrl = `/firebase-messaging-sw.js?${configParams}`;
-                
-                const swRegistration = await navigator.serviceWorker.register(swUrl);
                 
                 const messaging = getMessaging(firebaseApp);
-                const fcmToken = await getToken(messaging, { vapidKey, serviceWorkerRegistration: swRegistration });
+                const fcmToken = await getToken(messaging, { vapidKey });
                 
                 if (fcmToken && user) {
-                    const userRef = doc(firestore, 'users', user.uid);
-                    await updateDoc(userRef, { fcmTokens: arrayUnion(fcmToken) });
+                    const result = await updateFcmToken(user.uid, fcmToken);
+                    if (!result.success) {
+                        throw new Error(result.error);
+                    }
                 }
                 
                 toast({ title: "Notifications Enabled!", description: "You're all set to receive updates." });
