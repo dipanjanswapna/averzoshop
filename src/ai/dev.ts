@@ -1,5 +1,0 @@
-import { config } from 'dotenv';
-config();
-
-import '@/ai/flows/delivery-monitoring-dashboard.ts';
-import '@/ai/flows/product-description-generator.ts';
