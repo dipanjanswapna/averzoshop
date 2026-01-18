@@ -4,28 +4,22 @@ import { firestore, getFirebaseAdminApp } from '@/firebase/server';
 import * as admin from 'firebase-admin';
 import { z } from 'zod';
 
-/**
- * ইনপুট ভ্যালিডেশন স্কিমা
- */
 const SendNotificationSchema = z.object({
   title: z.string().min(1, "Title is required"),
   body: z.string().min(1, "Message is required"),
   link: z.string().optional().nullable(),
 });
 
-/**
- * সরাসরি Firebase Admin SDK ব্যবহার করে নোটিফিকেশন পাঠানোর Server Action।
- */
 export async function sendNotification(input: unknown) {
   try {
-    // ১. ডাটা ভ্যালিডেশন
+    // 1. Validate input data
     const validatedData = SendNotificationSchema.parse(input);
     const { title, body, link } = validatedData;
     
-    // ২. ফায়ারবেস এডমিন ইনিশিয়ালাইজেশন
+    // 2. Initialize Firebase Admin
     getFirebaseAdminApp(); 
 
-    // ৩. Firestore থেকে সব ইউজারের টোকেন সংগ্রহ করা
+    // 3. Fetch all user tokens from Firestore
     const usersSnapshot = await firestore().collection('users').get();
     const tokens: string[] = [];
 
@@ -36,7 +30,7 @@ export async function sendNotification(input: unknown) {
       }
     });
 
-    // ৪. ডুপ্লিকেট টোকেন বাদ দেওয়া
+    // 4. Filter out duplicate or invalid tokens
     const uniqueTokens = [...new Set(tokens)].filter(t => t && typeof t === 'string');
 
     if (uniqueTokens.length === 0) {
@@ -44,11 +38,11 @@ export async function sendNotification(input: unknown) {
         success: false, 
         successCount: 0, 
         failureCount: 0, 
-        error: "কোনো বৈধ FCM টোকেন পাওয়া যায়নি। অন্তত একজনকে লগইন করতে হবে।" 
+        error: "No valid FCM tokens found in the database. Please ensure users have granted notification permissions." 
       };
     }
 
-    // ৫. ৫০০টি করে টোকেন ভাগ করা (FCM Multicast Limit)
+    // 5. Chunk tokens into groups of 500 (FCM multicast limit)
     const chunks = [];
     for (let i = 0; i < uniqueTokens.length; i += 500) {
       chunks.push(uniqueTokens.slice(i, i + 500));
@@ -56,14 +50,15 @@ export async function sendNotification(input: unknown) {
 
     let totalSuccess = 0;
     let totalFailure = 0;
+    const errors: any[] = [];
 
-    // ৬. নোটিফিকেশন পাঠানো
+    // 6. Send notifications in chunks
     for (const chunk of chunks) {
       const message: admin.messaging.MulticastMessage = {
         notification: { title, body },
         webpush: {
           fcmOptions: { link: link || '/' },
-          notification: { icon: '/logo.png' }
+          notification: { icon: '/logo.png' } // Assuming you have a logo here
         },
         tokens: chunk,
       };
@@ -71,6 +66,17 @@ export async function sendNotification(input: unknown) {
       const response = await admin.messaging().sendEachForMulticast(message);
       totalSuccess += response.successCount;
       totalFailure += response.failureCount;
+      
+      response.responses.forEach(resp => {
+        if (!resp.success) {
+          errors.push(resp.error?.message);
+        }
+      });
+    }
+
+    console.log(`Notifications Sent: ${totalSuccess} success, ${totalFailure} failures.`);
+    if (totalFailure > 0) {
+        console.error("FCM Send Errors:", errors);
     }
 
     return {
@@ -80,10 +86,16 @@ export async function sendNotification(input: unknown) {
     };
 
   } catch (error: any) {
-    console.error('Notification Error:', error);
+    console.error('sendNotification action failed:', error);
+    let errorMessage = "Failed to send notifications.";
+    if (error instanceof z.ZodError) {
+        errorMessage = error.errors.map(e => e.message).join(' ');
+    } else if (error.message) {
+        errorMessage = error.message;
+    }
     return { 
       success: false, 
-      error: error?.message || "নোটিফিকেশন পাঠানো সম্ভব হয়নি।" 
+      error: errorMessage,
     };
   }
 }

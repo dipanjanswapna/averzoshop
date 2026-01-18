@@ -1,36 +1,36 @@
-importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js');
+// Scripts for Firebase v9+
+importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js');
 
-const urlParams = new URLSearchParams(location.search);
+// Get Firebase config from URL query parameters
+const urlParams = new URLSearchParams(self.location.search);
 const firebaseConfigParam = urlParams.get('firebaseConfig');
 
 if (firebaseConfigParam) {
-  try {
-    const firebaseConfig = JSON.parse(firebaseConfigParam);
-    firebase.initializeApp(firebaseConfig);
+    try {
+        const firebaseConfig = JSON.parse(firebaseConfigParam);
 
-    const messaging = firebase.messaging();
+        // Initialize the Firebase app in the service worker
+        firebase.initializeApp(firebaseConfig);
 
-    messaging.onBackgroundMessage((payload) => {
-      console.log('[SW] Background message received:', payload);
-      const notificationTitle = payload.notification.title;
-      const notificationOptions = {
-        body: payload.notification.body,
-        icon: '/logo.png',
-        data: {
-          url: payload.data?.link || '/'
-        }
-      };
-      self.registration.showNotification(notificationTitle, notificationOptions);
-    });
-  } catch (e) {
-    console.error('[SW] Config parse error:', e);
-  }
+        // Retrieve an instance of Firebase Messaging
+        const messaging = firebase.messaging();
+
+        messaging.onBackgroundMessage(function(payload) {
+          console.log('[firebase-messaging-sw.js] Received background message ', payload);
+          
+          // Customize the notification here
+          const notificationTitle = payload.notification.title;
+          const notificationOptions = {
+            body: payload.notification.body,
+            icon: payload.notification.icon || '/logo.png' // Default icon
+          };
+
+          self.registration.showNotification(notificationTitle, notificationOptions);
+        });
+    } catch (e) {
+        console.error('Error parsing Firebase config in service worker:', e);
+    }
+} else {
+    console.error('Firebase config not found in service worker URL.');
 }
-
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-  event.waitUntil(
-    clients.openWindow(event.notification.data.url)
-  );
-});
