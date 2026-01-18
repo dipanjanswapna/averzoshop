@@ -159,7 +159,7 @@ export default function AverzoNavbar() {
     <header className="fixed top-0 left-0 w-full z-[100] bg-background shadow-sm transition-all duration-300">
       
       {/* 1. Primary Master Header (Always Sticky) */}
-      <div className="container mx-auto px-1 md:px-2 lg:px-4 py-3 flex items-center justify-between gap-4 md:gap-8 h-[68px]">
+      <div className="container mx-auto py-3 flex items-center justify-between gap-4 md:gap-8 h-[68px]">
         <div className="flex items-center gap-4">
              <button 
                 onClick={() => setIsDrawerOpen(true)}
@@ -213,7 +213,7 @@ export default function AverzoNavbar() {
           "hidden lg:flex h-10"
       )}>
         <div className="w-full overflow-x-auto whitespace-nowrap no-scrollbar">
-            <div className="container mx-auto px-1 md:px-2 lg:px-4 flex items-center gap-8 h-full">
+            <div className="container mx-auto flex items-center gap-8 h-full">
               <Link href="/flash-sale" className="h-full flex items-center">
                 <span className="text-sm font-bold uppercase tracking-widest flex items-center gap-1 text-destructive animate-pulse">
                   <Zap size={14} /> Flash Sale
@@ -286,3 +286,5 @@ export default function AverzoNavbar() {
     </header>
   );
 }
+
+    

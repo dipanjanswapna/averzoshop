@@ -39,7 +39,7 @@ export default function FlashSalePage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto py-8">
         <Skeleton className="h-40 w-full mb-8" />
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-6">
           {Array.from({ length: 8 }).map((_, i) => (
@@ -57,7 +57,7 @@ export default function FlashSalePage() {
 
   if (!saleEndDate || saleProducts.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-16 text-center">
+      <div className="container mx-auto py-16 text-center">
         <AlertTriangle className="mx-auto h-24 w-24 text-muted-foreground" />
         <h1 className="mt-6 text-3xl font-extrabold font-headline tracking-tight">No Flash Sale Active</h1>
         <p className="mt-2 text-muted-foreground">Check back later for more amazing deals!</p>
@@ -67,7 +67,7 @@ export default function FlashSalePage() {
 
   return (
     <div className="bg-red-50 min-h-screen">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto py-8">
         <div className="bg-gradient-to-br from-destructive to-red-800 text-white p-6 md:p-8 rounded-2xl flex flex-col md:flex-row justify-between items-center mb-8 shadow-2xl">
           <div className="text-center md:text-left mb-4 md:mb-0">
             <h1 className="text-3xl md:text-5xl font-extrabold font-headline uppercase tracking-wider">Flash Sale is Live!</h1>
@@ -85,3 +85,5 @@ export default function FlashSalePage() {
     </div>
   );
 }
+
+    

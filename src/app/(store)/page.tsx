@@ -63,7 +63,7 @@ export default function StoreFrontPage() {
   return (
     <>
         <section className="py-4 md:py-6">
-          <div className="container mx-auto px-4 md:px-6 lg:px-8">
+          <div className="container mx-auto">
               <Carousel
                 opts={{
                   align: 'start',
@@ -104,7 +104,7 @@ export default function StoreFrontPage() {
 
         {flashSaleProducts.length > 0 && (
           <section className="py-6 md:py-8">
-            <div className="container px-4 md:px-6 lg:px-8">
+            <div className="container">
                <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-black rounded-xl grid grid-cols-1 lg:grid-cols-5 gap-6 items-center shadow-2xl p-8">
                 <div className="text-white lg:col-span-1 text-center lg:text-left">
                   <h2 className="text-2xl lg:text-3xl font-extrabold uppercase leading-tight font-headline">This Week's<br/>Must-Have</h2>
@@ -129,7 +129,7 @@ export default function StoreFrontPage() {
                           </CarouselItem>
                         ))
                       ) : flashSaleProducts.slice(0, 8).map(product => ( 
-                        <CarouselItem key={product.id} className="basis-1/2 md:basis-1/4 pl-3">
+                        <CarouselItem key={product.id} className="basis-1/2 md:basis-1/3 lg:basis-1/4 pl-3">
                           <ProductCard product={product} />
                         </CarouselItem>
                       ))}
@@ -144,7 +144,7 @@ export default function StoreFrontPage() {
         )}
 
         <section className="py-16 md:py-24 bg-secondary">
-          <div className="container px-4 md:px-6 lg:px-8">
+          <div className="container">
             <div className="text-center mb-12">
               <h2 className="font-headline text-3xl font-extrabold">
                 Deals Of The Day
@@ -175,3 +175,5 @@ export default function StoreFrontPage() {
     </>
   );
 }
+
+    
