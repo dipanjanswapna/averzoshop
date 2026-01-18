@@ -17,6 +17,14 @@ import { FlashSaleTimer } from './flash-sale-timer';
 import { TrustBadges } from './trust-badges';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ShareButtons } from './share-buttons';
+import { useIsMobile } from '@/hooks/use-mobile';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+
 
 interface ProductDetailsProps {
   product: Product;
@@ -42,6 +50,9 @@ export function ProductDetails({
   const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
   const [isBarcodeOpen, setIsBarcodeOpen] = useState(false);
   const [isStoreAvailabilityOpen, setIsStoreAvailabilityOpen] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
+  const isMobile = useIsMobile();
+  const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
 
   const availableColors = useMemo(() => {
     if (!product?.variants) return [];
@@ -165,14 +176,28 @@ export function ProductDetails({
        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 pt-6 border-t">
           <Button variant="ghost" onClick={() => setIsStoreAvailabilityOpen(true)} className="text-sm justify-start gap-2"><MapPin size={16}/> Check In-Store</Button>
           <Button variant="ghost" onClick={() => setIsBarcodeOpen(true)} className="text-sm justify-start gap-2"><Barcode size={16}/> Show Barcode</Button>
+          {isMobile ? (
+            <>
+              <Button variant="ghost" onClick={() => setIsShareOpen(true)} className="text-sm justify-start gap-2"><Share2 size={16}/> Share</Button>
+              <Dialog open={isShareOpen} onOpenChange={setIsShareOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Share this product</DialogTitle>
+                  </DialogHeader>
+                  <ShareButtons url={shareUrl} className="py-4" />
+                </DialogContent>
+              </Dialog>
+            </>
+          ) : (
             <Popover>
-                <PopoverTrigger asChild>
-                    <Button variant="ghost" className="text-sm justify-start gap-2"><Share2 size={16}/> Share</Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto">
-                    <ShareButtons url={typeof window !== 'undefined' ? window.location.href : ''} />
-                </PopoverContent>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" className="text-sm justify-start gap-2"><Share2 size={16}/> Share</Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto">
+                <ShareButtons url={shareUrl} />
+              </PopoverContent>
             </Popover>
+          )}
       </div>
 
       <TrustBadges /> 
