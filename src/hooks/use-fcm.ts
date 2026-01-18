@@ -27,8 +27,10 @@ export const useFcmToken = (userId: string | undefined) => {
         }
         console.log('[FCM] Browser support confirmed.');
         
-        console.log('[FCM] Current notification permission:', Notification.permission);
-        if (Notification.permission === 'granted') {
+        const currentPermission = Notification.permission;
+        console.log('[FCM] Current notification permission:', currentPermission);
+
+        if (currentPermission === 'granted') {
           console.log('[FCM] Notification permission already granted. Proceeding to get token.');
           
           const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
@@ -60,7 +62,7 @@ export const useFcmToken = (userId: string | undefined) => {
           } else {
             console.log('[FCM] No registration token available. This can happen if permission was just granted and the service worker is not yet active. Please refresh.');
           }
-        } else if (Notification.permission === 'default') {
+        } else if (currentPermission === 'default') {
              console.log('[FCM] Notification permission is default. Waiting for user interaction (e.g., bell icon click).');
         } else {
           console.warn('[FCM] Notification permission denied by user.');
