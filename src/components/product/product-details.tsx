@@ -19,13 +19,8 @@ import { TrustBadges } from './trust-badges';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ShareButtons } from './share-buttons';
 import { useIsMobile } from '@/hooks/use-mobile';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { format } from 'date-fns';
 
 interface ProductDetailsProps {
   product: Product;
@@ -66,6 +61,26 @@ export function ProductDetails({
     const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants);
     return [...new Set(variantsArray.map(v => v.size).filter(Boolean))];
   }, [product]);
+  
+  const handleMobileShare = async () => {
+    const shareData = {
+      title: product.name,
+      text: `Check out this amazing product: ${product.name}`,
+      url: shareUrl,
+    };
+    if (navigator.share) {
+        try {
+            await navigator.share(shareData);
+        } catch (err) {
+            console.error(err);
+            // Fallback to dialog if share fails (e.g., user cancels)
+            setIsShareOpen(true);
+        }
+    } else {
+        // Fallback for browsers that don't support Web Share API
+        setIsShareOpen(true);
+    }
+  };
 
   const handleAddToCart = () => {
     if (!selectedVariant) {
@@ -104,7 +119,12 @@ export function ProductDetails({
         </div>
       </div>
       
-      {isFlashSaleActive && product.flashSale?.endDate && <FlashSaleTimer endDate={product.flashSale.endDate} />}
+      {isFlashSaleActive && product.flashSale?.endDate && (
+        <div className="space-y-2">
+            <p className="text-sm font-semibold text-destructive animate-pulse">Hurry, limited time deal!</p>
+            <FlashSaleTimer endDate={product.flashSale.endDate} />
+        </div>
+      )}
       
       <div className="flex items-baseline gap-4">
           <span className="text-4xl font-bold font-roboto text-primary">৳{displayPrice.toFixed(2)}</span>
@@ -120,6 +140,12 @@ export function ProductDetails({
             <p className="font-bold text-sm">FREE GIFT!</p>
             <p className="text-xs">{product.giftWithPurchase.description}</p>
             </div>
+        </div>
+      )}
+      
+       {product.preOrder?.enabled && product.preOrder.releaseDate?.toDate && (
+        <div className="text-sm text-purple-600 font-semibold bg-purple-50 p-3 rounded-md border border-purple-200">
+            This is a pre-order item. Expected release date: {format(product.preOrder.releaseDate.toDate(), "MMMM d, yyyy")}
         </div>
       )}
 
@@ -178,17 +204,7 @@ export function ProductDetails({
           <Button variant="ghost" onClick={() => setIsStoreAvailabilityOpen(true)} className="text-sm justify-start gap-2"><MapPin size={16}/> Check In-Store</Button>
           <Button variant="ghost" onClick={() => setIsBarcodeOpen(true)} className="text-sm justify-start gap-2"><Barcode size={16}/> Show Barcode</Button>
           {isMobile ? (
-            <>
-              <Button variant="ghost" onClick={() => setIsShareOpen(true)} className="text-sm justify-start gap-2"><Share2 size={16}/> Share</Button>
-              <Dialog open={isShareOpen} onOpenChange={setIsShareOpen}>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Share this product</DialogTitle>
-                  </DialogHeader>
-                  <ShareButtons url={shareUrl} className="py-4" />
-                </DialogContent>
-              </Dialog>
-            </>
+            <Button variant="ghost" onClick={handleMobileShare} className="text-sm justify-start gap-2"><Share2 size={16}/> Share</Button>
           ) : (
             <Popover>
               <PopoverTrigger asChild>
@@ -200,6 +216,16 @@ export function ProductDetails({
             </Popover>
           )}
       </div>
+      
+      {/* Mobile Share Dialog Fallback */}
+       <Dialog open={isMobile && isShareOpen} onOpenChange={setIsShareOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Share this product</DialogTitle>
+          </DialogHeader>
+          <ShareButtons url={shareUrl} className="py-4" />
+        </DialogContent>
+      </Dialog>
 
       <TrustBadges /> 
 
