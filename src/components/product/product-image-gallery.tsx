@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
@@ -57,6 +58,13 @@ export function ProductImageGallery({ product, selectedVariant }: ProductImageGa
   }, [selectedVariant, product.image]);
   
   const isOutOfStock = !product.preOrder?.enabled && (!selectedVariant || (selectedVariant.stock || 0) <= 0);
+  
+  const getYouTubeThumbnail = (url: string) => {
+    if (!url || !url.includes('embed/')) return 'https://placehold.co/120x90?text=Invalid+Video';
+    const videoId = url.split('embed/')[1];
+    if (!videoId) return 'https://placehold.co/120x90?text=Invalid+Video';
+    return `https://img.youtube.com/vi/${videoId}/0.jpg`;
+  };
 
   return (
     <div className="flex flex-col gap-4 sticky top-28">
@@ -126,7 +134,7 @@ export function ProductImageGallery({ product, selectedVariant }: ProductImageGa
               activeMedia.src === media.src ? 'border-primary ring-2 ring-primary/50' : 'border-border'
             )}
           >
-            <Image src={media.type === 'video' ? `https://img.youtube.com/vi/${media.src.split('embed/')[1]}/0.jpg` : media.src} alt={`${product.name} thumbnail ${index + 1}`} fill className="object-cover" />
+            <Image src={media.type === 'video' ? getYouTubeThumbnail(media.src) : media.src} alt={`${product.name} thumbnail ${index + 1}`} fill className="object-cover" />
             {media.type === 'video' && (
                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                     <Youtube className="text-white h-8 w-8" />
