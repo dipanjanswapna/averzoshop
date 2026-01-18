@@ -31,11 +31,9 @@ export async function sendNotification(input: unknown) {
 
     snapshot.forEach(doc => {
       const data = doc.data();
-      if (Array.isArray(data?.fcmTokens)) {
-        tokens.push(...data.fcmTokens.filter(t => typeof t === 'string' && t.length > 0));
-      } else if (typeof data?.fcmTokens === 'string' && data.fcmTokens.length > 0) {
-        // Also collect legacy string tokens for this send
-        tokens.push(data.fcmTokens);
+      // Read tokens from the map/object
+      if (data?.fcmTokens && typeof data.fcmTokens === 'object') {
+        tokens.push(...Object.keys(data.fcmTokens));
       }
     });
 
@@ -97,28 +95,18 @@ export async function sendNotification(input: unknown) {
       });
     }
 
-    /* 7️⃣ Cleanup invalid tokens */
+    /* 7️⃣ Cleanup invalid tokens from Firestore */
     if (tokensToRemove.length > 0) {
-        const uniqueTokensToRemove = [...new Set(tokensToRemove)];
-        console.warn(`[FCM Cleanup] Removing ${uniqueTokensToRemove.length} invalid tokens.`);
-        
-        // Find all user documents that contain any of the invalid tokens
-        const usersToUpdateQuery = await firestore().collection('users').where('fcmTokens', 'array-contains-any', uniqueTokensToRemove).get();
-        
+        console.warn(`[FCM Cleanup] Removing ${tokensToRemove.length} invalid tokens.`);
         const batch = firestore().batch();
-        usersToUpdateQuery.forEach(doc => {
-            const userRef = firestore().collection('users').doc(doc.id);
-            batch.update(userRef, {
-                fcmTokens: admin.firestore.FieldValue.arrayRemove(...uniqueTokensToRemove)
+        
+        for (const token of tokensToRemove) {
+            const querySnapshot = await firestore().collection('users').where(`fcmTokens.${token}`, '==', true).get();
+            querySnapshot.forEach(doc => {
+                batch.update(doc.ref, {
+                    [`fcmTokens.${token}`]: admin.firestore.FieldValue.delete()
+                });
             });
-        });
-
-        // Also check for legacy string fields to clean them up
-        for (const token of uniqueTokensToRemove) {
-          const legacyUserQuery = await firestore().collection('users').where('fcmTokens', '==', token).get();
-          legacyUserQuery.forEach(doc => {
-            batch.update(doc.ref, { fcmTokens: admin.firestore.FieldValue.delete() });
-          });
         }
         
         await batch.commit();
