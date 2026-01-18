@@ -1,72 +1,78 @@
 'use client';
 
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Send, Loader2 } from 'lucide-react';
-import { Textarea } from '@/components/ui/textarea';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
-import { sendNotification } from '@/ai/flows/send-notification-flow';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { sendNotification } from '@/actions/notification-actions';
+import { useState } from 'react';
+import { Send } from 'lucide-react';
 
-// 1. Form validation schema
 const formSchema = z.object({
   title: z.string().min(1, { message: 'Title is required.' }),
-  message: z.string().min(1, { message: 'Message is required.' }),
-  link: z.string().optional(),
+  body: z.string().min(1, { message: 'Message is required.' }),
+  link: z.string().url({ message: 'Please enter a valid URL.' }).optional().or(z.literal('')),
 });
 
 export default function NotificationsPage() {
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  
+  const { toast } = useToast();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: '',
-      message: '',
+      body: '',
       link: '',
     },
   });
 
-  // 2. Submit function
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     try {
-      const result = await sendNotification({
-        title: values.title,
-        body: values.message,
-        link: values.link || undefined,
-      });
-
-      toast({
-        title: 'Notifications Sent!',
-        description: `Successfully sent to ${result.successCount} users. Failed for ${result.failureCount}.`,
-      });
-      
-      form.reset(); // Reset form on success
+      const result = await sendNotification(values);
+      if (result.success) {
+        toast({
+          title: 'Notifications Sent!',
+          description: `Successfully sent to ${result.successCount} user(s). Failed: ${result.failureCount}.`,
+        });
+        form.reset();
+      } else {
+        throw new Error(result.error || 'An unknown error occurred.');
+      }
     } catch (error: any) {
-      console.error("Submission error:", error);
       toast({
         variant: 'destructive',
-        title: 'Failed to send notifications',
-        description: error.message || 'Something went wrong while parsing the request.',
+        title: 'Failed to Send Notifications',
+        description: error.message,
       });
     } finally {
       setIsLoading(false);
     }
-  };
-  
+  }
+
   return (
-    <div className="flex flex-col gap-6 max-w-2xl mx-auto py-8">
-      <h1 className="text-3xl font-bold font-headline">Push Notifications</h1>
-      
-      <Card className="shadow-lg border-2">
+    <div className="flex flex-col gap-6">
+      <h1 className="text-3xl font-bold font-headline">Notifications</h1>
+      <Card>
         <CardHeader>
           <CardTitle>Notification Composer</CardTitle>
           <CardDescription>
@@ -81,62 +87,50 @@ export default function NotificationsPage() {
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <Label className="text-sm font-semibold">Title</Label>
+                    <FormLabel>Title</FormLabel>
                     <FormControl>
-                      <Input placeholder="E.g., Flash Sale is LIVE!" {...field} />
+                      <Input placeholder="e.g., ✨ New Flash Sale!" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
-                name="message"
+                name="body"
                 render={({ field }) => (
                   <FormItem>
-                    <Label className="text-sm font-semibold">Message</Label>
+                    <FormLabel>Message</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        placeholder="E.g., Grab your favorite products at 50% off!" 
-                        rows={4}
-                        {...field} 
+                      <Textarea
+                        placeholder="Announce your latest news to all users..."
+                        className="resize-none"
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
               <FormField
                 control={form.control}
                 name="link"
                 render={({ field }) => (
                   <FormItem>
-                    <Label className="text-sm font-semibold">Link (Optional)</Label>
+                    <FormLabel>Link (Optional)</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="E.g., /flash-sale or https://yourstore.com/promo" 
-                        {...field} 
+                      <Input
+                        placeholder="https://averzo.com/flash-sale"
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
-              <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  <>
-                    <Send className="mr-2 h-4 w-4" />
-                    Send Notification
-                  </>
-                )}
+              <Button type="submit" disabled={isLoading} className="w-full md:w-auto">
+                <Send className="mr-2 h-4 w-4" />
+                {isLoading ? 'Sending...' : 'Send Notification'}
               </Button>
             </form>
           </Form>

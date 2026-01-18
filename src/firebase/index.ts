@@ -1,9 +1,7 @@
-
 'use client';
 import { getApps, getApp, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
-
 import { app } from './config';
 
 export function initializeFirebase() {
