@@ -13,7 +13,33 @@
         "phone": { "type": "string", "description": "The user's phone number, especially for vendors, riders, and outlet managers." },
         "role": { "type": "string", "description": "The role of the user.", "enum": ["customer", "admin", "outlet", "vendor", "rider"] },
         "status": { "type": "string", "description": "The approval status of the user.", "enum": ["pending", "approved", "rejected"] },
-        "wishlist": { "type": "array", "description": "An array of product IDs that the user has added to their wishlist.", "items": { "type": "string" } },
+        "wishlists": {
+          "type": "array",
+          "description": "A list of the user's wishlists.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "name": { "type": "string" },
+              "isPublic": { "type": "boolean" },
+              "createdAt": { "type": "string", "format": "date-time" },
+              "updatedAt": { "type": "string", "format": "date-time" },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "productId": { "type": "string" },
+                    "addedAt": { "type": "string", "format": "date-time" },
+                    "notes": { "type": "string" }
+                  },
+                  "required": ["productId", "addedAt"]
+                }
+              }
+            },
+            "required": ["id", "name", "isPublic", "items", "createdAt", "updatedAt"]
+          }
+        },
         "addresses": { "type": "array", "items": { "$ref": "#/entities/address" } },
         "outletId": { "type": "string", "description": "The ID of the outlet this user manages, if applicable." },
         "assignedOutlets": {

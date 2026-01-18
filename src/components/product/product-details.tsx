@@ -1,11 +1,12 @@
 
+
 'use client';
 
 import { Dispatch, SetStateAction, useMemo, useState } from 'react';
 import type { Product, ProductVariant } from '@/types/product';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, ShoppingBag, Ruler, Barcode, MapPin, Share2, Star, Gift } from 'lucide-react';
+import { ShoppingBag, Ruler, Barcode, MapPin, Share2, Star, Gift } from 'lucide-react';
 import { cn, getVariantsAsArray } from '@/lib/utils';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';

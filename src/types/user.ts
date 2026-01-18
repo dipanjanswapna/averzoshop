@@ -1,4 +1,6 @@
+'use client';
 import type { Address } from './address';
+import type { Wishlist } from './wishlist';
 
 export interface UserData {
   uid: string;
@@ -7,7 +9,7 @@ export interface UserData {
   photoURL: string | null;
   role: 'customer' | 'vendor' | 'rider' | 'admin' | 'outlet';
   status: 'pending' | 'approved' | 'rejected';
-  wishlist?: string[];
+  wishlists?: Wishlist[];
   addresses?: Address[];
   outletId?: string;
   assignedOutlets?: string[];
