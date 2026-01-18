@@ -213,7 +213,7 @@ export default function AverzoNavbar() {
           "hidden lg:flex h-10"
       )}>
         <div className="w-full overflow-x-auto whitespace-nowrap no-scrollbar">
-            <div className="container mx-auto flex items-center gap-8 h-full">
+            <div className="container mx-auto flex items-center justify-between h-full">
               <Link href="/flash-sale" className="h-full flex items-center">
                 <span className="text-sm font-bold uppercase tracking-widest flex items-center gap-1 text-destructive animate-pulse">
                   <Zap size={14} /> Flash Sale
@@ -286,5 +286,3 @@ export default function AverzoNavbar() {
     </header>
   );
 }
-
-    

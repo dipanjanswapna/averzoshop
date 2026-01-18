@@ -11,13 +11,13 @@ export default {
   theme: {
     container: {
       center: true,
-      padding: "1.25rem",
+      padding: "1rem",
       screens: {
         sm: "640px",
         md: "768px",
         lg: "1024px",
         xl: "1280px",
-        "2xl": "1440px",
+        "2xl": "1536px",
       },
     },
     extend: {
@@ -109,5 +109,3 @@ export default {
   },
   plugins: [require('tailwindcss-animate')],
 } satisfies Config;
-
-    
