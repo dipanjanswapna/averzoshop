@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Heart, Plus } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { doc, updateDoc, Timestamp } from 'firebase/firestore';
