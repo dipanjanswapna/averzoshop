@@ -1,10 +1,10 @@
+
 'use server';
 
-import { firestore } from '@/firebase/server';
-import * as admin from 'firebase-admin';
+import { firestore, admin } from '@/firebase/server';
 
 export async function updateFcmToken(userId: string, token: string) {
-  const userRef = firestore().collection('users').doc(userId);
+  const userRef = firestore.collection('users').doc(userId);
 
   try {
     // Using a map is better for ensuring uniqueness and easier cleanup.

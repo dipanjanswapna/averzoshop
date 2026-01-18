@@ -1,8 +1,8 @@
+
 'use server';
 
-import * as admin from 'firebase-admin';
 import { z } from 'zod';
-import { firestore, getFirebaseAdminApp } from '@/firebase/server';
+import { firestore, admin } from '@/firebase/server';
 
 /* ================================
    Zod Schema
@@ -21,11 +21,8 @@ export async function sendNotification(input: unknown) {
     /* 1️⃣ Validate input */
     const { title, body, link } = SendNotificationSchema.parse(input);
 
-    /* 2️⃣ Ensure Firebase Admin initialized */
-    getFirebaseAdminApp();
-
-    /* 3️⃣ Fetch all users FCM tokens */
-    const snapshot = await firestore().collection('users').get();
+    /* 2️⃣ Fetch all users FCM tokens */
+    const snapshot = await firestore.collection('users').get();
 
     const tokens: string[] = [];
 
@@ -37,7 +34,7 @@ export async function sendNotification(input: unknown) {
       }
     });
 
-    /* 4️⃣ Remove duplicates */
+    /* 3️⃣ Remove duplicates */
     const uniqueTokens = [...new Set(tokens)];
 
     if (uniqueTokens.length === 0) {
@@ -49,7 +46,7 @@ export async function sendNotification(input: unknown) {
       };
     }
 
-    /* 5️⃣ Chunk (FCM limit = 500) */
+    /* 4️⃣ Chunk (FCM limit = 500) */
     const chunks: string[][] = [];
     for (let i = 0; i < uniqueTokens.length; i += 500) {
       chunks.push(uniqueTokens.slice(i, i + 500));
@@ -59,7 +56,7 @@ export async function sendNotification(input: unknown) {
     let failureCount = 0;
     const tokensToRemove: string[] = [];
     
-    /* 6️⃣ Send notifications and collect invalid tokens */
+    /* 5️⃣ Send notifications and collect invalid tokens */
     for (const chunk of chunks) {
       const message: admin.messaging.MulticastMessage = {
         tokens: chunk,
@@ -95,13 +92,13 @@ export async function sendNotification(input: unknown) {
       });
     }
 
-    /* 7️⃣ Cleanup invalid tokens from Firestore */
+    /* 6️⃣ Cleanup invalid tokens from Firestore */
     if (tokensToRemove.length > 0) {
         console.warn(`[FCM Cleanup] Removing ${tokensToRemove.length} invalid tokens.`);
-        const batch = firestore().batch();
+        const batch = firestore.batch();
         
         for (const token of tokensToRemove) {
-            const querySnapshot = await firestore().collection('users').where(`fcmTokens.${token}`, '==', true).get();
+            const querySnapshot = await firestore.collection('users').where(`fcmTokens.${token}`, '==', true).get();
             querySnapshot.forEach(doc => {
                 batch.update(doc.ref, {
                     [`fcmTokens.${token}`]: admin.firestore.FieldValue.delete()
