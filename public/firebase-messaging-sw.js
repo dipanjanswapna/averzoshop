@@ -1,88 +1,43 @@
-// This file must be in the public folder.
+// DO NOT USE import/export
+// This file is a service worker and runs in a different context.
 
-// Initialize the Firebase app in the service worker by passing in
-// the messagingSenderId.
-import { initializeApp } from 'firebase/app';
-import { getMessaging, onBackgroundMessage } from 'firebase/messaging/sw';
+// These importScripts are required for the Firebase SDK to work in the service worker.
+importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js");
 
-// This is required to make the service worker work.
-self.addEventListener('install', () => {
-    self.skipWaiting();
+self.addEventListener('install', function(e) {
+  console.log('[FCM SW] Service Worker installing.');
 });
 
-self.addEventListener('push', (event) => {
-  try {
-    const notificationData = event.data.json();
-    const { title, body, icon, ...options } = notificationData.notification;
-    
-    event.waitUntil(
-      self.registration.showNotification(title, {
-        body,
-        icon,
-        ...options,
-      })
-    );
-  } catch (error) {
-    console.error('Error handling push event:', error);
-  }
+self.addEventListener('activate', function(e) {
+  console.log('[FCM SW] Service Worker activating.');
 });
 
+// The firebaseConfig is passed from the client-provider as a URL query parameter.
+const urlParams = new URLSearchParams(location.search);
+const firebaseConfigParam = urlParams.get("firebaseConfig");
 
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close();
-
-  const openUrl = event.notification.data?.FCM_MSG?.notification?.fcmOptions?.link || '/';
-
-  event.waitUntil(
-    clients.matchAll({
-      type: "window",
-      includeUncontrolled: true,
-    }).then((clientList) => {
-      // If a window for the app is already open, focus it.
-      for (let i = 0; i < clientList.length; i++) {
-        let client = clientList[i];
-        if (client.url === openUrl && 'focus' in client) {
-          return client.focus();
-        }
-      }
-      // Otherwise, open a new window.
-      if (clients.openWindow) {
-        return clients.openWindow(openUrl);
-      }
-    })
-  );
-});
-
-
-// We need to initialize the app in the service worker
-const urlParams = new URL(location).searchParams;
-const firebaseConfigParam = urlParams.get('firebaseConfig');
-
-if (firebaseConfigParam) {
-    const firebaseConfig = JSON.parse(decodeURIComponent(firebaseConfigParam));
-    const app = initializeApp(firebaseConfig);
-    const messaging = getMessaging(app);
-
-    onBackgroundMessage(messaging, (payload) => {
-      console.log('[firebase-messaging-sw.js] Received background message ', payload);
-      
-      const notificationTitle = payload.notification?.title || 'New Message';
-      const notificationOptions = {
-        body: payload.notification?.body || '',
-        icon: payload.notification?.icon || '/logo.png',
-        data: {
-            FCM_MSG: {
-                notification: {
-                    fcmOptions: {
-                        link: payload.fcmOptions?.link
-                    }
-                }
-            }
-        }
-      };
-
-      self.registration.showNotification(notificationTitle, notificationOptions);
-    });
+if (!firebaseConfigParam) {
+    console.error("[FCM SW] Firebase config not found in URL. This is required for initialization.");
 } else {
-    console.error('[firebase-messaging-sw.js] Firebase config not found in URL. Background messaging will not work.');
+    try {
+        const firebaseConfig = JSON.parse(decodeURIComponent(firebaseConfigParam));
+        firebase.initializeApp(firebaseConfig);
+
+        const messaging = firebase.messaging();
+
+        messaging.onBackgroundMessage((payload) => {
+            console.log('[FCM SW] Received background message: ', payload);
+
+            const notificationTitle = payload.notification?.title || 'New Message';
+            const notificationOptions = {
+                body: payload.notification?.body || 'You have a new notification.',
+                icon: payload.notification?.icon || '/logo.png'
+            };
+
+            self.registration.showNotification(notificationTitle, notificationOptions);
+        });
+    } catch (error) {
+        console.error("[FCM SW] Error parsing Firebase config or initializing app:", error);
+    }
 }
