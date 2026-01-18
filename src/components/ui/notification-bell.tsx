@@ -7,62 +7,67 @@ import { useAuth } from '@/hooks/use-auth';
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from './button';
-import { Bell, BellOff } from 'lucide-react';
+import { Bell, BellOff, BellRing } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './tooltip';
 
 export function NotificationBell() {
     const { firebaseApp, firestore } = useFirebase();
     const { user } = useAuth();
     const { toast } = useToast();
-    const [permissionStatus, setPermissionStatus] = useState<NotificationPermission | 'unsupported'>('unsupported');
-    const [isLoading, setIsLoading] = useState(false);
-
-    const checkSupportAndPermission = useCallback(async () => {
-        const supported = await isSupported();
-        if (supported) {
-            setPermissionStatus(Notification.permission);
-        } else {
-            setPermissionStatus('unsupported');
-        }
-    }, []);
+    const [permission, setPermission] = useState<NotificationPermission>('default');
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        checkSupportAndPermission();
-    }, [checkSupportAndPermission]);
+      const checkPermission = async () => {
+        try {
+          const supported = await isSupported();
+          if (supported && 'Notification' in window) {
+              setPermission(Notification.permission);
+          } else {
+              setPermission('denied'); // Treat unsupported as denied
+          }
+        } catch(e) {
+          console.error("Error checking notification support:", e);
+          setPermission('denied');
+        } finally {
+          setIsLoading(false);
+        }
+      }
+      checkPermission();
+    }, []);
 
-    const requestPermissionAndRegister = async () => {
-        if (permissionStatus === 'denied') {
+    const handleEnableNotifications = async () => {
+        const supported = await isSupported();
+        if (!("Notification" in window) || !supported) {
+            toast({ variant: 'destructive', title: "This browser doesn't support notifications." });
+            return;
+        }
+
+        if (permission === 'denied') {
             toast({
                 variant: 'destructive',
-                title: 'Permission Denied',
-                description: 'Please enable notifications in your browser settings.',
+                title: 'Notifications Blocked',
+                description: 'Please enable notifications for this site in your browser settings.',
             });
             return;
         }
 
-        if (permissionStatus === 'granted') {
-             toast({
-                title: 'Notifications Already Enabled',
-            });
+        if (permission === 'granted') {
+             toast({ title: 'Notifications are already enabled.' });
             return;
         }
         
-        if (!firebaseApp || !firestore) {
-             toast({ variant: 'destructive', title: 'Error', description: 'Firebase service is not available.'});
-             return;
-        }
-
         setIsLoading(true);
 
         try {
             const status = await Notification.requestPermission();
-            setPermissionStatus(status);
+            setPermission(status);
             
             if (status === 'granted') {
+                if (!firebaseApp || !firestore) throw new Error('Firebase service is not available.');
+                
                 const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
-                if (!vapidKey) {
-                    throw new Error("VAPID key is missing. Push notifications cannot be enabled.");
-                }
+                if (!vapidKey) throw new Error("VAPID key is missing from environment variables.");
 
                 const firebaseConfig = firebaseApp.options;
                 const configParams = new URLSearchParams(firebaseConfig as Record<string,string>).toString();
@@ -71,20 +76,16 @@ export function NotificationBell() {
                 const swRegistration = await navigator.serviceWorker.register(swUrl);
                 
                 const messaging = getMessaging(firebaseApp);
-                const fcmToken = await getToken(messaging, { 
-                    vapidKey,
-                    serviceWorkerRegistration: swRegistration
-                });
+                const fcmToken = await getToken(messaging, { vapidKey, serviceWorkerRegistration: swRegistration });
                 
                 if (fcmToken && user) {
                     const userRef = doc(firestore, 'users', user.uid);
                     await updateDoc(userRef, { fcmTokens: arrayUnion(fcmToken) });
-                    toast({ title: "Notifications Enabled!", description: "You're all set to receive updates." });
-                } else if (!user) {
-                     toast({ title: "Permission Granted!", description: "Log in to sync your notifications across devices." });
                 }
+                
+                toast({ title: "Notifications Enabled!", description: "You're all set to receive updates." });
             } else {
-                toast({ variant: 'destructive', title: 'Notifications Disabled', description: 'You can enable them from browser settings later.' });
+                toast({ variant: 'destructive', title: 'Notifications Disabled', description: 'You can change this in your browser settings.' });
             }
         } catch (error: any) {
             console.error('Error setting up push notifications:', error);
@@ -94,31 +95,39 @@ export function NotificationBell() {
         }
     };
     
-    if (permissionStatus === 'unsupported') {
-        return null;
+    if (isLoading) {
+        return (
+             <div className="relative p-2">
+                <Bell className="h-6 w-6 text-gray-400 animate-pulse" />
+             </div>
+        )
     }
 
-    const getTooltipContent = () => {
-        switch (permissionStatus) {
+    const getIconAndTooltip = () => {
+        switch (permission) {
             case 'granted':
-                return 'Notifications are enabled';
+                return { icon: <BellRing className="h-6 w-6 text-green-600" />, tooltip: 'Notifications are enabled' };
             case 'denied':
-                return 'Notifications are blocked';
+                return { icon: <BellOff className="h-6 w-6 text-red-500" />, tooltip: 'Notifications are blocked' };
             default:
-                return 'Enable notifications';
+                 return { icon: <Bell className="h-6 w-6 text-gray-600 group-hover:animate-bounce" />, tooltip: 'Enable notifications' };
         }
     };
+
+    const { icon, tooltip } = getIconAndTooltip();
     
     return (
         <Tooltip>
             <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-auto w-auto p-0" onClick={requestPermissionAndRegister} disabled={isLoading}>
-                    {permissionStatus === 'denied' ? <BellOff size={22} className="cursor-pointer hover:text-destructive transition-colors" /> : <Bell size={22} className="cursor-pointer hover:text-primary transition-colors" />}
-                    <span className="sr-only">Toggle notifications</span>
-                </Button>
+                <button onClick={handleEnableNotifications} className="relative p-2 rounded-full hover:bg-gray-100 transition-all group" title={tooltip} disabled={isLoading}>
+                    {icon}
+                    {permission === "default" && (
+                        <span className="absolute top-1 right-1 block h-2.5 w-2.5 rounded-full bg-red-500 ring-2 ring-white" />
+                    )}
+                </button>
             </TooltipTrigger>
             <TooltipContent>
-                <p>{getTooltipContent()}</p>
+                <p>{tooltip}</p>
             </TooltipContent>
         </Tooltip>
     );
