@@ -135,24 +135,24 @@ export default function StoreFrontPage() {
         </section>
         
         {flashSaleProducts.length > 0 && flashSaleEndDate && (
-          <section className="py-8 md:py-10">
+          <section className="py-2 md:py-4">
             <div className="container">
               <div className="bg-gradient-to-br from-red-600 via-orange-500 to-yellow-400 text-white rounded-2xl p-4 shadow-2xl overflow-hidden relative flex flex-col lg:flex-row items-center gap-4">
                 
                 <div className="absolute -top-10 -left-20 w-24 h-24 bg-white/10 rounded-full blur-3xl opacity-50"></div>
                 <div className="absolute -bottom-20 -right-10 w-32 h-32 bg-white/10 rounded-full blur-3xl opacity-60"></div>
 
-                <div className="relative z-10 text-center lg:text-left flex-1 shrink-0">
-                  <h2 className="text-base md:text-lg font-extrabold uppercase font-headline tracking-wider flex items-center justify-center lg:justify-start gap-2">
-                    <Zap size={16} className="text-yellow-300"/>
+                <div className="relative z-10 text-center lg:text-left lg:w-1/3 shrink-0">
+                  <h2 className="text-sm md:text-base font-extrabold uppercase font-headline tracking-wider flex items-center justify-center lg:justify-start gap-2">
+                    <Zap size={14} className="text-yellow-300"/>
                     This Week's Must-Haves
                   </h2>
-                  <p className="mt-1 text-xs text-white/80 max-w-lg mx-auto lg:mx-0">
+                  <p className="mt-0.5 text-xs text-white/80 max-w-lg mx-auto lg:mx-0">
                     Trending Gadgets, Carefully Chosen for You.
                   </p>
                   
                   {flashSaleEndDate && (
-                    <div className="my-2 flex justify-center lg:justify-start">
+                    <div className="my-1.5 flex justify-center lg:justify-start">
                       <FlashSalePageTimer endDate={flashSaleEndDate} />
                     </div>
                   )}
@@ -164,7 +164,7 @@ export default function StoreFrontPage() {
                   </Link>
                 </div>
 
-                <div className="relative z-10 w-full lg:flex-1">
+                <div className="relative z-10 w-full lg:w-2/3">
                   <Carousel
                       opts={{
                           align: "start",
