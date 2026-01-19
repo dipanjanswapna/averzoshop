@@ -48,18 +48,27 @@ service cloud.firestore {
                            && get(/databases/$(database)/documents/products/$(productId)).data.vendorId == request.auth.uid);
     }
 
-    // Orders can be read by the customer who placed it, the assigned outlet, or an admin.
-    // Orders can only be created by the customer themselves.
-    // Orders can be updated by admins, or by assigned outlets/riders if the order is not in a final state.
+    // Orders can be read by the customer, assigned outlet, assigned rider or an admin.
+    // Created only by the customer.
+    // Updated by admin, outlet manager (for early stages), or rider (for delivery stages).
     match /orders/{orderId} {
       allow read: if request.auth.uid == resource.data.customerId 
                     || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
-                    || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.outletId == resource.data.assignedOutletId;
+                    || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.outletId == resource.data.assignedOutletId
+                    || request.auth.uid == resource.data.riderId;
       allow create: if request.auth.uid == request.resource.data.customerId;
       allow update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
-                      || ((resource.data.status != 'delivered' && resource.data.status != 'canceled') &&
-                         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.outletId == resource.data.assignedOutletId
-                          || resource.data.riderId == request.auth.uid));
+                      || ( // Outlet manager
+                         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.outletId == resource.data.assignedOutletId &&
+                         resource.data.status in ['new', 'preparing']
+                       )
+                      || ( // Rider
+                         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'rider' &&
+                         (
+                           (resource.data.status == 'ready_for_pickup' && request.resource.data.status == 'out_for_delivery' && request.resource.data.riderId == request.auth.uid) ||
+                           (resource.data.riderId == request.auth.uid && resource.data.status == 'out_for_delivery' && request.resource.data.status == 'delivered')
+                         )
+                       );
     }
 
     // POS sales can be created and read by the outlet manager or an admin.

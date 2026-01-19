@@ -19,18 +19,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { useAuth } from '@/hooks/use-auth';
-import type { Order, OrderStatus } from '@/types/order'; // Import OrderStatus
+import type { Order, OrderStatus } from '@/types/order';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useFirebase } from '@/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { useMemo } from 'react';
-import { Check, Package, Send } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Check, Package, Send, Truck, CheckCircle } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 export default function OnlineOrdersPage() {
   const { userData } = useAuth();
   const { firestore } = useFirebase();
   const { toast } = useToast();
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
   
   const outletId = useMemo(() => userData?.outletId, [userData]);
 
@@ -38,11 +40,13 @@ export default function OnlineOrdersPage() {
   
   const outletOrders = useMemo(() => {
     if (!allOrders || !outletId) return [];
-    return allOrders.filter(order => order.assignedOutletId === outletId);
+    return allOrders.filter(order => order.assignedOutletId === outletId)
+      .sort((a,b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
   }, [allOrders, outletId]);
 
   const handleUpdateStatus = async (orderId: string, newStatus: OrderStatus) => {
     if (!firestore) return;
+    setUpdatingId(orderId);
     const orderRef = doc(firestore, 'orders', orderId);
     try {
         await updateDoc(orderRef, { status: newStatus });
@@ -50,6 +54,8 @@ export default function OnlineOrdersPage() {
     } catch (error) {
         toast({ variant: 'destructive', title: 'Failed to update order.' });
         console.error("Error updating order: ", error);
+    } finally {
+        setUpdatingId(null);
     }
   };
 
@@ -61,7 +67,7 @@ export default function OnlineOrdersPage() {
           <TableHead>Customer</TableHead>
           <TableHead>Items</TableHead>
           <TableHead className="text-right">Total</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
+          <TableHead className="text-center">Action / Status</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -72,7 +78,7 @@ export default function OnlineOrdersPage() {
                     <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                     <TableCell><Skeleton className="h-5 w-12" /></TableCell>
                     <TableCell className="text-right"><Skeleton className="h-5 w-20 ml-auto" /></TableCell>
-                    <TableCell className="text-right"><Skeleton className="h-9 w-28 ml-auto" /></TableCell>
+                    <TableCell className="text-center"><Skeleton className="h-9 w-32 mx-auto" /></TableCell>
                 </TableRow>
             ))
         ) : orders.length > 0 ? orders.map(order => (
@@ -81,10 +87,12 @@ export default function OnlineOrdersPage() {
             <TableCell>{order.shippingAddress.name}</TableCell>
             <TableCell>{order.items.reduce((acc, item) => acc + item.quantity, 0)}</TableCell>
             <TableCell className="text-right">৳{order.totalAmount.toFixed(2)}</TableCell>
-            <TableCell className="text-right">
-                {status === 'new' && <Button size="sm" onClick={() => handleUpdateStatus(order.id, 'preparing')}><Check className="mr-2 h-4 w-4"/>Accept Order</Button>}
-                {status === 'preparing' && <Button size="sm" onClick={() => handleUpdateStatus(order.id, 'ready_for_pickup')}><Package className="mr-2 h-4 w-4"/>Ready for Pickup</Button>}
-                {status === 'ready_for_pickup' && <Button size="sm" variant="outline" disabled><Send className="mr-2 h-4 w-4"/>Awaiting Rider</Button>}
+            <TableCell className="text-center">
+                {order.status === 'new' && <Button size="sm" onClick={() => handleUpdateStatus(order.id, 'preparing')} disabled={updatingId === order.id}><Check className="mr-2 h-4 w-4"/>Accept Order</Button>}
+                {order.status === 'preparing' && <Button size="sm" onClick={() => handleUpdateStatus(order.id, 'ready_for_pickup')} disabled={updatingId === order.id}><Package className="mr-2 h-4 w-4"/>Ready for Pickup</Button>}
+                {order.status === 'ready_for_pickup' && <Button size="sm" variant="outline" disabled><Send className="mr-2 h-4 w-4"/>Awaiting Rider</Button>}
+                {order.status === 'out_for_delivery' && <Badge variant="secondary" className="bg-blue-100 text-blue-800"><Truck className="mr-2 h-4 w-4" />On its way</Badge>}
+                {order.status === 'delivered' && <Badge className="bg-green-100 text-green-800"><CheckCircle className="mr-2 h-4 w-4" />Delivered</Badge>}
             </TableCell>
           </TableRow>
         )) : (
@@ -97,6 +105,8 @@ export default function OnlineOrdersPage() {
       </TableBody>
     </Table>
   );
+  
+  const filterOrders = (status: OrderStatus) => outletOrders.filter(o => o.status === status);
 
   return (
     <div className="flex flex-col gap-6">
@@ -108,19 +118,27 @@ export default function OnlineOrdersPage() {
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="new">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-5">
               <TabsTrigger value="new">New Orders</TabsTrigger>
               <TabsTrigger value="preparing">Preparing</TabsTrigger>
               <TabsTrigger value="ready_for_pickup">Ready for Pickup</TabsTrigger>
+              <TabsTrigger value="out_for_delivery">Out for Delivery</TabsTrigger>
+              <TabsTrigger value="delivered">Delivered</TabsTrigger>
             </TabsList>
             <TabsContent value="new" className="mt-4">
-              {renderOrderTable(outletOrders.filter(o => o.status === 'new'), 'new')}
+              {renderOrderTable(filterOrders('new'), 'new')}
             </TabsContent>
              <TabsContent value="preparing" className="mt-4">
-              {renderOrderTable(outletOrders.filter(o => o.status === 'preparing'), 'preparing')}
+              {renderOrderTable(filterOrders('preparing'), 'preparing')}
             </TabsContent>
              <TabsContent value="ready_for_pickup" className="mt-4">
-              {renderOrderTable(outletOrders.filter(o => o.status === 'ready_for_pickup'), 'ready_for_pickup')}
+              {renderOrderTable(filterOrders('ready_for_pickup'), 'ready_for_pickup')}
+            </TabsContent>
+            <TabsContent value="out_for_delivery" className="mt-4">
+              {renderOrderTable(filterOrders('out_for_delivery'), 'out_for_delivery')}
+            </TabsContent>
+             <TabsContent value="delivered" className="mt-4">
+              {renderOrderTable(filterOrders('delivered'), 'delivered')}
             </TabsContent>
           </Tabs>
         </CardContent>

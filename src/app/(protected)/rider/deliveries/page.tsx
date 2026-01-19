@@ -1,5 +1,5 @@
 'use client';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { doc, updateDoc } from 'firebase/firestore';
@@ -11,8 +11,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MapPin, Package, Check, Truck } from 'lucide-react';
 import type { Order, OrderStatus } from '@/types/order';
+import type { Outlet } from '@/types/outlet';
 
-function DeliveryCard({ order, onAction, actionLabel, actionIcon: Icon, isLoading }: { order: Order, onAction: (orderId: string) => void, actionLabel: string, actionIcon: React.ElementType, isLoading: boolean }) {
+function DeliveryCard({ order, outlet, onAction, actionLabel, actionIcon: Icon, isLoading }: { order: Order, outlet: Outlet | undefined, onAction: (orderId: string) => void, actionLabel: string, actionIcon: React.ElementType, isLoading: boolean }) {
     return (
         <Card>
             <CardHeader>
@@ -20,9 +21,15 @@ function DeliveryCard({ order, onAction, actionLabel, actionIcon: Icon, isLoadin
                 <CardDescription>To: {order.shippingAddress.name}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
+                 {outlet && (
+                    <div className="flex items-start gap-2 font-semibold text-primary">
+                        <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                        <span>Pickup from: {outlet.name}</span>
+                    </div>
+                )}
                 <div className="flex items-start gap-2">
-                    <MapPin className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
-                    <span>{order.shippingAddress.address}, {order.shippingAddress.city}</span>
+                    <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                    <span>{order.shippingAddress.streetAddress}, {order.shippingAddress.area}</span>
                 </div>
                  <div className="flex items-center gap-2">
                     <Package className="h-4 w-4 text-muted-foreground flex-shrink-0" />
@@ -43,9 +50,17 @@ export default function RiderDeliveriesPage() {
     const { user, loading: authLoading } = useAuth();
     const { firestore } = useFirebase();
     const { toast } = useToast();
+    const [updatingId, setUpdatingId] = useState<string | null>(null);
+
     const { data: allOrders, isLoading: ordersLoading } = useFirestoreQuery<Order>('orders');
+    const { data: allOutlets, isLoading: outletsLoading } = useFirestoreQuery<Outlet>('outlets');
     
-    const isLoading = authLoading || ordersLoading;
+    const isLoading = authLoading || ordersLoading || outletsLoading;
+
+    const outletMap = useMemo(() => {
+        if (!allOutlets) return new Map();
+        return new Map(allOutlets.map(o => [o.id, o]));
+    }, [allOutlets]);
 
     const availableDeliveries = useMemo(() => {
         if (!allOrders) return [];
@@ -59,6 +74,7 @@ export default function RiderDeliveriesPage() {
 
     const handleAcceptDelivery = async (orderId: string) => {
         if (!firestore || !user) return;
+        setUpdatingId(orderId);
         const orderRef = doc(firestore, 'orders', orderId);
         try {
             await updateDoc(orderRef, {
@@ -69,11 +85,14 @@ export default function RiderDeliveriesPage() {
         } catch (error) {
             toast({ variant: 'destructive', title: 'Failed to accept delivery.'});
             console.error("Error accepting delivery:", error);
+        } finally {
+            setUpdatingId(null);
         }
     };
 
     const handleMarkDelivered = async (orderId: string) => {
         if (!firestore) return;
+        setUpdatingId(orderId);
         const orderRef = doc(firestore, 'orders', orderId);
         try {
             await updateDoc(orderRef, { status: 'delivered' });
@@ -81,6 +100,8 @@ export default function RiderDeliveriesPage() {
         } catch (error) {
             toast({ variant: 'destructive', title: 'Failed to update status.' });
             console.error("Error marking delivered:", error);
+        } finally {
+            setUpdatingId(null);
         }
     };
     
@@ -114,10 +135,11 @@ export default function RiderDeliveriesPage() {
                                <DeliveryCard 
                                     key={order.id}
                                     order={order}
+                                    outlet={outletMap.get(order.assignedOutletId)}
                                     onAction={handleAcceptDelivery}
                                     actionLabel="Accept & Pickup"
                                     actionIcon={Truck}
-                                    isLoading={isLoading}
+                                    isLoading={isLoading || updatingId === order.id}
                                />
                            ))}
                         </div>
@@ -135,10 +157,11 @@ export default function RiderDeliveriesPage() {
                                <DeliveryCard 
                                     key={order.id}
                                     order={order}
+                                    outlet={outletMap.get(order.assignedOutletId)}
                                     onAction={handleMarkDelivered}
                                     actionLabel="Mark as Delivered"
                                     actionIcon={Check}
-                                    isLoading={isLoading}
+                                    isLoading={isLoading || updatingId === order.id}
                                />
                            ))}
                          </div>

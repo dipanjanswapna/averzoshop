@@ -1,4 +1,3 @@
-
 'use client';
 import { useMemo, useState } from 'react';
 import {
@@ -27,14 +26,20 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import type { Outlet } from '@/types/outlet';
 import type { UserData } from '@/types/user';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Truck } from 'lucide-react';
 
 const getStatusBadge = (status: OrderStatus) => {
     switch (status) {
       case 'pre-ordered':
-        return <Badge variant="secondary" className="bg-blue-100 text-blue-800 capitalize">{status}</Badge>;
+        return <Badge variant="secondary" className="bg-blue-100 text-blue-800 capitalize">{status.replace('_', ' ')}</Badge>;
       case 'new':
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 capitalize">Ready for Payment</Badge>;
+        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 capitalize">Order Placed</Badge>;
+      case 'preparing':
+         return <Badge variant="secondary" className="bg-orange-100 text-orange-800 capitalize">{status}</Badge>;
+      case 'ready_for_pickup':
+         return <Badge variant="secondary" className="bg-purple-100 text-purple-800 capitalize">{status.replace('_', ' ')}</Badge>;
+      case 'out_for_delivery':
+          return <Badge variant="secondary" className="bg-cyan-100 text-cyan-800 capitalize">{status.replace('_', ' ')}</Badge>;
       case 'fulfilled':
       case 'delivered':
         return <Badge variant="default" className="bg-green-100 text-green-800 capitalize">{status}</Badge>;
@@ -61,15 +66,9 @@ export default function MyOrdersPage() {
   }, [firestore, user]);
 
   const { data: userOrders, isLoading: ordersLoading } = useFirestoreQuery<Order>(userOrdersQuery);
-  const { data: outlets, isLoading: outletsLoading } = useFirestoreQuery<Outlet>('outlets');
   const { data: users, isLoading: usersLoading } = useFirestoreQuery<UserData>('users');
 
-  const isLoading = ordersLoading || outletsLoading || usersLoading;
-
-  const outletMap = useMemo(() => {
-    if (!outlets) return new Map();
-    return new Map(outlets.map(o => [o.id, o]));
-  }, [outlets]);
+  const isLoading = ordersLoading || usersLoading;
 
   const userMap = useMemo(() => {
     if (!users) return new Map();
@@ -81,8 +80,8 @@ export default function MyOrdersPage() {
     setUpdatingId(orderId);
     try {
         const orderRef = doc(firestore, 'orders', orderId);
-        await updateDoc(orderRef, { status: 'preparing' });
-        toast({ title: 'Payment Complete', description: 'Your order is now being prepared for shipment.' });
+        await updateDoc(orderRef, { status: 'new' });
+        toast({ title: 'Payment Complete', description: 'Your order is now being processed.' });
     } catch(e) {
         toast({ variant: 'destructive', title: 'Payment Failed', description: 'Could not complete payment. Please try again.' });
     } finally {
@@ -123,10 +122,8 @@ export default function MyOrdersPage() {
             <TableBody>
               {isLoading ? renderSkeleton() : userOrders && userOrders.length > 0 ? (
                 userOrders.map(order => {
-                  const assignedOutlet = outletMap.get(order.assignedOutletId);
-                  const manager = assignedOutlet ? userMap.get(assignedOutlet.managerId) : null;
-                  const managerPhone = manager?.phone;
-                  const formattedPhone = managerPhone ? `88${managerPhone.replace(/\D/g, '').replace(/^0/, '')}` : null;
+                  const rider = order.riderId ? userMap.get(order.riderId) : null;
+                  const riderPhone = rider?.phone ? `88${rider.phone.replace(/\D/g, '').replace(/^0/, '')}` : null;
                   
                   return (
                     <TableRow key={order.id}>
@@ -137,18 +134,18 @@ export default function MyOrdersPage() {
                       </TableCell>
                       <TableCell className="text-right">৳{order.totalAmount.toFixed(2)}</TableCell>
                        <TableCell className="text-right">
-                          {order.orderType === 'pre-order' && order.status === 'new' && (
+                          {order.orderType === 'pre-order' && order.status === 'pre-ordered' && (
                               <Button onClick={() => handleCompletePayment(order.id)} disabled={updatingId === order.id} size="sm">
                                   {updatingId === order.id ? 'Processing...' : 'Complete Payment'}
                               </Button>
                           )}
-                           {(order.status === 'new' || order.status === 'preparing') && formattedPhone && (
-                              <div className="mt-2 text-right">
-                                  <p className="text-xs text-muted-foreground">দ্রুত আপডেটের জন্য, আউটলেটে যোগাযোগ করুন।</p>
+                          {order.status === 'out_for_delivery' && riderPhone && (
+                              <div className="text-right">
+                                  <p className="text-xs text-muted-foreground">Contact your rider:</p>
                                   <Button asChild variant="outline" size="sm" className="mt-1 bg-green-50 hover:bg-green-100 border-green-200 text-green-800">
-                                      <a href={`https://wa.me/${formattedPhone}`} target="_blank" rel="noopener noreferrer">
+                                      <a href={`https://wa.me/${riderPhone}`} target="_blank" rel="noopener noreferrer">
                                           <MessageCircle className="mr-2 h-4 w-4" />
-                                          WhatsApp
+                                          WhatsApp Rider
                                       </a>
                                   </Button>
                               </div>
