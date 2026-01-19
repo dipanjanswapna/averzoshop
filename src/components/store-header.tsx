@@ -2,7 +2,7 @@
 
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Search, ShoppingBag, User, Menu, ChevronDown, X, ChevronRight, Zap } from 'lucide-react';
+import { Search, ShoppingBag, User, Menu, ChevronDown, X, ChevronRight, Zap, Sun, Moon } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import { categoriesData } from '@/lib/categories';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/hooks/use-cart';
 import { NotificationBell } from '@/components/ui/notification-bell';
+import { useTheme } from '@/components/providers';
 
 
 const NestedAccordion = ({ category, onClose }: { category: any, onClose: () => void }) => {
@@ -121,6 +122,7 @@ export default function AverzoNavbar() {
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const { items } = useCart();
   const [isMounted, setIsMounted] = useState(false);
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     setIsMounted(true);
@@ -174,6 +176,16 @@ export default function AverzoNavbar() {
         </div>
 
         <div className="flex items-center gap-2 md:gap-5">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+              className="h-9 w-9"
+            >
+              <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+              <span className="sr-only">Toggle theme</span>
+            </Button>
           <NotificationBell />
           <Link href="/login">
             <User size={22} className="cursor-pointer hover:text-primary transition-colors" />

@@ -23,9 +23,9 @@ export function RelatedProducts({ products }: { products: Product[] }) {
                         <CarouselNext className="static -translate-y-0" />
                     </div>
                 </div>
-                <CarouselContent className="-ml-4">
+                <CarouselContent className="-ml-2">
                     {products.map(product => (
-                        <CarouselItem key={product.id} className="basis-1/2 md:basis-1/4 lg:basis-1/6 xl:basis-1/7 pl-4">
+                        <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/6 pl-2">
                             <ProductCard product={product} />
                         </CarouselItem>
                     ))}
