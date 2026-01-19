@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -103,13 +102,6 @@ export function AssetDialog({ open, onOpenChange, assetToEdit }: AssetDialogProp
                 <FormMessage />
               </FormItem>
             )} />
-             <FormField control={form.control} name="imageUrl" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Image URL</FormLabel>
-                <FormControl><Input placeholder="https://your-host.com/image.jpg" {...field} /></FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
             <div className="grid grid-cols-2 gap-4">
                <FormField control={form.control} name="assetType" render={({ field }) => (
                 <FormItem>
@@ -139,6 +131,13 @@ export function AssetDialog({ open, onOpenChange, assetToEdit }: AssetDialogProp
                 </FormItem>
               )} />
             </div>
+             <FormField control={form.control} name="imageUrl" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Image URL</FormLabel>
+                <FormControl><Input placeholder="https://your-host.com/image.jpg" {...field} /></FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
             <FormField control={form.control} name="description" render={({ field }) => (
               <FormItem>
                 <FormLabel>Description (for accessibility)</FormLabel>
@@ -171,5 +170,3 @@ export function AssetDialog({ open, onOpenChange, assetToEdit }: AssetDialogProp
     </Dialog>
   );
 }
-
-  
