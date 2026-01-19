@@ -118,51 +118,56 @@ export default function StoreFrontPage() {
         </section>
         
         {flashSaleProducts.length > 0 && flashSaleEndDate && (
-          <section className="py-16">
-              <div className="container">
-                  <div className="bg-foreground text-background rounded-2xl p-8 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center overflow-hidden relative">
-                      <div className="relative z-10 text-center lg:text-left">
-                          <h2 className="text-4xl font-extrabold uppercase flex items-center justify-center lg:justify-start gap-3">
-                              <Zap className="text-primary" />
-                              This Week's <br /> Must-Haves
-                          </h2>
-                          <p className="mt-2 text-background/70">
-                            Trending Gadgets, Carefully Chosen for You
-                          </p>
+          <section className="py-16 md:py-24">
+            <div className="container">
+              <div className="bg-gradient-to-br from-red-600 via-orange-500 to-yellow-400 text-white rounded-2xl p-8 lg:p-12 shadow-2xl overflow-hidden relative flex flex-col lg:flex-row items-center gap-8">
+                
+                <div className="absolute -top-10 -left-20 w-64 h-64 bg-white/10 rounded-full blur-3xl opacity-50"></div>
+                <div className="absolute -bottom-20 -right-10 w-72 h-72 bg-white/10 rounded-full blur-3xl opacity-60"></div>
 
-                          <div className="my-6 flex justify-center lg:justify-start">
-                            <FlashSalePageTimer endDate={flashSaleEndDate} />
-                          </div>
+                <div className="relative z-10 text-center lg:text-left flex-1 lg:max-w-md">
+                  <h2 className="text-3xl md:text-5xl font-extrabold uppercase font-headline tracking-wider flex items-center justify-center lg:justify-start gap-3">
+                    <Zap size={40} className="text-yellow-300"/>
+                    This Week's Must-Haves
+                  </h2>
+                  <p className="mt-4 text-white/80 max-w-lg mx-auto lg:mx-0">
+                    Trending Gadgets, Carefully Chosen for You. Don't miss out on these limited-time offers!
+                  </p>
+                  
+                  {flashSaleEndDate && (
+                    <div className="my-8 flex justify-center lg:justify-start">
+                      <FlashSalePageTimer endDate={flashSaleEndDate} />
+                    </div>
+                  )}
 
-                          <Link href="/flash-sale">
-                              <Button variant="outline" className="bg-transparent text-background border-background/50 hover:bg-background hover:text-foreground">
-                                  Shop The Sale <ArrowRight className="ml-2 h-4 w-4" />
-                              </Button>
-                          </Link>
-                      </div>
-                      <div className="relative">
-                          <Carousel
-                              opts={{
-                                  align: "start",
-                                  loop: flashSaleProducts.length > 3,
-                              }}
-                              className="w-full"
-                          >
-                              <CarouselContent className="-ml-2">
-                                  {flashSaleProducts.map((product) => (
-                                      <CarouselItem key={product.id} className="basis-full sm:basis-1/2 md:basis-1/3 pl-2">
-                                          <ProductCard product={product} />
-                                      </CarouselItem>
-                                  ))}
-                              </CarouselContent>
-                              <CarouselPrevious className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex bg-background/80 hover:bg-background text-foreground" />
-                              <CarouselNext className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex bg-background/80 hover:bg-background text-foreground" />
-                          </Carousel>
-                      </div>
-                      <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
-                      <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
-                  </div>
+                  <Link href="/flash-sale">
+                    <Button size="lg" className="bg-white/90 text-black hover:bg-white shadow-lg transform hover:scale-105 transition-transform">
+                      Shop The Entire Sale <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
+
+                <div className="relative z-10 w-full lg:flex-1">
+                  <Carousel
+                      opts={{
+                          align: "start",
+                          loop: flashSaleProducts.length > 2,
+                      }}
+                      className="w-full"
+                  >
+                      <CarouselContent className="-ml-4">
+                          {flashSaleProducts.map((product) => (
+                              <CarouselItem key={product.id} className="basis-full sm:basis-1/2 pl-4">
+                                  <ProductCard product={product} />
+                              </CarouselItem>
+                          ))}
+                      </CarouselContent>
+                      <CarouselPrevious className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex bg-white/80 hover:bg-white text-black" />
+                      <CarouselNext className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex bg-white/80 hover:bg-white text-black" />
+                  </Carousel>
+                </div>
               </div>
+            </div>
           </section>
         )}
 
