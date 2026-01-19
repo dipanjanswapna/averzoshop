@@ -3,6 +3,9 @@
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import type { Product, ProductVariant } from '@/types/product';
 import { useState, useEffect, useMemo } from 'react';
@@ -120,13 +123,13 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
   
   const availableColors = useMemo(() => {
     if (!product?.variants) return [];
-    const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants);
+    const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants || {});
     return [...new Set(variantsArray.map(v => v.color).filter(Boolean))];
   }, [product]);
 
   const availableSizes = useMemo(() => {
     if (!product?.variants) return [];
-    const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants);
+    const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants || {});
     return [...new Set(variantsArray.map(v => v.size).filter(Boolean))];
   }, [product]);
 
@@ -163,6 +166,10 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl w-full h-auto md:h-[90vh] flex flex-col md:flex-row p-0 gap-0">
+        <DialogHeader className="sr-only">
+          <DialogTitle>Product Quick View: {product.name}</DialogTitle>
+          <DialogDescription>Quickly view product details, select options, and add to cart.</DialogDescription>
+        </DialogHeader>
         <div className="w-full md:w-1/2 bg-muted/30 p-4 md:p-6 flex flex-col gap-4">
           <div className="relative aspect-square w-full rounded-xl overflow-hidden shadow-lg border">
             {activeMedia.type === 'video' ? (
@@ -212,7 +219,7 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
               </div>
 
               <p className="text-sm text-muted-foreground leading-relaxed">
-                {product.description.length > 150 ? `${'${product.description.substring(0, 150)}'}...` : product.description}
+                {product.description.length > 150 ? `${product.description.substring(0, 150)}...` : product.description}
               </p>
 
               <div className="flex items-baseline gap-4 pt-2">
