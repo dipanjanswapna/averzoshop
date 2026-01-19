@@ -12,7 +12,7 @@ import {z} from 'genkit';
 import type { Product } from '@/types/product';
 
 const ProductRecommenderInputSchema = z.object({
-  allProductsJson: z.string().describe("A JSON string of all available products. Each product should at least have id, name, category, group, subcategory, and description."),
+  allProductsJson: z.string().describe("A JSON string of all available products. Each product should at least have id, name, category, group, subcategory, description, and total_stock."),
   wishlistProductsJson: z.string().describe("A JSON string of products from the user's wishlist. Each product should at least have id, name, category, group, subcategory, and description."),
 });
 export type ProductRecommenderInput = z.infer<typeof ProductRecommenderInputSchema>;
@@ -38,7 +38,7 @@ User's Wishlist:
 
 Now, from the list of all available products below, select up to 6 products that the user might also like.
 Do not recommend products that are already in the user's wishlist.
-Prioritize products that are in stock.
+Prioritize products that are in stock (total_stock > 0).
 
 All Available Products:
 {{{allProductsJson}}}

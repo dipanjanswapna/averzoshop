@@ -35,11 +35,12 @@ const ForYouProducts = () => {
             group: p.group,
             subcategory: p.subcategory,
             description: p.description,
-            brand: p.brand
+            brand: p.brand,
+            total_stock: p.total_stock,
           });
 
           const result = await getRecommendedProducts({
-            allProductsJson: JSON.stringify(allProducts.filter(p => !wishlistProductIds.has(p.id)).map(slimProduct)),
+            allProductsJson: JSON.stringify(allProducts.filter(p => !wishlistProductIds.has(p.id) && p.total_stock > 0).map(slimProduct)),
             wishlistProductsJson: JSON.stringify(wishlistProducts.map(slimProduct)),
           });
           
