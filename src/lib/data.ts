@@ -41,3 +41,5 @@ export const activeDeliveries = [
 ];
 
 export { categoriesData } from './categories';
+
+    
