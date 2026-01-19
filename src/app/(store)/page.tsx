@@ -60,7 +60,7 @@ export default function StoreFrontPage() {
     return { 
       approvedProducts: approved, 
       featuredProducts: featured, 
-      flashSaleProducts: activeSaleProducts.slice(0,6), // Limit to 6 for the homepage
+      flashSaleProducts: activeSaleProducts,
       flashSaleEndDate: latestEndDate 
     };
 
@@ -118,6 +118,48 @@ export default function StoreFrontPage() {
               </Carousel>
             </div>
         </section>
+        
+        {flashSaleProducts.length > 0 && flashSaleEndDate && (
+          <section className="py-16 md:py-24 bg-gradient-to-br from-destructive/90 to-red-800 text-primary-foreground">
+            <div className="container">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8 text-center md:text-left">
+                <div>
+                  <h2 className="font-headline text-3xl font-extrabold flex items-center justify-center md:justify-start gap-2">
+                    <Zap className="animate-pulse" /> Flash Sale
+                  </h2>
+                  <p className="mt-2 text-primary-foreground/80">
+                    Grab these deals before they're gone! Limited time only.
+                  </p>
+                </div>
+                <FlashSalePageTimer endDate={flashSaleEndDate} />
+              </div>
+              <Carousel
+                opts={{
+                    align: "start",
+                    loop: flashSaleProducts.length > 6,
+                }}
+                className="w-full"
+              >
+                <CarouselContent className="-ml-2 md:-ml-4">
+                    {flashSaleProducts.map((product) => (
+                        <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6 pl-2 md:pl-4">
+                            <ProductCard product={product} />
+                        </CarouselItem>
+                    ))}
+                </CarouselContent>
+                 <CarouselPrevious className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex" />
+                 <CarouselNext className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex" />
+              </Carousel>
+              <div className="text-center mt-12">
+                <Link href="/flash-sale">
+                    <Button variant="outline" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
+                        View All Deals
+                    </Button>
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
 
         <section className="py-16 md:py-24 bg-secondary">
           <div className="container">
@@ -144,36 +186,6 @@ export default function StoreFrontPage() {
             </div>
           </div>
         </section>
-
-        {flashSaleProducts.length > 0 && flashSaleEndDate && (
-          <section className="py-16 md:py-24 bg-gradient-to-br from-destructive/90 to-red-800 text-primary-foreground">
-            <div className="container">
-              <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8 text-center md:text-left">
-                <div>
-                  <h2 className="font-headline text-3xl font-extrabold flex items-center justify-center md:justify-start gap-2">
-                    <Zap className="animate-pulse" /> Flash Sale
-                  </h2>
-                  <p className="mt-2 text-primary-foreground/80">
-                    Grab these deals before they're gone! Limited time only.
-                  </p>
-                </div>
-                <FlashSalePageTimer endDate={flashSaleEndDate} />
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
-                {flashSaleProducts.map(product => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-              <div className="text-center mt-12">
-                <Link href="/flash-sale">
-                    <Button variant="outline" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
-                        View All Deals
-                    </Button>
-                </Link>
-              </div>
-            </div>
-          </section>
-        )}
       </>
   );
 }
