@@ -33,7 +33,7 @@ export function OutletNav() {
         <SidebarMenuItem key={item.href}>
           <Link href={item.href}>
             <SidebarMenuButton
-              isActive={pathname.startsWith(item.href)}
+              isActive={item.href === '/outlet/dashboard' ? pathname === item.href : pathname.startsWith(item.href)}
               tooltip={item.label}
               className="justify-start"
             >
