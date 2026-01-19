@@ -4,7 +4,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Zap } from 'lucide-react';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import {
   Carousel,
@@ -21,6 +21,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { useMemo } from 'react';
+import { FlashSalePageTimer } from '@/components/shop/flash-sale-page-timer';
+import { Button } from '@/components/ui/button';
 
 const heroCarouselImages = PlaceHolderImages.filter(p =>
   p.id.startsWith('hero-carousel-')
@@ -34,8 +36,36 @@ export default function StoreFrontPage() {
   }, [firestore]);
   const { data: products, isLoading } = useFirestoreQuery<Product>(productsQuery);
 
-  const approvedProducts = products?.filter(p => p.status === 'approved' && p.total_stock > 0) || [];
-  const featuredProducts = approvedProducts.slice(0, 5);
+  const { approvedProducts, featuredProducts, flashSaleProducts, flashSaleEndDate } = useMemo(() => {
+    if (!products) return { approvedProducts: [], featuredProducts: [], flashSaleProducts: [], flashSaleEndDate: null };
+
+    const approved = products.filter(p => p.status === 'approved' && p.total_stock > 0);
+    const featured = approved.slice(0, 5);
+
+    const now = new Date();
+    const activeSaleProducts = approved.filter(p => 
+      p.flashSale?.enabled && 
+      p.flashSale.endDate && 
+      (p.flashSale.endDate.toDate ? p.flashSale.endDate.toDate() : new Date(p.flashSale.endDate)) > now
+    );
+    
+    let latestEndDate: Date | null = null;
+    if (activeSaleProducts.length > 0) {
+      latestEndDate = activeSaleProducts.reduce((latest, p) => {
+        const endDate = p.flashSale!.endDate.toDate ? p.flashSale!.endDate.toDate() : new Date(p.flashSale!.endDate);
+        return endDate > latest ? endDate : latest;
+      }, new Date(0));
+    }
+
+    return { 
+      approvedProducts: approved, 
+      featuredProducts: featured, 
+      flashSaleProducts: activeSaleProducts.slice(0,6), // Limit to 6 for the homepage
+      flashSaleEndDate: latestEndDate 
+    };
+
+  }, [products]);
+
 
   const renderSkeleton = () => (
     [...Array(6)].map((_, i) => (
@@ -99,7 +129,7 @@ export default function StoreFrontPage() {
                 Don't miss out on these limited-time offers.
               </p>
             </div>
-             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
               {isLoading ? renderSkeleton() : featuredProducts.map(product => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -114,6 +144,36 @@ export default function StoreFrontPage() {
             </div>
           </div>
         </section>
+
+        {flashSaleProducts.length > 0 && flashSaleEndDate && (
+          <section className="py-16 md:py-24 bg-gradient-to-br from-destructive/90 to-red-800 text-primary-foreground">
+            <div className="container">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8 text-center md:text-left">
+                <div>
+                  <h2 className="font-headline text-3xl font-extrabold flex items-center justify-center md:justify-start gap-2">
+                    <Zap className="animate-pulse" /> Flash Sale
+                  </h2>
+                  <p className="mt-2 text-primary-foreground/80">
+                    Grab these deals before they're gone! Limited time only.
+                  </p>
+                </div>
+                <FlashSalePageTimer endDate={flashSaleEndDate} />
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 md:gap-4">
+                {flashSaleProducts.map(product => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+              <div className="text-center mt-12">
+                <Link href="/flash-sale">
+                    <Button variant="outline" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
+                        View All Deals
+                    </Button>
+                </Link>
+              </div>
+            </div>
+          </section>
+        )}
       </>
   );
 }
