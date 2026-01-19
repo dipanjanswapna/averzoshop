@@ -154,17 +154,17 @@ export default function StoreFrontPage() {
                           <Carousel
                               opts={{
                                   align: "start",
-                                  loop: flashSaleProducts.length > 4,
+                                  loop: flashSaleProducts.length > 6,
                               }}
                               className="w-full"
                           >
                               <CarouselContent className="-ml-4">
                                   {flashSaleProducts.map((product) => (
-                                      <CarouselItem key={product.id} className="basis-1/2 md:basis-1/3 lg:basis-1/4 pl-4">
+                                      <CarouselItem key={product.id} className="basis-1/2 md:basis-1/3 lg:basis-1/6 pl-4">
                                           <Link href={`/product/${product.id}`} className="block group">
-                                              <div className="bg-white rounded-lg p-4 text-black text-center flex flex-col h-full overflow-hidden relative">
+                                              <div className="bg-card rounded-lg p-4 text-card-foreground text-center flex flex-col h-full overflow-hidden relative border transition-shadow hover:shadow-lg">
                                                   {product.discountPercent > 0 && (
-                                                      <div className="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full z-10">
+                                                      <div className="absolute top-2 left-2 bg-destructive text-destructive-foreground text-xs font-bold px-3 py-1 rounded-full z-10">
                                                           -{product.discountPercent}%
                                                       </div>
                                                   )}
@@ -179,11 +179,11 @@ export default function StoreFrontPage() {
                                                   <h3 className="text-sm font-semibold mt-4 truncate">{product.name}</h3>
                                                   <div className="flex justify-center items-baseline gap-2 mt-2">
                                                       {product.displayOriginalPrice && product.displayOriginalPrice > product.displayPrice && (
-                                                          <span className="text-sm text-gray-500 line-through">
+                                                          <span className="text-sm text-muted-foreground line-through">
                                                               ৳{product.displayOriginalPrice.toFixed(0)}
                                                           </span>
                                                       )}
-                                                      <span className="text-lg font-bold text-red-600">
+                                                      <span className="text-lg font-bold text-primary">
                                                           ৳{product.displayPrice.toFixed(0)}
                                                       </span>
                                                   </div>
@@ -211,7 +211,7 @@ export default function StoreFrontPage() {
                 Don't miss out on these limited-time offers.
               </p>
             </div>
-             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2">
+             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
               {isLoading ? renderSkeleton() : featuredProducts.map(product => (
                 <ProductCard key={product.id} product={product} />
               ))}
