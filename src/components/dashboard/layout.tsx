@@ -11,8 +11,6 @@ import {
 import { DashboardNav } from '@/components/dashboard-nav';
 import { UserNav } from '@/components/user-nav';
 import AverzoLogo from '@/components/averzo-logo';
-import { Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/use-auth';
 import { LiveSearch } from '../live-search';
 
