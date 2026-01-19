@@ -1,1 +1,31 @@
-{}
+{
+  "homeHeroCarousel": [
+    {
+      "id": "home-hero-1",
+      "description": "A stylish person wearing modern fashion",
+      "imageUrl": "https://picsum.photos/seed/h-h-1/1600/640",
+      "imageHint": "fashion model",
+      "link": "/mens-fashion",
+      "assetType": "hero-carousel",
+      "categorySlug": "home"
+    },
+    {
+      "id": "home-hero-2",
+      "description": "Latest electronic gadgets on display",
+      "imageUrl": "https://picsum.photos/seed/h-h-2/1600/640",
+      "imageHint": "gadgets electronics",
+      "link": "/electronics-gadgets",
+      "assetType": "hero-carousel",
+      "categorySlug": "home"
+    },
+    {
+      "id": "home-hero-3",
+      "description": "A cozy and modern living room setup",
+      "imageUrl": "https://picsum.photos/seed/h-h-3/1600/640",
+      "imageHint": "living room",
+      "link": "/home-living",
+      "assetType": "hero-carousel",
+      "categorySlug": "home"
+    }
+  ]
+}

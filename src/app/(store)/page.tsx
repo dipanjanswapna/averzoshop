@@ -23,6 +23,7 @@ import { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { FlashSalePageTimer } from '@/components/shop/flash-sale-page-timer';
 import ForYouProducts from '@/components/for-you-products';
+import { default as placeholderData } from '@/lib/placeholder-images.json';
 
 
 export default function StoreFrontPage() {
@@ -43,7 +44,14 @@ export default function StoreFrontPage() {
   
   const isLoading = assetsLoading || productsLoading;
   
-  const heroCarouselImages = useMemo(() => assets?.filter(a => a.assetType === 'hero-carousel') || [], [assets]);
+  const heroCarouselImages = useMemo(() => {
+    const dbAssets = assets?.filter(a => a.assetType === 'hero-carousel') || [];
+    if (dbAssets.length > 0) {
+        return dbAssets;
+    }
+    // Fallback to placeholder data if no assets are found in Firestore
+    return placeholderData.homeHeroCarousel || [];
+  }, [assets]);
 
   const { flashSaleProducts, flashSaleEndDate } = useMemo(() => {
     if (!products) return { flashSaleProducts: [], flashSaleEndDate: null };
@@ -86,9 +94,9 @@ export default function StoreFrontPage() {
     <>
         <section className="w-full">
             <div className="container">
-              {isLoading ? (
+              {isLoading && heroCarouselImages.length === 0 ? (
                   <Skeleton className="w-full aspect-[16/9] md:aspect-[2.5/1] rounded-xl" />
-              ) : (
+              ) : heroCarouselImages.length > 0 ? (
                 <Carousel
                   opts={{ align: 'start', loop: true }}
                   plugins={[ Autoplay({ delay: 4000 }) ]}
@@ -96,7 +104,7 @@ export default function StoreFrontPage() {
                 >
                   <CarouselContent>
                     {heroCarouselImages.map((image, index) => (
-                      <CarouselItem key={index}>
+                      <CarouselItem key={image.id}>
                         <Link href={image.link || '#'}>
                           <div className="relative w-full aspect-[16/9] md:aspect-[2.5/1] rounded-xl overflow-hidden">
                             <Image
@@ -117,24 +125,24 @@ export default function StoreFrontPage() {
                     <CarouselNext className="static -translate-y-0" />
                   </div>
                 </Carousel>
-              )}
+              ) : null}
             </div>
         </section>
         
         {flashSaleProducts.length > 0 && flashSaleEndDate && (
           <section className="py-2 md:py-4">
             <div className="container">
-              <div className="bg-gradient-to-br from-red-600 via-orange-500 to-yellow-400 text-white rounded-2xl p-4 shadow-2xl overflow-hidden relative flex flex-col lg:flex-row items-center gap-4">
+              <div className="bg-gradient-to-br from-purple-600 via-pink-500 to-red-500 text-white rounded-2xl p-3 shadow-2xl overflow-hidden relative flex flex-col lg:flex-row items-center gap-2">
                 
                 <div className="absolute -top-10 -left-20 w-24 h-24 bg-white/10 rounded-full blur-3xl opacity-50"></div>
                 <div className="absolute -bottom-20 -right-10 w-32 h-32 bg-white/10 rounded-full blur-3xl opacity-60"></div>
 
-                <div className="relative z-10 text-center lg:text-left lg:w-3/5 shrink-0">
-                  <h2 className="text-xl md:text-3xl font-extrabold uppercase font-headline tracking-wider flex items-center justify-center lg:justify-start gap-2">
+                <div className="relative z-10 text-center lg:text-left lg:w-2/5 shrink-0 p-3">
+                  <h2 className="text-2xl md:text-3xl font-extrabold uppercase font-headline tracking-wider flex items-center justify-center lg:justify-start gap-2">
                     <Zap size={20} className="text-yellow-300"/>
                     This Week's Must-Haves
                   </h2>
-                  <p className="mt-1 text-sm md:text-base text-white/80 max-w-lg mx-auto lg:mx-0">
+                   <p className="mt-1 text-sm md:text-base text-white/80 max-w-lg mx-auto lg:mx-0">
                     Trending Gadgets, Carefully Chosen for You.
                   </p>
                   
@@ -145,7 +153,7 @@ export default function StoreFrontPage() {
                   )}
 
                   <Link href="/flash-sale">
-                    <Button size="sm" className="bg-white/90 text-black hover:bg-white shadow-lg transform hover:scale-105 h-10 text-sm px-5">
+                    <Button size="sm" className="bg-white/90 text-black hover:bg-white shadow-lg transform hover:scale-105 h-10 text-sm px-5 mt-1">
                       Shop The Sale <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
@@ -161,7 +169,7 @@ export default function StoreFrontPage() {
                   >
                       <CarouselContent className="-ml-2 md:-ml-4">
                           {flashSaleProducts.map((product) => (
-                              <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/3 lg:basis-1/4 pl-2 md:pl-4">
+                              <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/3 lg:basis-1/4 xl:basis-1/4 pl-2 md:pl-4">
                                   <ProductCard product={product} />
                               </CarouselItem>
                           ))}
@@ -179,5 +187,3 @@ export default function StoreFrontPage() {
       </>
   );
 }
-
-  
