@@ -44,28 +44,7 @@ export default function StoreFrontPage() {
       p.flashSale?.enabled && 
       p.flashSale.endDate && 
       (p.flashSale.endDate.toDate ? p.flashSale.endDate.toDate() : new Date(p.flashSale.endDate)) > now
-    ).map(product => {
-        const variantsArray = Array.isArray(product.variants)
-            ? product.variants
-            : product.variants ? Object.values(product.variants) : [];
-        
-        const determinedVariant = variantsArray.find(v => (v.stock || 0) > 0) || variantsArray[0];
-        
-        const displayPrice = determinedVariant?.price ?? product.price;
-        const displayOriginalPrice = determinedVariant?.compareAtPrice ?? product.compareAtPrice;
-
-        let discount = 0;
-        if (displayOriginalPrice && displayOriginalPrice > displayPrice) {
-            discount = Math.round(((displayOriginalPrice - displayPrice) / displayOriginalPrice) * 100);
-        }
-        
-        return {
-            ...product,
-            displayPrice,
-            displayOriginalPrice,
-            discountPercent: discount
-        }
-    });
+    );
     
     let latestEndDate: Date | null = null;
     if (activeSaleProducts.length > 0) {
@@ -158,37 +137,10 @@ export default function StoreFrontPage() {
                               }}
                               className="w-full"
                           >
-                              <CarouselContent className="-ml-4">
+                              <CarouselContent className="-ml-2">
                                   {flashSaleProducts.map((product) => (
-                                      <CarouselItem key={product.id} className="basis-1/2 md:basis-1/3 lg:basis-1/6 pl-4">
-                                          <Link href={`/product/${product.id}`} className="block group">
-                                              <div className="bg-card rounded-lg p-4 text-card-foreground text-center flex flex-col h-full overflow-hidden relative border transition-shadow hover:shadow-lg">
-                                                  {product.discountPercent > 0 && (
-                                                      <div className="absolute top-2 left-2 bg-destructive text-destructive-foreground text-xs font-bold px-3 py-1 rounded-full z-10">
-                                                          -{product.discountPercent}%
-                                                      </div>
-                                                  )}
-                                                  <div className="relative aspect-square w-full">
-                                                      <Image
-                                                          src={product.image}
-                                                          alt={product.name}
-                                                          fill
-                                                          className="object-contain group-hover:scale-105 transition-transform duration-300"
-                                                      />
-                                                  </div>
-                                                  <h3 className="text-sm font-semibold mt-4 truncate">{product.name}</h3>
-                                                  <div className="flex justify-center items-baseline gap-2 mt-2">
-                                                      {product.displayOriginalPrice && product.displayOriginalPrice > product.displayPrice && (
-                                                          <span className="text-sm text-muted-foreground line-through">
-                                                              ৳{product.displayOriginalPrice.toFixed(0)}
-                                                          </span>
-                                                      )}
-                                                      <span className="text-lg font-bold text-primary">
-                                                          ৳{product.displayPrice.toFixed(0)}
-                                                      </span>
-                                                  </div>
-                                              </div>
-                                          </Link>
+                                      <CarouselItem key={product.id} className="basis-1/2 md:basis-1/3 lg:basis-1/6 pl-2">
+                                          <ProductCard product={product} />
                                       </CarouselItem>
                                   ))}
                               </CarouselContent>
