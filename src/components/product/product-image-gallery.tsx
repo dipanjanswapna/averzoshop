@@ -1,5 +1,5 @@
-
 'use client';
+
 import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';

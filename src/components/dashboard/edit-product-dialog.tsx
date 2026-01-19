@@ -246,7 +246,7 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
     
     if (colors.length === 0 && sizes.length > 0) {
       sizes.forEach(size => {
-        append({ sku: `${baseSku}-${size.toUpperCase()}`, color: '', size, image: '', stock: 0, price, compareAtPrice: newCompareAtPrice });
+        append({ sku: `${baseSku}-${size.toUpperCase()}`, color: '', size: '', image: '', stock: 0, price, compareAtPrice: newCompareAtPrice });
       });
       return;
     }
