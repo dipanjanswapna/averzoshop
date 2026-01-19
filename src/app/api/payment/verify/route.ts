@@ -70,16 +70,21 @@ export async function POST(request: NextRequest) {
             updatedAt: FieldValue.serverTimestamp()
         });
 
-        const allProductIds = [...new Set(orderData.items.map(item => item.productId))];
+        const regularItems = orderData.items.filter(item => {
+            const productDoc = allProducts.find((p: Product) => p.id === item.productId);
+            return !productDoc?.preOrder?.enabled;
+        });
+
+        const allProductIds = [...new Set(regularItems.map(item => item.productId))];
         if (allProductIds.length === 0) return;
         
         const productRefs = allProductIds.map(id => firestore().collection('products').doc(id));
         const productDocs = await transaction.getAll(...productRefs);
         const productMap = new Map(productDocs.map(doc => [doc.id, doc.data() as Product]));
 
-        for (const item of orderData.items) {
+        for (const item of regularItems) {
           const product = productMap.get(item.productId);
-          if (!product || product.preOrder?.enabled) continue; // Skip stock reduction for pre-order items
+          if (!product) continue; 
 
           const productRef = firestore().collection('products').doc(item.productId);
           const variantsArray = Array.isArray(product.variants) ? [...product.variants] : Object.values(product.variants);
