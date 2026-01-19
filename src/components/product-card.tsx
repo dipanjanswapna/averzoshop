@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { ShoppingBag, Zap, Eye } from 'lucide-react';
+import { ShoppingBag, Zap, Eye, Gift } from 'lucide-react';
 import type { Product } from '@/types/product';
 import Link from 'next/link';
 import { Button } from './ui/button';
@@ -108,11 +108,14 @@ export const ProductCard = ({ product }: { product: Product }) => {
             {product.preOrder?.enabled && (
               <span className="bg-purple-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Pre-order</span>
             )}
+            {product.giftWithPurchase?.enabled && (
+                <span className="bg-green-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase flex items-center gap-1"><Gift size={12} /> Gift</span>
+            )}
              {product.isNew && (
               <span className="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">New</span>
             )}
              {product.isBestSeller && (
-              <span className="bg-green-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Best Seller</span>
+              <span className="bg-teal-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Best Seller</span>
             )}
           </div>
 
@@ -147,7 +150,6 @@ export const ProductCard = ({ product }: { product: Product }) => {
 
         <div className="p-3 flex-1 flex flex-col">
           <Link href={`/product/${product.id}`} className="flex-1">
-            <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">{product.brand}</span>
             <h3 className="text-sm font-semibold leading-snug mt-1" title={product.name}>
               {product.name}
             </h3>
