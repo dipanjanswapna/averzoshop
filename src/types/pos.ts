@@ -13,6 +13,7 @@ export interface POSSale {
     outletId: string;
     soldBy: string;
     customerId?: string;
+    customerName?: string;
     items: POSSaleItem[];
     subtotal: number;
     discountAmount?: number;
@@ -21,3 +22,5 @@ export interface POSSale {
     paymentMethod: 'cash' | 'card' | 'mobile';
     createdAt: any; // Firestore Timestamp
 }
+
+  

@@ -27,7 +27,7 @@ export interface Order {
     items: OrderItem[];
     subtotal?: number;
     discountAmount?: number;
-    promoCode?: string;
+    promoCode?: string | null;
     totalAmount: number;
     fullOrderValue?: number;
     assignedOutletId: string;
@@ -39,3 +39,5 @@ export interface Order {
     gatewayTransactionId?: string;
     updatedAt?: any;
 }
+
+  

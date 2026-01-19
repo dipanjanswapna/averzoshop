@@ -1,4 +1,3 @@
-
 {
   "entities": {
     "user": {
@@ -190,13 +189,19 @@
             }
           }
         },
+        "subtotal": { "type": "number", "description": "The total value of all items before discounts or shipping." },
+        "discountAmount": { "type": "number", "description": "The amount discounted via a promo code." },
+        "promoCode": { "type": "string", "description": "The promo code used." },
         "totalAmount": { "type": "number", "description": "The amount paid by the customer (can be partial for pre-orders)." },
         "fullOrderValue": { "type": "number", "description": "The total value of the order, especially for pre-orders with partial payment." },
         "assignedOutletId": { "type": "string" },
         "riderId": { "type": "string", "description": "The UID of the rider assigned to this delivery." },
-        "status": { "type": "string", "enum": ["new", "preparing", "ready_for_pickup", "out_for_delivery", "delivered", "canceled", "pre-ordered", "fulfilled"] },
+        "status": { "type": "string", "enum": ["pending_payment", "new", "preparing", "ready_for_pickup", "out_for_delivery", "delivered", "canceled", "pre-ordered", "fulfilled"] },
         "orderType": { "type": "string", "enum": ["regular", "pre-order"] },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "paymentStatus": { "type": "string", "enum": ["Paid", "Unpaid", "Failed"]},
+        "gatewayTransactionId": { "type": "string"}
       },
       "required": ["customerId", "shippingAddress", "items", "totalAmount", "assignedOutletId", "status", "createdAt"]
     },
@@ -452,3 +457,5 @@
     "/notification_subscriptions/{subscriptionId}": { "schema": { "$ref": "#/entities/notification_subscription" }, "description": "Stores all user requests for back-in-stock notifications." }
   }
 }
+
+  
