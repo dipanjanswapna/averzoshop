@@ -195,13 +195,13 @@ export default function CategoryPage() {
         </div>
 
         <div className="mb-8">
-          {isLoading ? <Skeleton className="w-full aspect-[16/9] md:aspect-[3/1] rounded-xl" /> : (
+          {isLoading ? <Skeleton className="w-full aspect-[16/9] md:aspect-[6/1] rounded-xl" /> : (
             <Carousel opts={{ align: 'start', loop: true }} plugins={[Autoplay({ delay: 4000 })]} className="w-full">
               <CarouselContent>
                 {heroCarouselImages.map((image, index) => (
                   <CarouselItem key={index}>
                     <Link href={image.link || '#'}>
-                      <div className="relative w-full aspect-[16/9] md:aspect-[3/1] rounded-xl overflow-hidden">
+                      <div className="relative w-full aspect-[16/9] md:aspect-[6/1] rounded-xl overflow-hidden">
                         <Image src={image.imageUrl} alt={image.description} data-ai-hint={image.imageHint} fill className="object-cover" priority={index === 0} />
                       </div>
                     </Link>
