@@ -161,6 +161,13 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
     return `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
   };
 
+  const getAutoplayUrl = (url: string) => {
+    if (!url) return '';
+    const separator = url.includes('?') ? '&' : '?';
+    // Mute is often required for autoplay to work
+    return `${url}${separator}autoplay=1&mute=1`;
+  };
+
   if (!product) return null;
 
   return (
@@ -173,7 +180,7 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
         <div className="w-full md:w-1/2 bg-muted/30 p-4 md:p-6 flex flex-col gap-4">
           <div className="relative aspect-square w-full rounded-xl overflow-hidden shadow-lg border">
             {activeMedia.type === 'video' ? (
-                <iframe className="w-full h-full" src={activeMedia.src} title={product.name} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+                <iframe className="w-full h-full" src={getAutoplayUrl(activeMedia.src)} title={product.name} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
             ) : (
                 <Image src={activeMedia.src} alt={product.name} fill sizes="(max-width: 768px) 90vw, 45vw" className="object-cover" />
             )}

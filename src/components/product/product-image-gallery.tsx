@@ -66,6 +66,13 @@ export function ProductImageGallery({ product, selectedVariant }: ProductImageGa
     return `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
   };
 
+  const getAutoplayUrl = (url: string) => {
+    if (!url) return '';
+    const separator = url.includes('?') ? '&' : '?';
+    // Mute is often required for autoplay to work
+    return `${url}${separator}autoplay=1&mute=1`;
+  };
+
   return (
     <div className="flex flex-col gap-4 sticky top-28">
       <motion.div 
@@ -84,7 +91,7 @@ export function ProductImageGallery({ product, selectedVariant }: ProductImageGa
           {activeMedia.type === 'video' ? (
               <iframe
                   className="w-full h-full"
-                  src={activeMedia.src}
+                  src={getAutoplayUrl(activeMedia.src)}
                   title={product.name}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
