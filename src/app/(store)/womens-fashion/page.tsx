@@ -220,10 +220,10 @@ export default function CategoryPage() {
           )}
         </div>
 
-        {isLoading ? <Skeleton className="w-full aspect-[6/1] rounded-xl mb-8" /> : bannerImage && (
+        {isLoading ? <Skeleton className="w-full aspect-[4/1] rounded-xl mb-8" /> : bannerImage && (
           <div className="mb-8">
             <Link href={bannerImage.link || '#'}>
-              <div className="relative w-full aspect-[6/1] rounded-xl overflow-hidden">
+              <div className="relative w-full aspect-[4/1] rounded-xl overflow-hidden">
                 <Image src={bannerImage.imageUrl} alt={bannerImage.description} data-ai-hint={bannerImage.imageHint} fill className="object-cover" />
               </div>
             </Link>
@@ -285,5 +285,3 @@ export default function CategoryPage() {
     </div>
   );
 }
-
-    

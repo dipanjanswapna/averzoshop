@@ -11,8 +11,9 @@ import {
 import { VendorNav } from '@/components/vendor-nav';
 import { UserNav } from '@/components/user-nav';
 import AverzoLogo from '@/components/averzo-logo';
+import { Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/use-auth';
-import { LiveSearch } from '../live-search';
 
 export default function VendorLayout({
   children,
@@ -59,7 +60,16 @@ export default function VendorLayout({
         <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-sidebar-border bg-sidebar px-4 md:px-6">
             <SidebarTrigger className="flex text-sidebar-foreground md:hidden"/>
             <div className="w-full flex-1">
-              <LiveSearch />
+              <form>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search your products..."
+                    className="w-full appearance-none bg-card pl-8 md:w-2/3 lg:w-1/3 text-card-foreground"
+                  />
+                </div>
+              </form>
             </div>
             <UserNav />
         </header>
