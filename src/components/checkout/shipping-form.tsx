@@ -21,10 +21,10 @@ import { CardHeader, CardTitle } from '../ui/card';
 import { useCart } from '@/hooks/use-cart';
 import { useFirebase } from '@/firebase';
 import { useAuth } from '@/hooks/use-auth';
-import { collection, doc, setDoc, runTransaction, increment } from 'firebase/firestore';
+import { collection, doc, setDoc, runTransaction, increment, DocumentReference } from 'firebase/firestore';
 import { calculateDistance } from '@/lib/distance';
 import type { Outlet } from '@/types/outlet';
-import type { Product } from '@/types/product';
+import type { Product, ProductVariant } from '@/types/product';
 import { useRouter } from 'next/navigation';
 import type { Order, ShippingAddress } from '@/types/order';
 import { Label } from '../ui/label';
@@ -234,48 +234,66 @@ export function ShippingForm() {
     if (values.paymentMethod === 'cod') {
         try {
             await runTransaction(firestore, async (transaction) => {
-                const orderRef = doc(firestore, 'orders', orderId);
+                // --- 1. READS ---
                 const userRef = doc(firestore, 'users', user.uid);
+                transaction.get(userRef); 
 
+                const regularItems = cartItems.filter(item => !item.isPreOrder);
+                let productRefs: DocumentReference[] = [];
+                let productDocs: any[] = [];
+                if (regularItems.length > 0) {
+                    productRefs = regularItems.map(item => doc(firestore, 'products', item.product.id));
+                    productDocs = await Promise.all(productRefs.map(ref => transaction.get(ref)));
+                }
+
+                // --- 2. VALIDATION ---
+                const productUpdates = [];
+                for (let i = 0; i < regularItems.length; i++) {
+                    const item = regularItems[i];
+                    const productDoc = productDocs[i];
+                    if (!productDoc.exists()) {
+                        throw new Error(`Product ${item.product.name} not found.`);
+                    }
+
+                    const productData = productDoc.data() as Product;
+                    const variantsArray = Array.isArray(productData.variants) ? JSON.parse(JSON.stringify(productData.variants)) : JSON.parse(JSON.stringify(Object.values(productData.variants)));
+                    const variantIndex = variantsArray.findIndex((v: ProductVariant) => v.sku === item.variant.sku);
+                    if (variantIndex === -1) {
+                        throw new Error(`Variant ${item.variant.sku} not found.`);
+                    }
+
+                    const variant = variantsArray[variantIndex];
+                    const currentStock = variant.outlet_stocks?.[assignedOutletId] ?? 0;
+                    if (currentStock < item.quantity) {
+                        throw new Error(`Not enough stock for ${productData.name}.`);
+                    }
+
+                    variantsArray[variantIndex].stock = (variant.stock || 0) - item.quantity;
+                    if (variantsArray[variantIndex].outlet_stocks) {
+                        variantsArray[variantIndex].outlet_stocks[assignedOutletId] = currentStock - item.quantity;
+                    }
+                    
+                    productUpdates.push({
+                        ref: productRefs[i],
+                        data: {
+                            variants: variantsArray,
+                            total_stock: increment(-item.quantity),
+                        }
+                    });
+                }
+                
+                // --- 3. WRITES ---
+                const orderRef = doc(firestore, 'orders', orderId);
                 const orderDataForCod: Order = {
                     ...baseOrderData,
                     status: isPreOrderInCart ? 'pre-ordered' : 'new',
                     paymentStatus: 'Unpaid',
-                    createdAt: new Date() as any, // Firestore will convert this
+                    createdAt: new Date() as any,
                 };
                 transaction.set(orderRef, orderDataForCod);
 
-                const regularItems = cartItems.filter(item => !item.isPreOrder);
-                if (regularItems.length > 0 && assignedOutletId) {
-                    const productIds = [...new Set(regularItems.map(item => item.product.id))];
-                    const productRefs = productIds.map(id => doc(firestore, 'products', id));
-                    const productDocs = await Promise.all(productRefs.map(ref => transaction.get(ref)));
-                    const productMap = new Map(productDocs.map(d => [d.id, d.data() as Product]));
-                    
-                    for (const cartItem of regularItems) {
-                        const product = productMap.get(cartItem.product.id);
-                        if (!product) throw new Error(`Product ${cartItem.product.name} not found.`);
-                        
-                        const variantsArray = Array.isArray(product.variants) ? JSON.parse(JSON.stringify(product.variants)) : JSON.parse(JSON.stringify(Object.values(product.variants)));
-                        const variantIndex = variantsArray.findIndex((v: ProductVariant) => v.sku === cartItem.variant.sku);
-                        if (variantIndex === -1) throw new Error(`Variant ${cartItem.variant.sku} not found.`);
-                        
-                        const variant = variantsArray[variantIndex];
-                        const currentStock = variant.outlet_stocks?.[assignedOutletId] ?? 0;
-                        if (currentStock < cartItem.quantity) throw new Error(`Not enough stock for ${product.name}.`);
-
-                        variantsArray[variantIndex].stock = (variant.stock || 0) - cartItem.quantity;
-                        if (variantsArray[variantIndex].outlet_stocks) {
-                            variantsArray[variantIndex].outlet_stocks[assignedOutletId] = currentStock - cartItem.quantity;
-                        }
-                        
-                        transaction.update(productRefs.find(r => r.id === product.id)!, {
-                            variants: variantsArray,
-                            total_stock: increment(-cartItem.quantity),
-                        });
-                    }
-                }
-
+                productUpdates.forEach(update => transaction.update(update.ref, update.data));
+                
                 const pointsEarned = Math.floor(totalPayable / 100) * 5;
                 if (pointsEarned > 0) {
                     transaction.update(userRef, { loyaltyPoints: increment(pointsEarned), totalSpent: increment(totalPayable) });
