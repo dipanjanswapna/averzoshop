@@ -249,7 +249,7 @@ export function ShippingForm() {
                 if (regularItems.length > 0 && assignedOutletId) {
                     const productIds = [...new Set(regularItems.map(item => item.product.id))];
                     const productRefs = productIds.map(id => doc(firestore, 'products', id));
-                    const productDocs = await transaction.getAll(...productRefs);
+                    const productDocs = await Promise.all(productRefs.map(ref => transaction.get(ref)));
                     const productMap = new Map(productDocs.map(d => [d.id, d.data() as Product]));
                     
                     for (const cartItem of regularItems) {
@@ -342,7 +342,7 @@ export function ShippingForm() {
                         <Label className="flex items-start gap-4 p-4 border rounded-lg cursor-pointer has-[:checked]:bg-primary/10 has-[:checked]:border-primary">
                         <RadioGroupItem value={address.id} className="mt-1"/>
                         <div>
-                            <p className="font-bold">{address.label} - {address.name}</p>
+                            <p className="font-bold text-sm">{address.label} - {address.name}</p>
                             <p className="text-sm text-muted-foreground">{address.streetAddress}, {address.area}</p>
                             <p className="text-sm text-muted-foreground">{address.upazila}, {address.district}</p>
                         </div>
@@ -418,5 +418,3 @@ export function ShippingForm() {
       </Form>
   );
 }
-
-    
