@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -18,7 +17,7 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Upload, LayoutDashboard, Package, History, DollarSign, AlertCircle, ShoppingCart } from 'lucide-react';
+import { PlusCircle, Upload, LayoutDashboard, Package, History, DollarSign, Clock, ShoppingCart } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { Product } from '@/types/product';
@@ -32,6 +31,7 @@ import { collection, query } from 'firebase/firestore';
 import type { Order } from '@/types/order';
 import type { POSSale } from '@/types/pos';
 import { SalesChart } from '../sales-chart';
+import { cn } from '@/lib/utils';
 
 export function VendorDashboard() {
   const { user } = useAuth();
@@ -53,9 +53,9 @@ export function VendorDashboard() {
     return allProducts.filter(p => p.vendorId === user.uid);
   }, [allProducts, user]);
 
-  const { totalRevenue, totalUnitsSold, salesData, topProducts, lowStockCount } = useMemo(() => {
+  const { totalRevenue, totalUnitsSold, salesData, topProducts, lowStockCount, preOrderCount } = useMemo(() => {
     if (!vendorProducts || !allOrders || !allPosSales || !user) {
-      return { totalRevenue: 0, totalUnitsSold: 0, salesData: [], topProducts: [], lowStockCount: 0 };
+      return { totalRevenue: 0, totalUnitsSold: 0, salesData: [], topProducts: [], lowStockCount: 0, preOrderCount: 0 };
     }
 
     const vendorProductIds = new Set(vendorProducts.map(p => p.id));
@@ -63,6 +63,8 @@ export function VendorDashboard() {
     let unitsSold = 0;
     const monthlySales: { [key: string]: number } = {};
     const productSales: { [key: string]: { name: string; sku: string; units: number; revenue: number } } = {};
+    let currentPreOrderCount = 0;
+
 
     const processItem = (item: { productId: string; quantity: number; price: number }, date: Date) => {
       if (vendorProductIds.has(item.productId)) {
@@ -85,11 +87,21 @@ export function VendorDashboard() {
     };
 
     allOrders.forEach(order => {
+      // For sales analytics, only count completed orders
       if (order.status === 'delivered' || order.status === 'fulfilled') {
         order.items.forEach(item => processItem(item, order.createdAt.toDate()));
       }
+      // For pre-order analytics, count pending pre-orders
+      if (order.orderType === 'pre-order' && order.status === 'pre-ordered') {
+          order.items.forEach(item => {
+              if (vendorProductIds.has(item.productId)) {
+                  currentPreOrderCount += item.quantity;
+              }
+          });
+      }
     });
 
+    // POS sales are always completed
     allPosSales.forEach(sale => {
       sale.items.forEach(item => processItem(item, sale.createdAt.toDate()));
     });
@@ -114,7 +126,7 @@ export function VendorDashboard() {
       .sort((a, b) => b.units - a.units)
       .slice(0, 5);
 
-    return { totalRevenue: revenue, totalUnitsSold: unitsSold, salesData: chartData, topProducts: sortedTopProducts, lowStockCount: lowStock };
+    return { totalRevenue: revenue, totalUnitsSold: unitsSold, salesData: chartData, topProducts: sortedTopProducts, lowStockCount: lowStock, preOrderCount: currentPreOrderCount };
 
   }, [vendorProducts, allOrders, allPosSales, user]);
 
@@ -150,6 +162,7 @@ export function VendorDashboard() {
                         </CardHeader>
                         <CardContent>
                             {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">৳{totalRevenue.toFixed(2)}</div>}
+                            <p className="text-xs text-muted-foreground">From all completed sales.</p>
                         </CardContent>
                     </Card>
                     <Card>
@@ -159,24 +172,31 @@ export function VendorDashboard() {
                         </CardHeader>
                         <CardContent>
                             {isLoading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{totalUnitsSold}</div>}
+                             <p className="text-xs text-muted-foreground">From all completed sales.</p>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium">Active Products</CardTitle>
+                            <CardTitle className="text-sm font-medium">Product Status</CardTitle>
                             <Package className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            {isLoading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{vendorProducts.length}</div>}
+                            {isLoading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{vendorProducts.length} Active</div>}
+                            <p className={cn("text-xs", lowStockCount > 0 ? "text-destructive font-bold" : "text-muted-foreground")}>
+                              {lowStockCount} items are low on stock.
+                            </p>
                         </CardContent>
                     </Card>
-                     <Card>
+                    <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle className="text-sm font-medium text-destructive">Low Stock Alert</CardTitle>
-                            <AlertCircle className="h-4 w-4 text-destructive" />
+                            <CardTitle className="text-sm font-medium">Active Pre-orders</CardTitle>
+                            <Clock className="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            {isLoading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{lowStockCount} items</div>}
+                            {isLoading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{preOrderCount} Units</div>}
+                            <p className="text-xs text-muted-foreground">
+                            Total pending pre-ordered units.
+                            </p>
                         </CardContent>
                     </Card>
                 </div>
