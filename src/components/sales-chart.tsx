@@ -6,16 +6,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
-
-const chartData = [
-  { month: "January", desktop: 186 },
-  { month: "February", desktop: 305 },
-  { month: "March", desktop: 237 },
-  { month: "April", desktop: 73 },
-  { month: "May", desktop: 209 },
-  { month: "June", desktop: 214 },
-]
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
 const chartConfig = {
   desktop: {
@@ -24,17 +15,22 @@ const chartConfig = {
   },
 }
 
-export function SalesChart() {
+export function SalesChart({ data }: { data: { month: string; desktop: number }[] }) {
     return (
         <ChartContainer config={chartConfig} className="h-[300px] w-full">
-            <BarChart accessibilityLayer data={chartData}>
+            <BarChart accessibilityLayer data={data}>
             <CartesianGrid vertical={false} />
             <XAxis
                 dataKey="month"
                 tickLine={false}
                 tickMargin={10}
                 axisLine={false}
-                tickFormatter={(value) => value.slice(0, 3)}
+            />
+             <YAxis
+                tickLine={false}
+                axisLine={false}
+                tickMargin={10}
+                tickFormatter={(value) => `৳${value / 1000}k`}
             />
             <ChartTooltip
                 cursor={false}

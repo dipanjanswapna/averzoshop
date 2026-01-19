@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -50,6 +51,43 @@ export function AdminDashboard() {
   const newOrdersCount = orders?.length || 0;
   const totalProductsCount = products?.length || 0;
   const activeUsersCount = users?.filter(u => u.status === 'approved').length || 0;
+
+  const salesData = useMemo(() => {
+    if (!orders) {
+        const currentMonth = new Date().getMonth();
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        // Return last 6 months with 0 sales if no orders
+        return Array(6).fill(0).map((_, i) => {
+            const monthIndex = (currentMonth - 5 + i + 12) % 12;
+            return { month: monthNames[monthIndex].slice(0,3), desktop: 0 };
+        });
+    }
+
+    const monthlySales: {[key: string]: number} = {};
+    
+    orders.forEach(order => {
+        const date = order.createdAt.toDate();
+        const monthYear = `${date.toLocaleString('default', { month: 'short' })}-${date.getFullYear()}`;
+        
+        if (!monthlySales[monthYear]) {
+            monthlySales[monthYear] = 0;
+        }
+        monthlySales[monthYear] += order.totalAmount;
+    });
+
+    const sortedMonths = Object.keys(monthlySales).sort((a, b) => {
+        const [aMonth, aYear] = a.split('-');
+        const [bMonth, bYear] = b.split('-');
+        return new Date(`${aMonth} 1, ${aYear}`).getTime() - new Date(`${bMonth} 1, ${bYear}`).getTime();
+    }).slice(-6); // Get last 6 months
+
+    return sortedMonths.map(monthYear => ({
+      month: monthYear.split('-')[0],
+      desktop: monthlySales[monthYear],
+    }));
+
+  }, [orders]);
+
 
   return (
     <div className="flex flex-col gap-6">
@@ -108,9 +146,10 @@ export function AdminDashboard() {
         <Card className="lg:col-span-4">
           <CardHeader>
             <CardTitle className="font-headline">Sales Overview</CardTitle>
+            <CardDescription>Sales performance over the last 6 months.</CardDescription>
           </CardHeader>
           <CardContent className="pl-2">
-             <SalesChart />
+             <SalesChart data={salesData} />
           </CardContent>
         </Card>
         <TopWishlistedProducts products={products} users={users} isLoading={isLoading} />

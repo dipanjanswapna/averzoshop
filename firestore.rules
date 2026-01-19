@@ -36,6 +36,17 @@ service cloud.firestore {
                       || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'vendor'
                           && resource.data.vendorId == request.auth.uid);
     }
+    
+    // Product reviews can be read by anyone.
+    // They can be created by any logged-in user who is also the author of the review.
+    // They can be updated/deleted by the owner or an admin.
+    match /products/{productId}/reviews/{reviewId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow update, delete: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' 
+                            || request.auth.uid == resource.data.userId;
+    }
+
 
     // Questions are publicly readable.
     // Logged-in users can create questions.

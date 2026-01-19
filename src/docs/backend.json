@@ -133,6 +133,8 @@
         "id": { "type": "string", "description": "The unique ID of the sale." },
         "outletId": { "type": "string", "description": "The ID of the outlet where the sale occurred." },
         "soldBy": { "type": "string", "description": "The UID of the sales assistant who made the sale." },
+        "customerId": { "type": "string", "description": "The UID of the customer, if registered." },
+        "customerName": { "type": "string", "description": "The name of the customer." },
         "items": { 
           "type": "array", 
           "items": { 
@@ -300,6 +302,25 @@
       },
       "required": ["productId", "questionText", "askedByUid", "askedByName", "createdAt"]
     },
+    "review": {
+      "title": "Product Review",
+      "description": "A customer's review of a product.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "productId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userAvatar": { "type": "string", "format": "uri" },
+        "rating": { "type": "number" },
+        "text": { "type": "string" },
+        "images": { "type": "array", "items": { "type": "string", "format": "uri" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "helpful": { "type": "number" },
+        "unhelpful": { "type": "number" }
+      },
+      "required": ["productId", "userId", "userName", "rating", "text", "createdAt"]
+    },
     "stock_request": {
       "title": "Stock Request",
       "description": "A request from a vendor to supply stock to an outlet.",
@@ -422,6 +443,7 @@
     "/pos_sales/{saleId}": { "schema": { "$ref": "#/entities/pos_sale" }, "description": "Logs all point-of-sale transactions from outlets." },
     "/products/{productId}": { "schema": { "$ref": "#/entities/product" }, "description": "Stores all product information for the platform." },
     "/products/{productId}/questions/{questionId}": { "schema": { "$ref": "#/entities/question"}, "description": "Stores customer questions and answers for a specific product."},
+    "/products/{productId}/reviews/{reviewId}": { "schema": { "$ref": "#/entities/review" }, "description": "Stores customer reviews for a specific product." },
     "/stock_requests/{requestId}": { "schema": { "$ref": "#/entities/stock_request" }, "description": "Tracks stock movement requests from vendors to outlets." },
     "/delivery_challans/{challanId}": { "schema": { "$ref": "#/entities/delivery_challan" }, "description": "Stores delivery challans generated after stock request approvals." },
     "/orders/{orderId}": { "schema": { "$ref": "#/entities/order" }, "description": "Stores customer online orders routed to specific outlets for fulfillment." },
@@ -430,5 +452,3 @@
     "/notification_subscriptions/{subscriptionId}": { "schema": { "$ref": "#/entities/notification_subscription" }, "description": "Stores all user requests for back-in-stock notifications." }
   }
 }
-
-    

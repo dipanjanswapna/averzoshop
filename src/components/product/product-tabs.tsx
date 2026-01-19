@@ -132,7 +132,7 @@ export function ProductTabs({ product }: { product: Product }) {
                 )}
             </TabsContent>
             <TabsContent value="reviews" className="py-6">
-                <ProductReviews />
+                <ProductReviews productId={product.id} />
             </TabsContent>
             <TabsContent value="qa" className="py-6">
               <div className="flex justify-end mb-4">
@@ -158,7 +158,7 @@ export function ProductTabs({ product }: { product: Product }) {
                                   )}
                                 </div>
                             ) : (
-                                userData?.role === 'admin' ? (
+                                userData?.role === 'admin' || userData?.uid === product.vendorId ? (
                                     <div className="mt-2 pl-4 space-y-2">
                                         <Textarea 
                                             placeholder="Write your answer..." 
