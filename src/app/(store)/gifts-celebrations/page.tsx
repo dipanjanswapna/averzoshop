@@ -39,10 +39,11 @@ import { Button } from '@/components/ui/button';
 import { Filter } from 'lucide-react';
 
 
+const CATEGORY_SLUG = "gifts-celebrations";
 const heroCarouselImages = PlaceHolderImages.filter(p =>
-  p.id.startsWith('hero-carousel-')
+  p.id.startsWith(`hero-carousel-${CATEGORY_SLUG}-`)
 );
-const bannerImage = PlaceHolderImages.find(p => p.id === 'gifts-celebrations-banner');
+const bannerImage = PlaceHolderImages.find(p => p.id === `${CATEGORY_SLUG}-banner`);
 const CATEGORY_NAME = "Gifts & Celebrations";
 const PRODUCTS_PER_PAGE = 36;
 
@@ -90,15 +91,16 @@ export default function CategoryPage() {
         }
     });
 
-     if(initialFilters.sort_by) {
-      params.set('sort_by', initialFilters.sort_by);
+    const currentSortBy = searchParams.get('sort_by');
+    if (currentSortBy) {
+        params.set('sort_by', currentSortBy);
     }
     
     // Always keep the base category for this page
     params.set('mother_category', CATEGORY_NAME);
     
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [router, pathname, initialFilters.sort_by]);
+  }, [router, pathname, searchParams]);
 
 
   const handleSortChange = (value: string | null) => {
@@ -204,7 +206,7 @@ export default function CategoryPage() {
           <div className="mb-8">
             <Link href={bannerImage.link || '#'}>
               <div className="relative w-full aspect-[6/1] rounded-xl overflow-hidden">
-                <Image src={bannerImage.imageUrl} alt={bannerImage.description} data-ai-hint={bannerImage.imageHint} fill className="object-cover" />
+                <Image src={bannerImage.imageUrl} alt={bannerImage.description} data-ai-hint={image.imageHint} fill className="object-cover" />
               </div>
             </Link>
           </div>

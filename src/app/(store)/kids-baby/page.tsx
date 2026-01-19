@@ -39,10 +39,11 @@ import { Button } from '@/components/ui/button';
 import { Filter } from 'lucide-react';
 
 
+const CATEGORY_SLUG = "kids-baby";
 const heroCarouselImages = PlaceHolderImages.filter(p =>
-  p.id.startsWith('hero-carousel-')
+  p.id.startsWith(`hero-carousel-${CATEGORY_SLUG}-`)
 );
-const bannerImage = PlaceHolderImages.find(p => p.id === 'kids-baby-banner');
+const bannerImage = PlaceHolderImages.find(p => p.id === `${CATEGORY_SLUG}-banner`);
 const CATEGORY_NAME = "Kids & Baby";
 const PRODUCTS_PER_PAGE = 36;
 
@@ -96,15 +97,16 @@ export default function CategoryPage() {
         }
     });
 
-     if(initialFilters.sort_by) {
-      params.set('sort_by', initialFilters.sort_by);
+    const currentSortBy = searchParams.get('sort_by');
+    if (currentSortBy) {
+        params.set('sort_by', currentSortBy);
     }
     
     // Always keep the base category for this page
     params.set('mother_category', CATEGORY_NAME);
     
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [router, pathname, initialFilters.sort_by]);
+  }, [router, pathname, searchParams]);
 
 
   const handleSortChange = (value: string | null) => {

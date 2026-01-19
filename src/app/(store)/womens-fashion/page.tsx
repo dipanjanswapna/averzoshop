@@ -39,10 +39,11 @@ import { Button } from '@/components/ui/button';
 import { Filter } from 'lucide-react';
 
 
+const CATEGORY_SLUG = "womens-fashion";
 const heroCarouselImages = PlaceHolderImages.filter(p =>
-  p.id.startsWith('hero-carousel-')
+  p.id.startsWith(`hero-carousel-${CATEGORY_SLUG}-`)
 );
-const bannerImage = PlaceHolderImages.find(p => p.id === 'womens-fashion-banner');
+const bannerImage = PlaceHolderImages.find(p => p.id === `${CATEGORY_SLUG}-banner`);
 const CATEGORY_NAME = "Women's Fashion";
 const PRODUCTS_PER_PAGE = 36;
 
@@ -96,19 +97,29 @@ export default function CategoryPage() {
           }
       }
     });
+    const currentSortBy = searchParams.get('sort_by');
+    if (currentSortBy) {
+        params.set('sort_by', currentSortBy);
+    }
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [router, pathname]);
+  }, [router, pathname, searchParams]);
 
 
   const handleSortChange = (value: string | null) => {
-    const newFilters = { ...initialFilters, sort_by: value || 'newest' };
-    handleFilterChange(newFilters);
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) {
+        params.set('sort_by', value);
+    } else {
+        params.delete('sort_by');
+    }
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   const onPageChange = useCallback((page: number) => {
-    const newFilters = { ...initialFilters, page };
-    handleFilterChange(newFilters);
-  }, [initialFilters, handleFilterChange]);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('page', String(page));
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [router, pathname, searchParams]);
 
 
   const { paginatedProducts, totalPages } = useMemo(() => {
