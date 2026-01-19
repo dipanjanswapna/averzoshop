@@ -40,8 +40,8 @@ export default function FlashSalePage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <Skeleton className="h-40 w-full mb-8" />
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-          {Array.from({ length: 8 }).map((_, i) => (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
+          {Array.from({ length: 12 }).map((_, i) => (
             <div key={i} className="space-y-2">
               <Skeleton className="aspect-square w-full" />
               <Skeleton className="h-4 w-3/4" />
@@ -75,7 +75,7 @@ export default function FlashSalePage() {
           <FlashSalePageTimer endDate={saleEndDate} />
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
           {saleProducts.map(product => (
             <FlashSaleProductCard key={product.id} product={product} />
           ))}

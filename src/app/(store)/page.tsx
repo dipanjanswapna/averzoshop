@@ -38,7 +38,7 @@ export default function StoreFrontPage() {
     if (!products) return { approvedProducts: [], featuredProducts: [], flashSaleProducts: [], flashSaleEndDate: null };
 
     const approved = products.filter(p => p.status === 'approved' && p.total_stock > 0);
-    const featured = approved.slice(0, 13);
+    const featured = approved.slice(0, 11);
 
     const now = new Date();
     const activeSaleProducts = approved.filter(p => 
@@ -67,10 +67,10 @@ export default function StoreFrontPage() {
 
   const renderSkeleton = () => (
     [...Array(6)].map((_, i) => (
-      <div key={i}>
-        <Skeleton className="aspect-square w-full" />
+      <div key={i} className="space-y-2">
+        <Skeleton className="aspect-square w-full rounded-xl" />
         <Skeleton className="h-4 mt-2 w-3/4" />
-        <Skeleton className="h-6 w-1/2" />
+        <Skeleton className="h-5 w-1/2" />
       </div>
     ))
   );
@@ -134,13 +134,13 @@ export default function StoreFrontPage() {
               <Carousel
                 opts={{
                     align: "start",
-                    loop: flashSaleProducts.length > 8,
+                    loop: flashSaleProducts.length > 6,
                 }}
                 className="w-full"
               >
                 <CarouselContent className="-ml-2">
                     {flashSaleProducts.map((product) => (
-                        <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/3 md:basis-1/5 lg:basis-1/8 pl-2">
+                        <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/3 md:basis-1/5 lg:basis-1/6 pl-2">
                             <ProductCard product={product} />
                         </CarouselItem>
                     ))}
@@ -169,7 +169,7 @@ export default function StoreFrontPage() {
                 Don't miss out on these limited-time offers.
               </p>
             </div>
-             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2">
+             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
               {isLoading ? renderSkeleton() : featuredProducts.map(product => (
                 <ProductCard key={product.id} product={product} />
               ))}

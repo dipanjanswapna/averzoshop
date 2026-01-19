@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useAuth } from '@/hooks/use-auth';
@@ -55,7 +54,7 @@ export default function MyWishlistPage() {
             </CardHeader>
             <CardContent>
                  {wishlistProducts.length > 0 ? (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
                     {wishlistProducts.map(product => (
                         <WishlistProductCard key={product.id} product={product} />
                     ))}
