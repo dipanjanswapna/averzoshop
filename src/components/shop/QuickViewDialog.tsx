@@ -3,6 +3,9 @@
 import {
   Dialog,
   DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import type { Product, ProductVariant } from '@/types/product';
 import { ProductImageGallery } from '../product/product-image-gallery';
@@ -59,6 +62,12 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl h-[90vh] flex flex-col sm:flex-row p-0">
+        <DialogHeader className="sr-only">
+          <DialogTitle>{product.name}</DialogTitle>
+          <DialogDescription>
+            Quick view of {product.name} product details.
+          </DialogDescription>
+        </DialogHeader>
         <div className="w-full sm:w-1/2 p-4">
            <ProductImageGallery product={product} selectedVariant={selectedVariant} />
         </div>
