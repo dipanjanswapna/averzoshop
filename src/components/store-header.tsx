@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/hooks/use-cart';
 import { NotificationBell } from '@/components/ui/notification-bell';
 import { useTheme } from '@/components/providers';
+import { LiveSearch } from './live-search';
 
 
 const NestedAccordion = ({ category, onClose }: { category: any, onClose: () => void }) => {
@@ -165,14 +166,7 @@ export default function AverzoNavbar() {
         </div>
 
         <div className="flex-1 max-w-2xl relative hidden md:block">
-          <input 
-            type="text" 
-            placeholder="Search for products, brands and more..." 
-            className="w-full bg-muted border-none rounded-md py-2 px-5 outline-none focus:ring-2 focus:ring-primary text-sm font-body"
-          />
-          <button className="absolute right-0 top-0 h-full bg-primary text-primary-foreground px-4 rounded-r-md">
-            <Search size={18} />
-          </button>
+            <LiveSearch />
         </div>
 
         <div className="flex items-center gap-2 md:gap-5">

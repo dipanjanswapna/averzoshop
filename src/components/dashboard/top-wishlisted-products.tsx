@@ -4,7 +4,6 @@ import { useMemo } from 'react';
 import type { Product } from '@/types/product';
 import type { UserData } from '@/types/user';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '../ui/skeleton';
 import Image from 'next/image';
 import { Heart } from 'lucide-react';
@@ -82,7 +81,7 @@ export function TopWishlistedProducts({ products, users, isLoading }: TopWishlis
                             alt={product.name} 
                             width={40} 
                             height={40}
-                            className="rounded-md aspect-square object-cover"
+                            className="rounded-md aspect-square object-cover border"
                         />
                         <div className="flex-1">
                             <p className="text-sm font-medium truncate">{product.name}</p>

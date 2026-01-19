@@ -18,6 +18,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { signOut as firebaseSignOut } from 'firebase/auth';
 import { Badge } from './ui/badge';
 import { useRouter } from 'next/navigation';
+import { LayoutDashboard } from 'lucide-react';
 
 export function UserNav() {
   const { user, auth, userData } = useAuth();
@@ -29,6 +30,17 @@ export function UserNav() {
       router.push('/login');
     }
   };
+  
+  const getDashboardLink = () => {
+    switch (userData?.role) {
+      case 'admin': return '/dashboard';
+      case 'vendor': return '/vendor/dashboard';
+      case 'outlet': return '/outlet/dashboard';
+      case 'rider': return '/rider/dashboard';
+      case 'customer': return '/customer';
+      default: return '/';
+    }
+  }
 
   if (!user) {
     return (
@@ -62,13 +74,15 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
+           <DropdownMenuItem asChild>
+             <Link href={getDashboardLink()}>
+                <LayoutDashboard className="mr-2 h-4 w-4" />
+                <span>Dashboard</span>
+             </Link>
+          </DropdownMenuItem>
           <DropdownMenuItem>
             Profile
             <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            Billing
-            <DropdownMenuShortcut>⌘B</DropdownMenuShortcut>
           </DropdownMenuItem>
           <DropdownMenuItem>
             Settings
