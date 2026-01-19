@@ -1,22 +1,39 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { PlusCircle, MoreHorizontal, Image as ImageIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AssetDialog } from '@/components/dashboard/asset-dialog';
 import type { StoreAsset } from '@/types/store-asset';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { useFirebase } from '@/firebase';
+import { useToast } from '@/hooks/use-toast';
+import { deleteDoc, doc } from 'firebase/firestore';
 
 export default function AppearancePage() {
   const { data: assets, isLoading } = useFirestoreQuery<StoreAsset>('store_assets');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isAssetDialogOpen, setIsAssetDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [assetToEdit, setAssetToEdit] = useState<StoreAsset | null>(null);
+  const [assetToDelete, setAssetToDelete] = useState<StoreAsset | null>(null);
+  
+  const { firestore } = useFirebase();
+  const { toast } = useToast();
 
   const sortedAssets = useMemo(() => {
     if (!assets) return [];
@@ -25,18 +42,44 @@ export default function AppearancePage() {
 
   const handleAddNew = () => {
     setAssetToEdit(null);
-    setIsDialogOpen(true);
+    setIsAssetDialogOpen(true);
   };
 
   const handleEdit = (asset: StoreAsset) => {
     setAssetToEdit(asset);
-    setIsDialogOpen(true);
+    setIsAssetDialogOpen(true);
+  };
+  
+  const handleDeleteConfirmation = (asset: StoreAsset) => {
+    setAssetToDelete(asset);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteAsset = async () => {
+    if (!assetToDelete || !firestore) return;
+    try {
+      await deleteDoc(doc(firestore, 'store_assets', assetToDelete.id));
+      toast({
+        title: 'Asset Deleted',
+        description: `Asset "${assetToDelete.id}" has been deleted.`,
+      });
+    } catch (error) {
+      console.error("Error deleting asset: ", error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to delete asset.',
+      });
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setAssetToDelete(null);
+    }
   };
   
   const renderSkeleton = () => (
     [...Array(5)].map((_, i) => (
       <TableRow key={i}>
-        <TableCell><Skeleton className="h-10 w-10" /></TableCell>
+        <TableCell><Skeleton className="h-12 w-20" /></TableCell>
         <TableCell><Skeleton className="h-5 w-32" /></TableCell>
         <TableCell><Skeleton className="h-5 w-24" /></TableCell>
         <TableCell><Skeleton className="h-5 w-24" /></TableCell>
@@ -91,7 +134,7 @@ export default function AppearancePage() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuItem onClick={() => handleEdit(asset)}>Edit</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                          <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteConfirmation(asset)}>Delete</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -103,13 +146,25 @@ export default function AppearancePage() {
         </Card>
       </div>
       <AssetDialog 
-        open={isDialogOpen} 
-        onOpenChange={setIsDialogOpen}
+        open={isAssetDialogOpen} 
+        onOpenChange={setIsAssetDialogOpen}
         assetToEdit={assetToEdit} 
       />
+       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the asset
+              "{assetToDelete?.id}".
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteAsset} className={buttonVariants({ variant: "destructive" })}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
-
-
-  
