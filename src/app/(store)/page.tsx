@@ -142,24 +142,24 @@ export default function StoreFrontPage() {
                 <div className="absolute -top-10 -left-20 w-24 h-24 bg-white/10 rounded-full blur-3xl opacity-50"></div>
                 <div className="absolute -bottom-20 -right-10 w-32 h-32 bg-white/10 rounded-full blur-3xl opacity-60"></div>
 
-                <div className="relative z-10 text-center lg:text-left flex-1">
-                  <h2 className="text-lg md:text-xl font-extrabold uppercase font-headline tracking-wider flex items-center justify-center lg:justify-start gap-2">
-                    <Zap size={20} className="text-yellow-300"/>
+                <div className="relative z-10 text-center lg:text-left flex-1 shrink-0">
+                  <h2 className="text-base md:text-lg font-extrabold uppercase font-headline tracking-wider flex items-center justify-center lg:justify-start gap-2">
+                    <Zap size={16} className="text-yellow-300"/>
                     This Week's Must-Haves
                   </h2>
                   <p className="mt-1 text-xs text-white/80 max-w-lg mx-auto lg:mx-0">
-                    Trending Gadgets, Carefully Chosen for You. Don't miss out on these limited-time offers!
+                    Trending Gadgets, Carefully Chosen for You.
                   </p>
                   
                   {flashSaleEndDate && (
-                    <div className="my-3 flex justify-center lg:justify-start">
+                    <div className="my-2 flex justify-center lg:justify-start">
                       <FlashSalePageTimer endDate={flashSaleEndDate} />
                     </div>
                   )}
 
                   <Link href="/flash-sale">
-                    <Button size="sm" className="bg-white/90 text-black hover:bg-white shadow-lg transform hover:scale-105 h-9 text-xs">
-                      Shop The Entire Sale <ArrowRight className="ml-2 h-4 w-4" />
+                    <Button size="sm" className="bg-white/90 text-black hover:bg-white shadow-lg transform hover:scale-105 h-8 text-xs">
+                      Shop The Sale <ArrowRight className="ml-2 h-3 w-3" />
                     </Button>
                   </Link>
                 </div>
@@ -168,13 +168,13 @@ export default function StoreFrontPage() {
                   <Carousel
                       opts={{
                           align: "start",
-                          loop: flashSaleProducts.length > 2,
+                          loop: flashSaleProducts.length > 4,
                       }}
                       className="w-full"
                   >
                       <CarouselContent className="-ml-2 md:-ml-4">
                           {flashSaleProducts.map((product) => (
-                              <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/3 pl-2 md:pl-4">
+                              <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/3 lg:basis-1/4 pl-2 md:pl-4">
                                   <ProductCard product={product} />
                               </CarouselItem>
                           ))}
