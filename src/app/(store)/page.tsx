@@ -19,7 +19,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { useMemo } from 'react';
-import { FlashSalePageTimer } from '@/components/shop/flash-sale-page-timer';
 import { Button } from '@/components/ui/button';
 
 const heroCarouselImages = PlaceHolderImages.filter(p =>
@@ -45,7 +44,28 @@ export default function StoreFrontPage() {
       p.flashSale?.enabled && 
       p.flashSale.endDate && 
       (p.flashSale.endDate.toDate ? p.flashSale.endDate.toDate() : new Date(p.flashSale.endDate)) > now
-    );
+    ).map(product => {
+        const variantsArray = Array.isArray(product.variants)
+            ? product.variants
+            : product.variants ? Object.values(product.variants) : [];
+        
+        const determinedVariant = variantsArray.find(v => (v.stock || 0) > 0) || variantsArray[0];
+        
+        const displayPrice = determinedVariant?.price ?? product.price;
+        const displayOriginalPrice = determinedVariant?.compareAtPrice ?? product.compareAtPrice;
+
+        let discount = 0;
+        if (displayOriginalPrice && displayOriginalPrice > displayPrice) {
+            discount = Math.round(((displayOriginalPrice - displayPrice) / displayOriginalPrice) * 100);
+        }
+        
+        return {
+            ...product,
+            displayPrice,
+            displayOriginalPrice,
+            discountPercent: discount
+        }
+    });
     
     let latestEndDate: Date | null = null;
     if (activeSaleProducts.length > 0) {
@@ -118,44 +138,66 @@ export default function StoreFrontPage() {
         </section>
         
         {flashSaleProducts.length > 0 && flashSaleEndDate && (
-          <section className="py-6 bg-gradient-to-br from-destructive/90 to-red-800 text-primary-foreground">
-            <div className="container">
-              <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-6 text-center md:text-left">
-                <div>
-                  <h2 className="font-headline text-3xl font-extrabold flex items-center justify-center md:justify-start gap-2">
-                    <Zap className="animate-pulse" /> Flash Sale
-                  </h2>
-                  <p className="mt-2 text-primary-foreground/80">
-                    Grab these deals before they're gone! Limited time only.
-                  </p>
-                </div>
-                <FlashSalePageTimer endDate={flashSaleEndDate} />
+          <section className="py-8">
+              <div className="container">
+                  <div className="bg-gradient-to-r from-red-600 via-red-800 to-black rounded-lg p-8 grid grid-cols-1 lg:grid-cols-4 gap-6 items-center">
+                      <div className="lg:col-span-1 text-white text-center lg:text-left">
+                          <h2 className="text-4xl font-extrabold uppercase">This Week's <br /> Must-Have</h2>
+                          <p className="mt-2 text-white/80">Trending Gadgets, Carefully Chosen for You</p>
+                          <Link href="/flash-sale">
+                              <Button className="mt-6 bg-black text-white hover:bg-gray-800 rounded-md">
+                                  Go Shopping <ArrowRight className="ml-2 h-4 w-4" />
+                              </Button>
+                          </Link>
+                      </div>
+                      <div className="lg:col-span-3 relative">
+                          <Carousel
+                              opts={{
+                                  align: "start",
+                                  loop: flashSaleProducts.length > 4,
+                              }}
+                              className="w-full"
+                          >
+                              <CarouselContent className="-ml-4">
+                                  {flashSaleProducts.map((product) => (
+                                      <CarouselItem key={product.id} className="basis-1/2 md:basis-1/3 lg:basis-1/4 pl-4">
+                                          <Link href={`/product/${product.id}`} className="block group">
+                                              <div className="bg-white rounded-lg p-4 text-black text-center flex flex-col h-full overflow-hidden relative">
+                                                  {product.discountPercent > 0 && (
+                                                      <div className="absolute top-2 left-2 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full z-10">
+                                                          -{product.discountPercent}%
+                                                      </div>
+                                                  )}
+                                                  <div className="relative aspect-square w-full">
+                                                      <Image
+                                                          src={product.image}
+                                                          alt={product.name}
+                                                          fill
+                                                          className="object-contain group-hover:scale-105 transition-transform duration-300"
+                                                      />
+                                                  </div>
+                                                  <h3 className="text-sm font-semibold mt-4 truncate">{product.name}</h3>
+                                                  <div className="flex justify-center items-baseline gap-2 mt-2">
+                                                      {product.displayOriginalPrice && product.displayOriginalPrice > product.displayPrice && (
+                                                          <span className="text-sm text-gray-500 line-through">
+                                                              ৳{product.displayOriginalPrice.toFixed(0)}
+                                                          </span>
+                                                      )}
+                                                      <span className="text-lg font-bold text-red-600">
+                                                          ৳{product.displayPrice.toFixed(0)}
+                                                      </span>
+                                                  </div>
+                                              </div>
+                                          </Link>
+                                      </CarouselItem>
+                                  ))}
+                              </CarouselContent>
+                              <CarouselPrevious className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex bg-white/80 hover:bg-white text-black" />
+                              <CarouselNext className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex bg-white/80 hover:bg-white text-black" />
+                          </Carousel>
+                      </div>
+                  </div>
               </div>
-              <Carousel
-                opts={{
-                    align: "start",
-                    loop: flashSaleProducts.length > 6,
-                }}
-                className="w-full"
-              >
-                <CarouselContent className="-ml-2">
-                    {flashSaleProducts.map((product) => (
-                        <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/3 md:basis-1/5 lg:basis-1/6 pl-2">
-                            <ProductCard product={product} />
-                        </CarouselItem>
-                    ))}
-                </CarouselContent>
-                 <CarouselPrevious className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex" />
-                 <CarouselNext className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex" />
-              </Carousel>
-              <div className="text-center mt-8">
-                <Link href="/flash-sale">
-                    <Button variant="outline" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
-                        View All Deals
-                    </Button>
-                </Link>
-              </div>
-            </div>
           </section>
         )}
 
@@ -169,7 +211,7 @@ export default function StoreFrontPage() {
                 Don't miss out on these limited-time offers.
               </p>
             </div>
-             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2">
               {isLoading ? renderSkeleton() : featuredProducts.map(product => (
                 <ProductCard key={product.id} product={product} />
               ))}
