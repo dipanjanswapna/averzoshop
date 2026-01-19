@@ -223,7 +223,7 @@ export function ShippingForm() {
         items: cartItems.map(item => ({ productId: item.product.id, productName: item.product.name, variantSku: item.variant.sku, quantity: item.quantity, price: item.variant.price })),
         subtotal: subtotal,
         discountAmount: discount,
-        promoCode: promoCode?.code,
+        promoCode: promoCode?.code ?? null,
         totalAmount: totalPayable,
         fullOrderValue: fullOrderTotal,
         assignedOutletId: assignedOutletId,
@@ -418,3 +418,5 @@ export function ShippingForm() {
       </Form>
   );
 }
+
+    

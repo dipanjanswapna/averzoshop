@@ -1,5 +1,3 @@
-
-
 'use client';
 import { useState, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
@@ -613,6 +611,8 @@ export default function POSPage() {
                     price: item.variant.price
                 })),
                 subtotal: cartSubtotal,
+                discountAmount: discountAmount,
+                promoCode: appliedCoupon?.code ?? null,
                 totalAmount: grandTotal,
                 fullOrderValue: fullOrderTotal,
                 assignedOutletId: outletId,
@@ -684,7 +684,7 @@ export default function POSPage() {
                     })),
                     subtotal: cartSubtotal,
                     discountAmount: discountAmount,
-                    promoCode: appliedCoupon?.code,
+                    promoCode: appliedCoupon?.code ?? null,
                     totalAmount: grandTotal,
                     paymentMethod: paymentMethod,
                     createdAt: serverTimestamp(),
@@ -891,5 +891,7 @@ export default function POSPage() {
         </>
     );
 }
+
+    
 
     
