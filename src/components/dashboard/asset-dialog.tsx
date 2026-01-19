@@ -53,7 +53,7 @@ export function AssetDialog({ open, onOpenChange, assetToEdit }: AssetDialogProp
       imageHint: '',
       link: '',
       assetType: 'hero-carousel',
-      categorySlug: 'home',
+      categorySlug: '',
     },
   });
 
@@ -62,7 +62,7 @@ export function AssetDialog({ open, onOpenChange, assetToEdit }: AssetDialogProp
       form.reset(assetToEdit);
     } else {
       form.reset({
-        id: '', imageUrl: '', description: '', imageHint: '', link: '', assetType: 'hero-carousel', categorySlug: 'home',
+        id: '', imageUrl: '', description: '', imageHint: '', link: '', assetType: 'hero-carousel', categorySlug: '',
       });
     }
   }, [assetToEdit, form]);
@@ -106,7 +106,7 @@ export function AssetDialog({ open, onOpenChange, assetToEdit }: AssetDialogProp
                <FormField control={form.control} name="assetType" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Asset Type</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
                     <SelectContent>
                       <SelectItem value="hero-carousel">Hero Carousel</SelectItem>
@@ -119,8 +119,10 @@ export function AssetDialog({ open, onOpenChange, assetToEdit }: AssetDialogProp
               <FormField control={form.control} name="categorySlug" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Category</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
-                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl><SelectTrigger>
+                        <SelectValue placeholder="Select a category" />
+                    </SelectTrigger></FormControl>
                     <SelectContent>
                       {categorySlugs.map(slug => (
                         <SelectItem key={slug} value={slug}>{slug}</SelectItem>
