@@ -78,7 +78,7 @@ export default function OutletLayout({
             </div>
             <UserNav />
         </header>
-        <main className="flex-1 p-4 md:p-6 text-sidebar-foreground">{children}</main>
+        <main className="flex-1 p-0 text-sidebar-foreground">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );

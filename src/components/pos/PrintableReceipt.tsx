@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useMemo } from 'react';
 import Barcode from 'react-barcode';
