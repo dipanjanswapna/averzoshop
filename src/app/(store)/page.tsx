@@ -37,7 +37,7 @@ export default function StoreFrontPage() {
     if (!products) return { approvedProducts: [], featuredProducts: [], flashSaleProducts: [], flashSaleEndDate: null };
 
     const approved = products.filter(p => p.status === 'approved' && p.total_stock > 0);
-    const featured = approved.slice(0, 9);
+    const featured = approved.slice(0, 13);
 
     const now = new Date();
     const activeSaleProducts = approved.filter(p => 
@@ -65,7 +65,7 @@ export default function StoreFrontPage() {
 
 
   const renderSkeleton = () => (
-    [...Array(5)].map((_, i) => (
+    [...Array(7)].map((_, i) => (
       <div key={i} className="space-y-2">
         <Skeleton className="aspect-square w-full rounded-xl" />
         <Skeleton className="h-4 mt-2 w-3/4" />
@@ -139,7 +139,7 @@ export default function StoreFrontPage() {
                           >
                               <CarouselContent className="-ml-2">
                                   {flashSaleProducts.map((product) => (
-                                      <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 pl-3">
+                                      <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6 2xl:basis-1/7 pl-3">
                                           <ProductCard product={product} />
                                       </CarouselItem>
                                   ))}
@@ -163,7 +163,7 @@ export default function StoreFrontPage() {
                 Don't miss out on these limited-time offers.
               </p>
             </div>
-             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3">
               {isLoading ? renderSkeleton() : featuredProducts.map(product => (
                 <ProductCard key={product.id} product={product} />
               ))}
