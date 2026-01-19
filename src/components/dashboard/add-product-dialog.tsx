@@ -25,7 +25,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { categoriesData } from '@/lib/categories';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
-import { CalendarIcon, Trash2, PlusCircle } from 'lucide-react';
+import { CalendarIcon, Trash2, PlusCircle, Sparkles, Loader2 } from 'lucide-react';
 import { Switch } from '../ui/switch';
 import { CreatableSelect } from '../ui/creatable-select';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
@@ -34,6 +34,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
 import { cn } from '@/lib/utils';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
+import { generateProductDescription } from '@/ai/flows/product-description-generator';
 
 
 interface AddProductDialogProps {
@@ -53,6 +54,7 @@ const variantSchema = z.object({
 
 const formSchema = z.object({
   name: z.string().min(3, { message: 'Product name must be at least 3 characters.' }),
+  keywords: z.string().optional(),
   description: z.string().min(10, { message: 'Description must be at least 10 characters.' }),
   category: z.string({ required_error: 'Please select a mother category.' }).min(1),
   group: z.string({ required_error: 'Please select a group.' }).min(1),
@@ -98,6 +100,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
   const { firestore } = useFirebase();
   const { user, userData } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingDesc, setIsGeneratingDesc] = useState(false);
   
   const { data: allProducts, isLoading: isLoadingProducts } = useFirestoreQuery<Product>('products');
 
@@ -106,6 +109,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
     defaultValues: {
       name: '',
       description: '',
+      keywords: '',
       price: 0,
       compareAtPrice: 0,
       baseSku: '',
@@ -161,6 +165,37 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
         .map(p => p.subcategory);
     return [...new Set(subcats)].map(s => ({ value: s, label: s }));
   }, [allProducts, selectedCategory]);
+
+   const handleGenerateDescription = async () => {
+    const { name, category, keywords } = form.getValues();
+    if (!name || !category) {
+        toast({
+            variant: "destructive",
+            title: "Name and Category Required",
+            description: "Please enter a product name and select a category before generating a description.",
+        });
+        return;
+    }
+    setIsGeneratingDesc(true);
+    try {
+        const result = await generateProductDescription({
+            name,
+            category,
+            keywords: keywords || '',
+        });
+        if (result.description) {
+            form.setValue('description', result.description, { shouldValidate: true });
+            toast({ title: "Description generated successfully!" });
+        } else {
+            throw new Error("AI returned an empty description.");
+        }
+    } catch (error) {
+        console.error("Error generating description:", error);
+        toast({ variant: "destructive", title: "AI Generation Failed", description: "Could not generate description. Please try again." });
+    } finally {
+        setIsGeneratingDesc(false);
+    }
+  };
 
   const handleGenerateVariants = () => {
     const { variantColors, variantSizes, baseSku, price, compareAtPrice } = form.getValues();
@@ -321,8 +356,33 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
             <FormField control={form.control} name="name" render={({ field }) => (
                 <FormItem><FormLabel>Product Name</FormLabel><FormControl><Input placeholder="e.g., Classic Cotton T-Shirt" {...field} /></FormControl><FormMessage /></FormItem>
             )} />
-            <FormField control={form.control} name="description" render={({ field }) => (
-                <FormItem><FormLabel>Description</FormLabel><FormControl><Textarea placeholder="Describe the product..." {...field} /></FormControl><FormMessage /></FormItem>
+             <FormField control={form.control} name="keywords" render={({ field }) => (
+              <FormItem>
+                  <FormLabel>Keywords for AI</FormLabel>
+                  <FormControl><Input placeholder="e.g., lightweight, breathable, summer wear" {...field} /></FormControl>
+                  <FormDescription>Comma-separated keywords to help the AI generate a better description.</FormDescription>
+                  <FormMessage />
+              </FormItem>
+            )} />
+             <FormField control={form.control} name="description" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description</FormLabel>
+                <div className="relative">
+                  <FormControl><Textarea placeholder="Describe the product..." {...field} rows={6} /></FormControl>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="absolute top-2 right-2 flex items-center gap-1.5"
+                    onClick={handleGenerateDescription}
+                    disabled={isGeneratingDesc}
+                  >
+                    {isGeneratingDesc ? <Loader2 className="animate-spin" size={16}/> : <Sparkles size={16} />}
+                    <span>Generate</span>
+                  </Button>
+                </div>
+                <FormMessage />
+              </FormItem>
             )} />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                <FormField control={form.control} name="category" render={({ field }) => (
