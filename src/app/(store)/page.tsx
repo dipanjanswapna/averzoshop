@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -45,19 +46,16 @@ const FeaturedProductsSection = ({ products, isLoading }: { products: Product[],
     }, [products, activeGroup]);
 
     return (
-        <section className="py-12 md:py-16 bg-background">
+        <section className="py-8 md:py-12 bg-background">
             <div className="container">
-                 <div className="text-center mb-8">
+                 <div className="text-center mb-6">
                     <h2 className="font-headline text-3xl font-extrabold">
                         Men's Fashion
                     </h2>
-                    <p className="mt-2 text-muted-foreground text-sm">
-                        Explore the latest trends in men's apparel and accessories.
-                    </p>
                 </div>
                 
                 <ScrollArea className="w-full pb-4">
-                    <div className="flex justify-center gap-2 mb-8 whitespace-nowrap">
+                    <div className="flex justify-center gap-2 mb-6 whitespace-nowrap">
                         {categoryGroups.map(group => (
                             <Button
                                 key={group}
@@ -73,7 +71,7 @@ const FeaturedProductsSection = ({ products, isLoading }: { products: Product[],
                 </ScrollArea>
 
                 {isLoading ? (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-7 gap-3">
                         {[...Array(6)].map((_, i) => (
                             <div key={i} className="space-y-2">
                                 <Skeleton className="aspect-square w-full rounded-xl" />
@@ -89,7 +87,7 @@ const FeaturedProductsSection = ({ products, isLoading }: { products: Product[],
                     >
                         <CarouselContent className="-ml-2">
                             {filteredProducts.map(product => (
-                                <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6 pl-2">
+                                <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/5 pl-2">
                                     <ProductCard product={product} />
                                 </CarouselItem>
                             ))}
@@ -98,7 +96,7 @@ const FeaturedProductsSection = ({ products, isLoading }: { products: Product[],
                         <CarouselNext className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex" />
                     </Carousel>
                 )}
-                 <div className="text-center mt-8">
+                 <div className="text-center mt-6">
                     <Link href="/mens-fashion">
                         <Button variant="outline" className="rounded-full">
                             See all products <ArrowRight className="ml-2 h-4 w-4" />
@@ -235,7 +233,7 @@ export default function StoreFrontPage() {
                           >
                               <CarouselContent className="-ml-2">
                                   {flashSaleProducts.map((product) => (
-                                      <CarouselItem key={product.id} className="basis-1/2 md:basis-1/3 lg:basis-1/5 xl:basis-1/6 2xl:basis-1/7 pl-2">
+                                      <CarouselItem key={product.id} className="basis-1/2 md:basis-1/3 lg:basis-1/5 xl:basis-1/5 2xl:basis-1/5 pl-2">
                                           <ProductCard product={product} />
                                       </CarouselItem>
                                   ))}
@@ -261,7 +259,7 @@ export default function StoreFrontPage() {
                 Don't miss out on these limited-time offers.
               </p>
             </div>
-             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3">
+             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-5 gap-3">
               {isLoading ? renderSkeleton() : featuredProducts.map(product => (
                 <ProductCard key={product.id} product={product} />
               ))}
