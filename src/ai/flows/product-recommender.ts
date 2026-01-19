@@ -12,8 +12,8 @@ import {z} from 'genkit';
 import type { Product } from '@/types/product';
 
 const ProductRecommenderInputSchema = z.object({
-  allProductsJson: z.string().describe("A JSON string of all available products. Each product should at least have id, name, category, group, subcategory, description, and total_stock."),
-  wishlistProductsJson: z.string().describe("A JSON string of products from the user's wishlist. Each product should at least have id, name, category, group, subcategory, and description."),
+  allProductsJson: z.string().describe("A JSON string of all available products. Each product should at least have id, name, category, group, subcategory, brand, and total_stock."),
+  wishlistProductsJson: z.string().describe("A JSON string of products from the user's wishlist. Each product should at least have id, name, category, group, subcategory, and brand."),
 });
 export type ProductRecommenderInput = z.infer<typeof ProductRecommenderInputSchema>;
 

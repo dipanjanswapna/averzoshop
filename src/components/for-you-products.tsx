@@ -17,55 +17,88 @@ const ForYouProducts = () => {
   const wishlistProductIds = useMemo(() => new Set(userData?.wishlist || []), [userData]);
 
   useEffect(() => {
-    if (user && allProducts && allProducts.length > 0 && wishlistProductIds.size > 0) {
-      const fetchRecommendations = async () => {
-        setIsLoadingRecommendations(true);
-        try {
-          const wishlistProducts = allProducts.filter(p => wishlistProductIds.has(p.id));
-          if (wishlistProducts.length === 0) {
-              setIsLoadingRecommendations(false);
-              return;
-          }
+    const fetchRecommendations = async () => {
+      if (!user || !allProducts || allProducts.length === 0) return;
 
-          // To reduce payload size, only send essential fields to the AI
-          const slimProduct = (p: Product) => ({
-            id: p.id,
-            name: p.name,
-            category: p.category,
-            group: p.group,
-            subcategory: p.subcategory,
-            description: p.description,
-            brand: p.brand,
-            total_stock: p.total_stock,
-          });
+      setIsLoadingRecommendations(true);
+      try {
+        // Only fetch AI recommendations if the user has a wishlist
+        if (wishlistProductIds.size > 0) {
+            const wishlistProducts = allProducts.filter(p => wishlistProductIds.has(p.id));
+            if (wishlistProducts.length === 0) {
+                // Fallback if wishlist products are not found in allProducts
+                const bestSellers = allProducts.filter(p => p.isBestSeller && p.total_stock > 0).slice(0, 10);
+                setRecommendedProducts(bestSellers);
+                setIsLoadingRecommendations(false);
+                return;
+            }
 
-          const result = await getRecommendedProducts({
-            allProductsJson: JSON.stringify(allProducts.filter(p => !wishlistProductIds.has(p.id) && p.total_stock > 0).map(slimProduct)),
-            wishlistProductsJson: JSON.stringify(wishlistProducts.map(slimProduct)),
-          });
-          
-          if (result.recommendedProductIds) {
-            const productMap = new Map(allProducts.map(p => [p.id, p]));
-            const recommended = result.recommendedProductIds.map(id => productMap.get(id)).filter((p): p is Product => !!p);
-            setRecommendedProducts(recommended);
-          }
-        } catch (error) {
-          console.error("Failed to get recommendations:", error);
-          // Fallback might be needed here, e.g., show bestsellers
-        } finally {
-          setIsLoadingRecommendations(false);
+            // To reduce payload size, only send essential fields to the AI
+            const slimProduct = (p: Product) => ({
+                id: p.id,
+                name: p.name,
+                category: p.category,
+                group: p.group,
+                subcategory: p.subcategory,
+                brand: p.brand,
+                total_stock: p.total_stock,
+            });
+            
+             const slimWishlistProduct = (p: Product) => ({
+                id: p.id,
+                name: p.name,
+                category: p.category,
+                group: p.group,
+                subcategory: p.subcategory,
+                brand: p.brand,
+            });
+
+
+            const result = await getRecommendedProducts({
+                allProductsJson: JSON.stringify(allProducts.filter(p => !wishlistProductIds.has(p.id) && p.total_stock > 0).map(slimProduct)),
+                wishlistProductsJson: JSON.stringify(wishlistProducts.map(slimWishlistProduct)),
+            });
+            
+            if (result.recommendedProductIds && result.recommendedProductIds.length > 0) {
+                const productMap = new Map(allProducts.map(p => [p.id, p]));
+                const recommended = result.recommendedProductIds.map(id => productMap.get(id)).filter((p): p is Product => !!p);
+                setRecommendedProducts(recommended);
+            } else {
+                 // Fallback if AI returns no recommendations
+                const bestSellers = allProducts.filter(p => p.isBestSeller && p.total_stock > 0).slice(0, 10);
+                setRecommendedProducts(bestSellers);
+            }
+        } else {
+             // Fallback for users without a wishlist: show bestsellers
+            const bestSellers = allProducts.filter(p => p.isBestSeller && p.total_stock > 0).slice(0, 10);
+            setRecommendedProducts(bestSellers);
         }
-      };
+      } catch (error) {
+        console.error("Failed to get AI recommendations, falling back to bestsellers:", error);
+        // Fallback to bestsellers on any API error
+        if (allProducts) {
+            const bestSellers = allProducts.filter(p => p.isBestSeller && p.total_stock > 0).slice(0, 10);
+            setRecommendedProducts(bestSellers);
+        }
+      } finally {
+        setIsLoadingRecommendations(false);
+      }
+    };
 
-      fetchRecommendations();
-    }
+    fetchRecommendations();
   }, [user, allProducts, wishlistProductIds]);
   
   const isLoading = productsLoading || isLoadingRecommendations;
 
-  if (!user || wishlistProductIds.size === 0) {
-      return null; // Don't show the section if user not logged in or wishlist is empty
+  if (!user) {
+      return null; // Don't show the section if user not logged in
   }
+  
+  // Don't show if there's nothing to show after loading
+  if (!isLoading && recommendedProducts.length === 0) {
+      return null;
+  }
+
 
   return (
     <section className="py-16 md:py-24 bg-secondary">
@@ -79,10 +112,10 @@ const ForYouProducts = () => {
             <div className="flex justify-between items-center mb-6">
                 <div className="text-left">
                     <h2 className="font-headline text-3xl font-extrabold">
-                        Just For You
+                        {wishlistProductIds.size > 0 ? "Just For You" : "Our Bestsellers"}
                     </h2>
                     <p className="mt-2 text-muted-foreground">
-                        Recommendations based on your tastes.
+                        {wishlistProductIds.size > 0 ? "Recommendations based on your tastes." : "Check out what's popular right now!"}
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -108,9 +141,9 @@ const ForYouProducts = () => {
                         </CarouselItem>
                     ))
                 ) : (
-                    // Fallback content if no recommendations, e.g., show bestsellers
-                    // For now, showing a message.
-                    <p className="p-4 text-muted-foreground">No recommendations available right now. Add items to your wishlist!</p>
+                    <div className="w-full text-center p-4 col-span-full">
+                        <p className="text-muted-foreground">Could not load any products.</p>
+                    </div>
                 )}
             </CarouselContent>
         </Carousel>
