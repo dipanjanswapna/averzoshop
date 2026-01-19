@@ -19,7 +19,7 @@ export interface ShippingAddress {
     streetAddress: string;
 }
 
-export type OrderStatus = 'new' | 'preparing' | 'ready_for_pickup' | 'out_for_delivery' | 'delivered' | 'canceled' | 'pre-ordered' | 'fulfilled';
+export type OrderStatus = 'pending_payment' | 'new' | 'preparing' | 'ready_for_pickup' | 'out_for_delivery' | 'delivered' | 'canceled' | 'pre-ordered' | 'fulfilled';
 
 export interface Order {
     id: string;
@@ -36,6 +36,8 @@ export interface Order {
     orderType: 'regular' | 'pre-order';
     createdAt: Timestamp;
     riderId?: string;
+    paymentStatus?: 'Paid' | 'Unpaid' | 'Failed';
+    gatewayTransactionId?: string;
+    updatedAt?: any;
 }
-
     

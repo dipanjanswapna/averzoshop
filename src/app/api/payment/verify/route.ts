@@ -1,96 +1,130 @@
 
 import { NextResponse, type NextRequest } from 'next/server';
 import { firestore } from '@/firebase/server';
-
-// This is an example of a server-side API route for payment verification.
-// It should be called by the payment gateway's IPN (Instant Payment Notification) or callback.
+import { FieldValue } from 'firebase-admin/firestore';
+import type { Product } from '@/types/product';
+import type { Order } from '@/types/order';
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { tran_id, val_id, amount, status } = body;
+    const body = await request.formData();
+    const tran_id = body.get('tran_id') as string;
+    const val_id = body.get('val_id') as string;
+    const status = body.get('status') as string;
 
-    // These should be set in your .env.local file
+    if (!tran_id) {
+        return NextResponse.json({ message: 'Transaction ID is missing.' }, { status: 400 });
+    }
+    
     const storeId = process.env.SSLCOMMERZ_STORE_ID;
     const storePassword = process.env.SSLCOMMERZ_STORE_PASSWORD;
     const isDevelopment = process.env.NODE_ENV === 'development';
     
-    // Use sandbox URL for development and live URL for production
     const validationApiUrl = isDevelopment 
       ? 'https://sandbox.sslcommerz.com/validator/api/validationserverAPI.php'
       : 'https://secure.sslcommerz.com/validator/api/validationserverAPI.php';
 
 
-    if (!storeId || !storePassword) {
+    if (!storeId || !storePassword || storeId === 'your_store_id') {
         console.error("SSLCommerz store ID or password is not configured in environment variables.");
         return NextResponse.json({ message: 'Server configuration error.' }, { status: 500 });
     }
     
-    // Step 1: Check if the payment was actually successful according to the gateway
     if (status !== 'VALID') {
-        // Here you might want to update your database to mark the transaction as 'Failed'.
         await firestore().collection('orders').doc(tran_id).update({
           paymentStatus: 'Failed',
           status: 'canceled'
-        }).catch(err => console.error("Failed to update order to 'Failed'", err));
-
-        return NextResponse.json({ status: 'Failed', message: 'Payment was not successful.' }, { status: 400 });
+        }).catch(err => console.error("Failed to update order to 'Failed' for tran_id:", tran_id, err));
+        
+        return NextResponse.json({ status: 'Failed', message: 'Payment was not successful.' });
     }
 
-    // Step 2: Verify the transaction with SSLCommerz's server (Server-to-Server)
-    const verificationUrl = `${validationApiUrl}?val_id=${val_id}&store_id=${storeId}&store_passwd=${storePassword}`;
+    const verificationUrl = `${validationApiUrl}?val_id=${val_id}&store_id=${storeId}&store_passwd=${storePassword}&format=json`;
     
     const response = await fetch(verificationUrl);
     if (!response.ok) {
         throw new Error(`Gateway validation request failed with status: ${response.status}`);
     }
     const gatewayData = await response.json();
-
-    // Fetch the original order from your database to verify the amount
+    
     const orderRef = firestore().collection('orders').doc(tran_id);
     const orderDoc = await orderRef.get();
 
     if (!orderDoc.exists) {
         return NextResponse.json({ status: 'Failed', message: 'Transaction ID not found in our system.' }, { status: 404 });
     }
-    const orderData = orderDoc.data();
-    if (!orderData) {
-        return NextResponse.json({ status: 'Failed', message: 'Could not retrieve order data.' }, { status: 500 });
-    }
+    const orderData = orderDoc.data() as Order;
 
-    // Step 3: Security Checks - Is the amount correct? Is the status VALID?
     if (
       gatewayData.status === 'VALID' &&
-      parseFloat(gatewayData.amount) === parseFloat(orderData.totalAmount) && // Compare with YOUR DB amount
-      gatewayData.tran_id === tran_id
+      Math.abs(parseFloat(gatewayData.amount) - orderData.totalAmount) < 0.01 &&
+      gatewayData.tran_id === tran_id &&
+      orderData.status === 'pending_payment' // Crucial check
     ) {
-      // Step 4: Payment is verified. Update the order status and reduce stock.
-      await orderRef.update({
-        status: 'new', // Or 'preparing', depends on your fulfillment flow
-        paymentStatus: 'Paid',
-        gatewayTransactionId: val_id,
-        updatedAt: new Date()
-      });
       
-      // Here you would also handle stock reduction. 
-      // This is a critical step and should be done in a transaction.
+      await firestore().runTransaction(async (transaction) => {
+        transaction.update(orderRef, {
+            status: 'new',
+            paymentStatus: 'Paid',
+            gatewayTransactionId: val_id,
+            updatedAt: FieldValue.serverTimestamp()
+        });
+
+        const allProductIds = [...new Set(orderData.items.map(item => item.productId))];
+        if (allProductIds.length === 0) return;
+        
+        const productRefs = allProductIds.map(id => firestore().collection('products').doc(id));
+        const productDocs = await transaction.getAll(...productRefs);
+        const productMap = new Map(productDocs.map(doc => [doc.id, doc.data() as Product]));
+
+        for (const item of orderData.items) {
+          const product = productMap.get(item.productId);
+          if (!product || product.preOrder?.enabled) continue; // Skip stock reduction for pre-order items
+
+          const productRef = firestore().collection('products').doc(item.productId);
+          const variantsArray = Array.isArray(product.variants) ? [...product.variants] : Object.values(product.variants);
+          const variantIndex = variantsArray.findIndex(v => v.sku === item.variantSku);
+
+          if (variantIndex === -1) throw new Error(`Variant ${item.variantSku} not found for product ${product.name}.`);
+          
+          const variant = variantsArray[variantIndex];
+          const currentOutletStock = variant.outlet_stocks?.[orderData.assignedOutletId] ?? 0;
+          if (currentOutletStock < item.quantity) throw new Error(`Not enough stock for ${product.name} in outlet ${orderData.assignedOutletId}.`);
+          
+          variantsArray[variantIndex].stock -= item.quantity;
+          if (variantsArray[variantIndex].outlet_stocks) {
+            variantsArray[variantIndex].outlet_stocks[orderData.assignedOutletId] = currentOutletStock - item.quantity;
+          }
+
+          transaction.update(productRef, {
+              variants: variantsArray,
+              total_stock: FieldValue.increment(-item.quantity),
+          });
+        }
+      });
 
       return NextResponse.json({ status: 'Success', message: 'Payment Verified and Order Confirmed.' });
     } else {
-      // Log the failure reason for debugging
-      console.warn('Fraudulent or failed transaction detected during server validation.', { gatewayData, orderData });
+      let reason = 'Unknown validation failure.';
+      if (gatewayData.status !== 'VALID') reason = 'Gateway status was not VALID.';
+      else if (Math.abs(parseFloat(gatewayData.amount) - orderData.totalAmount) >= 0.01) reason = 'Amount mismatch.';
+      else if (orderData.status !== 'pending_payment') reason = `Order status was not 'pending_payment', it was '${orderData.status}'.`;
+
+      console.warn('Fraudulent or failed transaction detected during server validation.', { reason, gatewayData, orderData });
       
-      // Update order status to 'Failed' or 'Fraud'
       await orderRef.update({
           paymentStatus: 'Failed',
           status: 'canceled'
-      });
+      }).catch(err => console.error("Failed to update order to 'Failed' on validation fail:", tran_id, err));
 
-      return NextResponse.json({ status: 'Failed', message: 'Payment validation failed. Transaction mismatch.' }, { status: 400 });
+      return NextResponse.json({ status: 'Failed', message: 'Payment validation failed. Transaction mismatch.' });
     }
 
   } catch (error: any) {
     console.error('Payment verification error:', error);
+    const bodyForError = await request.formData().catch(()=>null);
+    const tran_id_for_error = bodyForError?.get('tran_id');
+    console.error(`Error for tran_id: ${tran_id_for_error || 'unknown'}`)
     return NextResponse.json({ message: 'Internal Server Error', error: error.message }, { status: 500 });
   }
 }

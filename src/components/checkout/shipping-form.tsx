@@ -18,17 +18,18 @@ import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from '@/hooks/use-toast';
 import { CardHeader, CardTitle } from '../ui/card';
-import { useCart, CartItem as CartItemType } from '@/hooks/use-cart';
+import { useCart } from '@/hooks/use-cart';
 import { useFirebase } from '@/firebase';
 import { useAuth } from '@/hooks/use-auth';
-import { collection, doc, writeBatch, serverTimestamp, getDocs, runTransaction, increment } from 'firebase/firestore';
+import { collection, doc, setDoc, runTransaction, increment } from 'firebase/firestore';
 import { calculateDistance } from '@/lib/distance';
 import type { Outlet } from '@/types/outlet';
 import type { Product } from '@/types/product';
 import { useRouter } from 'next/navigation';
-import type { ShippingAddress } from '@/types/order';
+import type { Order, ShippingAddress } from '@/types/order';
 import { Label } from '../ui/label';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
+import { createSslCommerzSession } from '@/actions/payment-actions';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -189,7 +190,7 @@ export function ShippingForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    if (!firestore || !user || cartItems.length === 0) {
+    if (!firestore || !user || !userData || cartItems.length === 0) {
       toast({ variant: 'destructive', title: 'Error', description: 'Could not process order. Please try again.' });
       setIsLoading(false);
       return;
@@ -211,70 +212,112 @@ export function ShippingForm() {
         streetAddress: values.streetAddress,
     };
 
-    try {
-      await runTransaction(firestore, async (transaction) => {
-        const orderRef = doc(collection(firestore, 'orders'));
-        const userRef = doc(firestore, 'users', user.uid);
-        
-        const isPreOrderCart = cartItems.some(item => item.isPreOrder);
-        const regularItems = cartItems.filter(item => !item.isPreOrder);
-        
-        const assignedOutletId = shippingInfo.outletId!;
+    const orderId = doc(collection(firestore, 'orders')).id;
+    const isPreOrderInCart = cartItems.some(item => item.isPreOrder);
+    const assignedOutletId = shippingInfo.outletId!;
 
-        if (regularItems.length > 0) {
-            for (const cartItem of regularItems) {
-                const productRef = doc(firestore, 'products', cartItem.product.id);
-                const productDoc = await transaction.get(productRef);
-                if (!productDoc.exists()) throw new Error(`Product ${cartItem.product.name} not found.`);
+    const baseOrderData = {
+        id: orderId,
+        customerId: user.uid,
+        shippingAddress: finalShippingAddress,
+        items: cartItems.map(item => ({ productId: item.product.id, productName: item.product.name, variantSku: item.variant.sku, quantity: item.quantity, price: item.variant.price })),
+        subtotal: subtotal,
+        discountAmount: discount,
+        promoCode: promoCode?.code,
+        totalAmount: totalPayable,
+        fullOrderValue: fullOrderTotal,
+        assignedOutletId: assignedOutletId,
+        orderType: isPreOrderInCart ? 'pre-order' as const : 'regular' as const,
+        createdAt: new Date(), // Use JS Date for server action, will be converted later
+    };
 
-                const productData = productDoc.data() as Product;
-                const variantsArray = Array.isArray(productData.variants) ? [...productData.variants.map(v => ({...v}))] : Object.values(productData.variants || {}).map(v => ({...v}));
-                const variantIndex = variantsArray.findIndex(v => v.sku === cartItem.variant.sku);
-                if (variantIndex === -1) throw new Error(`Variant ${cartItem.variant.sku} not found.`);
+    if (values.paymentMethod === 'cod') {
+        try {
+            await runTransaction(firestore, async (transaction) => {
+                const orderRef = doc(firestore, 'orders', orderId);
+                const userRef = doc(firestore, 'users', user.uid);
 
-                const variant = variantsArray[variantIndex];
-                const currentStock = variant.outlet_stocks?.[assignedOutletId] ?? 0;
-                if (currentStock < cartItem.quantity) throw new Error(`Not enough stock for ${productData.name}.`);
+                const orderDataForCod: Order = {
+                    ...baseOrderData,
+                    status: isPreOrderInCart ? 'pre-ordered' : 'new',
+                    paymentStatus: 'Unpaid',
+                    createdAt: new Date() as any, // Firestore will convert this
+                };
+                transaction.set(orderRef, orderDataForCod);
 
-                variantsArray[variantIndex].stock = (variant.stock || 0) - cartItem.quantity;
-                if (variantsArray[variantIndex].outlet_stocks) {
-                    variantsArray[variantIndex].outlet_stocks![assignedOutletId] = currentStock - cartItem.quantity;
+                const regularItems = cartItems.filter(item => !item.isPreOrder);
+                if (regularItems.length > 0 && assignedOutletId) {
+                    const productIds = [...new Set(regularItems.map(item => item.product.id))];
+                    const productRefs = productIds.map(id => doc(firestore, 'products', id));
+                    const productDocs = await transaction.getAll(...productRefs);
+                    const productMap = new Map(productDocs.map(d => [d.id, d.data() as Product]));
+                    
+                    for (const cartItem of regularItems) {
+                        const product = productMap.get(cartItem.product.id);
+                        if (!product) throw new Error(`Product ${cartItem.product.name} not found.`);
+                        
+                        const variantsArray = Array.isArray(product.variants) ? JSON.parse(JSON.stringify(product.variants)) : JSON.parse(JSON.stringify(Object.values(product.variants)));
+                        const variantIndex = variantsArray.findIndex((v: ProductVariant) => v.sku === cartItem.variant.sku);
+                        if (variantIndex === -1) throw new Error(`Variant ${cartItem.variant.sku} not found.`);
+                        
+                        const variant = variantsArray[variantIndex];
+                        const currentStock = variant.outlet_stocks?.[assignedOutletId] ?? 0;
+                        if (currentStock < cartItem.quantity) throw new Error(`Not enough stock for ${product.name}.`);
+
+                        variantsArray[variantIndex].stock = (variant.stock || 0) - cartItem.quantity;
+                        if (variantsArray[variantIndex].outlet_stocks) {
+                            variantsArray[variantIndex].outlet_stocks[assignedOutletId] = currentStock - cartItem.quantity;
+                        }
+                        
+                        transaction.update(productRefs.find(r => r.id === product.id)!, {
+                            variants: variantsArray,
+                            total_stock: increment(-cartItem.quantity),
+                        });
+                    }
                 }
-                const newTotalStock = productData.total_stock - cartItem.quantity;
-                transaction.update(productRef, { variants: variantsArray, total_stock: newTotalStock });
-            }
+
+                const pointsEarned = Math.floor(totalPayable / 100) * 5;
+                if (pointsEarned > 0) {
+                    transaction.update(userRef, { loyaltyPoints: increment(pointsEarned), totalSpent: increment(totalPayable) });
+                    const pointsHistoryRef = doc(collection(firestore, `users/${user.uid}/points_history`));
+                    transaction.set(pointsHistoryRef, { userId: user.uid, pointsChange: pointsEarned, type: 'earn', reason: `Online Order: ${orderId}`, createdAt: new Date() });
+                }
+            });
+
+            clearCart();
+            toast({ title: 'Order Placed!', description: `Your order has been confirmed.` });
+            router.push('/customer/my-orders');
+
+        } catch (error: any) {
+            console.error("COD Order placement failed:", error);
+            toast({ variant: 'destructive', title: 'Order Failed', description: error.message || 'An unexpected error occurred.' });
+        } finally {
+            setIsLoading(false);
         }
 
-        transaction.set(orderRef, {
-            customerId: user.uid,
-            shippingAddress: finalShippingAddress,
-            items: cartItems.map(item => ({ productId: item.product.id, productName: item.product.name, variantSku: item.variant.sku, quantity: item.quantity, price: item.variant.price })),
-            subtotal: subtotal,
-            discountAmount: discount,
-            promoCode: promoCode?.code,
-            totalAmount: totalPayable,
-            fullOrderValue: fullOrderTotal,
-            assignedOutletId: assignedOutletId,
-            status: isPreOrderCart ? 'pre-ordered' : 'new',
-            orderType: isPreOrderCart ? 'pre-order' : 'regular',
-            createdAt: serverTimestamp(),
-        });
+    } else if (values.paymentMethod === 'online') {
+        try {
+            const orderDataForOnline: Order = {
+                ...baseOrderData,
+                status: 'pending_payment',
+                paymentStatus: 'Unpaid',
+            } as Order;
 
-        const pointsEarned = Math.floor(totalPayable / 100) * 5;
-        transaction.update(userRef, { loyaltyPoints: increment(pointsEarned), totalSpent: increment(totalPayable) });
-        const pointsHistoryRef = doc(collection(firestore, `users/${user.uid}/points_history`));
-        transaction.set(pointsHistoryRef, { userId: user.uid, pointsChange: pointsEarned, type: 'earn', reason: `Online Order: ${orderRef.id}`, createdAt: serverTimestamp() });
-      });
+            const orderRef = doc(firestore, 'orders', orderId);
+            await setDoc(orderRef, orderDataForOnline);
 
-      clearCart();
-      toast({ title: 'Order Placed!', description: `Your order has been confirmed.` });
-      router.push('/customer/my-orders');
-      
-    } catch (error: any) {
-      console.error("Order placement failed:", error);
-      toast({ variant: 'destructive', title: 'Order Failed', description: error.message || 'An unexpected error occurred.' });
-    } finally {
-      setIsLoading(false);
+            const session = await createSslCommerzSession(orderDataForOnline, userData);
+
+            if (session.redirectUrl) {
+                window.location.href = session.redirectUrl;
+            } else {
+                throw new Error("Could not get payment URL from gateway.");
+            }
+        } catch (error: any) {
+            console.error("Online payment initiation failed:", error);
+            toast({ variant: 'destructive', title: 'Payment Failed', description: error.message || 'Could not connect to payment gateway.' });
+            setIsLoading(false);
+        }
     }
   }
 
@@ -358,8 +401,8 @@ export function ShippingForm() {
                         <FormLabel className="font-normal">Cash on Delivery</FormLabel>
                         </FormItem>
                         <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl><RadioGroupItem value="online" disabled /></FormControl>
-                        <FormLabel className="font-normal text-muted-foreground">Online Payment (Coming Soon)</FormLabel>
+                        <FormControl><RadioGroupItem value="online" /></FormControl>
+                        <FormLabel className="font-normal">Online Payment</FormLabel>
                         </FormItem>
                     </RadioGroup>
                     </FormControl>
@@ -368,7 +411,7 @@ export function ShippingForm() {
                 )}
             />
 
-            <Button type="submit" className="w-full" size="lg" disabled={isLoading || cartItems.length === 0 || productsLoading || outletsLoading}>
+            <Button type="submit" className="w-full" size="lg" disabled={isLoading || cartItems.length === 0 || productsLoading || outletsLoading || (!shippingInfo.outletId && cartItems.some(i => !i.isPreOrder))}>
                 {isLoading ? 'Processing...' : 'Place Order'}
             </Button>
         </form>
