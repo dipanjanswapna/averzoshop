@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -116,7 +117,7 @@ body {
       display: none !important;
     }
      @page {
-      size: 300px 200px;
+      size: 80mm auto;
       margin: 0;
     }
   }
