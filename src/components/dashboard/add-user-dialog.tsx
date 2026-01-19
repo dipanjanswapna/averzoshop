@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -207,5 +206,3 @@ export function AddUserDialog({ open, onOpenChange }: AddUserDialogProps) {
     </Dialog>
   );
 }
-
-    
