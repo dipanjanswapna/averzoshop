@@ -191,13 +191,13 @@ export default function MensFashionPage() {
           </h1>
         </div>
         <div className="mb-8">
-          {isLoading ? <Skeleton className="w-full aspect-[6/1] rounded-xl" /> : (
+          {isLoading ? <Skeleton className="w-full aspect-[16/9] md:aspect-[3/1] rounded-xl" /> : (
             <Carousel opts={{ align: 'start', loop: true }} plugins={[Autoplay({ delay: 4000 })]} className="w-full">
               <CarouselContent>
                 {heroCarouselImages.map((image, index) => (
                   <CarouselItem key={index}>
                     <Link href={image.link || '#'}>
-                      <div className="relative w-full aspect-[6/1] rounded-xl overflow-hidden">
+                      <div className="relative w-full aspect-[16/9] md:aspect-[3/1] rounded-xl overflow-hidden">
                         <Image src={image.imageUrl} alt={image.description} data-ai-hint={image.imageHint} fill className="object-cover" priority={index === 0} />
                       </div>
                     </Link>
@@ -213,10 +213,10 @@ export default function MensFashionPage() {
             </Carousel>
           )}
         </div>
-        {isLoading ? <Skeleton className="w-full aspect-[6/1] rounded-xl mb-8" /> : bannerImage && (
+        {isLoading ? <Skeleton className="w-full aspect-[16/9] md:aspect-[4/1] rounded-xl mb-8" /> : bannerImage && (
           <div className="mb-8">
             <Link href={bannerImage.link || '#'}>
-              <div className="relative w-full aspect-[6/1] rounded-xl overflow-hidden">
+              <div className="relative w-full aspect-[16/9] md:aspect-[4/1] rounded-xl overflow-hidden">
                 <Image src={bannerImage.imageUrl} alt={bannerImage.description} data-ai-hint={bannerImage.imageHint} fill className="object-cover" />
               </div>
             </Link>

@@ -95,7 +95,7 @@ export default function StoreFrontPage() {
         <section className="w-full">
             <div className="container">
               {isLoading && heroCarouselImages.length === 0 ? (
-                  <Skeleton className="w-full aspect-[16/9] md:aspect-[2.5/1] rounded-xl" />
+                  <Skeleton className="w-full aspect-[16/9] md:aspect-[3/1] rounded-xl" />
               ) : heroCarouselImages.length > 0 ? (
                 <Carousel
                   opts={{ align: 'start', loop: true }}
@@ -106,7 +106,7 @@ export default function StoreFrontPage() {
                     {heroCarouselImages.map((image, index) => (
                       <CarouselItem key={image.id}>
                         <Link href={image.link || '#'}>
-                          <div className="relative w-full aspect-[16/9] md:aspect-[2.5/1] rounded-xl overflow-hidden">
+                          <div className="relative w-full aspect-[16/9] md:aspect-[3/1] rounded-xl overflow-hidden">
                             <Image
                               src={image.imageUrl}
                               alt={image.description}
