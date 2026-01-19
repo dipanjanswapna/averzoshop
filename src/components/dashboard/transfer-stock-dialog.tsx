@@ -25,6 +25,7 @@ import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import type { Outlet } from '@/types/outlet';
 import type { Product } from '@/types/product';
+import { sendTargetedNotification } from '@/ai/flows/send-targeted-notification';
 
 interface TransferStockDialogProps {
   open: boolean;
@@ -74,6 +75,14 @@ export function TransferStockDialog({ open, onOpenChange, product, sourceOutletI
         setIsLoading(true);
 
         try {
+            let sourceOutletManagerId: string | null = null;
+            if (allOutlets) {
+                const sourceOutlet = allOutlets.find(o => o.id === sourceOutletId);
+                if (sourceOutlet && sourceOutlet.managerId) {
+                    sourceOutletManagerId = sourceOutlet.managerId;
+                }
+            }
+
             await addDoc(collection(firestore, 'stock_transfers'), {
                 sourceOutletId,
                 destinationOutletId: values.destinationOutletId,
@@ -85,6 +94,15 @@ export function TransferStockDialog({ open, onOpenChange, product, sourceOutletI
                 requestedBy: user.uid,
                 createdAt: serverTimestamp(),
             });
+
+            if (sourceOutletManagerId) {
+                await sendTargetedNotification({
+                    userId: sourceOutletManagerId,
+                    title: 'New Stock Transfer Request',
+                    body: `You have a new request to dispatch ${values.quantity} units of ${product.name}.`,
+                    link: '/outlet/inventory'
+                });
+            }
 
             toast({ title: "Transfer Request Created!", description: `Request to transfer ${values.quantity} units of ${product.name} has been logged.` });
             form.reset();

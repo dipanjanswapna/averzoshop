@@ -37,6 +37,7 @@ import type { StockRequest } from '@/types/logistics';
 import type { UserData } from '@/types/user';
 import type { Outlet } from '@/types/outlet';
 import { RequestDetailsDialog } from './request-details-dialog';
+import { sendTargetedNotification } from '@/ai/flows/send-targeted-notification';
 
 export default function StockRequestsPage() {
   const { firestore } = useFirebase();
@@ -73,10 +74,22 @@ export default function StockRequestsPage() {
             title: 'Request Approved',
             description: `A delivery challan has been issued.`,
          });
+         await sendTargetedNotification({
+             userId: request.vendorId,
+             title: 'Stock Request Approved',
+             body: `Your request to supply stock has been approved.`,
+             link: '/vendor/challans'
+         });
       } else {
          toast({
             title: 'Request Rejected',
             description: `Request has been successfully rejected.`,
+         });
+          await sendTargetedNotification({
+             userId: request.vendorId,
+             title: 'Stock Request Rejected',
+             body: `Your request to supply stock has been rejected.`,
+             link: '/vendor/stock-requests'
          });
       }
 

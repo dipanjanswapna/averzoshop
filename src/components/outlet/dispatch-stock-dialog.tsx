@@ -16,6 +16,9 @@ import { useFirebase } from '@/firebase';
 import { doc, runTransaction } from 'firebase/firestore';
 import type { StockTransfer } from '@/types/logistics';
 import type { Product } from '@/types/product';
+import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
+import { sendTargetedNotification } from '@/ai/flows/send-targeted-notification';
+import type { Outlet } from '@/types/outlet';
 
 interface DispatchStockDialogProps {
   open: boolean;
@@ -27,6 +30,7 @@ export function DispatchStockDialog({ open, onOpenChange, transfer }: DispatchSt
     const { toast } = useToast();
     const { firestore } = useFirebase();
     const [isLoading, setIsLoading] = useState(false);
+    const { data: allOutlets } = useFirestoreQuery<Outlet>('outlets');
 
     const handleConfirmDispatch = async () => {
         if (!firestore) {
@@ -77,6 +81,19 @@ export function DispatchStockDialog({ open, onOpenChange, transfer }: DispatchSt
                 // Update the transfer status to 'dispatched'
                 transaction.update(transferRef, { status: 'dispatched' });
             });
+
+            if (allOutlets) {
+                const destinationOutlet = allOutlets.find(o => o.id === transfer.destinationOutletId);
+                const sourceOutlet = allOutlets.find(o => o.id === transfer.sourceOutletId);
+                if (destinationOutlet && destinationOutlet.managerId && sourceOutlet) {
+                    await sendTargetedNotification({
+                        userId: destinationOutlet.managerId,
+                        title: 'Stock In-Transit',
+                        body: `${transfer.quantity} units of ${transfer.productName} are on their way from ${sourceOutlet.name}.`,
+                        link: '/outlet/inventory'
+                    });
+                }
+            }
 
             toast({ title: 'Stock Dispatched!', description: 'Inventory has been updated.' });
             onOpenChange(false);

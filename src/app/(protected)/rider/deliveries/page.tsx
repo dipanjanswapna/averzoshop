@@ -2,7 +2,7 @@
 import { useMemo, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc } from 'firebase/firestore';
 import { useFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
@@ -10,8 +10,9 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MapPin, Package, Check, Truck } from 'lucide-react';
-import type { Order, OrderStatus } from '@/types/order';
+import type { Order } from '@/types/order';
 import type { Outlet } from '@/types/outlet';
+import { sendTargetedNotification } from '@/ai/flows/send-targeted-notification';
 
 function DeliveryCard({ order, outlet, onAction, actionLabel, actionIcon: Icon, isLoading }: { order: Order, outlet: Outlet | undefined, onAction: (orderId: string) => void, actionLabel: string, actionIcon: React.ElementType, isLoading: boolean }) {
     return (
@@ -82,6 +83,18 @@ export default function RiderDeliveriesPage() {
                 riderId: user.uid,
             });
             toast({ title: "Delivery Accepted!", description: "The order is now in your delivery queue." });
+
+            const orderSnap = await getDoc(orderRef);
+            if (orderSnap.exists()) {
+                const orderData = orderSnap.data() as Order;
+                await sendTargetedNotification({
+                    userId: orderData.customerId,
+                    title: "Your order is on the way!",
+                    body: `Rider ${user.displayName} has picked up your order #${orderId.substring(0,6)}.`,
+                    link: `/track-order?id=${orderId}`
+                });
+            }
+
         } catch (error) {
             toast({ variant: 'destructive', title: 'Failed to accept delivery.'});
             console.error("Error accepting delivery:", error);

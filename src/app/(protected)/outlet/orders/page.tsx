@@ -27,6 +27,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useMemo, useState } from 'react';
 import { Check, Package, Send, Truck, CheckCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { sendNotificationToRole } from '@/ai/flows/send-notification-to-role';
 
 export default function OnlineOrdersPage() {
   const { userData } = useAuth();
@@ -51,6 +52,15 @@ export default function OnlineOrdersPage() {
     try {
         await updateDoc(orderRef, { status: newStatus });
         toast({ title: 'Order Updated', description: `Order status changed to ${newStatus}.` });
+
+        if (newStatus === 'ready_for_pickup') {
+            await sendNotificationToRole({
+                role: 'rider',
+                title: 'New Delivery Available',
+                body: `Order #${orderId.substring(0, 6)} is ready for pickup.`,
+                link: '/rider/deliveries'
+            });
+        }
     } catch (error) {
         toast({ variant: 'destructive', title: 'Failed to update order.' });
         console.error("Error updating order: ", error);
