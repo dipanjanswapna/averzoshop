@@ -1,4 +1,5 @@
 
+
 export type ProductVariant = {
     sku: string;
     color?: string;
@@ -28,7 +29,7 @@ export type Product = {
     colors: string[];
     sizes: string[];
     discount: number;
-    isBundle: boolean;
+    isBundle?: boolean;
     isNew?: boolean;
     isBestSeller?: boolean;
     gallery?: string[];
@@ -60,6 +61,7 @@ export type Product = {
     
 
     
+
 
 
 

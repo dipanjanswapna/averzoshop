@@ -225,6 +225,9 @@
         "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
         "createdAt": { "type": "string", "format": "date-time" },
         "discount": { "type": "number", "description": "The calculated discount percentage, derived from price and compareAtPrice." },
+        "isNew": { "type": "boolean", "description": "Whether the product is a new arrival." },
+        "isBestSeller": { "type": "boolean", "description": "Whether the product is a best seller." },
+        "isBundle": { "type": "boolean", "description": "Whether the product is a bundle offer."},
         "giftWithPurchase": {
           "type": "object",
           "description": "Details of a free gift offered with the product.",
