@@ -140,10 +140,10 @@ export default function StoreFrontPage() {
                 <div className="relative z-10 text-center lg:text-left lg:w-2/5 shrink-0 p-3">
                   <h2 className="text-2xl md:text-3xl font-extrabold uppercase font-headline tracking-wider flex items-center justify-center lg:justify-start gap-2">
                     <Zap size={20} className="text-yellow-300"/>
-                    This Week's Must-Haves
+                    Flash Sale
                   </h2>
                    <p className="mt-1 text-sm md:text-base text-white/80 max-w-lg mx-auto lg:mx-0">
-                    Trending Gadgets, Carefully Chosen for You.
+                    Grab it before it's gone! Limited time offers.
                   </p>
                   
                   {flashSaleEndDate && (
