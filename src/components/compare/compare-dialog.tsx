@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -41,5 +40,3 @@ export function CompareDialog({ isOpen, onClose }: CompareDialogProps) {
     </Dialog>
   );
 }
-
-    
