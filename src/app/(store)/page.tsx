@@ -140,7 +140,7 @@ export default function StoreFrontPage() {
               >
                 <CarouselContent className="-ml-2 md:-ml-4">
                     {flashSaleProducts.map((product) => (
-                        <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/4 md:basis-1/5 lg:basis-1/6 xl:basis-[12.5%] pl-2 md:pl-4">
+                        <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/4 md:basis-1/5 lg:basis-1/6 xl:basis-1/7 pl-2 md:pl-4">
                             <ProductCard product={product} />
                         </CarouselItem>
                     ))}

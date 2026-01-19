@@ -1,4 +1,5 @@
 
+
 'use client';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import type { Product } from '@/types/product';
@@ -24,7 +25,7 @@ export function RelatedProducts({ products }: { products: Product[] }) {
                 </div>
                 <CarouselContent className="-ml-4">
                     {products.map(product => (
-                        <CarouselItem key={product.id} className="basis-1/2 md:basis-1/4 lg:basis-1/6 pl-4">
+                        <CarouselItem key={product.id} className="basis-1/2 md:basis-1/4 lg:basis-1/6 xl:basis-1/7 pl-4">
                             <ProductCard product={product} />
                         </CarouselItem>
                     ))}
