@@ -1,4 +1,3 @@
-
 "use client";
 import React, { useState, useEffect } from 'react';
 import { Search, ShoppingBag, User, Menu, ChevronDown, X, ChevronRight, Zap, Sun, Moon } from 'lucide-react';
@@ -157,9 +156,12 @@ export default function AverzoNavbar() {
             <Link href="/" className="text-2xl font-black font-saira tracking-tighter text-foreground">
                 AVERZO<span className="text-primary">.</span>
             </Link>
-            <div className="hidden lg:block">
+            <div className="hidden lg:flex items-center gap-2">
                 <Link href="/shop">
                     <Button variant="ghost" className="font-bold">Shop</Button>
+                </Link>
+                <Link href="/track-order">
+                    <Button variant="ghost" className="font-bold">Track Order</Button>
                 </Link>
             </div>
         </div>
@@ -273,5 +275,3 @@ export default function AverzoNavbar() {
     </header>
   );
 }
-
-    
