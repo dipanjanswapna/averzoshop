@@ -250,6 +250,8 @@ export const useCart = create<CartState>()(
                 set({ promoCode: null });
                 get()._recalculate();
                 return;
+            } else {
+              toast({title: "Coupon applied successfully!"})
             }
           }
           
