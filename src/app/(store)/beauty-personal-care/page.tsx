@@ -32,18 +32,17 @@ import {
 import Autoplay from "embla-carousel-autoplay";
 import Link from 'next/link';
 import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { FilterSidebar } from '@/components/shop/filter-sidebar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Filter } from 'lucide-react';
+import { useFirebase } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
+import type { StoreAsset } from '@/types/store-asset';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 const CATEGORY_SLUG = "beauty-personal-care";
-const heroCarouselImages = PlaceHolderImages.filter(p =>
-  p.id.startsWith(`hero-carousel-${CATEGORY_SLUG}-`)
-);
-const bannerImage = PlaceHolderImages.find(p => p.id === `${CATEGORY_SLUG}-banner`);
 const CATEGORY_NAME = "Beauty & Personal Care";
 const PRODUCTS_PER_PAGE = 36;
 
@@ -52,8 +51,21 @@ export default function CategoryPage() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { data: products, isLoading } = useFirestoreQuery<Product>('products');
+  const { firestore } = useFirebase();
+
+  const assetsQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'store_assets'), where('categorySlug', '==', CATEGORY_SLUG));
+  }, [firestore]);
+
+  const { data: assets, isLoading: assetsLoading } = useFirestoreQuery<StoreAsset>(assetsQuery);
+  const { data: products, isLoading: productsLoading } = useFirestoreQuery<Product>('products');
   
+  const isLoading = assetsLoading || productsLoading;
+  
+  const heroCarouselImages = useMemo(() => assets?.filter(a => a.assetType === 'hero-carousel') || [], [assets]);
+  const bannerImage = useMemo(() => assets?.find(a => a.assetType === 'promo-banner'), [assets]);
+
   const parseQueryParam = (param: string | null, defaultValue: any) => {
     if (!param) return defaultValue;
     try {
@@ -183,26 +195,30 @@ export default function CategoryPage() {
         </div>
 
         <div className="mb-8">
-          <Carousel opts={{ align: 'start', loop: true }} plugins={[Autoplay({ delay: 4000 })]} className="w-full">
-            <CarouselContent>
-              {heroCarouselImages.map((image, index) => (
-                <CarouselItem key={index}>
-                  <Link href={image.link || '#'}>
-                    <div className="relative w-full aspect-[16/9] md:aspect-[2.5/1] rounded-xl overflow-hidden">
-                      <Image src={image.imageUrl} alt={image.description} data-ai-hint={image.imageHint} fill className="object-cover" priority={index === 0} />
-                    </div>
-                  </Link>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4">
-              <CarouselPrevious className="static -translate-y-0" />
-              <CarouselNext className="static -translate-y-0" />
-            </div>
-          </Carousel>
+          {isLoading ? <Skeleton className="w-full aspect-[16/9] md:aspect-[2.5/1] rounded-xl" /> : (
+            <Carousel opts={{ align: 'start', loop: true }} plugins={[Autoplay({ delay: 4000 })]} className="w-full">
+              <CarouselContent>
+                {heroCarouselImages.map((image, index) => (
+                  <CarouselItem key={index}>
+                    <Link href={image.link || '#'}>
+                      <div className="relative w-full aspect-[16/9] md:aspect-[2.5/1] rounded-xl overflow-hidden">
+                        <Image src={image.imageUrl} alt={image.description} data-ai-hint={image.imageHint} fill className="object-cover" priority={index === 0} />
+                      </div>
+                    </Link>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              {heroCarouselImages.length > 1 && (
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4">
+                  <CarouselPrevious className="static -translate-y-0" />
+                  <CarouselNext className="static -translate-y-0" />
+                </div>
+              )}
+            </Carousel>
+          )}
         </div>
 
-        {bannerImage && (
+        {isLoading ? <Skeleton className="w-full aspect-[6/1] rounded-xl mb-8" /> : bannerImage && (
           <div className="mb-8">
             <Link href={bannerImage.link || '#'}>
               <div className="relative w-full aspect-[6/1] rounded-xl overflow-hidden">

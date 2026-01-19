@@ -32,18 +32,17 @@ import {
 import Autoplay from "embla-carousel-autoplay";
 import Link from 'next/link';
 import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { FilterSidebar } from '@/components/shop/filter-sidebar';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Filter } from 'lucide-react';
+import { useFirebase } from '@/firebase';
+import { collection, query, where } from 'firebase/firestore';
+import type { StoreAsset } from '@/types/store-asset';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 const CATEGORY_SLUG = "kids-baby";
-const heroCarouselImages = PlaceHolderImages.filter(p =>
-  p.id.startsWith(`hero-carousel-${CATEGORY_SLUG}-`)
-);
-const bannerImage = PlaceHolderImages.find(p => p.id === `${CATEGORY_SLUG}-banner`);
 const CATEGORY_NAME = "Kids & Baby";
 const PRODUCTS_PER_PAGE = 36;
 
@@ -52,21 +51,28 @@ export default function CategoryPage() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { data: products, isLoading } = useFirestoreQuery<Product>('products');
+  const { firestore } = useFirebase();
+
+  const assetsQuery = useMemo(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'store_assets'), where('categorySlug', '==', CATEGORY_SLUG));
+  }, [firestore]);
+
+  const { data: assets, isLoading: assetsLoading } = useFirestoreQuery<StoreAsset>(assetsQuery);
+  const { data: products, isLoading: productsLoading } = useFirestoreQuery<Product>('products');
   
+  const isLoading = assetsLoading || productsLoading;
+  
+  const heroCarouselImages = useMemo(() => assets?.filter(a => a.assetType === 'hero-carousel') || [], [assets]);
+  const bannerImage = useMemo(() => assets?.find(a => a.assetType === 'promo-banner'), [assets]);
+
   const parseQueryParam = (param: string | null, defaultValue: any) => {
     if (!param) return defaultValue;
-    if (Array.isArray(defaultValue)) {
-        return param.split(',');
+    try {
+      return JSON.parse(param);
+    } catch (e) {
+      return Array.isArray(defaultValue) ? param.split(',') : param;
     }
-    if (typeof defaultValue === 'object' && defaultValue !== null) {
-        try {
-            return JSON.parse(param);
-        } catch (e) {
-            return defaultValue;
-        }
-    }
-    return param;
   };
 
   const initialFilters = useMemo(() => ({
@@ -78,7 +84,7 @@ export default function CategoryPage() {
     brands: parseQueryParam(searchParams.get('brands'), []),
     colors: parseQueryParam(searchParams.get('colors'), []),
     sizes: parseQueryParam(searchParams.get('sizes'), []),
-    price_range: parseQueryParam(searchParams.get('price_range'), [0, 2000]),
+    price_range: parseQueryParam(searchParams.get('price_range'), [0, 5000]),
     discount: searchParams.get('discount') || null,
     is_bundle: searchParams.get('is_bundle') === 'true' || false,
   }), [searchParams]);
@@ -141,13 +147,13 @@ export default function CategoryPage() {
         filtered = filtered.filter(p => p.subcategory === initialFilters.subcategory);
     }
     if (initialFilters.brands.length > 0) {
-        filtered = filtered.filter(p => initialFilters.brands.includes(p.brand));
+        filtered = filtered.filter(p => p.brand && initialFilters.brands.includes(p.brand));
     }
     if (initialFilters.colors.length > 0) {
-        filtered = filtered.filter(p => p.colors.some(color => initialFilters.colors.includes(color)));
+        filtered = filtered.filter(p => p.colors && p.colors.some(color => initialFilters.colors.includes(color)));
     }
     if (initialFilters.sizes.length > 0) {
-        filtered = filtered.filter(p => p.sizes.some(size => initialFilters.sizes.includes(size)));
+        filtered = filtered.filter(p => p.sizes && p.sizes.some(size => initialFilters.sizes.includes(size)));
     }
     if (initialFilters.price_range) {
         filtered = filtered.filter(p => p.price >= initialFilters.price_range[0] && p.price <= initialFilters.price_range[1]);
@@ -189,26 +195,30 @@ export default function CategoryPage() {
         </div>
 
         <div className="mb-8">
-          <Carousel opts={{ align: 'start', loop: true }} plugins={[Autoplay({ delay: 4000 })]} className="w-full">
-            <CarouselContent>
-              {heroCarouselImages.map((image, index) => (
-                <CarouselItem key={index}>
-                  <Link href={image.link || '#'}>
-                    <div className="relative w-full aspect-[16/9] md:aspect-[2.5/1] rounded-xl overflow-hidden">
-                      <Image src={image.imageUrl} alt={image.description} data-ai-hint={image.imageHint} fill className="object-cover" priority={index === 0} />
-                    </div>
-                  </Link>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4">
-              <CarouselPrevious className="static -translate-y-0" />
-              <CarouselNext className="static -translate-y-0" />
-            </div>
-          </Carousel>
+          {isLoading ? <Skeleton className="w-full aspect-[16/9] md:aspect-[2.5/1] rounded-xl" /> : (
+            <Carousel opts={{ align: 'start', loop: true }} plugins={[Autoplay({ delay: 4000 })]} className="w-full">
+              <CarouselContent>
+                {heroCarouselImages.map((image, index) => (
+                  <CarouselItem key={index}>
+                    <Link href={image.link || '#'}>
+                      <div className="relative w-full aspect-[16/9] md:aspect-[2.5/1] rounded-xl overflow-hidden">
+                        <Image src={image.imageUrl} alt={image.description} data-ai-hint={image.imageHint} fill className="object-cover" priority={index === 0} />
+                      </div>
+                    </Link>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              {heroCarouselImages.length > 1 && (
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4">
+                  <CarouselPrevious className="static -translate-y-0" />
+                  <CarouselNext className="static -translate-y-0" />
+                </div>
+              )}
+            </Carousel>
+          )}
         </div>
 
-        {bannerImage && (
+        {isLoading ? <Skeleton className="w-full aspect-[6/1] rounded-xl mb-8" /> : bannerImage && (
           <div className="mb-8">
             <Link href={bannerImage.link || '#'}>
               <div className="relative w-full aspect-[6/1] rounded-xl overflow-hidden">
