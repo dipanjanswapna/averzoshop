@@ -150,7 +150,7 @@ export default function StoreFrontPage() {
                           >
                               <CarouselContent className="-ml-2">
                                   {flashSaleProducts.map((product) => (
-                                      <CarouselItem key={product.id} className="basis-1/2 md:basis-1/3 lg:basis-1/5 xl:basis-1/6 2xl:grid-cols-7 pl-2">
+                                      <CarouselItem key={product.id} className="basis-full sm:basis-1/2 md:basis-1/3 pl-2">
                                           <ProductCard product={product} />
                                       </CarouselItem>
                                   ))}
@@ -176,7 +176,7 @@ export default function StoreFrontPage() {
                 Don't miss out on these limited-time offers.
               </p>
             </div>
-             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3">
+             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
               {isLoading ? renderSkeleton() : featuredProducts.map(product => (
                 <ProductCard key={product.id} product={product} />
               ))}
