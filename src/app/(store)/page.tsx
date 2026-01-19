@@ -35,10 +35,10 @@ export default function StoreFrontPage() {
   const { data: products, isLoading } = useFirestoreQuery<Product>(productsQuery);
 
   const approvedProducts = products?.filter(p => p.status === 'approved' && p.total_stock > 0) || [];
-  const featuredProducts = approvedProducts.slice(0, 4);
+  const featuredProducts = approvedProducts.slice(0, 5);
 
   const renderSkeleton = () => (
-    [...Array(5)].map((_, i) => (
+    [...Array(6)].map((_, i) => (
       <div key={i}>
         <Skeleton className="aspect-square w-full" />
         <Skeleton className="h-4 mt-2 w-3/4" />
@@ -99,7 +99,7 @@ export default function StoreFrontPage() {
                 Don't miss out on these limited-time offers.
               </p>
             </div>
-             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-5">
+             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
               {isLoading ? renderSkeleton() : featuredProducts.map(product => (
                 <ProductCard key={product.id} product={product} />
               ))}

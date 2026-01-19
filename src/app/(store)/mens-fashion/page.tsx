@@ -44,7 +44,7 @@ const heroCarouselImages = PlaceHolderImages.filter(p =>
 );
 const bannerImage = PlaceHolderImages.find(p => p.id === 'mens-fashion-banner');
 
-const PRODUCTS_PER_PAGE = 32;
+const PRODUCTS_PER_PAGE = 36;
 const CATEGORY_NAME = "Men's Fashion";
 
 
@@ -172,7 +172,7 @@ export default function MensFashionPage() {
               {heroCarouselImages.map((image, index) => (
                 <CarouselItem key={index}>
                   <Link href={image.link || '#'}>
-                    <div className="relative w-full aspect-[21/9] md:aspect-[4/1] rounded-lg overflow-hidden">
+                    <div className="relative w-full aspect-[16/9] md:aspect-[2.5/1] rounded-xl overflow-hidden">
                       <Image src={image.imageUrl} alt={image.description} data-ai-hint={image.imageHint} fill className="object-cover" priority={index === 0} />
                     </div>
                   </Link>
@@ -188,7 +188,7 @@ export default function MensFashionPage() {
         {bannerImage && (
           <div className="mb-8">
             <Link href={bannerImage.link || '#'}>
-              <div className="relative w-full aspect-[6/1] rounded-lg overflow-hidden">
+              <div className="relative w-full aspect-[6/1] rounded-xl overflow-hidden">
                 <Image src={bannerImage.imageUrl} alt={bannerImage.description} data-ai-hint={bannerImage.imageHint} fill className="object-cover" />
               </div>
             </Link>

@@ -1,11 +1,12 @@
+
 'use client';
 
 import { ProductCard } from '@/components/product-card';
-import type { products } from '@/lib/data';
+import type { Product } from '@/types/product';
 import { Plus, Equal } from 'lucide-react';
 import { Button } from '../ui/button';
 
-export function FrequentlyBought({ products }: { products: (typeof import('@/lib/data').products) }) {
+export function FrequentlyBought({ products }: { products: Product[] }) {
     if (products.length < 2) return null;
     
     const totalPrice = products.reduce((acc, p) => acc + p.price, 0);
@@ -14,13 +15,13 @@ export function FrequentlyBought({ products }: { products: (typeof import('@/lib
         <div className="bg-secondary p-8 rounded-xl border">
             <h2 className="text-2xl font-bold font-headline mb-6 text-center">Frequently Bought Together</h2>
             <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8">
-                <div className="w-48 flex-shrink-0">
+                <div className="w-full max-w-[200px]">
                     <ProductCard product={products[0]} />
                 </div>
                 <div className="text-primary">
                     <Plus size={32} />
                 </div>
-                <div className="w-48 flex-shrink-0">
+                <div className="w-full max-w-[200px]">
                     <ProductCard product={products[1]} />
                 </div>
                 <div className="hidden md:flex items-center gap-4 text-foreground">

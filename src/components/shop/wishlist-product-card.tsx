@@ -3,7 +3,7 @@
 
 import Image from 'next/image';
 import { ShoppingBag, X } from 'lucide-react';
-import type { products } from '@/lib/data';
+import type { Product } from '@/types/product';
 import Link from 'next/link';
 import { Button } from '../ui/button';
 import { useCart } from '@/hooks/use-cart';
@@ -11,8 +11,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { doc, updateDoc, arrayRemove } from 'firebase/firestore';
 
-
-type Product = (typeof products)[0];
 
 export const WishlistProductCard = ({ product }: { product: Product }) => {
   const { addItem } = useCart();
@@ -23,7 +21,7 @@ export const WishlistProductCard = ({ product }: { product: Product }) => {
     e.preventDefault();
     e.stopPropagation();
     
-    const defaultVariant = product.variants?.find(v => v.stock > 0) || product.variants?.[0];
+    const defaultVariant = product.variants?.find(v => (v.stock || 0) > 0) || product.variants?.[0];
     if (!defaultVariant) {
         toast({
             variant: "destructive",

@@ -44,7 +44,7 @@ const heroCarouselImages = PlaceHolderImages.filter(p =>
 );
 const bannerImage = PlaceHolderImages.find(p => p.id === 'kids-baby-banner');
 const CATEGORY_NAME = "Kids & Baby";
-const PRODUCTS_PER_PAGE = 32;
+const PRODUCTS_PER_PAGE = 36;
 
 
 export default function CategoryPage() {
@@ -55,11 +55,17 @@ export default function CategoryPage() {
   
   const parseQueryParam = (param: string | null, defaultValue: any) => {
     if (!param) return defaultValue;
-    try {
-      return JSON.parse(param);
-    } catch (e) {
-      return Array.isArray(defaultValue) ? param.split(',') : param;
+    if (Array.isArray(defaultValue)) {
+        return param.split(',');
     }
+    if (typeof defaultValue === 'object' && defaultValue !== null) {
+        try {
+            return JSON.parse(param);
+        } catch (e) {
+            return defaultValue;
+        }
+    }
+    return param;
   };
 
   const initialFilters = useMemo(() => ({
@@ -186,7 +192,7 @@ export default function CategoryPage() {
               {heroCarouselImages.map((image, index) => (
                 <CarouselItem key={index}>
                   <Link href={image.link || '#'}>
-                    <div className="relative w-full aspect-[21/9] md:aspect-[4/1] rounded-lg overflow-hidden">
+                    <div className="relative w-full aspect-[16/9] md:aspect-[2.5/1] rounded-xl overflow-hidden">
                       <Image src={image.imageUrl} alt={image.description} data-ai-hint={image.imageHint} fill className="object-cover" priority={index === 0} />
                     </div>
                   </Link>
@@ -203,7 +209,7 @@ export default function CategoryPage() {
         {bannerImage && (
           <div className="mb-8">
             <Link href={bannerImage.link || '#'}>
-              <div className="relative w-full aspect-[6/1] rounded-lg overflow-hidden">
+              <div className="relative w-full aspect-[6/1] rounded-xl overflow-hidden">
                 <Image src={bannerImage.imageUrl} alt={bannerImage.description} data-ai-hint={bannerImage.imageHint} fill className="object-cover" />
               </div>
             </Link>

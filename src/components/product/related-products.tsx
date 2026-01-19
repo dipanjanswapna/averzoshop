@@ -1,16 +1,17 @@
 
 'use client';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import type { products } from '@/lib/data';
+import type { Product } from '@/types/product';
 import { ProductCard } from "@/components/product-card";
 
-export function RelatedProducts({ products }: { products: typeof import('@/lib/data').products }) {
+export function RelatedProducts({ products }: { products: Product[] }) {
+    if(!products || products.length === 0) return null;
+    
     return (
         <div>
              <Carousel 
                 opts={{
                     align: "start",
-                    loop: true,
                 }}
                 className="w-full"
             >
@@ -21,9 +22,9 @@ export function RelatedProducts({ products }: { products: typeof import('@/lib/d
                         <CarouselNext className="static -translate-y-0" />
                     </div>
                 </div>
-                <CarouselContent className="-ml-2">
+                <CarouselContent className="-ml-4">
                     {products.map(product => (
-                        <CarouselItem key={product.id} className="basis-1/2 md:basis-1/3 lg:basis-1/5 pl-2">
+                        <CarouselItem key={product.id} className="basis-1/2 md:basis-1/4 lg:basis-1/6 pl-4">
                             <ProductCard product={product} />
                         </CarouselItem>
                     ))}

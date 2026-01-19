@@ -28,7 +28,7 @@ import {
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import type { Product } from '@/types/product';
 
-const PRODUCTS_PER_PAGE = 32;
+const PRODUCTS_PER_PAGE = 36;
 
 function ShopPageContent() {
   const router = useRouter();
