@@ -18,12 +18,92 @@ import type { Product } from '@/types/product';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { categoriesData } from '@/lib/categories';
 
 const heroCarouselImages = PlaceHolderImages.filter(p =>
   p.id.startsWith('hero-carousel-')
 );
+
+// New component for the featured section
+const FeaturedProductsSection = ({ products, isLoading }: { products: Product[], isLoading: boolean }) => {
+    const [activeGroup, setActiveGroup] = useState<string>('Topwear');
+    const categoryName = "Men's Fashion";
+
+    const categoryGroups = useMemo(() => {
+        const category = categoriesData.find(c => c.mother_name === categoryName);
+        return category ? category.groups.map(g => g.group_name) : [];
+    }, []);
+
+    const filteredProducts = useMemo(() => {
+        return products
+            .filter(p => p.category === "Men's Fashion" && p.group === activeGroup)
+            .slice(0, 12);
+    }, [products, activeGroup]);
+
+    return (
+        <section className="py-16 bg-background">
+            <div className="container">
+                <div className="relative bg-card border rounded-xl p-6 pt-16 mt-8">
+                    <div className="absolute -top-5 left-1/2 -translate-x-1/2">
+                        <div className="bg-red-600 text-white font-bold uppercase tracking-wider px-8 py-3 rounded-full shadow-lg text-lg">
+                            Featured Products
+                        </div>
+                    </div>
+                    
+                    <div className="flex justify-center flex-wrap gap-2 mb-8">
+                        {categoryGroups.map(group => (
+                            <Button
+                                key={group}
+                                onClick={() => setActiveGroup(group)}
+                                variant={activeGroup === group ? 'default' : 'outline'}
+                                className="rounded-full"
+                            >
+                                {group}
+                            </Button>
+                        ))}
+                    </div>
+
+                    {isLoading ? (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                            {[...Array(6)].map((_, i) => (
+                                <div key={i} className="space-y-2">
+                                    <Skeleton className="aspect-square w-full rounded-xl" />
+                                    <Skeleton className="h-4 mt-2 w-3/4" />
+                                    <Skeleton className="h-5 w-1/2" />
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <Carousel
+                            opts={{ align: "start" }}
+                            className="w-full"
+                        >
+                            <CarouselContent className="-ml-2">
+                                {filteredProducts.map(product => (
+                                    <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6 pl-2">
+                                        <ProductCard product={product} />
+                                    </CarouselItem>
+                                ))}
+                            </CarouselContent>
+                            <CarouselPrevious className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex" />
+                            <CarouselNext className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex" />
+                        </Carousel>
+                    )}
+                     <div className="text-center mt-8">
+                        <Link href="/mens-fashion">
+                            <Button variant="outline" className="rounded-full">
+                                See all products <ArrowRight className="ml-2 h-4 w-4" />
+                            </Button>
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+};
+
 
 export default function StoreFrontPage() {
   const { firestore } = useFirebase();
@@ -139,7 +219,7 @@ export default function StoreFrontPage() {
                           >
                               <CarouselContent className="-ml-2">
                                   {flashSaleProducts.map((product) => (
-                                      <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6 2xl:basis-1/7 pl-3">
+                                      <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6 pl-2">
                                           <ProductCard product={product} />
                                       </CarouselItem>
                                   ))}
@@ -178,6 +258,8 @@ export default function StoreFrontPage() {
             </div>
           </div>
         </section>
+
+        <FeaturedProductsSection products={approvedProducts} isLoading={isLoading} />
       </>
   );
 }
