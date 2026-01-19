@@ -184,6 +184,6 @@ export default function StoreFrontPage() {
         )}
 
        <ForYouProducts />
-      </>
+    </>
   );
 }
