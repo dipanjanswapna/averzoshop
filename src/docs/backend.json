@@ -457,5 +457,3 @@
     "/notification_subscriptions/{subscriptionId}": { "schema": { "$ref": "#/entities/notification_subscription" }, "description": "Stores all user requests for back-in-stock notifications." }
   }
 }
-
-  

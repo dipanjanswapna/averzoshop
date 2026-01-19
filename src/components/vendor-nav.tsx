@@ -35,7 +35,7 @@ export function VendorNav() {
         <SidebarMenuItem key={item.href}>
           <Link href={item.href}>
             <SidebarMenuButton
-              isActive={pathname === item.href || (item.href !== '/vendor/dashboard' && pathname.startsWith(item.href))}
+              isActive={item.href === '/vendor/dashboard' ? pathname === item.href : pathname.startsWith(item.href)}
               tooltip={item.label}
               className="justify-start"
             >
