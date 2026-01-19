@@ -19,7 +19,7 @@ import type { Product } from '@/types/product';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useFirebase } from '@/firebase';
 import { collection } from 'firebase/firestore';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { FlashSalePageTimer } from '@/components/shop/flash-sale-page-timer';
 
@@ -35,6 +35,7 @@ export default function StoreFrontPage() {
     return collection(firestore, 'products');
   }, [firestore]);
   const { data: products, isLoading } = useFirestoreQuery<Product>(productsQuery);
+  const [activeFilter, setActiveFilter] = useState('All');
 
   const { featuredProducts, flashSaleProducts, flashSaleEndDate } = useMemo(() => {
     if (!products) return { approvedProducts: [], featuredProducts: [], flashSaleProducts: [], flashSaleEndDate: null };
@@ -64,10 +65,25 @@ export default function StoreFrontPage() {
     };
 
   }, [products]);
+  
+  const mensFashionProducts = useMemo(() => {
+    if (!products) return [];
+    
+    let filtered = products.filter(p => {
+      return p.status === 'approved' && p.category === "Men's Fashion";
+    });
+
+    if (activeFilter !== 'All') {
+        filtered = filtered.filter(p => p.group === activeFilter);
+    }
+    
+    return filtered;
+
+  }, [products, activeFilter]);
 
 
-  const renderSkeleton = () => (
-    [...Array(7)].map((_, i) => (
+  const renderSkeleton = (count: number) => (
+    [...Array(count)].map((_, i) => (
       <div key={i} className="space-y-2">
         <Skeleton className="aspect-square w-full rounded-xl" />
         <Skeleton className="h-4 mt-2 w-3/4" />
@@ -119,30 +135,30 @@ export default function StoreFrontPage() {
         </section>
         
         {flashSaleProducts.length > 0 && flashSaleEndDate && (
-          <section className="py-12 md:py-16">
+          <section className="py-8 md:py-10">
             <div className="container">
-              <div className="bg-gradient-to-br from-red-600 via-orange-500 to-yellow-400 text-white rounded-2xl p-6 lg:p-8 shadow-2xl overflow-hidden relative flex flex-col lg:flex-row items-center gap-6">
+              <div className="bg-gradient-to-br from-red-600 via-orange-500 to-yellow-400 text-white rounded-2xl p-4 shadow-2xl overflow-hidden relative flex flex-col lg:flex-row items-center gap-4">
                 
-                <div className="absolute -top-10 -left-20 w-64 h-64 bg-white/10 rounded-full blur-3xl opacity-50"></div>
-                <div className="absolute -bottom-20 -right-10 w-72 h-72 bg-white/10 rounded-full blur-3xl opacity-60"></div>
+                <div className="absolute -top-10 -left-20 w-24 h-24 bg-white/10 rounded-full blur-3xl opacity-50"></div>
+                <div className="absolute -bottom-20 -right-10 w-32 h-32 bg-white/10 rounded-full blur-3xl opacity-60"></div>
 
-                <div className="relative z-10 text-center lg:text-left flex-1 lg:max-w-md">
-                  <h2 className="text-2xl md:text-3xl font-extrabold uppercase font-headline tracking-wider flex items-center justify-center lg:justify-start gap-3">
-                    <Zap size={32} className="text-yellow-300"/>
+                <div className="relative z-10 text-center lg:text-left flex-1">
+                  <h2 className="text-lg md:text-xl font-extrabold uppercase font-headline tracking-wider flex items-center justify-center lg:justify-start gap-2">
+                    <Zap size={20} className="text-yellow-300"/>
                     This Week's Must-Haves
                   </h2>
-                  <p className="mt-2 text-sm text-white/80 max-w-lg mx-auto lg:mx-0">
+                  <p className="mt-1 text-xs text-white/80 max-w-lg mx-auto lg:mx-0">
                     Trending Gadgets, Carefully Chosen for You. Don't miss out on these limited-time offers!
                   </p>
                   
                   {flashSaleEndDate && (
-                    <div className="my-6 flex justify-center lg:justify-start">
+                    <div className="my-3 flex justify-center lg:justify-start">
                       <FlashSalePageTimer endDate={flashSaleEndDate} />
                     </div>
                   )}
 
                   <Link href="/flash-sale">
-                    <Button size="lg" className="bg-white/90 text-black hover:bg-white shadow-lg transform hover:scale-105 transition-transform">
+                    <Button size="sm" className="bg-white/90 text-black hover:bg-white shadow-lg transform hover:scale-105 h-9 text-xs">
                       Shop The Entire Sale <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
@@ -152,19 +168,19 @@ export default function StoreFrontPage() {
                   <Carousel
                       opts={{
                           align: "start",
-                          loop: flashSaleProducts.length > 3,
+                          loop: flashSaleProducts.length > 2,
                       }}
                       className="w-full"
                   >
-                      <CarouselContent className="-ml-4">
+                      <CarouselContent className="-ml-2 md:-ml-4">
                           {flashSaleProducts.map((product) => (
-                              <CarouselItem key={product.id} className="basis-full sm:basis-1/2 md:basis-1/3 pl-4">
+                              <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/3 pl-2 md:pl-4">
                                   <ProductCard product={product} />
                               </CarouselItem>
                           ))}
                       </CarouselContent>
-                      <CarouselPrevious className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex bg-white/80 hover:bg-white text-black" />
-                      <CarouselNext className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex bg-white/80 hover:bg-white text-black" />
+                      <CarouselPrevious className="absolute -left-2 top-1/2 -translate-y-1/2 z-10 hidden sm:flex bg-white/80 hover:bg-white text-black h-8 w-8" />
+                      <CarouselNext className="absolute -right-2 top-1/2 -translate-y-1/2 z-10 hidden sm:flex bg-white/80 hover:bg-white text-black h-8 w-8" />
                   </Carousel>
                 </div>
               </div>
@@ -182,8 +198,8 @@ export default function StoreFrontPage() {
                 Don't miss out on these limited-time offers.
               </p>
             </div>
-             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-              {isLoading ? renderSkeleton() : featuredProducts.map(product => (
+             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-7 gap-3">
+              {isLoading ? renderSkeleton(13) : featuredProducts.map(product => (
                 <ProductCard key={product.id} product={product} />
               ))}
                <Link href="/shop" className="group relative bg-card border border-border rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex items-center justify-center">
