@@ -10,15 +10,25 @@
         "email": { "type": "string", "format": "email", "description": "The user's email address." },
         "displayName": { "type": "string", "description": "The user's display name." },
         "photoURL": { "type": "string", "format": "uri", "description": "The URL of the user's profile picture." },
+        "phone": { "type": "string", "description": "The user's phone number, especially for vendors, riders, and outlet managers." },
         "role": { "type": "string", "description": "The role of the user.", "enum": ["customer", "admin", "outlet", "vendor", "rider"] },
         "status": { "type": "string", "description": "The approval status of the user.", "enum": ["pending", "approved", "rejected"] },
-        "wishlist": { "type": "array", "description": "An array of product IDs that the user has added to their wishlist.", "items": { "type": "string" } },
+        "wishlist": {
+          "type": "array",
+          "description": "An array of product IDs in the user's wishlist.",
+          "items": { "type": "string" }
+        },
         "addresses": { "type": "array", "items": { "$ref": "#/entities/address" } },
         "outletId": { "type": "string", "description": "The ID of the outlet this user manages, if applicable." },
         "assignedOutlets": {
             "type": "array",
             "description": "An array of outlet IDs that the vendor is allowed to supply to.",
             "items": { "type": "string" }
+        },
+        "fcmTokens": {
+          "type": "array",
+          "description": "An array of FCM tokens for push notifications.",
+          "items": { "type": "string" }
         },
         "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the user account was created." },
         "loyaltyPoints": { "type": "number", "description": "The user's current loyalty point balance." },
@@ -99,6 +109,21 @@
         "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the outlet was added." }
       },
       "required": ["name", "location", "status"]
+    },
+     "store_asset": {
+      "title": "Store Asset",
+      "description": "Represents a visual asset used in the storefront, like a hero image or banner.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the asset (e.g., hero-carousel-mens-fashion-1)." },
+        "description": { "type": "string", "description": "A brief description of the image for alt text." },
+        "imageUrl": { "type": "string", "format": "uri", "description": "The public URL of the hosted image." },
+        "imageHint": { "type": "string", "description": "One or two keywords for AI image search suggestions." },
+        "link": { "type": "string", "format": "uri", "description": "The destination URL when the asset is clicked." },
+        "assetType": { "type": "string", "enum": ["hero-carousel", "promo-banner"], "description": "The type of asset, determining where it's used." },
+        "categorySlug": { "type": "string", "description": "The category page slug this asset belongs to (e.g., mens-fashion, home)." }
+      },
+      "required": ["id", "imageUrl", "assetType", "categorySlug"]
     },
     "pos_sale": {
       "title": "POS Sale",
@@ -225,9 +250,9 @@
         "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
         "createdAt": { "type": "string", "format": "date-time" },
         "discount": { "type": "number", "description": "The calculated discount percentage, derived from price and compareAtPrice." },
-        "isNew": { "type": "boolean", "description": "Whether the product is a new arrival." },
-        "isBestSeller": { "type": "boolean", "description": "Whether the product is a best seller." },
-        "isBundle": { "type": "boolean", "description": "Whether the product is a bundle offer."},
+        "isNew": { "type": "boolean", "description": "Flags the product as a new arrival." },
+        "isBestSeller": { "type": "boolean", "description": "Flags the product as a best seller." },
+        "isBundle": { "type": "boolean", "description": "Flags the product as a bundle offer." },
         "giftWithPurchase": {
           "type": "object",
           "description": "Details of a free gift offered with the product.",
@@ -372,14 +397,14 @@
     },
     "notification_subscription": {
       "title": "Notification Subscription",
-      "description": "A record of a user's request to be notified when a product is back in stock.",
+      "description": "Tracks user requests for back-in-stock notifications.",
       "type": "object",
       "properties": {
         "id": { "type": "string" },
-        "userId": { "type": "string", "description": "The UID of the subscribing user, if logged in." },
-        "email": { "type": "string", "format": "email", "description": "The email address to notify." },
+        "email": { "type": "string", "format": "email" },
+        "userId": { "type": "string" },
         "productId": { "type": "string" },
-        "status": { "type": "string", "enum": ["pending", "notified", "fulfilled"], "description": "Status of the notification." },
+        "status": { "type": "string", "enum": ["pending", "sent"] },
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["email", "productId", "status", "createdAt"]
@@ -393,6 +418,7 @@
     "/users/{userId}/points_history/{transactionId}": { "schema": { "$ref": "#/entities/point_transaction" }, "description": "Logs all loyalty point transactions for a user." },
     "/vendors/{vendorId}": { "schema": { "$ref": "#/entities/vendor" }, "description": "Stores information about product suppliers (vendors)." },
     "/outlets/{outletId}": { "schema": { "$ref": "#/entities/outlet" }, "description": "Stores information about physical store locations (outlets)." },
+    "/store_assets/{assetId}": { "schema": { "$ref": "#/entities/store_asset" }, "description": "Stores visual assets for the storefront." },
     "/pos_sales/{saleId}": { "schema": { "$ref": "#/entities/pos_sale" }, "description": "Logs all point-of-sale transactions from outlets." },
     "/products/{productId}": { "schema": { "$ref": "#/entities/product" }, "description": "Stores all product information for the platform." },
     "/products/{productId}/questions/{questionId}": { "schema": { "$ref": "#/entities/question"}, "description": "Stores customer questions and answers for a specific product."},
@@ -404,3 +430,5 @@
     "/notification_subscriptions/{subscriptionId}": { "schema": { "$ref": "#/entities/notification_subscription" }, "description": "Stores all user requests for back-in-stock notifications." }
   }
 }
+
+  

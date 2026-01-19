@@ -73,6 +73,12 @@ service cloud.firestore {
       allow read: if true;
       allow create, update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
+    
+    // Store assets (hero images, banners) are publicly readable. Only admins can manage them.
+    match /store_assets/{assetId} {
+        allow read: if true;
+        allow write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
 
     // Stock requests can be created by vendors. They can be read by the vendor or an admin.
     // They can only be updated (approved/rejected) by an admin.
@@ -122,3 +128,5 @@ service cloud.firestore {
     }
   }
 }
+
+  

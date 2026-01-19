@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -14,6 +15,7 @@ import {
   ClipboardList,
   ArrowRightLeft,
   BellRing,
+  Image as ImageIcon,
 } from 'lucide-react';
 import {
   SidebarMenu,
@@ -34,6 +36,7 @@ const adminNavItems = [
   { href: '/dashboard/coupons', label: 'Coupons', icon: Tags },
   { href: '/dashboard/sub-brands', label: 'Sub-Brands', icon: Tags },
   { href: '/dashboard/outlets', label: 'Offline Outlets', icon: Building },
+  { href: '/dashboard/appearance', label: 'Appearance', icon: ImageIcon },
 ];
 
 export function DashboardNav() {
@@ -73,3 +76,5 @@ export function DashboardNav() {
     </SidebarMenu>
   );
 }
+
+  
