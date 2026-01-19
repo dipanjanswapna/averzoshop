@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from 'next/image';
@@ -22,6 +21,7 @@ import { collection } from 'firebase/firestore';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { FlashSalePageTimer } from '@/components/shop/flash-sale-page-timer';
+import ForYouProducts from '@/components/for-you-products';
 
 const heroCarouselImages = PlaceHolderImages.filter(p =>
   p.id.startsWith('hero-carousel-')
@@ -35,13 +35,11 @@ export default function StoreFrontPage() {
     return collection(firestore, 'products');
   }, [firestore]);
   const { data: products, isLoading } = useFirestoreQuery<Product>(productsQuery);
-  const [activeFilter, setActiveFilter] = useState('All');
-
-  const { featuredProducts, flashSaleProducts, flashSaleEndDate } = useMemo(() => {
-    if (!products) return { approvedProducts: [], featuredProducts: [], flashSaleProducts: [], flashSaleEndDate: null };
+  
+  const { flashSaleProducts, flashSaleEndDate } = useMemo(() => {
+    if (!products) return { flashSaleProducts: [], flashSaleEndDate: null };
 
     const approved = products.filter(p => p.status === 'approved' && p.total_stock > 0);
-    const featured = approved.slice(0, 13);
 
     const now = new Date();
     const activeSaleProducts = approved.filter(p => 
@@ -59,29 +57,12 @@ export default function StoreFrontPage() {
     }
 
     return { 
-      featuredProducts: featured, 
       flashSaleProducts: activeSaleProducts,
       flashSaleEndDate: latestEndDate 
     };
 
   }, [products]);
   
-  const mensFashionProducts = useMemo(() => {
-    if (!products) return [];
-    
-    let filtered = products.filter(p => {
-      return p.status === 'approved' && p.category === "Men's Fashion";
-    });
-
-    if (activeFilter !== 'All') {
-        filtered = filtered.filter(p => p.group === activeFilter);
-    }
-    
-    return filtered;
-
-  }, [products, activeFilter]);
-
-
   const renderSkeleton = (count: number) => (
     [...Array(count)].map((_, i) => (
       <div key={i} className="space-y-2">
@@ -142,12 +123,12 @@ export default function StoreFrontPage() {
                 <div className="absolute -top-10 -left-20 w-24 h-24 bg-white/10 rounded-full blur-3xl opacity-50"></div>
                 <div className="absolute -bottom-20 -right-10 w-32 h-32 bg-white/10 rounded-full blur-3xl opacity-60"></div>
 
-                <div className="relative z-10 text-center lg:text-left lg:w-2/5 shrink-0">
-                  <h2 className="text-lg md:text-xl font-extrabold uppercase font-headline tracking-wider flex items-center justify-center lg:justify-start gap-2">
-                    <Zap size={16} className="text-yellow-300"/>
+                <div className="relative z-10 text-center lg:text-left lg:w-3/5 shrink-0">
+                  <h2 className="text-2xl md:text-3xl font-extrabold uppercase font-headline tracking-wider flex items-center justify-center lg:justify-start gap-2">
+                    <Zap size={20} className="text-yellow-300"/>
                     This Week's Must-Haves
                   </h2>
-                  <p className="mt-2 text-base text-white/80 max-w-lg mx-auto lg:mx-0">
+                  <p className="mt-1 text-sm md:text-base text-white/80 max-w-lg mx-auto lg:mx-0">
                     Trending Gadgets, Carefully Chosen for You.
                   </p>
                   
@@ -158,13 +139,13 @@ export default function StoreFrontPage() {
                   )}
 
                   <Link href="/flash-sale">
-                    <Button size="sm" className="bg-white/90 text-black hover:bg-white shadow-lg transform hover:scale-105 h-9 text-sm">
+                    <Button size="sm" className="bg-white/90 text-black hover:bg-white shadow-lg transform hover:scale-105 h-10 text-sm px-5">
                       Shop The Sale <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
                 </div>
 
-                <div className="relative z-10 w-full lg:w-3/5">
+                <div className="relative z-10 w-full lg:w-2/5">
                   <Carousel
                       opts={{
                           align: "start",
@@ -174,7 +155,7 @@ export default function StoreFrontPage() {
                   >
                       <CarouselContent className="-ml-2 md:-ml-4">
                           {flashSaleProducts.map((product) => (
-                              <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/3 lg:basis-1/4 pl-2 md:pl-4">
+                              <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/2 lg:basis-1/2 pl-2 md:pl-4">
                                   <ProductCard product={product} />
                               </CarouselItem>
                           ))}
@@ -188,31 +169,7 @@ export default function StoreFrontPage() {
           </section>
         )}
 
-        <section className="py-16 md:py-24 bg-secondary">
-          <div className="container">
-            <div className="text-center mb-12">
-              <h2 className="font-headline text-3xl font-extrabold">
-                Deals Of The Day
-              </h2>
-              <p className="mt-2 text-muted-foreground">
-                Don't miss out on these limited-time offers.
-              </p>
-            </div>
-             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-6 2xl:grid-cols-6 gap-3">
-              {isLoading ? renderSkeleton(13) : featuredProducts.map(product => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-               <Link href="/shop" className="group relative bg-card border border-border rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex items-center justify-center">
-                  <div className="flex flex-col items-center text-primary">
-                    <ArrowRight className="h-8 w-8" />
-                    <span className="font-bold mt-2">
-                      View All
-                    </span>
-                  </div>
-              </Link>
-            </div>
-          </div>
-        </section>
+       <ForYouProducts />
       </>
   );
 }
