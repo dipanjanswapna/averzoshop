@@ -3,7 +3,7 @@
 import { useAuth } from '@/hooks/use-auth';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import type { Product } from '@/types/product';
-import { WishlistProductCard } from '@/components/shop/wishlist-product-card';
+import { ProductCard } from '@/components/product-card';
 import { Heart, User } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -54,9 +54,9 @@ export default function MyWishlistPage() {
             </CardHeader>
             <CardContent>
                  {wishlistProducts.length > 0 ? (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
                     {wishlistProducts.map(product => (
-                        <WishlistProductCard key={product.id} product={product} />
+                        <ProductCard key={product.id} product={product} />
                     ))}
                     </div>
                 ) : (

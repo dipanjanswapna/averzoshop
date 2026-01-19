@@ -10,13 +10,16 @@ import { useToast } from '@/hooks/use-toast';
 import { useState, useMemo } from 'react';
 import { WishlistButton } from './ui/wishlist-button';
 import { QuickViewDialog } from './shop/QuickViewDialog';
+import { Progress } from './ui/progress';
+import { cn } from '@/lib/utils';
+import { CompareButton } from './ui/compare-button';
 
 export const ProductCard = ({ product }: { product: Product }) => {
   const { addItem } = useCart();
   const { toast } = useToast();
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
 
-  const { defaultVariant, displayPrice, displayOriginalPrice, isOutOfStock } = useMemo(() => {
+  const { defaultVariant, displayPrice, displayOriginalPrice, isOutOfStock, stockPercentage, isLowStock } = useMemo(() => {
     const variantsArray = Array.isArray(product.variants)
       ? product.variants
       : product.variants ? Object.values(product.variants) : [];
@@ -25,14 +28,21 @@ export const ProductCard = ({ product }: { product: Product }) => {
     
     const price = determinedVariant?.price ?? product.price;
     const originalPrice = determinedVariant?.compareAtPrice ?? product.compareAtPrice;
-
+    
     const outOfStock = !product.preOrder?.enabled && product.total_stock <= 0;
+    
+    const stock = product.total_stock || 0;
+    const lowStockThreshold = 20;
+    const lowStock = !outOfStock && stock > 0 && stock < lowStockThreshold;
+    const percentage = lowStock ? (stock / lowStockThreshold) * 100 : 0;
 
     return {
       defaultVariant: determinedVariant,
       displayPrice: price,
       displayOriginalPrice: originalPrice,
       isOutOfStock: outOfStock,
+      stockPercentage: percentage,
+      isLowStock: lowStock,
     };
   }, [product]);
 
@@ -56,23 +66,13 @@ export const ProductCard = ({ product }: { product: Product }) => {
     e.stopPropagation();
     
     if (isOutOfStock) {
-        toast({
-            variant: "destructive",
-            title: 'Out of Stock',
-            description: 'This product is currently unavailable.',
-        });
+        toast({ variant: "destructive", title: 'Out of Stock' });
         return;
     }
-
     if (!defaultVariant) {
-        toast({
-          variant: "destructive",
-          title: 'Product Unavailable',
-          description: 'This product has no available variants to add.',
-        });
+        toast({ variant: "destructive", title: 'Product Unavailable' });
         return;
     }
-
     addItem(product, defaultVariant);
   };
 
@@ -84,8 +84,8 @@ export const ProductCard = ({ product }: { product: Product }) => {
 
   return (
     <>
-      <div className="group relative bg-card border border-transparent hover:border-border rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg flex flex-col text-foreground">
-        <div className="relative aspect-[4/5] overflow-hidden bg-muted rounded-t-xl">
+      <div className="group relative bg-card border border-border/50 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 flex flex-col text-foreground">
+        <div className="relative aspect-square overflow-hidden bg-muted rounded-t-xl">
            <Link href={`/product/${product.id}`} className="block w-full h-full">
             {product.image && (
                 <Image
@@ -98,35 +98,49 @@ export const ProductCard = ({ product }: { product: Product }) => {
             )}
            </Link>
           
-          <div className="absolute top-3 left-3 z-10 flex flex-col gap-1">
+          <div className="absolute top-2 left-2 z-10 flex flex-col gap-1.5">
             {variantDiscount > 0 && !isOutOfStock && (
-              <span className="bg-primary text-primary-foreground text-[10px] font-bold px-2 py-1 rounded-full">{variantDiscount}% OFF</span>
+              <span className="bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">{variantDiscount}% OFF</span>
             )}
             {isFlashSaleActive && (
-              <span className="bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-1 rounded-full animate-pulse flex items-center gap-1"><Zap size={12} /> SALE</span>
+              <span className="bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse flex items-center gap-1"><Zap size={12} /> SALE</span>
             )}
-             {product.preOrder?.enabled && (
-              <span className="bg-purple-600 text-white text-[10px] font-bold px-2 py-1 rounded-full uppercase">Pre-order</span>
+            {product.preOrder?.enabled && (
+              <span className="bg-purple-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Pre-order</span>
+            )}
+             {product.isNew && (
+              <span className="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">New</span>
+            )}
+             {product.isBestSeller && (
+              <span className="bg-green-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Best Seller</span>
             )}
           </div>
 
-          <WishlistButton
+          <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-20">
+            <WishlistButton
               productId={product.id}
               variant="secondary"
               size="icon"
-              className="absolute top-2 right-2 bg-card/60 backdrop-blur-sm rounded-full text-card-foreground hover:bg-primary hover:text-primary-foreground h-8 w-8 z-10 transition-all scale-90 opacity-0 group-hover:scale-100 group-hover:opacity-100"
+              className="bg-card/60 backdrop-blur-sm rounded-full text-card-foreground hover:bg-primary hover:text-primary-foreground h-8 w-8"
             />
+             <CompareButton
+              product={product}
+              variant="secondary"
+              size="icon"
+              className="bg-card/60 backdrop-blur-sm rounded-full text-card-foreground hover:bg-primary hover:text-primary-foreground h-8 w-8"
+            />
+          </div>
 
           {isOutOfStock && (
-            <div className="absolute inset-0 bg-white/70 dark:bg-black/70 flex items-center justify-center pointer-events-none">
+            <div className="absolute inset-0 bg-white/70 dark:bg-black/70 flex items-center justify-center pointer-events-none z-10">
               <span className="bg-muted text-muted-foreground text-xs font-bold px-3 py-1 rounded-full -rotate-6 border">OUT OF STOCK</span>
             </div>
           )}
 
-          <div className="absolute bottom-0 left-0 right-0 p-2 translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 z-10">
-            <Button className="w-full h-9 text-xs font-bold" onClick={handleAddToCart} disabled={isOutOfStock}>
-              <ShoppingBag size={16} className="mr-2"/>
-              {product.preOrder?.enabled ? 'Pre-order' : 'Add to Bag'}
+          <div className="absolute bottom-0 left-0 right-0 p-2 translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 z-20">
+            <Button className="w-full h-9 text-xs font-bold bg-background/70 text-foreground backdrop-blur-md hover:bg-background/90" onClick={handleQuickView}>
+              <Eye size={16} className="mr-2"/>
+              Quick View
             </Button>
           </div>
         </div>
@@ -134,28 +148,33 @@ export const ProductCard = ({ product }: { product: Product }) => {
         <div className="p-3 flex-1 flex flex-col">
           <Link href={`/product/${product.id}`} className="flex-1">
             <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">{product.brand}</span>
-            <h3 className="text-sm font-bold leading-tight mt-1" title={product.name}>
+            <h3 className="text-sm font-semibold leading-snug mt-1" title={product.name}>
               {product.name}
             </h3>
           </Link>
           
-          <div className="flex items-end justify-between gap-2 mt-2">
-            <div className="flex flex-col">
+          <div className="mt-2">
+             <div className="flex items-baseline gap-2">
               <span className="text-base font-bold text-primary">৳{displayPrice.toFixed(2)}</span>
               {displayOriginalPrice && displayOriginalPrice > displayPrice && (
                 <span className="text-xs text-muted-foreground line-through">৳{displayOriginalPrice.toFixed(2)}</span>
               )}
             </div>
-            <Button 
-                variant="ghost" 
-                size="icon"
-                className="h-8 w-8 shrink-0 text-muted-foreground hover:bg-muted hover:text-primary"
-                onClick={handleQuickView}
-                title="Quick View"
-              >
-                <Eye size={16} />
-            </Button>
+             {isLowStock && (
+                 <div className="mt-2 space-y-1">
+                     <div className="flex justify-between items-center text-[10px] font-bold text-destructive">
+                        <span>Low Stock!</span>
+                        <span>{product.total_stock} left</span>
+                     </div>
+                     <Progress value={stockPercentage} className="h-1 bg-destructive/20 [&>div]:bg-destructive" />
+                 </div>
+            )}
           </div>
+
+          <Button className="w-full h-9 text-xs font-bold mt-3" onClick={handleAddToCart} disabled={isOutOfStock}>
+            <ShoppingBag size={16} className="mr-2"/>
+            {product.preOrder?.enabled ? 'Pre-order' : 'Add to Bag'}
+          </Button>
         </div>
       </div>
       <QuickViewDialog product={product} open={isQuickViewOpen} onOpenChange={setIsQuickViewOpen} />

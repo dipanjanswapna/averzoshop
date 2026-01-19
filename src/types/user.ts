@@ -12,15 +12,10 @@ export interface UserData {
   addresses?: Address[];
   outletId?: string;
   assignedOutlets?: string[];
-  createdAt?: string;
+  createdAt?: any;
   loyaltyPoints?: number;
   totalSpent?: number;
   membershipTier?: 'silver' | 'gold' | 'platinum';
   phone?: string;
   fcmTokens?: string[];
 }
-
-    
-
-    
-

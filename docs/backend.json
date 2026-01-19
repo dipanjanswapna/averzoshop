@@ -13,34 +13,10 @@
         "phone": { "type": "string", "description": "The user's phone number, especially for vendors, riders, and outlet managers." },
         "role": { "type": "string", "description": "The role of the user.", "enum": ["customer", "admin", "outlet", "vendor", "rider"] },
         "status": { "type": "string", "description": "The approval status of the user.", "enum": ["pending", "approved", "rejected"] },
-        "wishlists": {
+        "wishlist": {
           "type": "array",
-          "description": "A list of the user's wishlists.",
-          "items": {
-            "type": "object",
-            "properties": {
-              "id": { "type": "string" },
-              "name": { "type": "string" },
-              "isPublic": { "type": "boolean" },
-              "isDefault": { "type": "boolean", "description": "Whether this is the default wishlist to add items to." },
-              "createdAt": { "type": "string", "format": "date-time" },
-              "updatedAt": { "type": "string", "format": "date-time" },
-              "items": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "productId": { "type": "string" },
-                    "addedAt": { "type": "string", "format": "date-time" },
-                    "notes": { "type": "string" },
-                    "quantity": { "type": "number", "description": "Desired quantity for the item." }
-                  },
-                  "required": ["productId", "addedAt", "quantity"]
-                }
-              }
-            },
-            "required": ["id", "name", "isPublic", "items", "createdAt", "updatedAt"]
-          }
+          "description": "An array of product IDs in the user's wishlist.",
+          "items": { "type": "string" }
         },
         "addresses": { "type": "array", "items": { "$ref": "#/entities/address" } },
         "outletId": { "type": "string", "description": "The ID of the outlet this user manages, if applicable." },
@@ -50,9 +26,9 @@
             "items": { "type": "string" }
         },
         "fcmTokens": {
-          "type": "object",
-          "description": "A map of FCM tokens for push notifications, with the token as the key and a boolean as the value.",
-          "additionalProperties": { "type": "boolean" }
+          "type": "array",
+          "description": "An array of FCM tokens for push notifications.",
+          "items": { "type": "string" }
         },
         "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the user account was created." },
         "loyaltyPoints": { "type": "number", "description": "The user's current loyalty point balance." },
@@ -259,6 +235,9 @@
         "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
         "createdAt": { "type": "string", "format": "date-time" },
         "discount": { "type": "number", "description": "The calculated discount percentage, derived from price and compareAtPrice." },
+        "isNew": { "type": "boolean", "description": "Flags the product as a new arrival." },
+        "isBestSeller": { "type": "boolean", "description": "Flags the product as a best seller." },
+        "isBundle": { "type": "boolean", "description": "Flags the product as a bundle offer." },
         "giftWithPurchase": {
           "type": "object",
           "description": "Details of a free gift offered with the product.",
@@ -432,6 +411,6 @@
     "/orders/{orderId}": { "schema": { "$ref": "#/entities/order" }, "description": "Stores customer online orders routed to specific outlets for fulfillment." },
     "/stock_transfers/{transferId}": { "schema": { "$ref": "#/entities/stock_transfer" }, "description": "Tracks inter-outlet stock transfers initiated by admins." },
     "/coupons/{couponId}": { "schema": { "$ref": "#/entities/coupon" }, "description": "Stores all promotional codes for discounts." },
-    "/notification_subscriptions/{subscriptionId}": { "schema": { "$ref": "#/entities/notification_subscription" }, "description": "Stores user requests for back-in-stock notifications." }
+    "/notification_subscriptions/{subscriptionId}": { "schema": { "$ref": "#/entities/notification_subscription" }, "description": "Stores all user requests for back-in-stock notifications." }
   }
 }
