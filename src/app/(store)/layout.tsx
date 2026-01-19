@@ -16,7 +16,7 @@ export default function StoreLayout({
     <div className="flex min-h-screen flex-col bg-background text-foreground font-body">
       <AverzoNavbar />
       <CartExpirationChecker />
-      <main className="flex-1 pt-[68px] lg:pt-[108px]">{children}</main>
+      <main className="flex-1 pt-[68px] lg:pt-[108px] pb-20 lg:pb-0">{children}</main>
       {/* --- Desktop Footer --- */}
       <footer className="bg-secondary text-secondary-foreground hidden lg:block">
         <div className="container py-12">
