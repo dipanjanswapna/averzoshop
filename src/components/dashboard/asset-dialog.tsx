@@ -107,7 +107,7 @@ export function AssetDialog({ open, onOpenChange, assetToEdit }: AssetDialogProp
                 <FormItem>
                   <FormLabel>Asset Type</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                    <FormControl><SelectTrigger><SelectValue placeholder="Select asset type..." /></SelectTrigger></FormControl>
                     <SelectContent>
                       <SelectItem value="hero-carousel">Hero Carousel</SelectItem>
                       <SelectItem value="promo-banner">Promo Banner</SelectItem>
