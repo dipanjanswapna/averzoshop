@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Product recommender AI agent.
@@ -54,7 +55,12 @@ const productRecommenderFlow = ai.defineFlow(
     outputSchema: ProductRecommenderOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    try {
+      const {output} = await prompt(input);
+      return output!;
+    } catch (e) {
+      console.error("Error in productRecommenderFlow, returning empty recommendations:", e);
+      return { recommendedProductIds: [] };
+    }
   }
 );
