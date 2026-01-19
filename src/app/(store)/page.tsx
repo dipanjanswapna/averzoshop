@@ -142,29 +142,29 @@ export default function StoreFrontPage() {
                 <div className="absolute -top-10 -left-20 w-24 h-24 bg-white/10 rounded-full blur-3xl opacity-50"></div>
                 <div className="absolute -bottom-20 -right-10 w-32 h-32 bg-white/10 rounded-full blur-3xl opacity-60"></div>
 
-                <div className="relative z-10 text-center lg:text-left lg:w-1/3 shrink-0">
-                  <h2 className="text-sm md:text-base font-extrabold uppercase font-headline tracking-wider flex items-center justify-center lg:justify-start gap-2">
-                    <Zap size={14} className="text-yellow-300"/>
+                <div className="relative z-10 text-center lg:text-left lg:w-2/5 shrink-0">
+                  <h2 className="text-lg md:text-xl font-extrabold uppercase font-headline tracking-wider flex items-center justify-center lg:justify-start gap-2">
+                    <Zap size={16} className="text-yellow-300"/>
                     This Week's Must-Haves
                   </h2>
-                  <p className="mt-0.5 text-xs text-white/80 max-w-lg mx-auto lg:mx-0">
+                  <p className="mt-2 text-base text-white/80 max-w-lg mx-auto lg:mx-0">
                     Trending Gadgets, Carefully Chosen for You.
                   </p>
                   
                   {flashSaleEndDate && (
-                    <div className="my-1.5 flex justify-center lg:justify-start">
+                    <div className="my-2 flex justify-center lg:justify-start">
                       <FlashSalePageTimer endDate={flashSaleEndDate} />
                     </div>
                   )}
 
                   <Link href="/flash-sale">
-                    <Button size="sm" className="bg-white/90 text-black hover:bg-white shadow-lg transform hover:scale-105 h-8 text-xs">
-                      Shop The Sale <ArrowRight className="ml-2 h-3 w-3" />
+                    <Button size="sm" className="bg-white/90 text-black hover:bg-white shadow-lg transform hover:scale-105 h-9 text-sm">
+                      Shop The Sale <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </Link>
                 </div>
 
-                <div className="relative z-10 w-full lg:w-2/3">
+                <div className="relative z-10 w-full lg:w-3/5">
                   <Carousel
                       opts={{
                           align: "start",
@@ -198,7 +198,7 @@ export default function StoreFrontPage() {
                 Don't miss out on these limited-time offers.
               </p>
             </div>
-             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-7 gap-3">
+             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-6 2xl:grid-cols-6 gap-3">
               {isLoading ? renderSkeleton(13) : featuredProducts.map(product => (
                 <ProductCard key={product.id} product={product} />
               ))}
