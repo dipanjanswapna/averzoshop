@@ -21,6 +21,7 @@ import { collection } from 'firebase/firestore';
 import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { categoriesData } from '@/lib/categories';
+import { FlashSalePageTimer } from '@/components/shop/flash-sale-page-timer';
 
 const heroCarouselImages = PlaceHolderImages.filter(p =>
   p.id.startsWith('hero-carousel-')
@@ -66,7 +67,7 @@ const FeaturedProductsSection = ({ products, isLoading }: { products: Product[],
                     </div>
 
                     {isLoading ? (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-3">
                             {[...Array(6)].map((_, i) => (
                                 <div key={i} className="space-y-2">
                                     <Skeleton className="aspect-square w-full rounded-xl" />
@@ -197,37 +198,49 @@ export default function StoreFrontPage() {
         </section>
         
         {flashSaleProducts.length > 0 && flashSaleEndDate && (
-          <section className="py-8">
+          <section className="py-16">
               <div className="container">
-                  <div className="bg-gradient-to-r from-red-600 via-red-800 to-black rounded-lg p-8 grid grid-cols-1 lg:grid-cols-4 gap-6 items-center">
-                      <div className="lg:col-span-1 text-white text-center lg:text-left">
-                          <h2 className="text-4xl font-extrabold uppercase">This Week's <br /> Must-Have</h2>
-                          <p className="mt-2 text-white/80">Trending Gadgets, Carefully Chosen for You</p>
+                  <div className="bg-foreground text-background rounded-2xl p-8 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center overflow-hidden relative">
+                      <div className="relative z-10 text-center lg:text-left">
+                          <h2 className="text-4xl font-extrabold uppercase flex items-center justify-center lg:justify-start gap-3">
+                              <Zap className="text-primary" />
+                              This Week's <br /> Must-Haves
+                          </h2>
+                          <p className="mt-2 text-background/70">
+                            Trending Gadgets, Carefully Chosen for You
+                          </p>
+
+                          <div className="my-6 flex justify-center lg:justify-start">
+                            <FlashSalePageTimer endDate={flashSaleEndDate} />
+                          </div>
+
                           <Link href="/flash-sale">
-                              <Button className="mt-6 bg-black text-white hover:bg-gray-800 rounded-md">
-                                  Go Shopping <ArrowRight className="ml-2 h-4 w-4" />
+                              <Button variant="outline" className="bg-transparent text-background border-background/50 hover:bg-background hover:text-foreground">
+                                  Shop The Sale <ArrowRight className="ml-2 h-4 w-4" />
                               </Button>
                           </Link>
                       </div>
-                      <div className="lg:col-span-3 relative">
+                      <div className="relative">
                           <Carousel
                               opts={{
                                   align: "start",
-                                  loop: flashSaleProducts.length > 5,
+                                  loop: flashSaleProducts.length > 3,
                               }}
                               className="w-full"
                           >
                               <CarouselContent className="-ml-2">
                                   {flashSaleProducts.map((product) => (
-                                      <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6 pl-2">
+                                      <CarouselItem key={product.id} className="basis-1/2 md:basis-1/3 pl-2">
                                           <ProductCard product={product} />
                                       </CarouselItem>
                                   ))}
                               </CarouselContent>
-                              <CarouselPrevious className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex bg-white/80 hover:bg-white text-black" />
-                              <CarouselNext className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex bg-white/80 hover:bg-white text-black" />
+                              <CarouselPrevious className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex bg-background/80 hover:bg-background text-foreground" />
+                              <CarouselNext className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex bg-background/80 hover:bg-background text-foreground" />
                           </Carousel>
                       </div>
+                      <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
+                      <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
                   </div>
               </div>
           </section>
