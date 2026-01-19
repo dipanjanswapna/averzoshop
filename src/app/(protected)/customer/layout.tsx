@@ -28,7 +28,10 @@ export default function CustomerDashboardLayout({
   if (loading) {
     return (
         <div className="flex h-screen items-center justify-center bg-background text-foreground">
-            <p>Loading customer dashboard...</p>
+            <div className="flex flex-col items-center gap-4">
+              <span className="loader"></span>
+              <p className="text-muted-foreground">Loading customer dashboard...</p>
+            </div>
         </div>
     )
   }

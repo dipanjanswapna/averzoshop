@@ -26,7 +26,10 @@ export default function OutletLayout({
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background text-foreground">
-          <p>Loading outlet dashboard...</p>
+          <div className="flex flex-col items-center gap-4">
+            <span className="loader"></span>
+            <p className="text-muted-foreground">Loading outlet dashboard...</p>
+          </div>
       </div>
     );
   }

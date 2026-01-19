@@ -59,7 +59,10 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
   if (loading || !user) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background text-foreground">
-        <p>Loading user data...</p>
+        <div className="flex flex-col items-center gap-4">
+          <span className="loader"></span>
+          <p className="text-muted-foreground">Loading user data...</p>
+        </div>
       </div>
     );
   }
@@ -69,7 +72,10 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
   if (!userData || userData.status !== 'approved') {
     return (
         <div className="flex h-screen w-full items-center justify-center bg-background text-foreground">
-          <p>Verifying account status...</p>
+          <div className="flex flex-col items-center gap-4">
+            <span className="loader"></span>
+            <p className="text-muted-foreground">Verifying account status...</p>
+          </div>
         </div>
       );
   }
