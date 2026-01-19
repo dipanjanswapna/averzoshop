@@ -143,42 +143,14 @@ export const ProductCard = ({ product }: { product: Product }) => {
         </div>
       </div>
 
-      <div className="p-2 bg-card text-card-foreground">
-        <h4 className="text-muted-foreground text-[8px] font-roboto uppercase tracking-wider">{product.brand}</h4>
-        <h3 className="text-xs font-bold truncate">{product.name}</h3>
-        
-        <div className="flex items-baseline gap-1 mt-0.5">
-          <span className="text-sm font-bold text-primary font-roboto">৳{displayPrice.toFixed(2)}</span>
+      <div className="p-2 space-y-1">
+        <h3 className="text-xs font-bold truncate leading-tight" title={product.name}>{product.name}</h3>
+        <div className="flex items-baseline gap-1">
+          <span className="text-sm font-bold text-primary">৳{displayPrice.toFixed(2)}</span>
           {displayOriginalPrice && displayOriginalPrice > displayPrice && (
-            <span className="text-[9px] text-muted-foreground line-through">৳{displayOriginalPrice.toFixed(2)}</span>
+            <span className="text-[10px] text-muted-foreground line-through">৳{displayOriginalPrice.toFixed(2)}</span>
           )}
         </div>
-
-        <div className="flex items-center justify-between mt-1 pt-1 border-t border-border/50">
-          <div className="flex items-center text-green-500 gap-1">
-            <MapPin size={10} />
-            <span className="text-[8px] font-medium">In Store</span>
-          </div>
-          <div className="flex items-center text-yellow-500">
-            <span className="text-[9px] font-bold">4.5★</span>
-          </div>
-        </div>
-        
-        <Button onClick={handleAddToCart} className="w-full mt-1.5 h-7 text-[10px]" size="sm" disabled={isOutOfStock}>
-          {isOutOfStock ? (
-            'Out of Stock'
-          ) : product.preOrder?.enabled ? (
-            <>
-              <ShoppingBag size={12} />
-              <span className="ml-2">PRE-ORDER</span>
-            </>
-          ) : (
-            <>
-              <ShoppingBag size={12} />
-              <span className="ml-2">ADD TO CART</span>
-            </>
-          )}
-        </Button>
       </div>
     </Link>
   );

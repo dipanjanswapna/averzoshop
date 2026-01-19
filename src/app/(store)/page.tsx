@@ -118,7 +118,7 @@ export default function StoreFrontPage() {
         </section>
         
         {flashSaleProducts.length > 0 && flashSaleEndDate && (
-          <section className="py-8 md:py-12 bg-gradient-to-br from-destructive/90 to-red-800 text-primary-foreground">
+          <section className="py-6 bg-gradient-to-br from-destructive/90 to-red-800 text-primary-foreground">
             <div className="container">
               <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-6 text-center md:text-left">
                 <div>
@@ -134,13 +134,13 @@ export default function StoreFrontPage() {
               <Carousel
                 opts={{
                     align: "start",
-                    loop: flashSaleProducts.length > 6,
+                    loop: flashSaleProducts.length > 8,
                 }}
                 className="w-full"
               >
                 <CarouselContent className="-ml-2 md:-ml-4">
                     {flashSaleProducts.map((product) => (
-                        <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6 pl-2 md:pl-4">
+                        <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/4 md:basis-1/5 lg:basis-1/6 xl:basis-[12.5%] pl-2 md:pl-4">
                             <ProductCard product={product} />
                         </CarouselItem>
                     ))}
