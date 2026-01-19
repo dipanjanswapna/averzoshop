@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import Image from 'next/image';
@@ -120,9 +118,9 @@ export default function StoreFrontPage() {
         </section>
         
         {flashSaleProducts.length > 0 && flashSaleEndDate && (
-          <section className="py-16 md:py-24 bg-gradient-to-br from-destructive/90 to-red-800 text-primary-foreground">
+          <section className="py-8 md:py-12 bg-gradient-to-br from-destructive/90 to-red-800 text-primary-foreground">
             <div className="container">
-              <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8 text-center md:text-left">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-6 text-center md:text-left">
                 <div>
                   <h2 className="font-headline text-3xl font-extrabold flex items-center justify-center md:justify-start gap-2">
                     <Zap className="animate-pulse" /> Flash Sale
@@ -150,7 +148,7 @@ export default function StoreFrontPage() {
                  <CarouselPrevious className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex" />
                  <CarouselNext className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 hidden md:flex" />
               </Carousel>
-              <div className="text-center mt-12">
+              <div className="text-center mt-8">
                 <Link href="/flash-sale">
                     <Button variant="outline" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
                         View All Deals
