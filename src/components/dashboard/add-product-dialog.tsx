@@ -273,51 +273,23 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
         status: status,
         createdAt: serverTimestamp(),
         isBundle: false,
-        brand: values.brand
+        brand: values.brand,
+        giftWithPurchase: {
+            enabled: !!values.giftWithPurchase?.enabled,
+            description: values.giftWithPurchase?.description || "",
+        },
+        preOrder: {
+            enabled: !!values.preOrder?.enabled,
+            releaseDate: values.preOrder?.releaseDate || null,
+            depositType: values.preOrder?.depositType || null,
+            depositAmount: values.preOrder?.depositAmount || null,
+            limit: values.preOrder?.limit || null,
+        },
+        flashSale: {
+            enabled: !!values.flashSale?.enabled,
+            endDate: values.flashSale?.endDate || null,
+        }
       };
-
-      if (values.giftWithPurchase?.enabled) {
-        productData.giftWithPurchase = {
-            enabled: true,
-            description: values.giftWithPurchase.description || "",
-        };
-      } else {
-        productData.giftWithPurchase = {
-            enabled: false,
-            description: "",
-        };
-      }
-  
-      if (values.preOrder?.enabled) {
-          productData.preOrder = {
-              enabled: true,
-              releaseDate: values.preOrder.releaseDate || null,
-              depositType: values.preOrder.depositType || null,
-              depositAmount: values.preOrder.depositAmount || null,
-              limit: values.preOrder.limit || null,
-          };
-      } else {
-          productData.preOrder = {
-              enabled: false,
-              releaseDate: null,
-              depositType: null,
-              depositAmount: null,
-              limit: null,
-          };
-      }
-  
-      if (values.flashSale?.enabled) {
-          productData.flashSale = {
-              enabled: true,
-              endDate: values.flashSale.endDate || null,
-          };
-      } else {
-          productData.flashSale = {
-              enabled: false,
-              endDate: null,
-          };
-      }
-
 
       await addDoc(collection(firestore, 'products'), productData);
 
@@ -517,173 +489,177 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
                   </div>
                 </AccordionContent>
               </AccordionItem>
+              <AccordionItem value="offers">
+                <AccordionTrigger>Special Offers</AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-6">
+                    <div className="space-y-4 rounded-lg border p-4">
+                        <FormField
+                          control={form.control}
+                          name="giftWithPurchase.enabled"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between">
+                              <div className="space-y-0.5">
+                                <FormLabel>Gift with Purchase</FormLabel>
+                                <FormDescription>
+                                  Enable this to offer a free gift with this product.
+                                </FormDescription>
+                              </div>
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        {giftEnabled && (
+                          <FormField
+                            control={form.control}
+                            name="giftWithPurchase.description"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Gift Description</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="e.g., Free leather wallet" {...field} value={field.value ?? ''} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        )}
+                    </div>
+                     <div className="space-y-4 rounded-lg border p-4">
+                        <FormField
+                          control={form.control}
+                          name="preOrder.enabled"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between">
+                              <div className="space-y-0.5">
+                                <FormLabel>Enable Pre-order</FormLabel>
+                                <FormDescription>
+                                  Allow customers to order this product before it's in stock.
+                                </FormDescription>
+                              </div>
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        {preOrderEnabled && (
+                          <div className="space-y-4 pt-4 border-t">
+                              <FormField
+                                  control={form.control}
+                                  name="preOrder.releaseDate"
+                                  render={({ field }) => (
+                                  <FormItem className="flex flex-col"><FormLabel>Release Date</FormLabel>
+                                      <Popover>
+                                      <PopoverTrigger asChild>
+                                          <FormControl>
+                                          <Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                                              {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                          </Button>
+                                          </FormControl>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-auto p-0" align="start">
+                                          <Calendar mode="single" selected={field.value || undefined} onSelect={field.onChange} initialFocus />
+                                      </PopoverContent>
+                                      </Popover>
+                                      <FormMessage /></FormItem>
+                              )} />
+                              <div className="grid grid-cols-2 gap-4">
+                                  <FormField
+                                      control={form.control}
+                                      name="preOrder.depositType"
+                                      render={({ field }) => (
+                                      <FormItem>
+                                          <FormLabel>Deposit Type</FormLabel>
+                                          <Select onValueChange={field.onChange} value={field.value ?? undefined}>
+                                              <FormControl><SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger></FormControl>
+                                              <SelectContent>
+                                                  <SelectItem value="percentage">Percentage (%)</SelectItem>
+                                                  <SelectItem value="fixed">Fixed Amount (৳)</SelectItem>
+                                              </SelectContent>
+                                          </Select>
+                                          <FormMessage />
+                                      </FormItem>
+                                      )}
+                                  />
+                                  <FormField
+                                      control={form.control}
+                                      name="preOrder.depositAmount"
+                                      render={({ field }) => (
+                                          <FormItem><FormLabel>Deposit Amount</FormLabel><FormControl><Input type="number" placeholder="e.g., 20 or 500" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                                      )}
+                                  />
+                              </div>
+                               <FormField
+                                  control={form.control}
+                                  name="preOrder.limit"
+                                  render={({ field }) => (
+                                      <FormItem><FormLabel>Pre-order Limit</FormLabel><FormControl><Input type="number" placeholder="Max pre-orders" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                                  )}
+                              />
+                          </div>
+                        )}
+                    </div>
+                    <div className="space-y-4 rounded-lg border p-4">
+                        <FormField
+                          control={form.control}
+                          name="flashSale.enabled"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between">
+                              <div className="space-y-0.5">
+                                <FormLabel>Enable Flash Sale</FormLabel>
+                                <FormDescription>
+                                  Create urgency with a limited-time offer.
+                                </FormDescription>
+                              </div>
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        {flashSaleEnabled && (
+                          <div className="space-y-4 pt-4 border-t">
+                              <FormField
+                                  control={form.control}
+                                  name="flashSale.endDate"
+                                  render={({ field }) => (
+                                  <FormItem className="flex flex-col"><FormLabel>End Date</FormLabel>
+                                      <Popover>
+                                      <PopoverTrigger asChild>
+                                          <FormControl>
+                                          <Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
+                                              {field.value ? format(field.value, "PPP") : <span>Pick an end date</span>}
+                                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                          </Button>
+                                          </FormControl>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-auto p-0" align="start">
+                                          <Calendar mode="single" selected={field.value || undefined} onSelect={field.onChange} initialFocus />
+                                      </PopoverContent>
+                                      </Popover>
+                                      <FormMessage /></FormItem>
+                              )} />
+                          </div>
+                        )}
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
             </Accordion>
 
-
-             <div className="space-y-4 rounded-lg border p-4">
-                <FormField
-                  control={form.control}
-                  name="giftWithPurchase.enabled"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between">
-                      <div className="space-y-0.5">
-                        <FormLabel>Gift with Purchase</FormLabel>
-                        <FormDescription>
-                          Enable this to offer a free gift with this product.
-                        </FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                {giftEnabled && (
-                  <FormField
-                    control={form.control}
-                    name="giftWithPurchase.description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Gift Description</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., Free leather wallet" {...field} value={field.value ?? ''} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-            </div>
-
-             <div className="space-y-4 rounded-lg border p-4">
-                <FormField
-                  control={form.control}
-                  name="preOrder.enabled"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between">
-                      <div className="space-y-0.5">
-                        <FormLabel>Enable Pre-order</FormLabel>
-                        <FormDescription>
-                          Allow customers to order this product before it's in stock.
-                        </FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                {preOrderEnabled && (
-                  <div className="space-y-4 pt-4 border-t">
-                      <FormField
-                          control={form.control}
-                          name="preOrder.releaseDate"
-                          render={({ field }) => (
-                          <FormItem className="flex flex-col"><FormLabel>Release Date</FormLabel>
-                              <Popover>
-                              <PopoverTrigger asChild>
-                                  <FormControl>
-                                  <Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                                      {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                  </Button>
-                                  </FormControl>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
-                                  <Calendar mode="single" selected={field.value || undefined} onSelect={field.onChange} initialFocus />
-                              </PopoverContent>
-                              </Popover>
-                              <FormMessage /></FormItem>
-                      )} />
-                      <div className="grid grid-cols-2 gap-4">
-                          <FormField
-                              control={form.control}
-                              name="preOrder.depositType"
-                              render={({ field }) => (
-                              <FormItem>
-                                  <FormLabel>Deposit Type</FormLabel>
-                                  <Select onValueChange={field.onChange} value={field.value ?? undefined}>
-                                      <FormControl><SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger></FormControl>
-                                      <SelectContent>
-                                          <SelectItem value="percentage">Percentage (%)</SelectItem>
-                                          <SelectItem value="fixed">Fixed Amount (৳)</SelectItem>
-                                      </SelectContent>
-                                  </Select>
-                                  <FormMessage />
-                              </FormItem>
-                              )}
-                          />
-                          <FormField
-                              control={form.control}
-                              name="preOrder.depositAmount"
-                              render={({ field }) => (
-                                  <FormItem><FormLabel>Deposit Amount</FormLabel><FormControl><Input type="number" placeholder="e.g., 20 or 500" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
-                              )}
-                          />
-                      </div>
-                       <FormField
-                          control={form.control}
-                          name="preOrder.limit"
-                          render={({ field }) => (
-                              <FormItem><FormLabel>Pre-order Limit</FormLabel><FormControl><Input type="number" placeholder="Max pre-orders" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
-                          )}
-                      />
-                  </div>
-                )}
-            </div>
-
-            <div className="space-y-4 rounded-lg border p-4">
-                <FormField
-                  control={form.control}
-                  name="flashSale.enabled"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between">
-                      <div className="space-y-0.5">
-                        <FormLabel>Enable Flash Sale</FormLabel>
-                        <FormDescription>
-                          Create urgency with a limited-time offer.
-                        </FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-                {flashSaleEnabled && (
-                  <div className="space-y-4 pt-4 border-t">
-                      <FormField
-                          control={form.control}
-                          name="flashSale.endDate"
-                          render={({ field }) => (
-                          <FormItem className="flex flex-col"><FormLabel>End Date</FormLabel>
-                              <Popover>
-                              <PopoverTrigger asChild>
-                                  <FormControl>
-                                  <Button variant={"outline"} className={cn("pl-3 text-left font-normal", !field.value && "text-muted-foreground")}>
-                                      {field.value ? format(field.value, "PPP") : <span>Pick an end date</span>}
-                                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                  </Button>
-                                  </FormControl>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
-                                  <Calendar mode="single" selected={field.value || undefined} onSelect={field.onChange} initialFocus />
-                              </PopoverContent>
-                              </Popover>
-                              <FormMessage /></FormItem>
-                      )} />
-                  </div>
-                )}
-            </div>
 
             <DialogFooter className="pt-8">
               <DialogClose asChild><Button type="button" variant="secondary">Cancel</Button></DialogClose>
