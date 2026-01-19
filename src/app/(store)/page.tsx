@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -118,24 +119,24 @@ export default function StoreFrontPage() {
         </section>
         
         {flashSaleProducts.length > 0 && flashSaleEndDate && (
-          <section className="py-16 md:py-24">
+          <section className="py-12 md:py-16">
             <div className="container">
-              <div className="bg-gradient-to-br from-red-600 via-orange-500 to-yellow-400 text-white rounded-2xl p-8 lg:p-12 shadow-2xl overflow-hidden relative flex flex-col lg:flex-row items-center gap-8">
+              <div className="bg-gradient-to-br from-red-600 via-orange-500 to-yellow-400 text-white rounded-2xl p-6 lg:p-8 shadow-2xl overflow-hidden relative flex flex-col lg:flex-row items-center gap-6">
                 
                 <div className="absolute -top-10 -left-20 w-64 h-64 bg-white/10 rounded-full blur-3xl opacity-50"></div>
                 <div className="absolute -bottom-20 -right-10 w-72 h-72 bg-white/10 rounded-full blur-3xl opacity-60"></div>
 
                 <div className="relative z-10 text-center lg:text-left flex-1 lg:max-w-md">
-                  <h2 className="text-3xl md:text-5xl font-extrabold uppercase font-headline tracking-wider flex items-center justify-center lg:justify-start gap-3">
-                    <Zap size={40} className="text-yellow-300"/>
+                  <h2 className="text-2xl md:text-3xl font-extrabold uppercase font-headline tracking-wider flex items-center justify-center lg:justify-start gap-3">
+                    <Zap size={32} className="text-yellow-300"/>
                     This Week's Must-Haves
                   </h2>
-                  <p className="mt-4 text-white/80 max-w-lg mx-auto lg:mx-0">
+                  <p className="mt-2 text-sm text-white/80 max-w-lg mx-auto lg:mx-0">
                     Trending Gadgets, Carefully Chosen for You. Don't miss out on these limited-time offers!
                   </p>
                   
                   {flashSaleEndDate && (
-                    <div className="my-8 flex justify-center lg:justify-start">
+                    <div className="my-6 flex justify-center lg:justify-start">
                       <FlashSalePageTimer endDate={flashSaleEndDate} />
                     </div>
                   )}
@@ -151,13 +152,13 @@ export default function StoreFrontPage() {
                   <Carousel
                       opts={{
                           align: "start",
-                          loop: flashSaleProducts.length > 2,
+                          loop: flashSaleProducts.length > 3,
                       }}
                       className="w-full"
                   >
                       <CarouselContent className="-ml-4">
                           {flashSaleProducts.map((product) => (
-                              <CarouselItem key={product.id} className="basis-full sm:basis-1/2 pl-4">
+                              <CarouselItem key={product.id} className="basis-full sm:basis-1/2 md:basis-1/3 pl-4">
                                   <ProductCard product={product} />
                               </CarouselItem>
                           ))}
