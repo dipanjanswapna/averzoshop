@@ -1,3 +1,4 @@
+
 import { NextResponse, type NextRequest } from 'next/server';
 import { firestore } from '@/firebase/server';
 import { FieldValue } from 'firebase-admin/firestore';
@@ -54,15 +55,21 @@ export async function POST(request: NextRequest) {
     }
     const orderData = orderDoc.data() as Order;
 
+    const isPreOrderCompletion = orderData.status === 'pending_payment' && orderData.orderType === 'pre-order';
+    let expectedAmount = orderData.totalAmount;
+
+    if (isPreOrderCompletion) {
+      expectedAmount = (orderData.fullOrderValue ?? orderData.totalAmount) - orderData.totalAmount;
+    }
+
     if (
       gatewayData.status === 'VALID' &&
-      Math.abs(parseFloat(gatewayData.amount) - orderData.totalAmount) < 0.01 &&
+      Math.abs(parseFloat(gatewayData.amount) - expectedAmount) < 0.01 &&
       gatewayData.tran_id === tran_id &&
-      orderData.status === 'pending_payment' // Crucial check
+      orderData.status === 'pending_payment'
     ) {
       
       await firestore().runTransaction(async (transaction) => {
-        // --- 1. All READS must come first ---
         const currentOrderSnap = await transaction.get(orderRef);
         if (!currentOrderSnap.exists) throw new Error("Order not found during transaction.");
         const currentOrderData = currentOrderSnap.data() as Order;
@@ -77,8 +84,7 @@ export async function POST(request: NextRequest) {
         
         const userRef = firestore().collection('users').doc(currentOrderData.customerId);
         const userDoc = await transaction.get(userRef);
-    
-        // --- 2. LOGIC based on reads ---
+
         const productMap = new Map<string, Product>();
         productDocsSnapshots.forEach(docSnap => {
             if (docSnap.exists) {
@@ -86,77 +92,84 @@ export async function POST(request: NextRequest) {
             }
         });
     
-        // --- 3. All WRITES must come last ---
-        transaction.update(orderRef, {
+        // Update order status and payment details
+        if (isPreOrderCompletion) {
+          transaction.update(orderRef, {
+            status: 'new',
+            paymentStatus: 'Paid',
+            gatewayTransactionId: val_id,
+            totalAmount: currentOrderData.fullOrderValue,
+            updatedAt: FieldValue.serverTimestamp()
+          });
+        } else {
+          transaction.update(orderRef, {
             status: 'new',
             paymentStatus: 'Paid',
             gatewayTransactionId: val_id,
             updatedAt: FieldValue.serverTimestamp()
-        });
+          });
+        }
     
-        for (const item of regularItems) {
-            const product = productMap.get(item.productId);
-            if (!product) {
-                console.warn(`Product ${item.productId} not found during transaction, skipping stock update.`);
-                continue; 
-            };
-    
-            const productRefToUpdate = firestore().collection('products').doc(item.productId);
-            const variantsArray = JSON.parse(JSON.stringify(Array.isArray(product.variants) ? product.variants : Object.values(product.variants)));
-            
-            const variantIndex = variantsArray.findIndex((v: ProductVariant) => v.sku === item.variantSku);
-            if (variantIndex === -1) throw new Error(`Variant ${item.variantSku} not found for product ${product.name}.`);
-            
-            const variant = variantsArray[variantIndex];
-            const currentOutletStock = variant.outlet_stocks?.[currentOrderData.assignedOutletId] ?? 0;
-            if (currentOutletStock < item.quantity) {
-                throw new Error(`Not enough stock for ${product.name} in outlet ${currentOrderData.assignedOutletId}. Available: ${currentOutletStock}, Requested: ${item.quantity}`);
-            }
-            
-            variant.stock = (variant.stock || 0) - item.quantity;
-            if (variant.outlet_stocks) {
-                variant.outlet_stocks[currentOrderData.assignedOutletId] = currentOutletStock - item.quantity;
-            }
-    
-            transaction.update(productRefToUpdate, {
-                variants: variantsArray,
-                total_stock: FieldValue.increment(-item.quantity),
-            });
+        // Deduct stock for regular (non-pre-order) items, only if it's the initial payment
+        if (!isPreOrderCompletion) {
+          for (const item of regularItems) {
+              const product = productMap.get(item.productId);
+              if (!product) continue; 
+              
+              const productRefToUpdate = firestore().collection('products').doc(item.productId);
+              const variantsArray = JSON.parse(JSON.stringify(Array.isArray(product.variants) ? product.variants : Object.values(product.variants)));
+              
+              const variantIndex = variantsArray.findIndex((v: ProductVariant) => v.sku === item.variantSku);
+              if (variantIndex === -1) throw new Error(`Variant ${item.variantSku} not found for product ${product.name}.`);
+              
+              const variant = variantsArray[variantIndex];
+              const currentOutletStock = variant.outlet_stocks?.[currentOrderData.assignedOutletId!] ?? 0;
+              if (currentOutletStock < item.quantity) {
+                  throw new Error(`Not enough stock for ${product.name} in outlet ${currentOrderData.assignedOutletId}.`);
+              }
+              
+              variant.stock = (variant.stock || 0) - item.quantity;
+              if (variant.outlet_stocks && currentOrderData.assignedOutletId) {
+                  variant.outlet_stocks[currentOrderData.assignedOutletId] = currentOutletStock - item.quantity;
+              }
+      
+              transaction.update(productRefToUpdate, {
+                  variants: variantsArray,
+                  total_stock: FieldValue.increment(-item.quantity),
+              });
+          }
         }
     
         if(userDoc.exists) {
             let netPointsChange = 0;
             const loyaltyPointsUsed = currentOrderData.loyaltyPointsUsed || 0;
 
-            if (loyaltyPointsUsed > 0) {
+            if (loyaltyPointsUsed > 0 && !isPreOrderCompletion) {
                 netPointsChange -= loyaltyPointsUsed;
                 const redeemHistoryRef = firestore().collection(`users/${currentOrderData.customerId}/points_history`).doc();
                 transaction.set(redeemHistoryRef, {
-                    userId: currentOrderData.customerId,
-                    pointsChange: -loyaltyPointsUsed,
-                    type: 'redeem',
-                    reason: `Online Order: ${tran_id}`,
-                    createdAt: FieldValue.serverTimestamp(),
+                    userId: currentOrderData.customerId, pointsChange: -loyaltyPointsUsed, type: 'redeem',
+                    reason: `Online Order: ${tran_id}`, createdAt: FieldValue.serverTimestamp(),
                 });
             }
 
-            const pointsEarned = Math.floor(currentOrderData.totalAmount / 100) * 5;
+            const amountForPoints = isPreOrderCompletion ? expectedAmount : currentOrderData.totalAmount;
+            const pointsEarned = Math.floor(amountForPoints / 100) * 5;
             if (pointsEarned > 0) {
                 netPointsChange += pointsEarned;
                 const earnHistoryRef = firestore().collection(`users/${currentOrderData.customerId}/points_history`).doc();
                 transaction.set(earnHistoryRef, {
-                    userId: currentOrderData.customerId,
-                    pointsChange: pointsEarned,
-                    type: 'earn',
-                    reason: `Online Order: ${tran_id}`,
-                    createdAt: FieldValue.serverTimestamp(),
+                    userId: currentOrderData.customerId, pointsChange: pointsEarned, type: 'earn',
+                    reason: `Online Order: ${tran_id}`, createdAt: FieldValue.serverTimestamp(),
                 });
             }
 
             if (netPointsChange !== 0) {
               transaction.update(userRef, { loyaltyPoints: FieldValue.increment(netPointsChange) });
             }
-            transaction.update(userRef, { totalSpent: FieldValue.increment(currentOrderData.totalAmount) });
+            if (!isPreOrderCompletion) { // Only add to total spent on initial purchase
+                transaction.update(userRef, { totalSpent: FieldValue.increment(currentOrderData.totalAmount) });
+            }
         }
       });
 
@@ -164,7 +177,7 @@ export async function POST(request: NextRequest) {
     } else {
       let reason = 'Unknown validation failure.';
       if (gatewayData.status !== 'VALID') reason = 'Gateway status was not VALID.';
-      else if (Math.abs(parseFloat(gatewayData.amount) - orderData.totalAmount) >= 0.01) reason = 'Amount mismatch.';
+      else if (Math.abs(parseFloat(gatewayData.amount) - expectedAmount) >= 0.01) reason = `Amount mismatch. Expected: ${expectedAmount}, Got: ${gatewayData.amount}`;
       else if (orderData.status !== 'pending_payment') reason = `Order status was not 'pending_payment', it was '${orderData.status}'.`;
 
       console.warn('Fraudulent or failed transaction detected during server validation.', { reason, gatewayData, orderData });
