@@ -38,15 +38,11 @@ service cloud.firestore {
     }
     
     // Product reviews can be read by anyone.
-    // They can be created by any logged-in user who purchased the product.
+    // They can be created by any logged-in user (client should verify purchase).
     // They can be updated/deleted by the owner or an admin.
     match /products/{productId}/reviews/{reviewId} {
       allow read: if true;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId 
-                      && exists(/databases/$(database)/documents/orders/{orderId})
-                      && get(/databases/$(database)/documents/orders/{orderId}).data.customerId == request.auth.uid
-                      && get(/databases/$(database)/documents/orders/{orderId}).data.status in ['delivered', 'fulfilled']
-                      && get(/databases/$(database)/documents/orders/{orderId}).data.items.exists(item, item.productId == productId);
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
       allow update, delete: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' 
                             || request.auth.uid == resource.data.userId;
     }
@@ -69,12 +65,14 @@ service cloud.firestore {
       allow read: if request.auth != null && (request.auth.uid == resource.data.customerId 
                     || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
                     || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.outletId == resource.data.assignedOutletId
+                    || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.outletId == resource.data.pickupOutletId
                     || request.auth.uid == resource.data.riderId);
       allow create: if request.auth != null && request.auth.uid == request.resource.data.customerId;
       allow update: if request.auth != null && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
                       || ( // Outlet manager
-                         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.outletId == resource.data.assignedOutletId &&
-                         resource.data.status in ['new', 'preparing']
+                         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.outletId == resource.data.assignedOutletId || 
+                          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.outletId == resource.data.pickupOutletId) &&
+                         resource.data.status in ['new', 'preparing', 'pending_payment']
                        )
                       || ( // Rider
                          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'rider' &&
