@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Upload, LayoutDashboard, Package, History, DollarSign, Clock, ShoppingCart } from 'lucide-react';
+import { PlusCircle, Upload, LayoutDashboard, Package, History, DollarSign, Clock, ShoppingCart, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { Product } from '@/types/product';
