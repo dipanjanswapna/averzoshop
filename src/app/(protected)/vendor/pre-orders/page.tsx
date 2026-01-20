@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -127,7 +128,7 @@ export default function VendorPreOrdersPage() {
               {isLoading ? renderSkeleton() : vendorPreOrders.length > 0 ? vendorPreOrders.map(order => (
                 <TableRow key={order.id}>
                   <TableCell className="font-mono text-xs">{order.id.substring(0, 8)}...</TableCell>
-                  <TableCell>{order.shippingAddress.name}</TableCell>
+                  <TableCell>{order.shippingAddress?.name}</TableCell>
                   <TableCell>{order.createdAt.toDate().toLocaleDateString()}</TableCell>
                   <TableCell>৳{order.totalAmount.toFixed(2)}</TableCell>
                   <TableCell>{getStatusBadge(order.status)}</TableCell>

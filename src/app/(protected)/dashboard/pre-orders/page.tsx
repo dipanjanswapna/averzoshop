@@ -112,7 +112,7 @@ export default function PreOrdersPage() {
               {isLoading ? renderSkeleton() : preOrders.length > 0 ? preOrders.map(order => (
                 <TableRow key={order.id}>
                   <TableCell className="font-mono text-xs">{order.id.substring(0, 8)}...</TableCell>
-                  <TableCell>{order.shippingAddress.name}</TableCell>
+                  <TableCell>{order.shippingAddress?.name}</TableCell>
                   <TableCell>{order.createdAt.toDate().toLocaleDateString()}</TableCell>
                   <TableCell>৳{order.totalAmount.toFixed(2)}</TableCell>
                   <TableCell>{getStatusBadge(order.status)}</TableCell>

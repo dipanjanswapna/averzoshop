@@ -192,18 +192,23 @@
         "subtotal": { "type": "number", "description": "The total value of all items before discounts or shipping." },
         "discountAmount": { "type": "number", "description": "The amount discounted via a promo code." },
         "promoCode": { "type": "string", "description": "The promo code used." },
+        "loyaltyPointsUsed": { "type": "number", "description": "Number of loyalty points redeemed for this order." },
+        "loyaltyDiscount": { "type": "number", "description": "The discount amount in BDT from redeemed loyalty points." },
         "totalAmount": { "type": "number", "description": "The amount paid by the customer (can be partial for pre-orders)." },
         "fullOrderValue": { "type": "number", "description": "The total value of the order, especially for pre-orders with partial payment." },
         "assignedOutletId": { "type": "string" },
         "riderId": { "type": "string", "description": "The UID of the rider assigned to this delivery." },
         "status": { "type": "string", "enum": ["pending_payment", "new", "preparing", "ready_for_pickup", "out_for_delivery", "delivered", "canceled", "pre-ordered", "fulfilled"] },
         "orderType": { "type": "string", "enum": ["regular", "pre-order"] },
+        "orderMode": { "type": "string", "enum": ["delivery", "pickup"], "description": "The mode of order fulfillment." },
+        "pickupOutletId": { "type": "string", "description": "The ID of the outlet selected for pickup." },
+        "pickupCode": { "type": "string", "description": "The unique code for the customer to pick up the order." },
         "createdAt": { "type": "string", "format": "date-time" },
         "updatedAt": { "type": "string", "format": "date-time" },
         "paymentStatus": { "type": "string", "enum": ["Paid", "Unpaid", "Failed"]},
         "gatewayTransactionId": { "type": "string"}
       },
-      "required": ["customerId", "shippingAddress", "items", "totalAmount", "assignedOutletId", "status", "createdAt"]
+      "required": ["customerId", "items", "totalAmount", "status", "createdAt", "orderMode"]
     },
     "product": {
       "title": "Product",
@@ -298,12 +303,23 @@
         "id": { "type": "string" },
         "productId": { "type": "string" },
         "questionText": { "type": "string" },
-        "answerText": { "type": "string" },
         "askedByUid": { "type": "string" },
         "askedByName": { "type": "string" },
-        "answeredByUid": { "type": "string" },
         "createdAt": { "type": "string", "format": "date-time" },
-        "answeredAt": { "type": "string", "format": "date-time" }
+        "answers": {
+          "type": "array",
+          "description": "A list of answers to the question.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "answerText": { "type": "string" },
+              "answeredByUid": { "type": "string" },
+              "answeredByName": { "type": "string" },
+              "answeredByRole": { "type": "string", "enum": ["customer", "admin", "vendor"] },
+              "answeredAt": { "type": "string", "format": "date-time" }
+            }
+          }
+        }
       },
       "required": ["productId", "questionText", "askedByUid", "askedByName", "createdAt"]
     },
