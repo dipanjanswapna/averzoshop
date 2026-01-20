@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -31,6 +32,7 @@ import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { createSslCommerzSession } from '@/actions/payment-actions';
 import { Store } from 'lucide-react';
 import { ScrollArea } from '../ui/scroll-area';
+import Image from 'next/image';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -382,9 +384,23 @@ export function ShippingForm() {
                         <FormControl><RadioGroupItem value="cod" /></FormControl>
                         <FormLabel className="font-normal">Cash on Delivery / Pay at Store</FormLabel>
                         </FormItem>
-                        <FormItem className="flex items-center space-x-3 space-y-0">
-                        <FormControl><RadioGroupItem value="online" /></FormControl>
-                        <FormLabel className="font-normal">Online Payment</FormLabel>
+                        <FormItem>
+                            <div className="flex items-center space-x-3 space-y-0">
+                                <FormControl><RadioGroupItem value="online" /></FormControl>
+                                <FormLabel className="font-normal">Online Payment</FormLabel>
+                            </div>
+                            {field.value === 'online' && (
+                                <div className="pl-8 pt-2">
+                                    <a target="_blank" rel="noopener noreferrer" href="https://www.sslcommerz.com/" title="SSLCommerz">
+                                        <Image 
+                                            src="https://securepay.sslcommerz.com/public/image/SSLCommerz-Pay-With-logo-All-Size-03.png"
+                                            alt="SSLCommerz Payment Gateways"
+                                            width={300}
+                                            height={55}
+                                        />
+                                    </a>
+                                </div>
+                            )}
                         </FormItem>
                     </RadioGroup>
                     </FormControl>
