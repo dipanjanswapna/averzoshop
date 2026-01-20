@@ -138,7 +138,7 @@ export default function StoreLayout({
             <div className="flex justify-center mb-6">
                 <a target="_blank" rel="noopener noreferrer" href="https://www.sslcommerz.com/" title="SSLCommerz">
                     <Image
-                        src="https://securepay.sslcommerz.com/public/image/SSLCommerz-Pay-With-logo-All-Size-01.png"
+                        src="https://securepay.sslcommerz.com/public/image/SSLCommerz-Pay-With-logo-All-Size-03.png"
                         alt="SSLCommerz Payment Gateways"
                         width={400}
                         height={58}
