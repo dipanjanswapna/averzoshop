@@ -10,13 +10,21 @@ service cloud.firestore {
     }
 
     // Users can read their own profile. Admins can read any profile.
-    // Users can update their own profile, but are restricted from changing protected fields.
+    // Sales reps can read customers they manage.
     match /users/{userId} {
-      allow read: if request.auth.uid == userId || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-      allow create: if request.auth.uid == userId || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-      allow update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' || (request.auth.uid == userId 
-                    && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'status', 'loyaltyPoints', 'membershipLevel', 'totalSpent', 'outletId']));
+      allow read: if request.auth.uid == userId 
+                    || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+                    || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'sales' && resource.data.managedBy == request.auth.uid);
+
+      allow create: if (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+                      || (request.auth.uid == userId) // user self-signup
+                      || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'sales' && request.resource.data.managedBy == request.auth.uid);
+
+      allow update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' 
+                    || (request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'status', 'loyaltyPoints', 'membershipLevel', 'totalSpent', 'outletId', 'managedBy']))
+                    || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'sales' && resource.data.managedBy == request.auth.uid && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'status', 'managedBy']));
     }
+
 
     // Point history can be read by the owner or an admin. It cannot be updated or deleted.
     // Creation is handled by secure server-side logic (simulated by transactions).
@@ -38,11 +46,15 @@ service cloud.firestore {
     }
     
     // Product reviews can be read by anyone.
-    // They can be created by any logged-in user (client should verify purchase).
+    // They can be created by any logged-in user who purchased the product.
     // They can be updated/deleted by the owner or an admin.
     match /products/{productId}/reviews/{reviewId} {
       allow read: if true;
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.userId 
+                      && exists(/databases/$(database)/documents/orders/{orderId})
+                      && get(/databases/$(database)/documents/orders/{orderId}).data.customerId == request.auth.uid
+                      && get(/databases/$(database)/documents/orders/{orderId}).data.status in ['delivered', 'fulfilled']
+                      && get(/databases/$(database)/documents/orders/{orderId}).data.items.exists(item, item.productId == productId);
       allow update, delete: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' 
                             || request.auth.uid == resource.data.userId;
     }
@@ -54,12 +66,11 @@ service cloud.firestore {
     match /products/{productId}/questions/{questionId} {
         allow read: if true;
         allow create: if request.auth != null && request.resource.data.askedByUid == request.auth.uid;
-        allow update: if request.auth != null &&
-                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['questionText', 'askedByUid', 'askedByName', 'createdAt', 'productId']);
+        allow update: if request.auth != null;
     }
 
     // Orders can be read by the customer, assigned outlet, assigned rider or an admin.
-    // Created only by the customer.
+    // Created only by the customer or their assigned sales rep.
     // Updated by admin, outlet manager (for early stages), or rider (for delivery stages).
     match /orders/{orderId} {
       allow read: if request.auth != null && (request.auth.uid == resource.data.customerId 
@@ -67,7 +78,13 @@ service cloud.firestore {
                     || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.outletId == resource.data.assignedOutletId
                     || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.outletId == resource.data.pickupOutletId
                     || request.auth.uid == resource.data.riderId);
-      allow create: if request.auth != null && request.auth.uid == request.resource.data.customerId;
+      allow create: if request.auth != null && (
+                        request.auth.uid == request.resource.data.customerId 
+                        || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'sales' 
+                            && request.resource.data.salesRepId == request.auth.uid
+                            && get(/databases/$(database)/documents/users/$(request.resource.data.customerId)).data.managedBy == request.auth.uid
+                           )
+                      );
       allow update: if request.auth != null && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
                       || ( // Outlet manager
                          (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.outletId == resource.data.assignedOutletId || 

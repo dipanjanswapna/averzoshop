@@ -39,7 +39,7 @@ export default function StockTransfersPage() {
       ...t,
       sourceOutletName: outletMap.get(t.sourceOutletId) || t.sourceOutletId,
       destinationOutletName: outletMap.get(t.destinationOutletId) || t.destinationOutletId,
-    })).sort((a, b) => (b.createdAt?.toDate?.().getTime() || 0) - (a.createdAt?.toDate()?.getTime() || 0));
+    })).sort((a, b) => (b.createdAt?.toDate?.().getTime() || 0) - (a.createdAt?.toDate?.().getTime() || 0));
   }, [transfers, outlets]);
 
   const getStatusBadge = (status: StockTransfer['status']) => {
