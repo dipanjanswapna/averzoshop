@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, ShoppingBag, User, Menu, ChevronDown, X, ChevronRight, Zap, Sun, Moon } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { categoriesData } from '@/lib/categories';
@@ -9,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/hooks/use-cart';
 import { NotificationBell } from '@/components/ui/notification-bell';
 import { useTheme } from '@/components/providers';
-import { LiveSearch } from './live-search';
+import { Input } from './ui/input';
 
 
 const NestedAccordion = ({ category, onClose }: { category: any, onClose: () => void }) => {
@@ -122,10 +123,19 @@ export default function AverzoNavbar() {
   const { items } = useCart();
   const [isMounted, setIsMounted] = useState(false);
   const { theme, setTheme } = useTheme();
+  const [searchTerm, setSearchTerm] = useState('');
+  const router = useRouter();
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!searchTerm.trim()) return;
+    router.push(`/shop?q=${encodeURIComponent(searchTerm.trim())}`);
+    setSearchTerm('');
+  };
   
   const createQueryString = (params: Record<string, string>) => {
     const searchParams = new URLSearchParams();
@@ -166,8 +176,16 @@ export default function AverzoNavbar() {
             </div>
         </div>
 
-        <div className="flex-1 max-w-2xl relative hidden md:block">
-            <LiveSearch />
+        <div className="flex-1 max-w-lg relative hidden md:block">
+            <form onSubmit={handleSearchSubmit}>
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input 
+                    placeholder="Search products, brands, and categories..."
+                    className="pl-10 h-10"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+            </form>
         </div>
 
         <div className="flex items-center gap-2 md:gap-5">

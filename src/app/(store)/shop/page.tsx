@@ -52,6 +52,7 @@ function ShopPageContent() {
   };
 
   const initialFilters = useMemo(() => ({
+    q: searchParams.get('q') || null,
     page: Number(searchParams.get('page')) || 1,
     sort_by: searchParams.get('sort_by') || 'newest',
     mother_category: searchParams.get('mother_category') || null,
@@ -100,6 +101,18 @@ function ShopPageContent() {
   const { paginatedProducts, totalPages } = useMemo(() => {
     if (!allProducts) return { paginatedProducts: [], totalPages: 0 };
     let filtered = allProducts.filter(p => p.status === 'approved');
+
+    if (initialFilters.q) {
+        const searchTerm = initialFilters.q.toLowerCase();
+        filtered = filtered.filter(p => 
+            p.name.toLowerCase().includes(searchTerm) ||
+            (p.brand && p.brand.toLowerCase().includes(searchTerm)) ||
+            p.category.toLowerCase().includes(searchTerm) ||
+            (p.group && p.group.toLowerCase().includes(searchTerm)) ||
+            (p.subcategory && p.subcategory.toLowerCase().includes(searchTerm)) ||
+            (p.description && p.description.toLowerCase().includes(searchTerm))
+        );
+    }
 
     if (initialFilters.mother_category) {
         filtered = filtered.filter(p => p.category === initialFilters.mother_category || categoriesData.find(c => c.mother_name === initialFilters.mother_category)?.groups.some(g => g.group_name === p.group));
@@ -159,6 +172,10 @@ function ShopPageContent() {
       { name: 'Home', href: '/' },
       { name: 'Shop', href: '/shop' }
     ];
+    if (initialFilters.q) {
+      items.push({ name: `Search: "${initialFilters.q}"`, href: `/shop?q=${initialFilters.q}` });
+      return items;
+    }
     if (initialFilters.mother_category) {
       items.push({ name: initialFilters.mother_category, href: `/shop?mother_category=${encodeURIComponent(initialFilters.mother_category)}` });
     }
@@ -169,7 +186,7 @@ function ShopPageContent() {
       items.push({ name: initialFilters.subcategory, href: `/shop?mother_category=${encodeURIComponent(initialFilters.mother_category || '')}&group=${encodeURIComponent(initialFilters.group || '')}&subcategory=${encodeURIComponent(initialFilters.subcategory)}` });
     }
     return items;
-  }, [initialFilters.mother_category, initialFilters.group, initialFilters.subcategory]);
+  }, [initialFilters.q, initialFilters.mother_category, initialFilters.group, initialFilters.subcategory]);
 
   return (
     <div className="bg-secondary">
