@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from 'next/image';
@@ -36,7 +35,7 @@ export default function StoreFrontPage() {
 
   const productsQuery = useMemo(() => {
     if (!firestore) return null;
-    return collection(firestore, 'products');
+    return query(collection(firestore, 'products'));
   }, [firestore]);
 
   const { data: assets, isLoading: assetsLoading } = useFirestoreQuery<StoreAsset>(assetsQuery);
