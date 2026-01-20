@@ -116,9 +116,5 @@ body {
     .no-print {
       display: none !important;
     }
-     @page {
-      size: 80mm auto;
-      margin: 0;
-    }
   }
 }
