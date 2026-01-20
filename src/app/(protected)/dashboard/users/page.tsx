@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useMemo } from 'react';
 import Image from 'next/image';
@@ -8,6 +7,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
 import {
   Table,
@@ -39,6 +39,8 @@ import { useFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { ManageVendorOutletsDialog } from '@/components/dashboard/manage-vendor-outlets-dialog';
 import { AddUserDialog } from '@/components/dashboard/add-user-dialog';
+import { AssignSalesRepDialog } from '@/components/dashboard/assign-sales-rep-dialog';
+
 
 export default function UsersPage() {
   const { firestore } = useFirebase();
@@ -50,6 +52,9 @@ export default function UsersPage() {
   const [isManageOutletsOpen, setIsManageOutletsOpen] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState<UserData | null>(null);
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
+  const [isAssignRepOpen, setIsAssignRepOpen] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<UserData | null>(null);
+
 
   const handleStatusChange = async (uid: string, newStatus: 'approved' | 'rejected') => {
     if (!firestore) return;
@@ -74,6 +79,17 @@ export default function UsersPage() {
     setSelectedVendor(vendor);
     setIsManageOutletsOpen(true);
   };
+  
+  const handleAssignRepClick = (customer: UserData) => {
+    setSelectedCustomer(customer);
+    setIsAssignRepOpen(true);
+  };
+
+  const salesRepMap = useMemo(() => {
+    if (!users) return new Map();
+    return new Map(users.filter(u => u.role === 'sales').map(rep => [rep.uid, rep.displayName]));
+  }, [users]);
+
 
   const filteredUsers = useMemo(() => {
     if (!users) return [];
@@ -95,7 +111,7 @@ export default function UsersPage() {
       );
     }
     
-    return filtered;
+    return filtered.sort((a,b) => (a.displayName || '').localeCompare(b.displayName || ''));
   }, [users, filter, searchTerm]);
 
   const renderSkeleton = () => (
@@ -112,8 +128,8 @@ export default function UsersPage() {
         </TableCell>
         <TableCell><Skeleton className="h-5 w-16" /></TableCell>
         <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
-        <TableCell className="hidden md:table-cell"><Skeleton className="h-4 w-28" /></TableCell>
-        <TableCell><Skeleton className="h-8 w-8" /></TableCell>
+        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+        <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
       </TableRow>
     ))
   );
@@ -162,15 +178,14 @@ export default function UsersPage() {
                       <TableHead>User</TableHead>
                       <TableHead>Role</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>
-                        <span className="sr-only">Actions</span>
-                      </TableHead>
+                      <TableHead>Managed By</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {isLoading ? renderSkeleton() : filteredUsers.length === 0 ? (
                       <TableRow>
-                          <TableCell colSpan={4} className="h-24 text-center">
+                          <TableCell colSpan={5} className="h-24 text-center">
                               No users found for this filter.
                           </TableCell>
                       </TableRow>
@@ -205,7 +220,13 @@ export default function UsersPage() {
                             <span className="capitalize">{user.status}</span>
                           </Badge>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                            {user.role === 'customer' && user.managedBy 
+                                ? salesRepMap.get(user.managedBy) || 'Unknown Rep' 
+                                : 'N/A'
+                            }
+                        </TableCell>
+                        <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button aria-haspopup="true" size="icon" variant="ghost">
@@ -217,6 +238,14 @@ export default function UsersPage() {
                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
                               <DropdownMenuItem>Edit</DropdownMenuItem>
                               <DropdownMenuItem>View Details</DropdownMenuItem>
+                               {user.role === 'customer' && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem onClick={() => handleAssignRepClick(user)}>
+                                    Assign Sales Rep
+                                  </DropdownMenuItem>
+                                </>
+                              )}
                                {user.role === 'vendor' && (
                                 <>
                                   <DropdownMenuSeparator />
@@ -295,6 +324,14 @@ export default function UsersPage() {
                                     <DropdownMenuContent align="end">
                                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                     <DropdownMenuItem>Edit</DropdownMenuItem>
+                                     {user.role === 'customer' && (
+                                        <>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem onClick={() => handleAssignRepClick(user)}>
+                                            Assign Sales Rep
+                                        </DropdownMenuItem>
+                                        </>
+                                    )}
                                      {user.role === 'vendor' && (
                                         <>
                                         <DropdownMenuSeparator />
@@ -326,6 +363,11 @@ export default function UsersPage() {
                                 <span className="capitalize">{user.status}</span>
                             </Badge>
                         </CardContent>
+                        {user.role === 'customer' && user.managedBy && (
+                            <CardFooter className="text-xs text-muted-foreground pt-0 pb-3 px-4">
+                                Managed by: {salesRepMap.get(user.managedBy) || 'Unknown'}
+                            </CardFooter>
+                         )}
                     </Card>
                  ))}
               </div>
@@ -341,6 +383,13 @@ export default function UsersPage() {
           onOpenChange={setIsManageOutletsOpen}
           vendor={selectedVendor}
       />
+    )}
+    {selectedCustomer && (
+        <AssignSalesRepDialog
+            open={isAssignRepOpen}
+            onOpenChange={setIsAssignRepOpen}
+            customer={selectedCustomer}
+        />
     )}
     </>
   );
