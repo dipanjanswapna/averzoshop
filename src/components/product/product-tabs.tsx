@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -44,8 +43,13 @@ export function ProductTabs({ product }: { product: Product }) {
     return query(collection(firestore, `products/${product.id}/questions`), orderBy('createdAt', 'desc'));
   }, [firestore, product?.id]);
 
+  const userOrdersQuery = useMemo(() => {
+    if (!user || !firestore) return null;
+    return query(collection(firestore, 'orders'), where('customerId', '==', user.uid));
+  }, [user, firestore]);
+
   const { data: questions, isLoading: isLoadingQuestions } = useFirestoreQuery<Question>(questionsQuery);
-  const { data: userOrders, isLoading: ordersLoading } = useFirestoreQuery<Order>(user ? query(collection(firestore, 'orders'), where('customerId', '==', user.uid)) : null);
+  const { data: userOrders, isLoading: ordersLoading } = useFirestoreQuery<Order>(userOrdersQuery);
 
   const canAnswer = useMemo(() => {
     if (!user || !userOrders) return false;
@@ -227,3 +231,4 @@ export function ProductTabs({ product }: { product: Product }) {
             </TabsContent>
         </Tabs>
     );
+}
