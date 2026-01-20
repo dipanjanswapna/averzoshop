@@ -25,7 +25,7 @@ import type { Order, OrderStatus } from '@/types/order';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import type { UserData } from '@/types/user';
-import { MessageCircle } from 'lucide-react';
+import { MessageCircle, Copy } from 'lucide-react';
 
 const getStatusBadge = (status: OrderStatus) => {
     switch (status) {
@@ -93,6 +93,14 @@ export default function MyOrdersPage() {
     }
   }
 
+  const handleCopyOrderId = (orderId: string) => {
+    navigator.clipboard.writeText(orderId);
+    toast({
+      title: 'Order ID Copied!',
+      description: `${orderId} copied to clipboard.`,
+    });
+  };
+
   const renderSkeleton = () =>
     [...Array(3)].map((_, i) => (
       <TableRow key={i}>
@@ -131,7 +139,20 @@ export default function MyOrdersPage() {
                   
                   return (
                     <TableRow key={order.id}>
-                      <TableCell className="font-medium font-mono text-xs">{order.id.substring(0, 8)}...</TableCell>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                            <span className="font-mono text-xs">{order.id.substring(0, 8)}...</span>
+                             <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                onClick={() => handleCopyOrderId(order.id)}
+                            >
+                                <Copy className="h-4 w-4" />
+                                <span className="sr-only">Copy Order ID</span>
+                            </Button>
+                        </div>
+                      </TableCell>
                       <TableCell>{order.createdAt?.toDate().toLocaleDateString()}</TableCell>
                       <TableCell>
                         {getStatusBadge(order.status)}
