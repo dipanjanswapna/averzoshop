@@ -5,7 +5,7 @@ import { PremiumCard } from '@/components/customer/premium-card';
 import { Card, CardContent, CardDescription, CardHeader, CardFooter, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CheckCircle, Star, Printer } from 'lucide-react';
+import { CheckCircle, Star, Printer, MousePointerClick } from 'lucide-react';
 
 const tiers = [
   {
@@ -76,6 +76,9 @@ export default function SubscriptionPage() {
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
             <div className="lg:col-span-2">
                 <PremiumCard userData={userData} />
+                <p className="text-xs text-muted-foreground text-center mt-2 flex items-center justify-center gap-1 no-print">
+                    <MousePointerClick size={12}/> Click card to flip
+                </p>
             </div>
 
             {upgradeTiers.length > 0 ? (
