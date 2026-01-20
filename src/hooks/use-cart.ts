@@ -17,6 +17,8 @@ export type CartItem = {
 type CartState = {
   items: CartItem[];
   promoCode: Coupon | null;
+  pointsApplied: number;
+  pointsDiscount: number;
   shippingInfo: {
     fee: number;
     outletId: string | null;
@@ -36,13 +38,11 @@ type CartState = {
   updateQuantity: (variantSku: string, quantity: number) => void;
   clearCart: () => void;
   applyPromoCode: (coupon: Coupon | null) => void;
+  applyPoints: (points: number, userPoints: number, pointValue: number) => void;
+  removePoints: () => void;
   setShippingInfo: (info: Partial<CartState['shippingInfo']>) => void;
   removeExpiredItems: () => void;
   _recalculate: () => void;
-};
-
-const calculateSubtotal = (items: CartItem[]) => {
-  return items.reduce((acc, item) => acc + (item.variant?.price || 0) * item.quantity, 0);
 };
 
 const calculateDiscount = (items: CartItem[], coupon: Coupon | null): number => {
@@ -85,6 +85,8 @@ export const useCart = create<CartState>()(
     (set, get) => ({
       items: [],
       promoCode: null,
+      pointsApplied: 0,
+      pointsDiscount: 0,
       shippingInfo: { fee: 0, outletId: null, distance: null, estimate: null },
       subtotal: 0,
       discount: 0,
@@ -96,8 +98,8 @@ export const useCart = create<CartState>()(
       preOrderDepositPayable: 0,
       
       _recalculate: () => {
-        const items = get().items;
-        const promoCode = get().promoCode;
+        const state = get();
+        const { items, promoCode, pointsDiscount, shippingInfo } = state;
         
         let regularItemsSubtotal = 0;
         let preOrderItemsSubtotal = 0;
@@ -117,26 +119,28 @@ export const useCart = create<CartState>()(
                         preOrderDepositPayable += (preOrderInfo.depositAmount * item.quantity);
                     }
                 } else {
-                    // Pre-order with 100% upfront
                     preOrderDepositPayable += itemTotal;
                 }
             } else {
-                // Regular item
                 regularItemsSubtotal += itemTotal;
             }
         });
 
         const subtotal = regularItemsSubtotal + preOrderItemsSubtotal;
-        const shippingFee = get().shippingInfo.fee;
+        const shippingFee = shippingInfo.fee;
 
         const regularItemsForDiscount = items.filter(item => !item.isPreOrder);
-        const discount = calculateDiscount(regularItemsForDiscount, promoCode);
+        const promoCodeDiscount = calculateDiscount(regularItemsForDiscount, promoCode);
         
-        const totalPayable = (regularItemsSubtotal - discount) + preOrderDepositPayable + shippingFee;
+        const subtotalAfterPromo = regularItemsSubtotal - promoCodeDiscount;
+        const applicablePointsDiscount = Math.min(pointsDiscount, subtotalAfterPromo > 0 ? subtotalAfterPromo : 0);
+        
+        const totalPayable = (subtotalAfterPromo - applicablePointsDiscount) + preOrderDepositPayable + shippingFee;
 
         set({
             subtotal,
-            discount,
+            discount: promoCodeDiscount,
+            pointsDiscount: applicablePointsDiscount,
             totalPayable,
             fullOrderTotal: subtotal,
             isPartialPayment: isPartialPaymentInCart,
@@ -222,6 +226,8 @@ export const useCart = create<CartState>()(
         set({ 
             items: [], 
             promoCode: null, 
+            pointsApplied: 0,
+            pointsDiscount: 0,
             subtotal: 0, 
             discount: 0, 
             shippingInfo: { fee: 0, outletId: null, distance: null, estimate: null },
@@ -257,6 +263,33 @@ export const useCart = create<CartState>()(
           
           set({ promoCode: coupon });
           get()._recalculate();
+      },
+      
+      applyPoints: (pointsToUse, userAvailablePoints, pointValue) => {
+        if (pointsToUse > userAvailablePoints) {
+            toast({ variant: 'destructive', title: 'Not enough points', description: `You only have ${userAvailablePoints} points.` });
+            return;
+        }
+        
+        const state = get();
+        const maxDiscount = state.regularItemsSubtotal - state.discount + state.preOrderDepositPayable;
+        const requestedDiscount = pointsToUse * pointValue;
+
+        if (requestedDiscount > maxDiscount) {
+            const maxPoints = Math.floor(maxDiscount / pointValue);
+            toast({ title: 'Discount Limit Exceeded', description: `You can use a maximum of ${maxPoints} points for this order.` });
+            set({ pointsApplied: maxPoints, pointsDiscount: maxPoints * pointValue });
+        } else {
+            set({ pointsApplied: pointsToUse, pointsDiscount: requestedDiscount });
+            toast({ title: 'Points Applied!', description: `${pointsToUse} points used for a discount of ৳${requestedDiscount.toFixed(2)}.` });
+        }
+        get()._recalculate();
+      },
+
+      removePoints: () => {
+          set({ pointsApplied: 0, pointsDiscount: 0 });
+          get()._recalculate();
+          toast({ title: 'Points discount removed.' });
       },
 
       removeExpiredItems: () => {

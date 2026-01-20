@@ -1,4 +1,3 @@
-
 import { NextResponse, type NextRequest } from 'next/server';
 import { firestore } from '@/firebase/server';
 import { FieldValue } from 'firebase-admin/firestore';
@@ -64,19 +63,18 @@ export async function POST(request: NextRequest) {
       
       await firestore().runTransaction(async (transaction) => {
         // --- 1. All READS must come first ---
-        // Re-read order inside transaction for safety. The one outside is for pre-check.
-        const orderDoc = await transaction.get(orderRef);
-        if (!orderDoc.exists) {
-            throw new Error("Order not found during transaction.");
-        }
-        const currentOrderData = orderDoc.data() as Order;
+        const currentOrderSnap = await transaction.get(orderRef);
+        if (!currentOrderSnap.exists) throw new Error("Order not found during transaction.");
+        const currentOrderData = currentOrderSnap.data() as Order;
         
-        // Read all product documents for items in the order
-        const allProductIds = [...new Set(currentOrderData.items.map(item => item.productId))];
-        const productRefs = allProductIds.map(id => firestore().collection('products').doc(id));
+        const regularItems = currentOrderData.items.filter(item => {
+          const productRef = firestore().collection('products').doc(item.productId);
+          return transaction.get(productRef).then(p => !p.data()?.preOrder?.enabled);
+        });
+
+        const productRefs = [...new Set(regularItems.map(item => firestore().collection('products').doc(item.productId)))];
         const productDocsSnapshots = productRefs.length > 0 ? await Promise.all(productRefs.map(ref => transaction.get(ref))) : [];
         
-        // Read the user document for loyalty points
         const userRef = firestore().collection('users').doc(currentOrderData.customerId);
         const userDoc = await transaction.get(userRef);
     
@@ -86,11 +84,6 @@ export async function POST(request: NextRequest) {
             if (docSnap.exists) {
                 productMap.set(docSnap.id, docSnap.data() as Product);
             }
-        });
-        
-        const regularItems = currentOrderData.items.filter(item => {
-            const product = productMap.get(item.productId);
-            return product && !product.preOrder?.enabled;
         });
     
         // --- 3. All WRITES must come last ---
@@ -108,7 +101,7 @@ export async function POST(request: NextRequest) {
                 continue; 
             };
     
-            const productRef = firestore().collection('products').doc(item.productId);
+            const productRefToUpdate = firestore().collection('products').doc(item.productId);
             const variantsArray = JSON.parse(JSON.stringify(Array.isArray(product.variants) ? product.variants : Object.values(product.variants)));
             
             const variantIndex = variantsArray.findIndex((v: ProductVariant) => v.sku === item.variantSku);
@@ -125,21 +118,33 @@ export async function POST(request: NextRequest) {
                 variant.outlet_stocks[currentOrderData.assignedOutletId] = currentOutletStock - item.quantity;
             }
     
-            transaction.update(productRef, {
+            transaction.update(productRefToUpdate, {
                 variants: variantsArray,
                 total_stock: FieldValue.increment(-item.quantity),
             });
         }
     
         if(userDoc.exists) {
+            let netPointsChange = 0;
+            const loyaltyPointsUsed = currentOrderData.loyaltyPointsUsed || 0;
+
+            if (loyaltyPointsUsed > 0) {
+                netPointsChange -= loyaltyPointsUsed;
+                const redeemHistoryRef = firestore().collection(`users/${currentOrderData.customerId}/points_history`).doc();
+                transaction.set(redeemHistoryRef, {
+                    userId: currentOrderData.customerId,
+                    pointsChange: -loyaltyPointsUsed,
+                    type: 'redeem',
+                    reason: `Online Order: ${tran_id}`,
+                    createdAt: FieldValue.serverTimestamp(),
+                });
+            }
+
             const pointsEarned = Math.floor(currentOrderData.totalAmount / 100) * 5;
             if (pointsEarned > 0) {
-                transaction.update(userRef, { 
-                    loyaltyPoints: FieldValue.increment(pointsEarned),
-                    totalSpent: FieldValue.increment(currentOrderData.totalAmount)
-                });
-                const pointsHistoryRef = firestore().collection(`users/${currentOrderData.customerId}/points_history`).doc();
-                transaction.set(pointsHistoryRef, {
+                netPointsChange += pointsEarned;
+                const earnHistoryRef = firestore().collection(`users/${currentOrderData.customerId}/points_history`).doc();
+                transaction.set(earnHistoryRef, {
                     userId: currentOrderData.customerId,
                     pointsChange: pointsEarned,
                     type: 'earn',
@@ -147,6 +152,11 @@ export async function POST(request: NextRequest) {
                     createdAt: FieldValue.serverTimestamp(),
                 });
             }
+
+            if (netPointsChange !== 0) {
+              transaction.update(userRef, { loyaltyPoints: FieldValue.increment(netPointsChange) });
+            }
+            transaction.update(userRef, { totalSpent: FieldValue.increment(currentOrderData.totalAmount) });
         }
       });
 

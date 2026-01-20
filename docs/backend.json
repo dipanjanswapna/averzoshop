@@ -192,6 +192,8 @@
         "subtotal": { "type": "number", "description": "The total value of all items before discounts or shipping." },
         "discountAmount": { "type": "number", "description": "The amount discounted via a promo code." },
         "promoCode": { "type": "string", "description": "The promo code used." },
+        "loyaltyPointsUsed": { "type": "number", "description": "Number of loyalty points redeemed for this order." },
+        "loyaltyDiscount": { "type": "number", "description": "The discount amount in BDT from redeemed loyalty points." },
         "totalAmount": { "type": "number", "description": "The amount paid by the customer (can be partial for pre-orders)." },
         "fullOrderValue": { "type": "number", "description": "The total value of the order, especially for pre-orders with partial payment." },
         "assignedOutletId": { "type": "string" },

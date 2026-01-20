@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useCart } from '@/hooks/use-cart';
+import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import Image from 'next/image';
@@ -11,12 +12,16 @@ import { useToast } from '@/hooks/use-toast';
 import { doc, getDoc } from 'firebase/firestore';
 import { useFirebase } from '@/firebase';
 import type { Coupon } from '@/types/coupon';
+import { Award, XCircle } from 'lucide-react';
+import { Label } from '../ui/label';
 
 export function CheckoutOrderSummary() {
   const {
     items,
     discount,
     promoCode,
+    pointsApplied,
+    pointsDiscount,
     shippingInfo,
     totalPayable,
     regularItemsSubtotal,
@@ -26,6 +31,8 @@ export function CheckoutOrderSummary() {
     items: state.items,
     discount: state.discount,
     promoCode: state.promoCode,
+    pointsApplied: state.pointsApplied,
+    pointsDiscount: state.pointsDiscount,
     shippingInfo: state.shippingInfo,
     totalPayable: state.totalPayable,
     regularItemsSubtotal: state.regularItemsSubtotal,
@@ -33,11 +40,18 @@ export function CheckoutOrderSummary() {
     preOrderDepositPayable: state.preOrderDepositPayable,
   }));
   const applyPromoCode = useCart(state => state.applyPromoCode);
-
+  const applyPoints = useCart(state => state.applyPoints);
+  const removePoints = useCart(state => state.removePoints);
+  
+  const { userData } = useAuth();
   const { firestore } = useFirebase();
   const { toast } = useToast();
   const [promoCodeInput, setPromoCodeInput] = useState('');
-  const [isApplying, setIsApplying] = useState(false);
+  const [isApplyingPromo, setIsApplyingPromo] = useState(false);
+  const [pointsToUse, setPointsToUse] = useState<string>('');
+
+  const pointValue = 0.20; // 1 point = 0.20 BDT
+  const availablePoints = userData?.loyaltyPoints || 0;
 
   const hasPreOrderItems = useMemo(() => items.some(item => item.isPreOrder), [items]);
   const hasRegularItems = useMemo(() => items.some(item => !item.isPreOrder), [items]);
@@ -52,7 +66,7 @@ export function CheckoutOrderSummary() {
         return;
     }
 
-    setIsApplying(true);
+    setIsApplyingPromo(true);
     try {
       const couponRef = doc(firestore, 'coupons', promoCodeInput.trim().toUpperCase());
       const couponSnap = await getDoc(couponRef);
@@ -72,14 +86,22 @@ export function CheckoutOrderSummary() {
       }
       
       applyPromoCode(coupon);
-      // The toast for success/failure is now handled within the hook based on applicability
 
     } catch (error) {
       console.error(error);
       toast({ variant: 'destructive', title: 'Error applying promo code.' });
     } finally {
-      setIsApplying(false);
+      setIsApplyingPromo(false);
     }
+  };
+
+  const handleApplyPoints = () => {
+    const pointsNum = parseInt(pointsToUse, 10);
+    if (isNaN(pointsNum) || pointsNum <= 0) {
+      toast({ variant: 'destructive', title: 'Invalid amount', description: 'Please enter a valid number of points.' });
+      return;
+    }
+    applyPoints(pointsNum, availablePoints, pointValue);
   };
 
 
@@ -155,24 +177,60 @@ export function CheckoutOrderSummary() {
 
         <Separator />
         
-        <div className="flex items-end gap-2">
-            <div className="flex-1 space-y-1">
-            <label htmlFor="promo-code" className="text-xs font-medium text-muted-foreground">Promo Code</label>
-            <Input 
-                id="promo-code" 
-                placeholder="Enter code" 
-                value={promoCodeInput}
-                onChange={(e) => setPromoCodeInput(e.target.value)}
-                disabled={isApplying || !hasRegularItems}
-            />
+        <div className="space-y-2">
+            <Label className="text-xs font-medium text-muted-foreground">Promo Code</Label>
+            <div className="flex items-end gap-2">
+                <Input 
+                    id="promo-code" 
+                    placeholder="Enter code" 
+                    value={promoCodeInput}
+                    onChange={(e) => setPromoCodeInput(e.target.value)}
+                    disabled={isApplyingPromo || !hasRegularItems}
+                />
+                <Button onClick={handleApplyPromoCode} disabled={isApplyingPromo || !promoCodeInput || !hasRegularItems}>
+                {isApplyingPromo ? 'Applying...' : 'Apply'}
+                </Button>
             </div>
-            <Button onClick={handleApplyPromoCode} disabled={isApplying || !hasRegularItems}>
-            {isApplying ? 'Applying...' : 'Apply'}
-            </Button>
         </div>
+
+        {userData && availablePoints > 0 && (
+            <div className="space-y-3 pt-4 border-t">
+                <Label className="font-bold flex items-center gap-2"><Award size={16} className="text-primary" /> Use Loyalty Points</Label>
+                <div className="p-3 bg-primary/5 border border-primary/10 rounded-lg space-y-2">
+                    <p className="text-xs text-muted-foreground">You have <span className="font-bold text-primary">{availablePoints}</span> points (worth ৳{(availablePoints * pointValue).toFixed(2)})</p>
+                    {pointsApplied > 0 ? (
+                         <div className="flex justify-between items-center bg-green-100/50 p-2 rounded-md">
+                            <div className="text-green-700">
+                                <p className="text-sm font-bold">Points Applied: {pointsApplied}</p>
+                                <p className="text-xs">-৳{pointsDiscount.toFixed(2)}</p>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={removePoints}>
+                                <XCircle className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="flex items-end gap-2">
+                            <Input
+                                placeholder="Points to use"
+                                type="number"
+                                value={pointsToUse}
+                                onChange={(e) => setPointsToUse(e.target.value)}
+                            />
+                            <Button onClick={handleApplyPoints}>Apply</Button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        )}
          
         <Separator />
         <div className="space-y-2 text-sm">
+            {pointsDiscount > 0 && (
+                 <div className="flex justify-between text-green-600">
+                    <span>Points Discount</span>
+                    <span>- ৳{pointsDiscount.toFixed(2)}</span>
+                </div>
+            )}
             <div className="flex justify-between">
                 <span>Shipping Fee</span>
                 <span className="font-medium">{shippingInfo.fee > 0 ? `৳${shippingInfo.fee.toFixed(2)}` : 'Free'}</span>

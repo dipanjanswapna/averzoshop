@@ -28,6 +28,8 @@ export interface Order {
     subtotal?: number;
     discountAmount?: number;
     promoCode?: string | null;
+    loyaltyPointsUsed?: number;
+    loyaltyDiscount?: number;
     totalAmount: number;
     fullOrderValue?: number;
     assignedOutletId: string;

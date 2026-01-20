@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -43,7 +42,7 @@ const formSchema = z.object({
 });
 
 export function ShippingForm() {
-  const { cartItems, clearCart, totalPayable, subtotal, fullOrderTotal, promoCode, discount, setShippingInfo, shippingInfo } = useCart(state => ({
+  const { cartItems, clearCart, totalPayable, subtotal, fullOrderTotal, promoCode, discount, setShippingInfo, shippingInfo, pointsApplied, pointsDiscount } = useCart(state => ({
     cartItems: state.items,
     clearCart: state.clearCart,
     totalPayable: state.totalPayable,
@@ -51,6 +50,8 @@ export function ShippingForm() {
     fullOrderTotal: state.fullOrderTotal,
     promoCode: state.promoCode,
     discount: state.discount,
+    pointsApplied: state.pointsApplied,
+    pointsDiscount: state.pointsDiscount,
     setShippingInfo: state.setShippingInfo,
     shippingInfo: state.shippingInfo,
   }));
@@ -224,11 +225,13 @@ export function ShippingForm() {
         subtotal: subtotal,
         discountAmount: discount,
         promoCode: promoCode ? promoCode.code : null,
+        loyaltyPointsUsed: pointsApplied,
+        loyaltyDiscount: pointsDiscount,
         totalAmount: totalPayable,
         fullOrderValue: fullOrderTotal,
         assignedOutletId: assignedOutletId,
         orderType: isPreOrderInCart ? 'pre-order' as const : 'regular' as const,
-        createdAt: new Date(), // Use JS Date for server action, will be converted later
+        createdAt: new Date(),
     };
 
     if (values.paymentMethod === 'cod') {
@@ -294,12 +297,25 @@ export function ShippingForm() {
 
                 productUpdates.forEach(update => transaction.update(update.ref, update.data));
                 
+                // Points logic
+                let netPointsChange = 0;
+                if (pointsApplied > 0) {
+                    netPointsChange -= pointsApplied;
+                    const redeemHistoryRef = doc(collection(firestore, `users/${user.uid}/points_history`));
+                    transaction.set(redeemHistoryRef, { userId: user.uid, pointsChange: -pointsApplied, type: 'redeem', reason: `Order: ${orderId}`, createdAt: new Date() });
+                }
                 const pointsEarned = Math.floor(totalPayable / 100) * 5;
                 if (pointsEarned > 0) {
-                    transaction.update(userRef, { loyaltyPoints: increment(pointsEarned), totalSpent: increment(totalPayable) });
-                    const pointsHistoryRef = doc(collection(firestore, `users/${user.uid}/points_history`));
-                    transaction.set(pointsHistoryRef, { userId: user.uid, pointsChange: pointsEarned, type: 'earn', reason: `Online Order: ${orderId}`, createdAt: new Date() });
+                    netPointsChange += pointsEarned;
+                    const earnHistoryRef = doc(collection(firestore, `users/${user.uid}/points_history`));
+                    transaction.set(earnHistoryRef, { userId: user.uid, pointsChange: pointsEarned, type: 'earn', reason: `Order: ${orderId}`, createdAt: new Date() });
                 }
+                
+                if(netPointsChange !== 0) {
+                    transaction.update(userRef, { loyaltyPoints: increment(netPointsChange) });
+                }
+                transaction.update(userRef, { totalSpent: increment(totalPayable) });
+
             });
 
             clearCart();
