@@ -54,13 +54,12 @@ service cloud.firestore {
 
     // Questions are publicly readable.
     // Logged-in users can create questions.
-    // Admins or product vendors can answer (update) them.
+    // Any authenticated user can add an answer, but cannot change the original question.
     match /products/{productId}/questions/{questionId} {
         allow read: if true;
         allow create: if request.auth != null && request.resource.data.askedByUid == request.auth.uid;
-        allow update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
-                       || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'vendor' 
-                           && get(/databases/$(database)/documents/products/$(productId)).data.vendorId == request.auth.uid);
+        allow update: if request.auth != null &&
+                      !request.resource.data.diff(resource.data).affectedKeys().hasAny(['questionText', 'askedByUid', 'askedByName', 'createdAt', 'productId']);
     }
 
     // Orders can be read by the customer, assigned outlet, assigned rider or an admin.

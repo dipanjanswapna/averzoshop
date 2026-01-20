@@ -10,18 +10,27 @@ import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { Skeleton } from '../ui/skeleton';
 import { useAuth } from '@/hooks/use-auth';
 import { useFirebase } from '@/firebase';
-import { doc, updateDoc, serverTimestamp, query, collection, orderBy } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp, query, collection, orderBy, arrayUnion } from 'firebase/firestore';
 import { Textarea } from '../ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import type { Order } from '@/types/order';
+import { Badge } from '../ui/badge';
+import { Check, Shield } from 'lucide-react';
+
+interface Answer {
+    answerText: string;
+    answeredByUid: string;
+    answeredByName: string;
+    answeredByRole: 'customer' | 'admin' | 'vendor' | 'outlet' | 'rider';
+    answeredAt: { toDate: () => Date };
+}
 
 interface Question {
     id: string;
     questionText: string;
-    answerText?: string;
     askedByName: string;
     createdAt: { toDate: () => Date } | null;
-    answeredByUid?: string;
-    answeredAt?: { toDate: () => Date };
+    answers?: Answer[];
 }
 
 export function ProductTabs({ product }: { product: Product }) {
@@ -35,13 +44,22 @@ export function ProductTabs({ product }: { product: Product }) {
   }, [firestore, product?.id]);
 
   const { data: questions, isLoading: isLoadingQuestions } = useFirestoreQuery<Question>(questionsQuery);
+  const { data: userOrders, isLoading: ordersLoading } = useFirestoreQuery<Order>(user ? query(collection(firestore, 'orders'), where('customerId', '==', user.uid)) : null);
+
+  const canAnswer = useMemo(() => {
+    if (!user || !userOrders) return false;
+    return userOrders.some(order => 
+        (order.status === 'delivered' || order.status === 'fulfilled') &&
+        order.items.some(item => item.productId === product.id)
+    );
+  }, [user, userOrders, product.id]);
 
   const [answers, setAnswers] = useState<{ [key: string]: string }>({});
   const [isSubmitting, setIsSubmitting] = useState<string | null>(null);
 
   const handleAnswerSubmit = async (questionId: string) => {
     const answerText = answers[questionId];
-    if (!firestore || !user || !answerText || !answerText.trim()) {
+    if (!firestore || !user || !userData || !answerText || !answerText.trim()) {
         toast({ variant: 'destructive', title: 'Answer cannot be empty.' });
         return;
     }
@@ -50,11 +68,18 @@ export function ProductTabs({ product }: { product: Product }) {
     const questionRef = doc(firestore, `products/${product.id}/questions`, questionId);
     
     try {
-        await updateDoc(questionRef, {
+        const newAnswer = {
             answerText,
             answeredByUid: user.uid,
-            answeredAt: serverTimestamp(),
+            answeredByName: user.displayName || 'Anonymous',
+            answeredByRole: userData.role,
+            answeredAt: new Date(),
+        };
+
+        await updateDoc(questionRef, {
+            answers: arrayUnion(newAnswer),
         });
+
         toast({ title: 'Answer submitted!' });
         setAnswers(prev => ({ ...prev, [questionId]: '' }));
     } catch (error) {
@@ -145,36 +170,51 @@ export function ProductTabs({ product }: { product: Product }) {
                     </div>
                 ) : questions && questions.length > 0 ? (
                     questions.map((item) => (
-                        <div key={item.id} className="border-b pb-4">
+                        <div key={item.id} className="border-t pt-4">
                             <p className="font-bold text-foreground">Q: {item.questionText}</p>
                             <p className="text-xs text-muted-foreground">Asked by {item.askedByName} on {item.createdAt ? item.createdAt.toDate().toLocaleDateString() : '...'}</p>
                             
-                            {item.answerText ? (
-                                <div className="mt-2 pl-4 border-l-2 border-primary bg-muted/50 p-3 rounded-r-lg">
-                                  <p className="font-bold text-sm">A: {item.answerText}</p>
-                                  {item.answeredAt && (
-                                    <p className="text-xs text-muted-foreground mt-1">Answered on {item.answeredAt.toDate().toLocaleDateString()}</p>
-                                  )}
+                            {item.answers && item.answers.length > 0 ? (
+                                <div className="mt-3 space-y-3">
+                                  {item.answers.sort((a,b) => b.answeredAt.toDate().getTime() - a.answeredAt.toDate().getTime()).map((answer, index) => (
+                                    <div key={index} className="pl-4 border-l-2 border-primary/50 bg-muted/30 p-3 rounded-r-lg">
+                                      <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                          <p className="font-bold text-sm text-foreground">{answer.answeredByName}</p>
+                                          {(answer.answeredByRole === 'admin' || (answer.answeredByRole === 'vendor' && answer.answeredByUid === product.vendorId)) && (
+                                              <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs gap-1">
+                                                  <Shield size={12} /> Official
+                                              </Badge>
+                                          )}
+                                          {answer.answeredByRole === 'customer' && (
+                                              <Badge variant="outline" className="gap-1"><Check size={12} /> Verified Buyer</Badge>
+                                          )}
+                                        </div>
+                                        <p className="text-xs text-muted-foreground">{answer.answeredAt.toDate().toLocaleDateString()}</p>
+                                      </div>
+                                      <p className="text-sm mt-1">{answer.answerText}</p>
+                                    </div>
+                                  ))}
                                 </div>
                             ) : (
-                                userData?.role === 'admin' || userData?.uid === product.vendorId ? (
-                                    <div className="mt-2 pl-4 space-y-2">
-                                        <Textarea 
-                                            placeholder="Write your answer..." 
-                                            value={answers[item.id] || ''}
-                                            onChange={(e) => setAnswers(prev => ({ ...prev, [item.id]: e.target.value }))}
-                                        />
-                                        <Button 
-                                            size="sm" 
-                                            onClick={() => handleAnswerSubmit(item.id)}
-                                            disabled={isSubmitting === item.id || !(answers[item.id] || '').trim()}
-                                        >
-                                            {isSubmitting === item.id ? 'Submitting...' : 'Submit Answer'}
-                                        </Button>
-                                    </div>
-                                ) : (
-                                  <p className="text-muted-foreground mt-2 pl-4 text-sm">A: This question has not been answered yet.</p>
-                                )
+                                  <p className="text-muted-foreground mt-2 pl-4 text-sm">No answers yet.</p>
+                            )}
+
+                            {(canAnswer || userData?.role === 'admin' || userData?.uid === product.vendorId) && (
+                                <div className="mt-4 pl-4 space-y-2">
+                                    <Textarea 
+                                        placeholder="Write your answer..." 
+                                        value={answers[item.id] || ''}
+                                        onChange={(e) => setAnswers(prev => ({ ...prev, [item.id]: e.target.value }))}
+                                    />
+                                    <Button 
+                                        size="sm" 
+                                        onClick={() => handleAnswerSubmit(item.id)}
+                                        disabled={isSubmitting === item.id || !(answers[item.id] || '').trim()}
+                                    >
+                                        {isSubmitting === item.id ? 'Submitting...' : 'Submit Answer'}
+                                    </Button>
+                                </div>
                             )}
                         </div>
                     ))
