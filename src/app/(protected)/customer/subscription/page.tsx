@@ -1,9 +1,8 @@
-
 'use client';
 
 import { useAuth } from '@/hooks/use-auth';
 import { PremiumCard } from '@/components/customer/premium-card';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardFooter, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CheckCircle, Star, Printer } from 'lucide-react';
@@ -57,13 +56,13 @@ export default function SubscriptionPage() {
 
   return (
     <>
-      <div className="space-y-8">
-        <div className="flex items-start justify-between no-print">
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row items-start justify-between gap-4 no-print">
             <div>
-                <h1 className="text-3xl font-bold font-headline">My Subscription</h1>
-                <p className="text-muted-foreground">View your membership details and benefits.</p>
+                <h1 className="text-2xl md:text-3xl font-bold font-headline">My Subscription</h1>
+                <p className="text-muted-foreground text-sm">View your membership details and benefits.</p>
             </div>
-            <Button onClick={handlePrint} variant="outline">
+            <Button onClick={handlePrint} variant="outline" className="w-full sm:w-auto">
                 <Printer className="mr-2 h-4 w-4" /> Print Card
             </Button>
         </div>
@@ -75,31 +74,31 @@ export default function SubscriptionPage() {
                 <CardTitle>Membership Tiers</CardTitle>
                 <CardDescription>Explore the benefits of each membership level.</CardDescription>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {tiers.map(tier => (
-                    <Card key={tier.name} className={tier.name.toLowerCase() === userTier ? 'border-primary border-2 shadow-lg' : ''}>
-                        <CardHeader>
+                    <Card key={tier.name} className={`flex flex-col ${tier.name.toLowerCase() === userTier ? 'border-primary border-2 shadow-lg' : ''}`}>
+                        <CardHeader className="p-4">
                             <div className="flex items-center justify-between">
-                                <CardTitle className="flex items-center gap-2">{tier.name} <Star className={tier.name.toLowerCase() === 'gold' ? 'text-yellow-500' : tier.name.toLowerCase() === 'platinum' ? 'text-blue-500' : 'text-gray-400'} /></CardTitle>
+                                <CardTitle className="flex items-center gap-2 text-xl">{tier.name} <Star className={tier.name.toLowerCase() === 'gold' ? 'text-yellow-500' : tier.name.toLowerCase() === 'platinum' ? 'text-blue-500' : 'text-gray-400'} /></CardTitle>
                                 {tier.name.toLowerCase() === userTier && <span className="text-xs font-bold text-primary">CURRENT</span>}
                             </div>
-                            <CardDescription>{tier.price}</CardDescription>
+                            <CardDescription className="text-lg font-bold">{tier.price}</CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-3">
-                            <ul className="space-y-2 text-sm">
+                        <CardContent className="p-4 flex-1">
+                            <ul className="space-y-2 text-xs">
                             {tier.features.map(feature => (
-                                <li key={feature} className="flex items-center gap-2">
-                                    <CheckCircle size={16} className="text-green-500 flex-shrink-0" />
+                                <li key={feature} className="flex items-start gap-2">
+                                    <CheckCircle size={14} className="text-green-500 flex-shrink-0 mt-0.5" />
                                     <span className="text-muted-foreground">{feature}</span>
                                 </li>
                             ))}
                             </ul>
                         </CardContent>
-                        <CardHeader>
-                            <Button disabled={tier.name.toLowerCase() === userTier}>
+                        <CardFooter className="p-4">
+                            <Button disabled={tier.name.toLowerCase() === userTier} className="w-full">
                                 {tier.name.toLowerCase() === userTier ? 'Your Current Plan' : `Upgrade to ${tier.name}`}
                             </Button>
-                        </CardHeader>
+                        </CardFooter>
                     </Card>
                 ))}
             </CardContent>
