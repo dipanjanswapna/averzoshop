@@ -40,7 +40,7 @@ export type StockTransfer = {
   variantSku: string;
   quantity: number;
   status: 'requested' | 'dispatched' | 'received' | 'cancelled';
-  requestedBy: string;
+  requestedBy: string; // UID of the admin who initiated the transfer.
   createdAt: any; // Firestore Timestamp
   // Optional fields for UI convenience
   sourceOutletName?: string;
