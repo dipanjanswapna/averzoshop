@@ -16,6 +16,8 @@ export type CartItem = {
 
 type CartState = {
   items: CartItem[];
+  orderMode: 'delivery' | 'pickup';
+  pickupOutletId: string | null;
   promoCode: Coupon | null;
   pointsApplied: number;
   pointsDiscount: number;
@@ -40,6 +42,8 @@ type CartState = {
   applyPromoCode: (coupon: Coupon | null) => void;
   applyPoints: (points: number, userPoints: number, pointValue: number) => void;
   removePoints: () => void;
+  setOrderMode: (mode: 'delivery' | 'pickup') => void;
+  setPickupOutlet: (outletId: string | null) => void;
   setShippingInfo: (info: Partial<CartState['shippingInfo']>) => void;
   removeExpiredItems: () => void;
   _recalculate: () => void;
@@ -84,6 +88,8 @@ export const useCart = create<CartState>()(
   persist(
     (set, get) => ({
       items: [],
+      orderMode: 'delivery',
+      pickupOutletId: null,
       promoCode: null,
       pointsApplied: 0,
       pointsDiscount: 0,
@@ -99,7 +105,7 @@ export const useCart = create<CartState>()(
       
       _recalculate: () => {
         const state = get();
-        const { items, promoCode, pointsDiscount, shippingInfo } = state;
+        const { items, promoCode, pointsDiscount, shippingInfo, orderMode } = state;
         
         let regularItemsSubtotal = 0;
         let preOrderItemsSubtotal = 0;
@@ -127,7 +133,7 @@ export const useCart = create<CartState>()(
         });
 
         const subtotal = regularItemsSubtotal + preOrderItemsSubtotal;
-        const shippingFee = shippingInfo.fee;
+        const shippingFee = orderMode === 'pickup' ? 0 : shippingInfo.fee;
 
         const regularItemsForDiscount = items.filter(item => !item.isPreOrder);
         const promoCodeDiscount = calculateDiscount(regularItemsForDiscount, promoCode);
@@ -153,6 +159,14 @@ export const useCart = create<CartState>()(
       setShippingInfo: (info) => {
           set(state => ({ shippingInfo: { ...state.shippingInfo, ...info } }));
           get()._recalculate();
+      },
+
+      setOrderMode: (mode) => {
+          set({ orderMode: mode, pickupOutletId: null });
+          get()._recalculate();
+      },
+      setPickupOutlet: (outletId) => {
+          set({ pickupOutletId: outletId });
       },
 
       addItem: (product, variant, quantity = 1) => {
