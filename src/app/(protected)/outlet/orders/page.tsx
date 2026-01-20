@@ -25,9 +25,9 @@ import { useFirebase } from '@/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useMemo, useState } from 'react';
-import { Check, Package, Send, Truck, CheckCircle } from 'lucide-react';
+import { Check, Package, Send, Truck, CheckCircle, Hand, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { sendNotificationToRole } from '@/ai/flows/send-notification-to-role';
+import { sendTargetedNotification } from '@/ai/flows/send-targeted-notification';
 
 export default function OnlineOrdersPage() {
   const { userData } = useAuth();
@@ -39,13 +39,19 @@ export default function OnlineOrdersPage() {
 
   const { data: allOrders, isLoading } = useFirestoreQuery<Order>('orders');
   
-  const outletOrders = useMemo(() => {
+  const deliveryOrders = useMemo(() => {
     if (!allOrders || !outletId) return [];
-    return allOrders.filter(order => order.assignedOutletId === outletId)
+    return allOrders.filter(order => order.assignedOutletId === outletId && order.orderMode === 'delivery')
       .sort((a,b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
   }, [allOrders, outletId]);
 
-  const handleUpdateStatus = async (orderId: string, newStatus: OrderStatus) => {
+  const pickupOrders = useMemo(() => {
+    if (!allOrders || !outletId) return [];
+    return allOrders.filter(order => (order.assignedOutletId === outletId || order.pickupOutletId === outletId) && order.orderMode === 'pickup')
+      .sort((a,b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+  }, [allOrders, outletId]);
+
+  const handleUpdateDeliveryStatus = async (orderId: string, newStatus: OrderStatus) => {
     if (!firestore) return;
     setUpdatingId(orderId);
     const orderRef = doc(firestore, 'orders', orderId);
@@ -54,7 +60,7 @@ export default function OnlineOrdersPage() {
         toast({ title: 'Order Updated', description: `Order status changed to ${newStatus}.` });
 
         if (newStatus === 'ready_for_pickup') {
-            await sendNotificationToRole({
+            await sendTargetedNotification({
                 role: 'rider',
                 title: 'New Delivery Available',
                 body: `Order #${orderId.substring(0, 6)} is ready for pickup.`,
@@ -69,90 +75,143 @@ export default function OnlineOrdersPage() {
     }
   };
 
-  const renderOrderTable = (orders: Order[], status: OrderStatus) => (
+  const handleMarkFulfilled = async (order: Order) => {
+    if (!firestore) return;
+    setUpdatingId(order.id);
+    const orderRef = doc(firestore, 'orders', order.id);
+    try {
+        await updateDoc(orderRef, { status: 'fulfilled', paymentStatus: 'Paid' });
+        toast({ title: 'Order Collected', description: 'Order has been marked as fulfilled.' });
+        
+        await sendTargetedNotification({
+            userId: order.customerId,
+            title: 'Your Order Has Been Collected!',
+            body: `Your order #${order.id.substring(0,6)} has been successfully picked up.`,
+            link: '/customer/my-orders'
+        });
+
+    } catch (error) {
+        toast({ variant: 'destructive', title: 'Failed to update order.' });
+        console.error("Error updating order:", error);
+    } finally {
+        setUpdatingId(null);
+    }
+  };
+
+  const renderDeliveryOrderTable = (orders: Order[]) => (
     <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Order ID</TableHead>
-          <TableHead>Customer</TableHead>
-          <TableHead>Items</TableHead>
-          <TableHead className="text-right">Total</TableHead>
-          <TableHead className="text-center">Action / Status</TableHead>
-        </TableRow>
-      </TableHeader>
+      <TableHeader><TableRow><TableHead>Order ID</TableHead><TableHead>Customer</TableHead><TableHead>Items</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-center">Action / Status</TableHead></TableRow></TableHeader>
       <TableBody>
         {isLoading ? (
             [...Array(3)].map((_, i) => (
-                <TableRow key={i}>
-                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-32" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-12" /></TableCell>
-                    <TableCell className="text-right"><Skeleton className="h-5 w-20 ml-auto" /></TableCell>
-                    <TableCell className="text-center"><Skeleton className="h-9 w-32 mx-auto" /></TableCell>
-                </TableRow>
+                <TableRow key={i}><TableCell><Skeleton className="h-5 w-24" /></TableCell><TableCell><Skeleton className="h-5 w-32" /></TableCell><TableCell><Skeleton className="h-5 w-12" /></TableCell><TableCell className="text-right"><Skeleton className="h-5 w-20 ml-auto" /></TableCell><TableCell className="text-center"><Skeleton className="h-9 w-32 mx-auto" /></TableCell></TableRow>
             ))
         ) : orders.length > 0 ? orders.map(order => (
           <TableRow key={order.id}>
             <TableCell className="font-medium font-mono text-xs">{order.id.substring(0, 8)}...</TableCell>
-            <TableCell>{order.shippingAddress.name}</TableCell>
+            <TableCell>{order.shippingAddress?.name}</TableCell>
             <TableCell>{order.items.reduce((acc, item) => acc + item.quantity, 0)}</TableCell>
             <TableCell className="text-right">৳{order.totalAmount.toFixed(2)}</TableCell>
             <TableCell className="text-center">
-                {order.status === 'new' && <Button size="sm" onClick={() => handleUpdateStatus(order.id, 'preparing')} disabled={updatingId === order.id}><Check className="mr-2 h-4 w-4"/>Accept Order</Button>}
-                {order.status === 'preparing' && <Button size="sm" onClick={() => handleUpdateStatus(order.id, 'ready_for_pickup')} disabled={updatingId === order.id}><Package className="mr-2 h-4 w-4"/>Ready for Pickup</Button>}
+                {order.status === 'new' && <Button size="sm" onClick={() => handleUpdateDeliveryStatus(order.id, 'preparing')} disabled={updatingId === order.id}><Check className="mr-2 h-4 w-4"/>Accept Order</Button>}
+                {order.status === 'preparing' && <Button size="sm" onClick={() => handleUpdateDeliveryStatus(order.id, 'ready_for_pickup')} disabled={updatingId === order.id}><Package className="mr-2 h-4 w-4"/>Ready for Pickup</Button>}
                 {order.status === 'ready_for_pickup' && <Button size="sm" variant="outline" disabled><Send className="mr-2 h-4 w-4"/>Awaiting Rider</Button>}
                 {order.status === 'out_for_delivery' && <Badge variant="secondary" className="bg-blue-100 text-blue-800"><Truck className="mr-2 h-4 w-4" />On its way</Badge>}
                 {order.status === 'delivered' && <Badge className="bg-green-100 text-green-800"><CheckCircle className="mr-2 h-4 w-4" />Delivered</Badge>}
             </TableCell>
           </TableRow>
         )) : (
-            <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
-                    No orders in this category.
-                </TableCell>
-            </TableRow>
+            <TableRow><TableCell colSpan={5} className="h-24 text-center">No orders in this category.</TableCell></TableRow>
         )}
       </TableBody>
     </Table>
   );
+
+  const renderPickupOrderTable = (orders: Order[]) => (
+     <Table>
+      <TableHeader><TableRow><TableHead>Order ID</TableHead><TableHead>Customer</TableHead><TableHead>Phone</TableHead><TableHead>Pickup Code</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-center">Action</TableHead></TableRow></TableHeader>
+      <TableBody>
+        {isLoading ? (
+            [...Array(3)].map((_, i) => (
+                <TableRow key={i}><TableCell><Skeleton className="h-5 w-24" /></TableCell><TableCell><Skeleton className="h-5 w-32" /></TableCell><TableCell><Skeleton className="h-5 w-24" /></TableCell><TableCell><Skeleton className="h-5 w-20" /></TableCell><TableCell className="text-right"><Skeleton className="h-5 w-20 ml-auto" /></TableCell><TableCell className="text-center"><Skeleton className="h-9 w-32 mx-auto" /></TableCell></TableRow>
+            ))
+        ) : orders.length > 0 ? orders.map(order => (
+          <TableRow key={order.id}>
+            <TableCell className="font-medium font-mono text-xs">{order.id.substring(0, 8)}...</TableCell>
+            <TableCell>{order.shippingAddress?.name || 'N/A'}</TableCell>
+            <TableCell>{order.shippingAddress?.phone || 'N/A'}</TableCell>
+            <TableCell><Badge variant="outline" className="font-bold text-base tracking-widest">{order.pickupCode}</Badge></TableCell>
+            <TableCell className="text-right">৳{order.totalAmount.toFixed(2)}</TableCell>
+            <TableCell className="text-center">
+                { (order.status === 'new' || order.status === 'pending_payment') && 
+                  <Button size="sm" onClick={() => handleMarkFulfilled(order)} disabled={updatingId === order.id}><Hand className="mr-2 h-4 w-4"/>Mark as Collected</Button>
+                }
+                {order.status === 'fulfilled' && <Badge className="bg-green-100 text-green-800"><CheckCircle className="mr-2 h-4 w-4" />Collected</Badge>}
+                {order.status === 'canceled' && <Badge variant="destructive">Canceled</Badge>}
+            </TableCell>
+          </TableRow>
+        )) : (
+            <TableRow><TableCell colSpan={6} className="h-24 text-center">No orders in this category.</TableCell></TableRow>
+        )}
+      </TableBody>
+    </Table>
+  )
   
-  const filterOrders = (status: OrderStatus) => outletOrders.filter(o => o.status === status);
+  const filterDeliveryOrders = (status: OrderStatus) => deliveryOrders.filter(o => o.status === status);
+  const pendingPickupOrders = pickupOrders.filter(o => o.status === 'new' || o.status === 'pending_payment');
+  const completedPickupOrders = pickupOrders.filter(o => o.status === 'fulfilled' || o.status === 'canceled');
+
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-3xl font-bold font-headline">Online Order Fulfillment</h1>
-      <Card>
-        <CardHeader>
-          <CardTitle>Manage Online Orders</CardTitle>
-          <CardDescription>Prepare and dispatch orders for D2C customers assigned to your outlet.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="new">
-            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-5">
-              <TabsTrigger value="new">New Orders</TabsTrigger>
-              <TabsTrigger value="preparing">Preparing</TabsTrigger>
-              <TabsTrigger value="ready_for_pickup">Ready for Pickup</TabsTrigger>
-              <TabsTrigger value="out_for_delivery">Out for Delivery</TabsTrigger>
-              <TabsTrigger value="delivered">Delivered</TabsTrigger>
-            </TabsList>
-            <TabsContent value="new" className="mt-4">
-              {renderOrderTable(filterOrders('new'), 'new')}
-            </TabsContent>
-             <TabsContent value="preparing" className="mt-4">
-              {renderOrderTable(filterOrders('preparing'), 'preparing')}
-            </TabsContent>
-             <TabsContent value="ready_for_pickup" className="mt-4">
-              {renderOrderTable(filterOrders('ready_for_pickup'), 'ready_for_pickup')}
-            </TabsContent>
-            <TabsContent value="out_for_delivery" className="mt-4">
-              {renderOrderTable(filterOrders('out_for_delivery'), 'out_for_delivery')}
-            </TabsContent>
-             <TabsContent value="delivered" className="mt-4">
-              {renderOrderTable(filterOrders('delivered'), 'delivered')}
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+      <h1 className="text-3xl font-bold font-headline">Order Fulfillment</h1>
+      <Tabs defaultValue="delivery" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="delivery">Delivery Fulfillment</TabsTrigger>
+            <TabsTrigger value="pickup">Store Pickup</TabsTrigger>
+        </TabsList>
+        <TabsContent value="delivery">
+          <Card>
+            <CardHeader>
+              <CardTitle>Manage Delivery Orders</CardTitle>
+              <CardDescription>Prepare and dispatch orders for D2C customers assigned to your outlet.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="new">
+                <TabsList className="grid w-full grid-cols-3 lg:grid-cols-5">
+                  <TabsTrigger value="new">New Orders</TabsTrigger>
+                  <TabsTrigger value="preparing">Preparing</TabsTrigger>
+                  <TabsTrigger value="ready_for_pickup">Ready for Pickup</TabsTrigger>
+                  <TabsTrigger value="out_for_delivery">Out for Delivery</TabsTrigger>
+                  <TabsTrigger value="delivered">Delivered</TabsTrigger>
+                </TabsList>
+                <TabsContent value="new" className="mt-4">{renderDeliveryOrderTable(filterDeliveryOrders('new'))}</TabsContent>
+                <TabsContent value="preparing" className="mt-4">{renderDeliveryOrderTable(filterDeliveryOrders('preparing'))}</TabsContent>
+                <TabsContent value="ready_for_pickup" className="mt-4">{renderDeliveryOrderTable(filterDeliveryOrders('ready_for_pickup'))}</TabsContent>
+                <TabsContent value="out_for_delivery" className="mt-4">{renderDeliveryOrderTable(filterDeliveryOrders('out_for_delivery'))}</TabsContent>
+                <TabsContent value="delivered" className="mt-4">{renderDeliveryOrderTable(filterDeliveryOrders('delivered'))}</TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="pickup">
+           <Card>
+            <CardHeader>
+              <CardTitle>Manage Pickup Orders</CardTitle>
+              <CardDescription>Verify pickup codes and hand over orders to customers.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs defaultValue="pending">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="pending">Pending Collection</TabsTrigger>
+                  <TabsTrigger value="completed">Completed</TabsTrigger>
+                </TabsList>
+                 <TabsContent value="pending" className="mt-4">{renderPickupOrderTable(pendingPickupOrders)}</TabsContent>
+                 <TabsContent value="completed" className="mt-4">{renderPickupOrderTable(completedPickupOrders)}</TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
-}
