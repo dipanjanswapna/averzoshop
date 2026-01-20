@@ -1,4 +1,3 @@
-
 'use server';
 
 import { Order } from '@/types/order';
@@ -11,7 +10,7 @@ interface SslCommerzPaymentResponse {
   failedreason?: string;
 }
 
-export async function createSslCommerzSession(order: Order, user: UserData) {
+export async function createSslCommerzSession(order: Order, user: UserData, amount?: number) {
   const storeId = process.env.SSLCOMMERZ_STORE_ID;
   const storePassword = process.env.SSLCOMMERZ_STORE_PASSWORD;
   const isDevelopment = process.env.NODE_ENV === 'development';
@@ -29,7 +28,7 @@ export async function createSslCommerzSession(order: Order, user: UserData) {
   const postData = {
     store_id: storeId,
     store_passwd: storePassword,
-    total_amount: order.totalAmount,
+    total_amount: amount ?? order.totalAmount,
     currency: 'BDT',
     tran_id: order.id, // Must be unique
     success_url: `${baseUrl}/payment/success`,
@@ -42,16 +41,16 @@ export async function createSslCommerzSession(order: Order, user: UserData) {
     product_profile: 'general',
     cus_name: user.displayName,
     cus_email: user.email,
-    cus_add1: order.shippingAddress.streetAddress,
-    cus_city: order.shippingAddress.district,
-    cus_state: order.shippingAddress.division,
+    cus_add1: order.shippingAddress?.streetAddress || 'N/A',
+    cus_city: order.shippingAddress?.district || 'N/A',
+    cus_state: order.shippingAddress?.division || 'N/A',
     cus_postcode: '1200', // SSLCommerz requires a postcode
     cus_country: 'Bangladesh',
-    cus_phone: order.shippingAddress.phone,
-    ship_name: order.shippingAddress.name,
-    ship_add1: order.shippingAddress.streetAddress,
-    ship_city: order.shippingAddress.district,
-    ship_state: order.shippingAddress.division,
+    cus_phone: order.shippingAddress?.phone || 'N/A',
+    ship_name: order.shippingAddress?.name || user.displayName,
+    ship_add1: order.shippingAddress?.streetAddress || 'N/A',
+    ship_city: order.shippingAddress?.district || 'N/A',
+    ship_state: order.shippingAddress?.division || 'N/A',
     ship_postcode: '1200',
     ship_country: 'Bangladesh',
   };

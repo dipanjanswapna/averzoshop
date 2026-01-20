@@ -1,5 +1,6 @@
 'use client';
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -26,9 +27,12 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import type { UserData } from '@/types/user';
 import { MessageCircle, Copy } from 'lucide-react';
+import { createSslCommerzSession } from '@/actions/payment-actions';
 
 const getStatusBadge = (status: OrderStatus) => {
     switch (status) {
+      case 'pending_payment':
+        return <Badge variant="destructive" className="capitalize animate-pulse">{status.replace('_', ' ')}</Badge>;
       case 'pre-ordered':
         return <Badge variant="secondary" className="bg-blue-100 text-blue-800 capitalize">{status.replace('_', ' ')}</Badge>;
       case 'new':
@@ -50,9 +54,10 @@ const getStatusBadge = (status: OrderStatus) => {
 };
 
 export default function MyOrdersPage() {
-  const { user } = useAuth();
+  const { user, userData } = useAuth();
   const { firestore } = useFirebase();
   const { toast } = useToast();
+  const router = useRouter();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   const userOrdersQuery = useMemo(() => {
@@ -78,15 +83,31 @@ export default function MyOrdersPage() {
     return new Map(users.map(u => [u.uid, u]));
   }, [users]);
   
-  const handleCompletePayment = async (orderId: string) => {
-    if (!firestore) return;
-    setUpdatingId(orderId);
+  const handleCompletePayment = async (order: Order) => {
+    if (!userData || !user) {
+        toast({ variant: 'destructive', title: 'Please log in again.' });
+        return;
+    }
+    setUpdatingId(order.id);
     try {
-        const orderRef = doc(firestore, 'orders', orderId);
-        await updateDoc(orderRef, { status: 'new' });
-        toast({ title: 'Payment Complete', description: 'Your order is now being processed.' });
-    } catch(e) {
-        toast({ variant: 'destructive', title: 'Payment Failed', description: 'Could not complete payment. Please try again.' });
+        const remainingAmount = (order.fullOrderValue || order.totalAmount) - order.totalAmount;
+        if (remainingAmount <= 0) {
+            const orderRef = doc(firestore, 'orders', order.id);
+            await updateDoc(orderRef, { status: 'new', paymentStatus: 'Paid' });
+            toast({ title: 'Order Confirmed', description: 'Your order is now being processed.' });
+            return;
+        }
+
+        const session = await createSslCommerzSession(order, userData, remainingAmount);
+
+        if (session.redirectUrl) {
+            router.push(session.redirectUrl);
+        } else {
+            throw new Error("Failed to get payment URL.");
+        }
+    } catch (e: any) {
+        console.error("Payment initiation failed:", e);
+        toast({ variant: 'destructive', title: 'Payment Failed', description: e.message || 'Could not connect to payment gateway.' });
     } finally {
         setUpdatingId(null);
     }
@@ -158,8 +179,8 @@ export default function MyOrdersPage() {
                       </TableCell>
                       <TableCell className="text-right">৳{order.totalAmount.toFixed(2)}</TableCell>
                        <TableCell className="text-right">
-                          {order.orderType === 'pre-order' && order.status === 'pre-ordered' && (
-                              <Button onClick={() => handleCompletePayment(order.id)} disabled={updatingId === order.id} size="sm">
+                          {order.status === 'pending_payment' && (
+                              <Button onClick={() => handleCompletePayment(order)} disabled={updatingId === order.id} size="sm">
                                   {updatingId === order.id ? 'Processing...' : 'Complete Payment'}
                               </Button>
                           )}

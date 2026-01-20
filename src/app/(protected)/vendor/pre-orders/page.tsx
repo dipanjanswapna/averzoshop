@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo, useState } from 'react';
@@ -28,6 +27,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import type { Order, OrderStatus } from '@/types/order';
 import type { Product } from '@/types/product';
 import { PackageCheck } from 'lucide-react';
+import { sendTargetedNotification } from '@/ai/flows/send-targeted-notification';
 
 export default function VendorPreOrdersPage() {
   const { firestore } = useFirebase();
@@ -53,16 +53,25 @@ export default function VendorPreOrdersPage() {
       .sort((a, b) => (b.createdAt?.toDate?.().getTime() || 0) - (a.createdAt?.toDate?.().getTime() || 0));
   }, [orders, vendorProductIds]);
 
-  const handleStartFulfillment = async (orderId: string) => {
+  const handleStartFulfillment = async (order: Order) => {
     if (!firestore) return;
-    setUpdatingStatus(orderId);
-    const orderRef = doc(firestore, 'orders', orderId);
+    setUpdatingStatus(order.id);
+    const orderRef = doc(firestore, 'orders', order.id);
     try {
-      // Change status to 'new' to start the regular fulfillment process
-      await updateDoc(orderRef, { status: 'new' });
+      // Change status to 'pending_payment' to request final payment from customer
+      await updateDoc(orderRef, { status: 'pending_payment' });
+
+      // Notify customer
+      await sendTargetedNotification({
+        userId: order.customerId,
+        title: "Your Pre-order is Ready!",
+        body: `Please complete the final payment for order #${order.id.substring(0, 6)} to begin shipping.`,
+        link: '/customer/my-orders'
+      });
+
       toast({
         title: 'Fulfillment Started',
-        description: 'The order is now in the fulfillment queue.',
+        description: 'The customer has been notified to complete their payment.',
       });
     } catch (error) {
       console.error('Error updating pre-order status:', error);
@@ -80,8 +89,10 @@ export default function VendorPreOrdersPage() {
     switch (status) {
       case 'pre-ordered':
         return <Badge variant="secondary" className="bg-blue-100 text-blue-800 capitalize">{status}</Badge>;
+      case 'pending_payment':
+        return <Badge variant="destructive" className="capitalize animate-pulse">Pending Payment</Badge>;
       case 'fulfilled':
-         return <Badge variant="default" className="bg-green-100 text-green-800 capitalize">{status}</Badge>;
+        return <Badge variant="default" className="bg-green-100 text-green-800 capitalize">{status}</Badge>;
       case 'new':
         return <Badge variant="default" className="bg-teal-100 text-teal-800 capitalize">Ready for Fulfillment</Badge>;
       default:
@@ -136,12 +147,12 @@ export default function VendorPreOrdersPage() {
                     {order.status === 'pre-ordered' && (
                       <Button
                         size="sm"
-                        onClick={() => handleStartFulfillment(order.id)}
+                        onClick={() => handleStartFulfillment(order)}
                         disabled={updatingStatus === order.id}
                         className="gap-2"
                       >
                          <PackageCheck size={16} />
-                        {updatingStatus === order.id ? 'Updating...' : 'Start Fulfillment'}
+                        {updatingStatus === order.id ? 'Notifying...' : 'Request Final Payment'}
                       </Button>
                     )}
                   </TableCell>
