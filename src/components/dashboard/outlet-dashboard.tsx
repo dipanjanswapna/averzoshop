@@ -84,6 +84,44 @@ export function OutletDashboard() {
 
   }, [outletId, products, sales]);
 
+  const salesData = useMemo(() => {
+    if (!sales || !outletId) {
+        const currentMonth = new Date().getMonth();
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        // Return last 6 months with 0 sales if no orders
+        return Array(6).fill(0).map((_, i) => {
+            const monthIndex = (currentMonth - 5 + i + 12) % 12;
+            return { month: monthNames[monthIndex].slice(0,3), desktop: 0 };
+        });
+    }
+
+    const outletSales = sales.filter(s => s.outletId === outletId);
+
+    const monthlySales: {[key: string]: number} = {};
+    
+    outletSales.forEach(sale => {
+        const date = new Date(sale.createdAt.seconds * 1000);
+        const monthYear = `${date.toLocaleString('default', { month: 'short' })}-${date.getFullYear()}`;
+        
+        if (!monthlySales[monthYear]) {
+            monthlySales[monthYear] = 0;
+        }
+        monthlySales[monthYear] += sale.totalAmount;
+    });
+
+    const sortedMonths = Object.keys(monthlySales).sort((a, b) => {
+        const [aMonth, aYear] = a.split('-');
+        const [bMonth, bYear] = b.split('-');
+        return new Date(`${aMonth} 1, ${aYear}`).getTime() - new Date(`${bMonth} 1, ${bYear}`).getTime();
+    }).slice(-6); // Get last 6 months
+
+    return sortedMonths.map(monthYear => ({
+      month: monthYear.split('-')[0],
+      desktop: monthlySales[monthYear],
+    }));
+
+  }, [sales, outletId]);
+
 
   const isLoading = productsLoading || salesLoading;
 
@@ -152,7 +190,7 @@ export function OutletDashboard() {
             <CardTitle className="font-headline">Outlet Sales Overview</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
-             <SalesChart />
+             <SalesChart data={salesData} />
           </CardContent>
         </Card>
         <Card className="lg:col-span-3">

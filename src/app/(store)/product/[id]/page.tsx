@@ -1,9 +1,13 @@
+
 'use client';
 
 import { Suspense, useMemo, useState, useEffect } from 'react';
-import { useParams, useSearchParams, useRouter } from 'next/navigation';
-import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
+import { useParams, useSearchParams } from 'next/navigation';
+import { useFirestoreQuery, useFirestoreDoc } from '@/hooks/useFirestoreQuery';
 import type { Product, ProductVariant } from '@/types/product';
+import { useFirebase } from '@/firebase';
+import { collection, query, where, limit } from 'firebase/firestore';
+
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -22,28 +26,51 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 function ProductPageContent() {
     const params = useParams();
-    const { id } = params;
+    const { id } = params as { id: string };
     const searchParams = useSearchParams();
+    const { firestore } = useFirebase();
     
-    const { data: products, isLoading } = useFirestoreQuery<Product>('products');
-
     const [selectedSize, setSelectedSize] = useState<string | null>(null);
     const [selectedColor, setSelectedColor] = useState<string | null>(null);
     const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
-
-    const { product, relatedProducts, frequentlyBoughtTogether } = useMemo(() => {
-        if (!products) return { product: null, relatedProducts: [], frequentlyBoughtTogether: [] };
-        
-        const currentProduct = products.find((p) => p.id === id);
-        
-        if (!currentProduct) return { product: null, relatedProducts: [], frequentlyBoughtTogether: [] };
-
-        const related = products.filter(p => p.status === 'approved' && p.category === currentProduct.category && p.id !== currentProduct.id).slice(0, 10);
-        const frequentlyBought = products.filter(p => p.status === 'approved' && p.isBestSeller && p.id !== currentProduct.id).slice(0, 2);
-
-        return { product: currentProduct, relatedProducts: related, frequentlyBoughtTogether: frequentlyBought };
-    }, [products, id]);
     
+    // Fetch single product efficiently
+    const { data: product, isLoading: productLoading } = useFirestoreDoc<Product>(`products/${id}`);
+    
+    // Fetch related products
+    const relatedProductsQuery = useMemo(() => {
+        if (!firestore || !product) return null;
+        return query(
+            collection(firestore, 'products'), 
+            where('category', '==', product.category),
+            where('status', '==', 'approved'),
+            limit(11) // Fetch 10 + current to filter out self
+        );
+    }, [firestore, product]);
+    const { data: allRelated, isLoading: relatedLoading } = useFirestoreQuery<Product>(relatedProductsQuery);
+    
+    // Fetch frequently bought together (bestsellers)
+    const frequentlyBoughtQuery = useMemo(() => {
+        if (!firestore) return null;
+        return query(
+            collection(firestore, 'products'),
+            where('isBestSeller', '==', true),
+            where('status', '==', 'approved'),
+            limit(3) // Fetch 2 + current to filter out self
+        );
+    }, [firestore]);
+    const { data: allFrequentlyBought, isLoading: frequentlyBoughtLoading } = useFirestoreQuery<Product>(frequentlyBoughtQuery);
+
+    const isLoading = productLoading || relatedLoading || frequentlyBoughtLoading;
+
+    // Post-process the fetched data
+    const { relatedProducts, frequentlyBoughtTogether } = useMemo(() => {
+        const related = allRelated?.filter(p => p.id !== id).slice(0, 10) || [];
+        const frequentlyBought = allFrequentlyBought?.filter(p => p.id !== id).slice(0, 2) || [];
+        return { relatedProducts: related, frequentlyBoughtTogether: frequentlyBought };
+    }, [allRelated, allFrequentlyBought, id]);
+
+
     // Effect to set initial selections from URL or defaults
     useEffect(() => {
         if (!product) return;

@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { onSnapshot, Query, DocumentData, collection, getFirestore, CollectionReference } from 'firebase/firestore';
+import { onSnapshot, Query, DocumentData, collection, getFirestore, DocumentReference, doc } from 'firebase/firestore';
 import { useFirebase } from '@/firebase';
 
 interface UseFirestoreQuery<T> {
@@ -52,6 +52,50 @@ export function useFirestoreQuery<T>(q: string | Query<DocumentData> | null): Us
 
     return () => unsubscribe();
   }, [queryObj]);
+
+  return { data, isLoading, error };
+}
+
+interface UseFirestoreDoc<T> {
+  data: T | null;
+  isLoading: boolean;
+  error: Error | null;
+}
+
+export function useFirestoreDoc<T>(docPath: string | null): UseFirestoreDoc<T> {
+  const [data, setData] = useState<T | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<Error | null>(null);
+  const { firestore } = useFirebase();
+
+  const docRef = useMemo(() => {
+    if (!firestore || !docPath) return null;
+    return doc(firestore, docPath);
+  }, [firestore, docPath]);
+
+  useEffect(() => {
+    if (!docRef) {
+      setData(null);
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(true);
+
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
+      if (docSnap.exists()) {
+        setData({ id: docSnap.id, ...docSnap.data() } as T);
+      } else {
+        setData(null);
+      }
+      setIsLoading(false);
+    }, (err) => {
+      console.error("Firestore doc error:", err);
+      setError(err);
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [docRef]);
 
   return { data, isLoading, error };
 }
