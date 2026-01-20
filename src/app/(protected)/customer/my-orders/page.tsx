@@ -7,6 +7,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
 import {
   Table,
@@ -121,16 +122,65 @@ export default function MyOrdersPage() {
     });
   };
 
-  const renderSkeleton = () =>
-    [...Array(3)].map((_, i) => (
-      <TableRow key={i}>
-        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-        <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
-        <TableCell className="text-right"><Skeleton className="h-5 w-16 ml-auto" /></TableCell>
-        <TableCell className="text-right"><Skeleton className="h-9 w-28 ml-auto" /></TableCell>
-      </TableRow>
-    ));
+  const renderSkeleton = () => (
+    <>
+        <tbody className="hidden md:table-row-group">
+            {[...Array(3)].map((_, i) => (
+                <TableRow key={i}>
+                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                    <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+                    <TableCell className="text-right"><Skeleton className="h-5 w-16 ml-auto" /></TableCell>
+                    <TableCell className="text-right"><Skeleton className="h-9 w-28 ml-auto" /></TableCell>
+                </TableRow>
+            ))}
+        </tbody>
+         <div className="grid md:hidden gap-4">
+            {[...Array(3)].map((_, i) => (
+              <Card key={i}>
+                <CardHeader>
+                    <Skeleton className="h-5 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                </CardHeader>
+                <CardContent>
+                    <Skeleton className="h-6 w-24" />
+                </CardContent>
+                <CardFooter>
+                    <Skeleton className="h-9 w-full" />
+                </CardFooter>
+              </Card>
+            ))}
+        </div>
+    </>
+  );
+
+  const renderAction = (order: Order) => {
+    const rider = order.riderId ? userMap.get(order.riderId) : null;
+    const riderPhone = rider?.phone ? `88${rider.phone.replace(/\D/g, '').replace(/^0/, '')}` : null;
+    
+    if (order.status === 'pending_payment') {
+      return (
+        <Button onClick={() => handleCompletePayment(order)} disabled={updatingId === order.id} size="sm" className="w-full">
+            {updatingId === order.id ? 'Processing...' : 'Complete Payment'}
+        </Button>
+      );
+    }
+
+    if (order.status === 'out_for_delivery' && riderPhone) {
+      return (
+        <div className="text-right">
+            <p className="text-xs text-muted-foreground">Contact your rider:</p>
+            <Button asChild variant="outline" size="sm" className="mt-1 bg-green-50 hover:bg-green-100 border-green-200 text-green-800 w-full">
+                <a href={`https://wa.me/${riderPhone}`} target="_blank" rel="noopener noreferrer">
+                    <MessageCircle className="mr-2 h-4 w-4" />
+                    WhatsApp Rider
+                </a>
+            </Button>
+        </div>
+      );
+    }
+    return null;
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -141,28 +191,26 @@ export default function MyOrdersPage() {
           <CardDescription>Here are all the orders you've placed with us.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Order ID</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Total</TableHead>
-                <TableHead className="text-right">Action</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? renderSkeleton() : sortedUserOrders && sortedUserOrders.length > 0 ? (
-                sortedUserOrders.map(order => {
-                  const rider = order.riderId ? userMap.get(order.riderId) : null;
-                  const riderPhone = rider?.phone ? `88${rider.phone.replace(/\D/g, '').replace(/^0/, '')}` : null;
-                  
-                  return (
+          {/* Desktop Table */}
+          <div className="hidden md:block">
+             <Table>
+                <TableHeader>
+                <TableRow>
+                    <TableHead>Order ID</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
+                </TableRow>
+                </TableHeader>
+                <TableBody>
+                {isLoading ? renderSkeleton() : sortedUserOrders && sortedUserOrders.length > 0 ? (
+                    sortedUserOrders.map(order => (
                     <TableRow key={order.id}>
-                      <TableCell className="font-medium">
+                        <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                             <span className="font-mono text-xs">{order.id.substring(0, 8)}...</span>
-                             <Button
+                                <Button
                                 variant="ghost"
                                 size="icon"
                                 className="h-7 w-7"
@@ -172,42 +220,56 @@ export default function MyOrdersPage() {
                                 <span className="sr-only">Copy Order ID</span>
                             </Button>
                         </div>
-                      </TableCell>
-                      <TableCell>{order.createdAt?.toDate().toLocaleDateString()}</TableCell>
-                      <TableCell>
+                        </TableCell>
+                        <TableCell>{order.createdAt?.toDate().toLocaleDateString()}</TableCell>
+                        <TableCell>
                         {getStatusBadge(order.status)}
-                      </TableCell>
-                      <TableCell className="text-right">৳{order.totalAmount.toFixed(2)}</TableCell>
-                       <TableCell className="text-right">
-                          {order.status === 'pending_payment' && (
-                              <Button onClick={() => handleCompletePayment(order)} disabled={updatingId === order.id} size="sm">
-                                  {updatingId === order.id ? 'Processing...' : 'Complete Payment'}
-                              </Button>
-                          )}
-                          {order.status === 'out_for_delivery' && riderPhone && (
-                              <div className="text-right">
-                                  <p className="text-xs text-muted-foreground">Contact your rider:</p>
-                                  <Button asChild variant="outline" size="sm" className="mt-1 bg-green-50 hover:bg-green-100 border-green-200 text-green-800">
-                                      <a href={`https://wa.me/${riderPhone}`} target="_blank" rel="noopener noreferrer">
-                                          <MessageCircle className="mr-2 h-4 w-4" />
-                                          WhatsApp Rider
-                                      </a>
-                                  </Button>
-                              </div>
-                          )}
-                      </TableCell>
+                        </TableCell>
+                        <TableCell className="text-right">৳{order.totalAmount.toFixed(2)}</TableCell>
+                        <TableCell className="text-right">
+                           {renderAction(order)}
+                        </TableCell>
                     </TableRow>
-                  );
-                })
+                    ))
+                ) : (
+                    <TableRow>
+                        <TableCell colSpan={5} className="h-24 text-center">
+                            You haven't placed any orders yet.
+                        </TableCell>
+                    </TableRow>
+                )}
+                </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="grid md:hidden gap-4">
+              {isLoading ? renderSkeleton() : sortedUserOrders && sortedUserOrders.length > 0 ? (
+                sortedUserOrders.map(order => (
+                    <Card key={order.id} className="flex flex-col">
+                        <CardHeader>
+                           <div className="flex items-start justify-between gap-4">
+                                <div>
+                                    <CardTitle className="text-sm font-mono text-primary">{order.id.substring(0,8)}...</CardTitle>
+                                    <CardDescription>{order.createdAt?.toDate().toLocaleDateString()}</CardDescription>
+                                </div>
+                                {getStatusBadge(order.status)}
+                           </div>
+                        </CardHeader>
+                        <CardContent className="flex-1">
+                           <p className="text-lg font-bold text-right">৳{order.totalAmount.toFixed(2)}</p>
+                        </CardContent>
+                        {renderAction(order) && (
+                             <CardFooter>
+                                {renderAction(order)}
+                            </CardFooter>
+                        )}
+                    </Card>
+                ))
               ) : (
-                 <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
-                        You haven't placed any orders yet.
-                    </TableCell>
-                </TableRow>
+                <div className="text-center py-10">You haven't placed any orders yet.</div>
               )}
-            </TableBody>
-          </Table>
+          </div>
         </CardContent>
       </Card>
     </div>
