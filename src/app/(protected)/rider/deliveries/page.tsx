@@ -30,9 +30,9 @@ function DeliveryCard({ order, outlet, onAction, actionLabel, actionIcon: Icon, 
                 )}
                 <div className="space-y-1">
                     <p className="font-bold text-foreground flex items-center gap-2"><Home className="h-4 w-4" /> Deliver To</p>
-                    <p className="font-semibold">{order.shippingAddress.name}</p>
-                    <p className="text-muted-foreground">{order.shippingAddress.streetAddress}, {order.shippingAddress.area}, {order.shippingAddress.district}</p>
-                     <p className="text-muted-foreground">{order.shippingAddress.phone}</p>
+                    <p className="font-semibold">{order.shippingAddress?.name}</p>
+                    <p className="text-muted-foreground">{order.shippingAddress?.streetAddress}, {order.shippingAddress?.area}, {order.shippingAddress?.district}</p>
+                     <p className="text-muted-foreground">{order.shippingAddress?.phone}</p>
                 </div>
 
                  <div className="flex items-center gap-2 pt-2 border-t">
@@ -153,7 +153,7 @@ export default function RiderDeliveriesPage() {
                                <DeliveryCard 
                                     key={order.id}
                                     order={order}
-                                    outlet={outletMap.get(order.assignedOutletId)}
+                                    outlet={outletMap.get(order.assignedOutletId!)}
                                     onAction={handleAcceptDelivery}
                                     actionLabel="Accept & Pickup"
                                     actionIcon={Truck}
@@ -175,7 +175,7 @@ export default function RiderDeliveriesPage() {
                                <DeliveryCard 
                                     key={order.id}
                                     order={order}
-                                    outlet={outletMap.get(order.assignedOutletId)}
+                                    outlet={outletMap.get(order.assignedOutletId!)}
                                     onAction={handleMarkDelivered}
                                     actionLabel="Mark as Delivered"
                                     actionIcon={Check}
@@ -194,3 +194,5 @@ export default function RiderDeliveriesPage() {
          </div>
     );
 }
+
+    
