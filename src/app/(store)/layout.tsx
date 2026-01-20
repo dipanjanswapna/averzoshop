@@ -22,7 +22,7 @@ export default function StoreLayout({
       <CartExpirationChecker />
       <main className="flex-1 pt-[68px] lg:pt-[108px] pb-24 lg:pb-0">{children}</main>
       
-      <footer className="bg-secondary text-secondary-foreground">
+      <footer className="hidden bg-secondary text-secondary-foreground lg:block">
         <div className="container py-16">
           <div className="grid md:grid-cols-2 gap-8 items-center border-b pb-12">
             <div>
