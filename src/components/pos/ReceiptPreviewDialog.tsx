@@ -55,7 +55,6 @@ export function ReceiptPreviewDialog({ open, onOpenChange, sale, outletId }: Rec
                     </Button>
                 </DialogFooter>
             </DialogContent>
-            {/* This is the printable area that is hidden by default and only shown on print */}
             <div className="printable-area">
                 <PrintableReceipt sale={sale} outletId={outletId} />
             </div>
