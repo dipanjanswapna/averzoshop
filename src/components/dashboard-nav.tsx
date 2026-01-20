@@ -16,7 +16,8 @@ import {
   ArrowRightLeft,
   BellRing,
   Image as ImageIcon,
-  Briefcase
+  Briefcase,
+  Map,
 } from 'lucide-react';
 import {
   SidebarMenu,
@@ -27,6 +28,7 @@ import {
 const adminNavItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/dashboard/sfa', label: 'SFA Dashboard', icon: Briefcase },
+  { href: '/dashboard/sfa/route-planner', label: 'Route Planner', icon: Map },
   { href: '/dashboard/products', label: 'Products', icon: Package },
   { href: '/dashboard/orders', label: 'Orders & Delivery', icon: ShoppingCart },
   { href: '/dashboard/pre-orders', label: 'Pre-orders', icon: ClipboardList },
