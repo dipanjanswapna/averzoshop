@@ -23,6 +23,8 @@ import type { Order } from '@/types/order';
 import type { UserData } from '@/types/user';
 import type { Product } from '@/types/product';
 import { ReplenishmentAdvisor } from '@/components/dashboard/replenishment-advisor';
+import { TopWishlistedProducts } from '@/components/dashboard/top-wishlisted-products';
+
 
 export default function DashboardPage() {
   const { firestore } = useFirebase();
@@ -142,8 +144,10 @@ export default function DashboardPage() {
              <SalesChart data={salesData} />
           </CardContent>
         </Card>
-        <ReplenishmentAdvisor className="lg:col-span-3" />
+        <TopWishlistedProducts products={products} users={users} isLoading={isLoading} />
       </div>
+      
+      <ReplenishmentAdvisor className="w-full" />
     </div>
   );
 }
