@@ -1,4 +1,3 @@
-
 'use client';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
@@ -36,50 +35,41 @@ export function PremiumCard({ userData }: { userData: UserData }) {
         >
             {/* Front of the card */}
             <div className={cn(
-                "absolute w-full h-full [backface-visibility:hidden] text-white rounded-2xl shadow-2xl p-4 sm:p-6 flex flex-col justify-between overflow-hidden bg-gradient-to-br",
+                "absolute w-full h-full [backface-visibility:hidden] text-white rounded-2xl shadow-2xl p-6 flex flex-col justify-between overflow-hidden bg-gradient-to-br",
                 tierGradients[currentTier]
             )}>
                 {/* Background pattern */}
                 <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/argyle.png')]"></div>
                 
                 <div className="flex justify-between items-start">
-                    <AverzoLogo className="text-white text-2xl sm:text-3xl" />
+                    <AverzoLogo className="text-white text-3xl" />
                     <div className="text-right">
-                        <p className="font-bold text-base sm:text-lg capitalize">{currentTier}</p>
-                        <p className="text-[10px] sm:text-xs opacity-80">Membership</p>
+                        <p className="font-bold text-lg capitalize">{currentTier}</p>
+                        <p className="text-xs opacity-80">Membership</p>
                     </div>
                 </div>
 
                 <div className="text-center">
-                    <div className="sm:hidden">
-                        <Barcode value={userData.uid}
-                            height={20}
-                            width={1}
-                            background="transparent"
-                            lineColor="white"
-                            displayValue={false}
-                        />
-                    </div>
-                    <div className="hidden sm:block">
+                    <div>
                         <Barcode value={userData.uid}
                             height={25}
-                            width={1}
+                            width={1.2}
                             background="transparent"
                             lineColor="white"
                             displayValue={false}
                         />
                     </div>
-                    <p className="font-mono text-[10px] sm:text-xs tracking-wider mt-2">{cardNumber}</p>
+                    <p className="font-mono text-xs tracking-wider mt-2">{cardNumber}</p>
                 </div>
 
                 <div className="flex justify-between items-end">
                     <div>
-                        <p className="text-[10px] sm:text-xs uppercase opacity-80">Card Holder</p>
-                        <p className="font-semibold tracking-wider text-base sm:text-lg">{userData.displayName}</p>
+                        <p className="text-xs uppercase opacity-80">Card Holder</p>
+                        <p className="font-semibold tracking-wider text-lg">{userData.displayName}</p>
                         {userData.phone && (
                             <div className="flex items-center gap-2 mt-1">
                                 <Phone size={12} />
-                                <p className="font-mono text-[10px] sm:text-xs">{userData.phone}</p>
+                                <p className="font-mono text-xs">{userData.phone}</p>
                             </div>
                         )}
                     </div>
@@ -91,7 +81,7 @@ export function PremiumCard({ userData }: { userData: UserData }) {
 
             {/* Back of the card */}
              <div className={cn(
-                "absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] text-gray-800 rounded-2xl shadow-2xl p-4 sm:p-6 flex flex-col justify-between overflow-hidden bg-gradient-to-br",
+                "absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] text-gray-800 rounded-2xl shadow-2xl p-6 flex flex-col justify-between overflow-hidden bg-gradient-to-br",
                 tierGradients[currentTier]
             )}>
                  <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/argyle.png')]"></div>
