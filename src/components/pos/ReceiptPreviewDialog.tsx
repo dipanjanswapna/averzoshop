@@ -1,4 +1,3 @@
-
 'use client';
 import {
   Dialog,
@@ -22,7 +21,13 @@ interface ReceiptPreviewDialogProps {
 
 export function ReceiptPreviewDialog({ open, onOpenChange, sale, outletId }: ReceiptPreviewDialogProps) {
     const handlePrint = () => {
+        const style = document.createElement('style');
+        style.innerHTML = `@page { size: 80mm auto; margin: 0mm; }`;
+        document.head.appendChild(style);
         window.print();
+        setTimeout(() => {
+            document.head.removeChild(style);
+        }, 100);
     };
 
     return (

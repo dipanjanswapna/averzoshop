@@ -29,7 +29,14 @@ export default function SubscriptionPage() {
   const { userData, loading } = useAuth();
   
   const handlePrint = () => {
+    const style = document.createElement('style');
+    style.innerHTML = `@page { size: landscape; margin: 0; }`;
+    document.head.appendChild(style);
     window.print();
+    // Use a timeout to ensure printing is done before removing the style
+    setTimeout(() => {
+      document.head.removeChild(style);
+    }, 100);
   };
 
   if (loading || !userData) {
@@ -38,7 +45,7 @@ export default function SubscriptionPage() {
         <Skeleton className="h-10 w-1/3" />
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
             <div className="lg:col-span-2">
-                <Skeleton className="w-full max-w-lg aspect-[8/5] rounded-2xl" />
+                <Skeleton className="w-full max-w-lg aspect-[85.6/54] rounded-2xl" />
             </div>
              <div className="lg:col-span-3">
                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -128,7 +135,7 @@ export default function SubscriptionPage() {
             )}
         </div>
       </div>
-      <div className="printable-area">
+      <div className="printable-card-area">
         <PremiumCard userData={userData} />
       </div>
     </>

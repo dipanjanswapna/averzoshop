@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -38,6 +37,7 @@ export function UserNav() {
       case 'vendor': return '/vendor/dashboard';
       case 'outlet': return '/outlet/dashboard';
       case 'rider': return '/rider/dashboard';
+      case 'sales': return '/sales/dashboard';
       case 'customer': return '/customer';
       default: return '/';
     }
