@@ -4,6 +4,7 @@ import { UserData } from '@/types/user';
 import { Wifi, Phone } from 'lucide-react';
 import AverzoLogo from '../averzo-logo';
 import Image from 'next/image';
+import Barcode from 'react-barcode';
 
 export function PremiumCard({ userData }: { userData: UserData }) {
 
