@@ -1,8 +1,14 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -109,15 +115,21 @@ export default function InventoryPage() {
       setIsReceiveTransferDialogOpen(true);
   };
 
-  const renderSkeleton = (rows = 5) => (
+  const renderDesktopSkeleton = (rows = 5) => (
     [...Array(rows)].map((_, i) => (
        <TableRow key={i}>
-            <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-            <TableCell><Skeleton className="h-5 w-32" /></TableCell>
-            <TableCell><Skeleton className="h-5 w-16" /></TableCell>
-            <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-            <TableCell className="text-right"><Skeleton className="h-9 w-28" /></TableCell>
+            {[...Array(5)].map((_, j) => <TableCell key={j}><Skeleton className="h-5 w-full" /></TableCell>)}
         </TableRow>
+    ))
+  );
+  
+   const renderMobileSkeleton = (rows = 3) => (
+    [...Array(rows)].map((_, i) => (
+        <Card key={i}>
+            <CardHeader><Skeleton className="h-5 w-3/4" /></CardHeader>
+            <CardContent><Skeleton className="h-4 w-1/2" /></CardContent>
+            <CardFooter><Skeleton className="h-9 w-full" /></CardFooter>
+        </Card>
     ))
   );
 
@@ -139,52 +151,88 @@ export default function InventoryPage() {
                         <CardDescription>A live view of all products available in your outlet.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                    <Table>
-                        <TableHeader>
-                        <TableRow>
-                            <TableHead className="hidden w-[100px] sm:table-cell">Image</TableHead>
-                            <TableHead>Name</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Stock in Outlet</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                        {isLoading ? (
-                            renderSkeleton()
-                        ) : outletProducts.length > 0 ? (
+                        {/* Desktop Table */}
+                        <div className="hidden md:block">
+                            <Table>
+                                <TableHeader>
+                                <TableRow>
+                                    <TableHead className="hidden w-[100px] sm:table-cell">Image</TableHead>
+                                    <TableHead>Name</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead>Stock in Outlet</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
+                                </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                {isLoading ? (
+                                    renderDesktopSkeleton()
+                                ) : outletProducts.length > 0 ? (
+                                    outletProducts.map(product => (
+                                    <TableRow key={product.id}>
+                                        <TableCell className="hidden sm:table-cell">
+                                        <Image alt={product.name} className="aspect-square rounded-md object-cover" height="64" src={product.image || 'https://placehold.co/64'} width="64" />
+                                        </TableCell>
+                                        <TableCell className="font-medium">{product.name}</TableCell>
+                                        <TableCell>
+                                        <Badge variant={
+                                            product.status === 'approved' ? 'default' :
+                                            product.status === 'pending' ? 'secondary' : 'destructive'
+                                        } className={`capitalize ${
+                                            product.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                            product.status === 'pending' ? 'bg-orange-100 text-orange-800' :
+                                            'bg-red-100 text-red-800'
+                                        }`}>{product.status}</Badge>
+                                        </TableCell>
+                                        <TableCell>{product.stockInOutlet}</TableCell>
+                                        <TableCell className="text-right">
+                                            <Button variant="outline" size="sm" onClick={() => handleViewDetailsClick(product)}>
+                                                <Eye className="mr-2 h-4 w-4"/>
+                                                View Details
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow><TableCell colSpan={5} className="h-24 text-center">No products found in this outlet.</TableCell></TableRow>
+                                )}
+                                </TableBody>
+                            </Table>
+                        </div>
+                         {/* Mobile Cards */}
+                        <div className="grid md:hidden gap-4">
+                           {isLoading ? renderMobileSkeleton() : outletProducts.length > 0 ? (
                             outletProducts.map(product => (
-                            <TableRow key={product.id}>
-                                <TableCell className="hidden sm:table-cell">
-                                <Image alt={product.name} className="aspect-square rounded-md object-cover" height="64" src={product.image || 'https://placehold.co/64'} width="64" />
-                                </TableCell>
-                                <TableCell className="font-medium">{product.name}</TableCell>
-                                <TableCell>
-                                <Badge variant={
-                                    product.status === 'approved' ? 'default' :
-                                    product.status === 'pending' ? 'secondary' : 'destructive'
-                                } className={`capitalize ${
-                                    product.status === 'approved' ? 'bg-green-100 text-green-800' :
-                                    product.status === 'pending' ? 'bg-orange-100 text-orange-800' :
-                                    'bg-red-100 text-red-800'
-                                }`}>
-                                    {product.status}
-                                </Badge>
-                                </TableCell>
-                                <TableCell>{product.stockInOutlet}</TableCell>
-                                <TableCell className="text-right">
-                                    <Button variant="outline" size="sm" onClick={() => handleViewDetailsClick(product)}>
-                                        <Eye className="mr-2 h-4 w-4"/>
-                                        View Details
-                                    </Button>
-                                </TableCell>
-                            </TableRow>
+                                <Card key={product.id}>
+                                    <CardHeader className="flex flex-row items-center gap-4">
+                                        <Image alt={product.name} className="aspect-square rounded-md object-cover" height={64} src={product.image || 'https://placehold.co/64'} width={64} />
+                                        <div className="flex-1">
+                                            <h4 className="font-semibold text-sm leading-tight">{product.name}</h4>
+                                             <Badge variant={
+                                                product.status === 'approved' ? 'default' :
+                                                product.status === 'pending' ? 'secondary' : 'destructive'
+                                            } className={`capitalize mt-2 ${
+                                                product.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                                product.status === 'pending' ? 'bg-orange-100 text-orange-800' :
+                                                'bg-red-100 text-red-800'
+                                            }`}>{product.status}</Badge>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent className="flex justify-between items-center">
+                                        <p className="text-muted-foreground">Stock:</p>
+                                        <p className="text-lg font-bold">{product.stockInOutlet}</p>
+                                    </CardContent>
+                                    <CardFooter>
+                                         <Button variant="outline" size="sm" onClick={() => handleViewDetailsClick(product)} className="w-full">
+                                            <Eye className="mr-2 h-4 w-4"/>
+                                            View Details
+                                        </Button>
+                                    </CardFooter>
+                                </Card>
                             ))
-                        ) : (
-                            <TableRow><TableCell colSpan={5} className="h-24 text-center">No products found in this outlet.</TableCell></TableRow>
-                        )}
-                        </TableBody>
-                    </Table>
+                           ) : (
+                             <div className="text-center py-10">No products found in this outlet.</div>
+                           )}
+                        </div>
                     </CardContent>
                 </Card>
             </TabsContent>
@@ -196,46 +244,79 @@ export default function InventoryPage() {
                         <CardDescription>Review and receive stock shipments from vendors.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                       <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Challan ID</TableHead>
-                                    <TableHead>Vendor</TableHead>
-                                    <TableHead>Date Issued</TableHead>
-                                    <TableHead>Total Items</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {isLoading ? (
-                                    renderSkeleton()
-                                ) : enhancedChallans.length > 0 ? (
-                                    enhancedChallans.map(challan => (
-                                        <TableRow key={challan.id}>
-                                            <TableCell className="font-mono text-xs">{challan.id.substring(0, 8)}...</TableCell>
-                                            <TableCell className="font-medium">{challan.vendorName}</TableCell>
-                                            <TableCell>{challan.issuedAt.toDate().toLocaleDateString()}</TableCell>
-                                            <TableCell>{challan.totalQuantity}</TableCell>
-                                            <TableCell className="text-right">
-                                                <Button onClick={() => handleReceiveClick(challan)} size="sm">
-                                                    <CheckCircle className="mr-2 h-4 w-4" /> Receive Stock
-                                                </Button>
+                        {/* Desktop */}
+                       <div className="hidden md:block">
+                        <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Challan ID</TableHead>
+                                        <TableHead>Vendor</TableHead>
+                                        <TableHead>Date Issued</TableHead>
+                                        <TableHead>Total Items</TableHead>
+                                        <TableHead className="text-right">Actions</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {isLoading ? (
+                                        renderDesktopSkeleton()
+                                    ) : enhancedChallans.length > 0 ? (
+                                        enhancedChallans.map(challan => (
+                                            <TableRow key={challan.id}>
+                                                <TableCell className="font-mono text-xs">{challan.id.substring(0, 8)}...</TableCell>
+                                                <TableCell className="font-medium">{challan.vendorName}</TableCell>
+                                                <TableCell>{challan.issuedAt.toDate().toLocaleDateString()}</TableCell>
+                                                <TableCell>{challan.totalQuantity}</TableCell>
+                                                <TableCell className="text-right">
+                                                    <Button onClick={() => handleReceiveClick(challan)} size="sm">
+                                                        <CheckCircle className="mr-2 h-4 w-4" /> Receive Stock
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={5} className="h-48 text-center">
+                                                <div className="flex flex-col items-center justify-center text-center">
+                                                    <Upload className="h-12 w-12 text-muted-foreground" />
+                                                    <h3 className="mt-4 text-lg font-semibold">No Incoming Stock</h3>
+                                                    <p className="mt-1 text-sm text-muted-foreground">There are no pending stock shipments to receive.</p>
+                                                </div>
                                             </TableCell>
                                         </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={5} className="h-48 text-center">
-                                            <div className="flex flex-col items-center justify-center text-center">
-                                                <Upload className="h-12 w-12 text-muted-foreground" />
-                                                <h3 className="mt-4 text-lg font-semibold">No Incoming Stock</h3>
-                                                <p className="mt-1 text-sm text-muted-foreground">There are no pending stock shipments to receive.</p>
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
+                                    )}
+                                </TableBody>
+                            </Table>
+                       </div>
+                       {/* Mobile */}
+                       <div className="grid md:hidden gap-4">
+                            {isLoading ? renderMobileSkeleton() : enhancedChallans.length > 0 ? (
+                                enhancedChallans.map(challan => (
+                                    <Card key={challan.id}>
+                                        <CardHeader>
+                                            <CardTitle className="text-sm font-mono">{challan.id.substring(0, 8)}...</CardTitle>
+                                            <CardDescription>From: {challan.vendorName}</CardDescription>
+                                        </CardHeader>
+                                        <CardContent>
+                                             <div className="flex justify-between text-sm">
+                                                <span className="text-muted-foreground">Items:</span>
+                                                <span className="font-bold">{challan.totalQuantity}</span>
+                                             </div>
+                                             <div className="flex justify-between text-xs">
+                                                <span className="text-muted-foreground">Date:</span>
+                                                <span>{challan.issuedAt.toDate().toLocaleDateString()}</span>
+                                             </div>
+                                        </CardContent>
+                                        <CardFooter>
+                                            <Button onClick={() => handleReceiveClick(challan)} size="sm" className="w-full">
+                                                <CheckCircle className="mr-2 h-4 w-4" /> Receive Stock
+                                            </Button>
+                                        </CardFooter>
+                                    </Card>
+                                ))
+                            ): (
+                               <div className="text-center py-10">No incoming stock.</div>
+                            )}
+                       </div>
                     </CardContent>
                 </Card>
             </TabsContent>
@@ -253,38 +334,62 @@ export default function InventoryPage() {
                                 <CardDescription>Accept stock dispatched from other outlets.</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Date</TableHead>
-                                            <TableHead>From Outlet</TableHead>
-                                            <TableHead>Product</TableHead>
-                                            <TableHead>Quantity</TableHead>
-                                            <TableHead className="text-right">Action</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {isLoading ? renderSkeleton(3) : incomingTransfers.length > 0 ? (
-                                            incomingTransfers.map(t => (
-                                                <TableRow key={t.id}>
-                                                    <TableCell>{t.createdAt.toDate().toLocaleDateString()}</TableCell>
-                                                    <TableCell>{t.sourceOutletName}</TableCell>
-                                                    <TableCell>{t.productName}</TableCell>
-                                                    <TableCell>{t.quantity}</TableCell>
-                                                    <TableCell className="text-right">
-                                                        <Button onClick={() => handleReceiveTransferClick(t)} size="sm">
-                                                            <Check className="mr-2 h-4 w-4" /> Receive
-                                                        </Button>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))
-                                        ) : (
+                                {/* Desktop */}
+                                <div className="hidden md:block">
+                                    <Table>
+                                        <TableHeader>
                                             <TableRow>
-                                                <TableCell colSpan={5} className="h-24 text-center">No incoming transfers.</TableCell>
+                                                <TableHead>Date</TableHead>
+                                                <TableHead>From Outlet</TableHead>
+                                                <TableHead>Product</TableHead>
+                                                <TableHead>Quantity</TableHead>
+                                                <TableHead className="text-right">Action</TableHead>
                                             </TableRow>
-                                        )}
-                                    </TableBody>
-                                </Table>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {isLoading ? renderDesktopSkeleton(3) : incomingTransfers.length > 0 ? (
+                                                incomingTransfers.map(t => (
+                                                    <TableRow key={t.id}>
+                                                        <TableCell>{t.createdAt.toDate().toLocaleDateString()}</TableCell>
+                                                        <TableCell>{t.sourceOutletName}</TableCell>
+                                                        <TableCell>{t.productName}</TableCell>
+                                                        <TableCell>{t.quantity}</TableCell>
+                                                        <TableCell className="text-right">
+                                                            <Button onClick={() => handleReceiveTransferClick(t)} size="sm">
+                                                                <Check className="mr-2 h-4 w-4" /> Receive
+                                                            </Button>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))
+                                            ) : (
+                                                <TableRow><TableCell colSpan={5} className="h-24 text-center">No incoming transfers.</TableCell></TableRow>
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+                                {/* Mobile */}
+                                <div className="grid md:hidden gap-4">
+                                     {isLoading ? renderMobileSkeleton(1) : incomingTransfers.length > 0 ? (
+                                         incomingTransfers.map(t => (
+                                            <Card key={t.id}>
+                                                <CardHeader>
+                                                    <CardTitle className="text-base">{t.productName}</CardTitle>
+                                                    <CardDescription>From: {t.sourceOutletName}</CardDescription>
+                                                </CardHeader>
+                                                <CardContent>
+                                                    <p className="font-bold text-lg">{t.quantity} <span className="text-sm font-normal text-muted-foreground">units</span></p>
+                                                </CardContent>
+                                                <CardFooter>
+                                                    <Button onClick={() => handleReceiveTransferClick(t)} size="sm" className="w-full">
+                                                        <Check className="mr-2 h-4 w-4" /> Receive
+                                                    </Button>
+                                                </CardFooter>
+                                            </Card>
+                                         ))
+                                     ) : (
+                                        <div className="text-center py-10">No incoming transfers.</div>
+                                     )}
+                                </div>
                             </CardContent>
                         </Card>
                     </TabsContent>
@@ -295,38 +400,62 @@ export default function InventoryPage() {
                                 <CardDescription>Dispatch stock requested by other outlets or admins.</CardDescription>
                             </CardHeader>
                             <CardContent>
-                               <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Date</TableHead>
-                                            <TableHead>To Outlet</TableHead>
-                                            <TableHead>Product</TableHead>
-                                            <TableHead>Quantity</TableHead>
-                                            <TableHead className="text-right">Action</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                         {isLoading ? renderSkeleton(3) : outgoingTransfers.length > 0 ? (
-                                            outgoingTransfers.map(t => (
-                                                <TableRow key={t.id}>
-                                                    <TableCell>{t.createdAt.toDate().toLocaleDateString()}</TableCell>
-                                                    <TableCell>{t.destinationOutletName}</TableCell>
-                                                    <TableCell>{t.productName}</TableCell>
-                                                    <TableCell>{t.quantity}</TableCell>
-                                                    <TableCell className="text-right">
-                                                        <Button onClick={() => handleDispatchClick(t)} size="sm" variant="outline">
-                                                            <Truck className="mr-2 h-4 w-4" /> Dispatch
-                                                        </Button>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))
-                                        ) : (
+                                {/* Desktop */}
+                               <div className="hidden md:block">
+                                <Table>
+                                        <TableHeader>
                                             <TableRow>
-                                                <TableCell colSpan={5} className="h-24 text-center">No outgoing transfer requests.</TableCell>
+                                                <TableHead>Date</TableHead>
+                                                <TableHead>To Outlet</TableHead>
+                                                <TableHead>Product</TableHead>
+                                                <TableHead>Quantity</TableHead>
+                                                <TableHead className="text-right">Action</TableHead>
                                             </TableRow>
-                                        )}
-                                    </TableBody>
-                                </Table>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {isLoading ? renderDesktopSkeleton(3) : outgoingTransfers.length > 0 ? (
+                                                outgoingTransfers.map(t => (
+                                                    <TableRow key={t.id}>
+                                                        <TableCell>{t.createdAt.toDate().toLocaleDateString()}</TableCell>
+                                                        <TableCell>{t.destinationOutletName}</TableCell>
+                                                        <TableCell>{t.productName}</TableCell>
+                                                        <TableCell>{t.quantity}</TableCell>
+                                                        <TableCell className="text-right">
+                                                            <Button onClick={() => handleDispatchClick(t)} size="sm" variant="outline">
+                                                                <Truck className="mr-2 h-4 w-4" /> Dispatch
+                                                            </Button>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))
+                                            ) : (
+                                                <TableRow><TableCell colSpan={5} className="h-24 text-center">No outgoing transfer requests.</TableCell></TableRow>
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                               </div>
+                               {/* Mobile */}
+                               <div className="grid md:hidden gap-4">
+                                     {isLoading ? renderMobileSkeleton(1) : outgoingTransfers.length > 0 ? (
+                                         outgoingTransfers.map(t => (
+                                            <Card key={t.id}>
+                                                <CardHeader>
+                                                    <CardTitle className="text-base">{t.productName}</CardTitle>
+                                                    <CardDescription>To: {t.destinationOutletName}</CardDescription>
+                                                </CardHeader>
+                                                <CardContent>
+                                                    <p className="font-bold text-lg">{t.quantity} <span className="text-sm font-normal text-muted-foreground">units</span></p>
+                                                </CardContent>
+                                                <CardFooter>
+                                                    <Button onClick={() => handleDispatchClick(t)} size="sm" variant="outline" className="w-full">
+                                                        <Truck className="mr-2 h-4 w-4" /> Dispatch
+                                                    </Button>
+                                                </CardFooter>
+                                            </Card>
+                                         ))
+                                     ) : (
+                                        <div className="text-center py-10">No outgoing transfer requests.</div>
+                                     )}
+                                </div>
                             </CardContent>
                         </Card>
                     </TabsContent>
