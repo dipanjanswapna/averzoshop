@@ -6,7 +6,7 @@ export interface UserData {
   email: string | null;
   displayName: string | null;
   photoURL: string | null;
-  role: 'customer' | 'vendor' | 'rider' | 'admin' | 'outlet';
+  role: 'customer' | 'vendor' | 'rider' | 'admin' | 'outlet' | 'sales';
   status: 'pending' | 'approved' | 'rejected';
   wishlist?: string[];
   addresses?: Address[];
@@ -18,4 +18,5 @@ export interface UserData {
   membershipTier?: 'silver' | 'gold' | 'platinum';
   phone?: string;
   fcmTokens?: string[];
+  managedBy?: string;
 }

@@ -33,12 +33,14 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
       const isVendor = userData.role === 'vendor';
       const isRider = userData.role === 'rider';
       const isAdmin = userData.role === 'admin';
+      const isSales = userData.role === 'sales';
       
       const onAdminRoute = pathname.startsWith('/dashboard');
       const onCustomerRoute = pathname.startsWith('/customer');
       const onOutletRoute = pathname.startsWith('/outlet');
       const onVendorRoute = pathname.startsWith('/vendor');
       const onRiderRoute = pathname.startsWith('/rider');
+      const onSalesRoute = pathname.startsWith('/sales');
 
 
       if (isCustomer && !onCustomerRoute) {
@@ -49,6 +51,8 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
         router.replace('/vendor/dashboard');
       } else if (isRider && !onRiderRoute) {
         router.replace('/rider/dashboard');
+      } else if (isSales && !onSalesRoute) {
+        router.replace('/sales/dashboard');
       } else if (isAdmin && !onAdminRoute) {
         router.replace('/dashboard');
       }

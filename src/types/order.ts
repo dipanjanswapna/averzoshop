@@ -40,6 +40,7 @@ export interface Order {
     pickupCode?: string;
     createdAt: Timestamp;
     riderId?: string;
+    salesRepId?: string;
     paymentStatus?: 'Paid' | 'Unpaid' | 'Failed';
     gatewayTransactionId?: string;
     updatedAt?: any;
