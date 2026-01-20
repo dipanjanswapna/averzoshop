@@ -80,6 +80,7 @@ const formSchema = z.object({
   })).optional(),
   isNew: z.boolean().default(false),
   isBestSeller: z.boolean().default(false),
+  isBundle: z.boolean().default(false),
   giftWithPurchase: z.object({
     enabled: z.boolean().default(false),
     description: z.string().optional(),
@@ -161,6 +162,7 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
       videos: product.videos ? product.videos.map(url => ({ url })) : [],
       isNew: product.isNew || false,
       isBestSeller: product.isBestSeller || false,
+      isBundle: product.isBundle || false,
       giftWithPurchase: product.giftWithPurchase || { enabled: false, description: '' },
       preOrder: {
           enabled: product.preOrder?.enabled || false,
@@ -311,6 +313,7 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
         total_stock: totalStock,
         isNew: values.isNew,
         isBestSeller: values.isBestSeller,
+        isBundle: values.isBundle,
         giftWithPurchase: {
             enabled: !!values.giftWithPurchase?.enabled,
             description: values.giftWithPurchase?.description || "",
@@ -554,6 +557,19 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
                             <div className="space-y-0.5">
                                 <FormLabel>Mark as Best Seller</FormLabel>
                                 <FormDescription>Display a "Best Seller" badge on the product card.</FormDescription>
+                            </div>
+                            <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                        </FormItem>
+                        )}
+                    />
+                     <FormField
+                        control={form.control}
+                        name="isBundle"
+                        render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                                <FormLabel>Mark as Bundle Offer</FormLabel>
+                                <FormDescription>Flag this product as part of a bundle.</FormDescription>
                             </div>
                             <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
                         </FormItem>

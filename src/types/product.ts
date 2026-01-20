@@ -52,4 +52,5 @@ export type Product = {
     vendorId: string;
     status: 'pending' | 'approved' | 'rejected';
     createdAt: any; // Can be Timestamp or string
+    isBundle?: boolean;
 };

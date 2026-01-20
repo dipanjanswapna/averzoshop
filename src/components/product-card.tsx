@@ -2,7 +2,7 @@
 'use client';
 
 import Image from 'next/image';
-import { ShoppingBag, Zap, Eye, Gift } from 'lucide-react';
+import { ShoppingBag, Zap, Eye, Gift, Archive } from 'lucide-react';
 import type { Product } from '@/types/product';
 import Link from 'next/link';
 import { Button } from './ui/button';
@@ -117,6 +117,9 @@ export const ProductCard = ({ product }: { product: Product }) => {
             )}
              {product.isBestSeller && (
               <span className="bg-teal-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Best Seller</span>
+            )}
+            {product.isBundle && (
+              <span className="bg-cyan-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase flex items-center gap-1"><Archive size={12} /> Bundle</span>
             )}
           </div>
 

@@ -112,7 +112,7 @@ export function FilterSidebar({ categories, onFilterChange, initialFilters }: Fi
     <div className="space-y-6">
       <h3 className="text-xl font-bold font-headline">Filters</h3>
 
-      <Accordion type="multiple" defaultValue={['category', 'price', 'brand', 'color', 'size', 'discount', 'bundles']} className="w-full">
+      <Accordion type="multiple" defaultValue={['category', 'price', 'brand', 'color', 'size', 'discount', 'bundles', 'offers']} className="w-full">
         <AccordionItem value="category">
           <AccordionTrigger className="text-lg font-semibold">Category</AccordionTrigger>
           <AccordionContent className="space-y-4 pt-4">
@@ -221,7 +221,7 @@ export function FilterSidebar({ categories, onFilterChange, initialFilters }: Fi
           </AccordionContent>
         </AccordionItem>
 
-        <AccordionItem value="bundles">
+        <AccordionItem value="offers">
           <AccordionTrigger className="text-lg font-semibold">Offers</AccordionTrigger>
           <AccordionContent className="pt-4 space-y-2">
               <div className="flex items-center space-x-2">
