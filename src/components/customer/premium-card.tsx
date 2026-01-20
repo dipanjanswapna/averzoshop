@@ -17,7 +17,7 @@ export function PremiumCard({ userData }: { userData: UserData }) {
   const currentTier = userData.membershipTier || 'silver';
 
   return (
-    <div className={`relative w-full max-w-lg h-64 text-white rounded-2xl shadow-2xl p-6 flex flex-col justify-between overflow-hidden bg-gradient-to-br ${tierGradients[currentTier]}`}>
+    <div className={`relative w-full max-w-lg aspect-[8/5] text-white rounded-2xl shadow-2xl p-6 flex flex-col justify-between overflow-hidden bg-gradient-to-br ${tierGradients[currentTier]}`}>
         {/* Background pattern */}
         <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/argyle.png')]"></div>
         

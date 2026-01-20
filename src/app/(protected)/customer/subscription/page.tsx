@@ -43,7 +43,7 @@ export default function SubscriptionPage() {
     return (
       <div className="space-y-6">
         <Skeleton className="h-10 w-1/3" />
-        <Skeleton className="h-52 w-full max-w-lg" />
+        <Skeleton className="w-full max-w-lg aspect-[8/5]" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Skeleton className="h-64 w-full" />
             <Skeleton className="h-64 w-full" />

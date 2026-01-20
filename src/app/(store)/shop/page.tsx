@@ -15,7 +15,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { FilterSidebar } from '@/components/shop/filter-sidebar';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Filter } from 'lucide-react';
 import {
@@ -220,6 +220,7 @@ function ShopPageContent() {
                  <SheetContent side="left" className="w-full max-w-sm overflow-y-auto p-0">
                     <SheetHeader className="p-6 pb-4">
                         <SheetTitle className="text-xl font-bold font-headline">Filters</SheetTitle>
+                        <SheetDescription>Refine your search with various filters to find the perfect product.</SheetDescription>
                     </SheetHeader>
                     <div className="p-6 pt-0">
                       <FilterSidebar

@@ -26,6 +26,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  SheetDescription,
 } from "@/components/ui/sheet";
 import { Separator } from '@/components/ui/separator';
 import type { Coupon } from '@/types/coupon';
@@ -871,6 +872,7 @@ export default function POSPage() {
                     <SheetContent side="bottom" className="h-[90vh] flex flex-col p-0">
                         <SheetHeader className="p-4 border-b">
                             <SheetTitle>Current Sale</SheetTitle>
+                            <SheetDescription>Manage items and complete the sale.</SheetDescription>
                         </SheetHeader>
                         <ScrollArea className="flex-1">
                             <div className="p-4">
