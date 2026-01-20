@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,7 +11,7 @@ import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { Skeleton } from '../ui/skeleton';
 import { useAuth } from '@/hooks/use-auth';
 import { useFirebase } from '@/firebase';
-import { doc, updateDoc, serverTimestamp, query, collection, orderBy, arrayUnion } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp, query, collection, orderBy, arrayUnion, where } from 'firebase/firestore';
 import { Textarea } from '../ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import type { Order } from '@/types/order';
@@ -226,4 +227,3 @@ export function ProductTabs({ product }: { product: Product }) {
             </TabsContent>
         </Tabs>
     );
-}
