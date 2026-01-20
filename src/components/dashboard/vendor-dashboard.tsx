@@ -38,6 +38,7 @@ export function VendorDashboard() {
   const { firestore } = useFirebase();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
+  // Firestore queries
   const productsQuery = useMemo(() => firestore ? query(collection(firestore, 'products')) : null, [firestore]);
   const ordersQuery = useMemo(() => firestore ? query(collection(firestore, 'orders')) : null, [firestore]);
   const posSalesQuery = useMemo(() => firestore ? query(collection(firestore, 'pos_sales')) : null, [firestore]);
@@ -48,6 +49,7 @@ export function VendorDashboard() {
 
   const isLoading = productsLoading || ordersLoading || salesLoading;
 
+  // Memoized calculations for vendor-specific data
   const vendorProducts = useMemo(() => {
     if (!allProducts || !user) return [];
     return allProducts.filter(p => p.vendorId === user.uid);
@@ -86,6 +88,7 @@ export function VendorDashboard() {
       }
     };
 
+    // Process online orders
     allOrders.forEach(order => {
       // For sales analytics, only count completed orders
       if (order.status === 'delivered' || order.status === 'fulfilled') {
@@ -101,12 +104,12 @@ export function VendorDashboard() {
       }
     });
 
-    // POS sales are always completed
+    // Process POS sales
     allPosSales.forEach(sale => {
       sale.items.forEach(item => processItem(item, sale.createdAt.toDate()));
     });
     
-    // Low stock count
+    // Low stock count for vendor's products
     const lowStock = vendorProducts.filter(p => p.total_stock > 0 && p.total_stock < 10).length;
 
     // Format sales data for chart
@@ -129,7 +132,6 @@ export function VendorDashboard() {
     return { totalRevenue: revenue, totalUnitsSold: unitsSold, salesData: chartData, topProducts: sortedTopProducts, lowStockCount: lowStock, preOrderCount: currentPreOrderCount };
 
   }, [vendorProducts, allOrders, allPosSales, user]);
-
 
   const renderSkeleton = () => (
     [...Array(3)].map((_, i) => (
