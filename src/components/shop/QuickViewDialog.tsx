@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -193,6 +194,7 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
                 {discount > 0 && !isOutOfStock && <Badge variant="destructive">{discount}% OFF</Badge>}
                 {product.preOrder?.enabled && <Badge className="bg-purple-600">Pre-Order</Badge>}
                 {isFlashSaleActive && <Badge className="bg-orange-500 animate-pulse flex items-center gap-1"><Zap size={12} /> FLASH SALE</Badge>}
+                {product.giftWithPurchase?.enabled && <Badge className="bg-green-600 flex items-center gap-1"><Gift size={12}/> FREE GIFT</Badge>}
             </div>
           </div>
           <ScrollArea className="w-full">
