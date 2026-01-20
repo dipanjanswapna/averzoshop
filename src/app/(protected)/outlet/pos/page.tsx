@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
@@ -612,7 +613,7 @@ export default function POSPage() {
                 })),
                 subtotal: cartSubtotal,
                 discountAmount: discountAmount,
-                promoCode: appliedCoupon?.code ?? null,
+                promoCode: appliedCoupon ? appliedCoupon.code : null,
                 totalAmount: grandTotal,
                 fullOrderValue: fullOrderTotal,
                 assignedOutletId: outletId,
@@ -684,7 +685,7 @@ export default function POSPage() {
                     })),
                     subtotal: cartSubtotal,
                     discountAmount: discountAmount,
-                    promoCode: appliedCoupon?.code ?? null,
+                    promoCode: appliedCoupon ? appliedCoupon.code : null,
                     totalAmount: grandTotal,
                     paymentMethod: paymentMethod,
                     createdAt: serverTimestamp(),
