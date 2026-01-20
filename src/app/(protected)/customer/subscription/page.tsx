@@ -78,7 +78,7 @@ export default function SubscriptionPage() {
                 <PremiumCard userData={userData} />
             </div>
 
-            {upgradeTiers.length > 0 && (
+            {upgradeTiers.length > 0 ? (
                 <div className="lg:col-span-3 no-print">
                     <Card>
                         <CardHeader>
@@ -90,7 +90,7 @@ export default function SubscriptionPage() {
                                 <Card key={tier.name} className="flex flex-col">
                                     <CardHeader className="p-4">
                                         <div className="flex items-center justify-between">
-                                            <CardTitle className="flex items-center gap-2 text-xl">{tier.name} <Star className={tier.name.toLowerCase() === 'gold' ? 'text-yellow-500' : 'text-blue-500'} /></CardTitle>
+                                            <CardTitle className="flex items-center gap-2 text-xl">{tier.name} <Star className="text-primary" /></CardTitle>
                                         </div>
                                         <CardDescription className="text-lg font-bold">{tier.price}</CardDescription>
                                     </CardHeader>
@@ -113,6 +113,14 @@ export default function SubscriptionPage() {
                             ))}
                         </CardContent>
                     </Card>
+                </div>
+            ) : (
+                <div className="lg:col-span-3 no-print flex items-center justify-center">
+                    <div className="bg-card p-8 rounded-2xl text-center shadow-lg border">
+                        <Star className="mx-auto h-12 w-12 text-primary" />
+                        <h3 className="mt-4 text-xl font-bold text-foreground">Congratulations!</h3>
+                        <p className="mt-2 text-sm text-muted-foreground">You are at our highest membership tier. Thank you for your loyalty!</p>
+                    </div>
                 </div>
             )}
         </div>
