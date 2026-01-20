@@ -12,22 +12,16 @@ const tiers = [
     name: 'Silver',
     price: 'Free',
     features: ['Basic access', '5 points per ৳100 spent', 'Standard support'],
-    cta: 'Your Current Plan',
-    current: true,
   },
   {
     name: 'Gold',
     price: '৳499/year',
     features: ['Everything in Silver', '7 points per ৳100 spent', 'Early access to sales', 'Priority support'],
-    cta: 'Upgrade to Gold',
-    current: false,
   },
   {
     name: 'Platinum',
     price: '৳999/year',
     features: ['Everything in Gold', '10 points per ৳100 spent', 'Exclusive offers & gifts', '24/7 dedicated support'],
-    cta: 'Upgrade to Platinum',
-    current: false,
   },
 ];
 
@@ -42,17 +36,29 @@ export default function SubscriptionPage() {
     return (
       <div className="space-y-6">
         <Skeleton className="h-10 w-1/3" />
-        <Skeleton className="w-full max-w-lg aspect-[8/5]" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Skeleton className="h-64 w-full" />
-            <Skeleton className="h-64 w-full" />
-            <Skeleton className="h-64 w-full" />
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
+            <div className="lg:col-span-2">
+                <Skeleton className="w-full max-w-lg aspect-[8/5] rounded-2xl" />
+            </div>
+             <div className="lg:col-span-3">
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <Skeleton className="h-64 w-full" />
+                    <Skeleton className="h-64 w-full" />
+                </div>
+            </div>
         </div>
       </div>
     );
   }
   
   const userTier = userData.membershipTier || 'silver';
+  
+  const upgradeTiers = tiers.filter(tier => {
+      if (userTier === 'silver') return tier.name === 'Gold' || tier.name === 'Platinum';
+      if (userTier === 'gold') return tier.name === 'Platinum';
+      return false;
+  });
+
 
   return (
     <>
@@ -67,42 +73,49 @@ export default function SubscriptionPage() {
             </Button>
         </div>
 
-        <PremiumCard userData={userData} />
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
+            <div className="lg:col-span-2">
+                <PremiumCard userData={userData} />
+            </div>
 
-        <Card className="no-print">
-            <CardHeader>
-                <CardTitle>Membership Tiers</CardTitle>
-                <CardDescription>Explore the benefits of each membership level.</CardDescription>
-            </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {tiers.map(tier => (
-                    <Card key={tier.name} className={`flex flex-col ${tier.name.toLowerCase() === userTier ? 'border-primary border-2 shadow-lg' : ''}`}>
-                        <CardHeader className="p-4">
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="flex items-center gap-2 text-xl">{tier.name} <Star className={tier.name.toLowerCase() === 'gold' ? 'text-yellow-500' : tier.name.toLowerCase() === 'platinum' ? 'text-blue-500' : 'text-gray-400'} /></CardTitle>
-                                {tier.name.toLowerCase() === userTier && <span className="text-xs font-bold text-primary">CURRENT</span>}
-                            </div>
-                            <CardDescription className="text-lg font-bold">{tier.price}</CardDescription>
+            {upgradeTiers.length > 0 && (
+                <div className="lg:col-span-3 no-print">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Upgrade Your Membership</CardTitle>
+                            <CardDescription>Explore the benefits of the next membership levels.</CardDescription>
                         </CardHeader>
-                        <CardContent className="p-4 flex-1">
-                            <ul className="space-y-2 text-xs">
-                            {tier.features.map(feature => (
-                                <li key={feature} className="flex items-start gap-2">
-                                    <CheckCircle size={14} className="text-green-500 flex-shrink-0 mt-0.5" />
-                                    <span className="text-muted-foreground">{feature}</span>
-                                </li>
+                        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {upgradeTiers.map(tier => (
+                                <Card key={tier.name} className="flex flex-col">
+                                    <CardHeader className="p-4">
+                                        <div className="flex items-center justify-between">
+                                            <CardTitle className="flex items-center gap-2 text-xl">{tier.name} <Star className={tier.name.toLowerCase() === 'gold' ? 'text-yellow-500' : 'text-blue-500'} /></CardTitle>
+                                        </div>
+                                        <CardDescription className="text-lg font-bold">{tier.price}</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="p-4 flex-1">
+                                        <ul className="space-y-2 text-xs">
+                                        {tier.features.map(feature => (
+                                            <li key={feature} className="flex items-start gap-2">
+                                                <CheckCircle size={14} className="text-green-500 flex-shrink-0 mt-0.5" />
+                                                <span className="text-muted-foreground">{feature}</span>
+                                            </li>
+                                        ))}
+                                        </ul>
+                                    </CardContent>
+                                    <CardFooter className="p-4">
+                                        <Button className="w-full">
+                                            {`Upgrade to ${tier.name}`}
+                                        </Button>
+                                    </CardFooter>
+                                </Card>
                             ))}
-                            </ul>
                         </CardContent>
-                        <CardFooter className="p-4">
-                            <Button disabled={tier.name.toLowerCase() === userTier} className="w-full">
-                                {tier.name.toLowerCase() === userTier ? 'Your Current Plan' : `Upgrade to ${tier.name}`}
-                            </Button>
-                        </CardFooter>
                     </Card>
-                ))}
-            </CardContent>
-        </Card>
+                </div>
+            )}
+        </div>
       </div>
       <div className="printable-area">
         <PremiumCard userData={userData} />
