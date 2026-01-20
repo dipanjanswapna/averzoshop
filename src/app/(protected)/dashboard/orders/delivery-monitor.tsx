@@ -1,25 +1,58 @@
-
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   deliveryMonitoringDashboard,
   type DeliveryMonitoringDashboardOutput,
 } from '@/ai/flows/delivery-monitoring-dashboard';
-import { activeDeliveries } from '@/lib/data';
+import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
+import { useFirebase } from '@/firebase';
+import { query, collection, where } from 'firebase/firestore';
+import type { Order } from '@/types/order';
+import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { AlertTriangle, Bot, Truck, CheckCircle, Hourglass } from 'lucide-react';
+import { AlertTriangle, Bot, Truck, CheckCircle, Hourglass, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export function DeliveryMonitor() {
   const [analysis, setAnalysis] = useState<DeliveryMonitoringDashboardOutput | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+  const { firestore } = useFirebase();
+
+  const { data: orders, isLoading: ordersLoading } = useFirestoreQuery<Order>(
+    useMemo(() => {
+      if (!firestore) return null;
+      return query(
+        collection(firestore, 'orders'),
+        where('status', 'in', ['out_for_delivery', 'preparing', 'ready_for_pickup'])
+      );
+    }, [firestore])
+  );
+
+  const activeDeliveries = useMemo(() => {
+    if (!orders) return [];
+    return orders.map(order => {
+        // Simulate an expected delivery time. E.g. 24 hours from creation for analysis
+        const expectedDeliveryTime = new Date(order.createdAt.toDate().getTime() + 24 * 60 * 60 * 1000);
+        return {
+            deliveryId: order.id,
+            expectedDeliveryTime: expectedDeliveryTime.toISOString(),
+            currentStatus: order.status,
+            customerId: order.customerId
+        };
+    });
+  }, [orders]);
 
   const handleAnalysis = async () => {
-    setIsLoading(true);
+    if (activeDeliveries.length === 0) {
+        toast({ title: 'No Active Deliveries', description: 'There are no deliveries currently in progress to analyze.'});
+        return;
+    }
+    setIsAnalyzing(true);
     setError(null);
     setAnalysis(null);
     try {
@@ -30,9 +63,11 @@ export function DeliveryMonitor() {
     } catch (e: any) {
       setError(e.message || 'An unexpected error occurred.');
     } finally {
-      setIsLoading(false);
+      setIsAnalyzing(false);
     }
   };
+
+  const isLoading = ordersLoading || isAnalyzing;
 
   return (
     <Card className="w-full">
@@ -47,7 +82,8 @@ export function DeliveryMonitor() {
                 </CardDescription>
             </div>
             <Button onClick={handleAnalysis} disabled={isLoading}>
-                {isLoading ? 'Analyzing...' : 'Analyze Active Deliveries'}
+                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isAnalyzing ? 'Analyzing...' : (ordersLoading ? 'Loading Deliveries...' : 'Analyze Active Deliveries')}
             </Button>
         </div>
       </CardHeader>
@@ -57,7 +93,7 @@ export function DeliveryMonitor() {
                 <strong>Error:</strong> {error}
             </div>
         )}
-        {isLoading && (
+        {isLoading && !analysis && (
             <div className="space-y-4">
                 <div className="flex items-center space-x-4">
                     <Skeleton className="h-12 w-12 rounded-full" />
@@ -86,7 +122,7 @@ export function DeliveryMonitor() {
                             </div>
                             <div className="flex-1">
                                 <p className="font-bold">
-                                    Delivery ID: <Badge variant="destructive">{alert.deliveryId}</Badge>
+                                    Delivery ID: <Badge variant="destructive">{alert.deliveryId.substring(0,8)}...</Badge>
                                 </p>
                                 <p className="text-sm mt-1">
                                     <strong className="text-muted-foreground">Issue:</strong> {alert.issue}
@@ -111,12 +147,12 @@ export function DeliveryMonitor() {
             <div className="flex flex-col items-center justify-center text-center p-8 border-2 border-dashed rounded-lg">
                 <Hourglass className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="font-bold text-lg">Awaiting Analysis</h3>
-                <p className="text-muted-foreground">Click the button above to start the AI delivery analysis.</p>
+                <p className="text-muted-foreground">
+                    {ordersLoading ? "Loading active deliveries..." : "Click the button above to start the AI delivery analysis."}
+                </p>
             </div>
         )}
       </CardContent>
     </Card>
   );
 }
-
-    
