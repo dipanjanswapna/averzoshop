@@ -148,6 +148,7 @@ export default function UsersPage() {
             <TabsList>
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="customer">Customers</TabsTrigger>
+              <TabsTrigger value="sales">Sales Reps</TabsTrigger>
               <TabsTrigger value="vendor">Vendors</TabsTrigger>
               <TabsTrigger value="rider">Riders</TabsTrigger>
               <TabsTrigger value="pending" className="text-orange-500">Pending</TabsTrigger>

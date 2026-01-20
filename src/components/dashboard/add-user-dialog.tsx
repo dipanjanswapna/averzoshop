@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -36,7 +37,7 @@ const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   email: z.string().email({ message: 'A valid email is required.' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
-  role: z.enum(['customer', 'vendor', 'rider', 'outlet', 'admin'], { required_error: 'Please select a role.' }),
+  role: z.enum(['customer', 'vendor', 'rider', 'outlet', 'admin', 'sales'], { required_error: 'Please select a role.' }),
   assignedOutlets: z.array(z.string()).optional(),
 });
 
@@ -143,6 +144,7 @@ export function AddUserDialog({ open, onOpenChange }: AddUserDialogProps) {
                 <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger></FormControl>
                     <SelectContent>
                         <SelectItem value="customer">Customer</SelectItem>
+                        <SelectItem value="sales">Sales Representative</SelectItem>
                         <SelectItem value="vendor">Vendor</SelectItem>
                         <SelectItem value="rider">Rider</SelectItem>
                         <SelectItem value="outlet">Outlet Manager</SelectItem>
@@ -170,7 +172,8 @@ export function AddUserDialog({ open, onOpenChange }: AddUserDialogProps) {
                             key={outlet.id}
                             control={form.control}
                             name="assignedOutlets"
-                            render={({ field }) => (
+                            render={({ field }) => {
+                            return (
                                 <FormItem key={outlet.id} className="flex flex-row items-start space-x-3 space-y-0 my-2">
                                   <FormControl>
                                     <Checkbox
@@ -185,7 +188,7 @@ export function AddUserDialog({ open, onOpenChange }: AddUserDialogProps) {
                                   <FormLabel className="font-normal">{outlet.name}</FormLabel>
                                 </FormItem>
                               )
-                            }
+                            }}
                           />
                         ))
                        )}

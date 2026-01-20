@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -21,10 +22,10 @@ import { useRouter } from 'next/navigation';
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   email: z.string().email({ message: 'Invalid email address.' }),
-  role: z.enum(['customer', 'vendor', 'rider'], { required_error: 'Please select a role.' }),
+  role: z.enum(['customer', 'vendor', 'rider', 'sales'], { required_error: 'Please select a role.' }),
   password: z.string().optional(),
 }).superRefine((data, ctx) => {
-    if ((data.role === 'vendor' || data.role === 'rider') && (!data.password || data.password.length < 6)) {
+    if ((data.role === 'vendor' || data.role === 'rider' || data.role === 'sales') && (!data.password || data.password.length < 6)) {
         ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message: 'Password must be at least 6 characters.',
@@ -73,7 +74,7 @@ function RegisterPageContent() {
         displayName: values.name,
         photoURL: user.photoURL,
         role: values.role,
-        status: 'pending', // Vendors and Riders require approval
+        status: 'pending', // Vendors, Riders and Sales Reps require approval
         createdAt: serverTimestamp(),
         loyaltyPoints: 0,
         totalSpent: 0,
@@ -209,6 +210,7 @@ function RegisterPageContent() {
                             <SelectItem value="customer">Customer</SelectItem>
                             <SelectItem value="vendor">Vendor</SelectItem>
                             <SelectItem value="rider">Rider</SelectItem>
+                            <SelectItem value="sales">Sales Representative</SelectItem>
                           </SelectContent>
                         </Select><FormMessage /></FormItem>
                   )} />

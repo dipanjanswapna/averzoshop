@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -27,6 +28,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useMemo, useState } from 'react';
 import { Check, Package, Send, Truck, CheckCircle, Hand, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { sendNotificationToRole } from '@/ai/flows/send-notification-to-role';
 import { sendTargetedNotification } from '@/ai/flows/send-targeted-notification';
 
 export default function OnlineOrdersPage() {
@@ -60,7 +62,7 @@ export default function OnlineOrdersPage() {
         toast({ title: 'Order Updated', description: `Order status changed to ${newStatus}.` });
 
         if (newStatus === 'ready_for_pickup') {
-            await sendTargetedNotification({
+            await sendNotificationToRole({
                 role: 'rider',
                 title: 'New Delivery Available',
                 body: `Order #${orderId.substring(0, 6)} is ready for pickup.`,
