@@ -77,6 +77,7 @@ const formSchema = z.object({
   videos: z.array(z.object({
     url: z.string().url("Must be a valid URL").or(z.literal('')),
   })).optional(),
+  isNew: z.boolean().default(false),
   giftWithPurchase: z.object({
     enabled: z.boolean().default(false),
     description: z.string().optional(),
@@ -121,6 +122,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
       specifications: [],
       gallery: [],
       videos: [],
+      isNew: false,
       giftWithPurchase: {
         enabled: false,
         description: '',
@@ -273,6 +275,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
         status: status,
         createdAt: serverTimestamp(),
         isBundle: false,
+        isNew: values.isNew,
         brand: values.brand,
         giftWithPurchase: {
             enabled: !!values.giftWithPurchase?.enabled,
@@ -493,6 +496,19 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
                 <AccordionTrigger>Special Offers</AccordionTrigger>
                 <AccordionContent>
                   <div className="space-y-6">
+                     <FormField
+                        control={form.control}
+                        name="isNew"
+                        render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                                <FormLabel>Mark as New Arrival</FormLabel>
+                                <FormDescription>Display a "New" badge on the product card.</FormDescription>
+                            </div>
+                            <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                        </FormItem>
+                        )}
+                    />
                     <div className="space-y-4 rounded-lg border p-4">
                         <FormField
                           control={form.control}

@@ -77,6 +77,7 @@ const formSchema = z.object({
   videos: z.array(z.object({
     url: z.string().url("Must be a valid URL").or(z.literal('')),
   })).optional(),
+  isNew: z.boolean().default(false),
   giftWithPurchase: z.object({
     enabled: z.boolean().default(false),
     description: z.string().optional(),
@@ -156,6 +157,7 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
       specifications: product.specifications ? Object.entries(product.specifications).map(([key, value]) => ({ key, value })) : [],
       gallery: product.gallery ? product.gallery.map(url => ({ url })) : [],
       videos: product.videos ? product.videos.map(url => ({ url })) : [],
+      isNew: product.isNew || false,
       giftWithPurchase: product.giftWithPurchase || { enabled: false, description: '' },
       preOrder: {
           enabled: product.preOrder?.enabled || false,
@@ -304,6 +306,7 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
         discount: Math.round(discount),
         variants: updatedVariants,
         total_stock: totalStock,
+        isNew: values.isNew,
         giftWithPurchase: {
             enabled: !!values.giftWithPurchase?.enabled,
             description: values.giftWithPurchase?.description || "",
@@ -526,6 +529,19 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
                 <AccordionTrigger>Special Offers</AccordionTrigger>
                 <AccordionContent>
                   <div className="space-y-6">
+                    <FormField
+                        control={form.control}
+                        name="isNew"
+                        render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                                <FormLabel>Mark as New Arrival</FormLabel>
+                                <FormDescription>Display a "New" badge on the product card.</FormDescription>
+                            </div>
+                            <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                        </FormItem>
+                        )}
+                    />
                     <div className="space-y-4 rounded-lg border p-4">
                         <FormField
                           control={form.control}
