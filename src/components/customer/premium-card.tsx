@@ -31,8 +31,8 @@ export function PremiumCard({ userData }: { userData: UserData }) {
 
         <div className="text-center">
             <Barcode value={userData.uid}
-                height={40}
-                width={1.5}
+                height={25}
+                width={1}
                 background="transparent"
                 lineColor="white"
                 displayValue={false}
