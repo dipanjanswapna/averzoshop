@@ -1,10 +1,10 @@
 'use client';
 import React, { useMemo } from 'react';
-import Image from 'next/image';
 import type { Outlet } from '@/types/outlet';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { useFirebase } from '@/firebase';
 import { query, collection } from 'firebase/firestore';
+import Barcode from 'react-barcode';
 
 interface PrintableReceiptProps {
   sale: any;
@@ -114,12 +114,7 @@ export function PrintableReceipt({ sale, outletId }: PrintableReceiptProps) {
             </div>
              <div className="text-center mt-4 text-[9px]">
                 <div className="flex justify-center">
-                    <Image
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(sale.id)}`}
-                        alt="Sale QR Code"
-                        width={80}
-                        height={80}
-                    />
+                    <Barcode value={sale.id} height={40} width={1.5} fontSize={12} />
                 </div>
                 {isPreOrder && releaseDate && (
                     <p className="font-bold text-xs mt-2">Expected Delivery: {releaseDate.toLocaleDateString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
