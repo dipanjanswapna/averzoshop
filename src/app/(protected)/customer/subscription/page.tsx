@@ -74,7 +74,7 @@ export default function SubscriptionPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 no-print">
                 <PremiumCard userData={userData} />
                 <p className="text-xs text-muted-foreground text-center mt-2 flex items-center justify-center gap-1 no-print">
                     <MousePointerClick size={12}/> Click card to flip

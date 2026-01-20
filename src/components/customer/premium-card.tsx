@@ -13,9 +13,9 @@ export function PremiumCard({ userData }: { userData: UserData }) {
   const cardNumber = `AVZ-${userData.uid.substring(0, 4).toUpperCase()}-${userData.uid.substring(4, 8).toUpperCase()}-${userData.uid.substring(8, 12).toUpperCase()}`;
 
   const tierGradients = {
-    silver: 'from-gray-400 to-gray-600',
-    gold: 'from-yellow-400 to-yellow-600',
-    platinum: 'from-blue-400 to-blue-600',
+    silver: 'from-slate-400 via-gray-300 to-slate-400',
+    gold: 'from-amber-400 via-yellow-300 to-amber-400',
+    platinum: 'from-indigo-900 via-slate-800 to-black',
   };
   const currentTier = userData.membershipTier || 'silver';
 
@@ -38,8 +38,6 @@ export function PremiumCard({ userData }: { userData: UserData }) {
                 "absolute w-full h-full [backface-visibility:hidden] text-white rounded-2xl shadow-2xl p-6 flex flex-col justify-between overflow-hidden bg-gradient-to-br",
                 tierGradients[currentTier]
             )}>
-                {/* Background pattern */}
-                <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/argyle.png')]"></div>
                 
                 <div className="flex justify-between items-start">
                     <AverzoLogo className="text-white text-3xl" />
@@ -50,16 +48,17 @@ export function PremiumCard({ userData }: { userData: UserData }) {
                 </div>
 
                 <div className="text-center">
-                    <div>
-                        <Barcode value={userData.uid}
-                            height={25}
-                            width={1.2}
+                    <div className="bg-white/90 p-2 rounded-lg inline-block shadow-inner">
+                        <Barcode 
+                            value={userData.uid}
+                            height={40}
+                            width={1.5}
                             background="transparent"
-                            lineColor="white"
+                            lineColor="black"
                             displayValue={false}
                         />
                     </div>
-                    <p className="font-mono text-xs tracking-wider mt-2">{cardNumber}</p>
+                    <p className="font-mono text-xs tracking-wider mt-2 opacity-80">{cardNumber}</p>
                 </div>
 
                 <div className="flex justify-between items-end">
@@ -73,31 +72,25 @@ export function PremiumCard({ userData }: { userData: UserData }) {
                             </div>
                         )}
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Wifi size={24} className="-rotate-90" />
-                    </div>
+                    <Wifi size={28} className="-rotate-90" />
                 </div>
             </div>
 
             {/* Back of the card */}
              <div className={cn(
-                "absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] text-gray-800 rounded-2xl shadow-2xl p-6 flex flex-col justify-between overflow-hidden bg-gradient-to-br",
+                "absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] text-white rounded-2xl shadow-2xl p-0 flex flex-col justify-between overflow-hidden bg-gradient-to-br",
                 tierGradients[currentTier]
             )}>
-                 <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/argyle.png')]"></div>
-                <div className="w-full h-12 bg-black mt-4"></div>
-                <div className="flex items-center gap-4 mt-4">
-                    <div className="w-2/3 h-10 bg-white/80 p-2 text-right italic font-mono text-sm">
+                 <div className="w-full h-16 bg-black mt-8"></div>
+                <div className="px-6 flex items-center gap-4">
+                    <div className="w-2/3 h-10 bg-white/80 p-2 text-right italic font-mono text-sm text-black">
                         {userData.uid.substring(0, 12)}
                     </div>
-                    <p className="text-white text-xs w-1/3">Not for resale. Property of Averzo. If found, please return to any Averzo outlet.</p>
+                    <p className="text-white/80 text-[10px] w-1/3 leading-tight">Not for resale. Property of Averzo. If found, please return to any Averzo outlet.</p>
                 </div>
-                <div className="flex-1 flex items-center justify-end text-white/80 text-[8px] mt-4">
-                    <p>This card is non-transferable and remains the property of Averzo. Use of this card constitutes acceptance of the terms and conditions of the Averzo Loyalty Program.</p>
-                </div>
-
-                <div className="text-right mt-2">
-                     <AverzoLogo className="text-white text-lg" />
+                <div className="px-6 py-4 flex justify-between items-center">
+                     <AverzoLogo className="text-white text-xl" />
+                    <p className="text-white/50 text-[8px] max-w-xs text-right">This card is non-transferable and remains the property of Averzo. Use of this card constitutes acceptance of the terms and conditions of the Averzo Loyalty Program.</p>
                 </div>
             </div>
         </motion.div>
