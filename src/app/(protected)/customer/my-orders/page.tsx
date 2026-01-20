@@ -20,13 +20,12 @@ import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { useAuth } from '@/hooks/use-auth';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useFirebase } from '@/firebase';
-import { collection, query, where, orderBy, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, where, doc, updateDoc } from 'firebase/firestore';
 import type { Order, OrderStatus } from '@/types/order';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import type { Outlet } from '@/types/outlet';
 import type { UserData } from '@/types/user';
-import { MessageCircle, Truck } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 
 const getStatusBadge = (status: OrderStatus) => {
     switch (status) {
@@ -60,8 +59,8 @@ export default function MyOrdersPage() {
     if (!firestore || !user?.uid) return null;
     return query(
       collection(firestore, 'orders'), 
-      where('customerId', '==', user.uid),
-      orderBy('createdAt', 'desc')
+      where('customerId', '==', user.uid)
+      // Removed orderBy to avoid needing a composite index. Sorting is now done client-side.
     );
   }, [firestore, user]);
 
@@ -69,6 +68,11 @@ export default function MyOrdersPage() {
   const { data: users, isLoading: usersLoading } = useFirestoreQuery<UserData>('users');
 
   const isLoading = ordersLoading || usersLoading;
+
+  const sortedUserOrders = useMemo(() => {
+    if (!userOrders) return [];
+    return [...userOrders].sort((a, b) => (b.createdAt?.toDate().getTime() || 0) - (a.createdAt?.toDate().getTime() || 0));
+  }, [userOrders]);
 
   const userMap = useMemo(() => {
     if (!users) return new Map();
@@ -120,8 +124,8 @@ export default function MyOrdersPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading ? renderSkeleton() : userOrders && userOrders.length > 0 ? (
-                userOrders.map(order => {
+              {isLoading ? renderSkeleton() : sortedUserOrders && sortedUserOrders.length > 0 ? (
+                sortedUserOrders.map(order => {
                   const rider = order.riderId ? userMap.get(order.riderId) : null;
                   const riderPhone = rider?.phone ? `88${rider.phone.replace(/\D/g, '').replace(/^0/, '')}` : null;
                   
