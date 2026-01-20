@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -389,18 +390,6 @@ export function ShippingForm() {
                                 <FormControl><RadioGroupItem value="online" /></FormControl>
                                 <FormLabel className="font-normal">Online Payment</FormLabel>
                             </div>
-                            {field.value === 'online' && (
-                                <div className="pl-8 pt-2">
-                                    <a target="_blank" rel="noopener noreferrer" href="https://www.sslcommerz.com/" title="SSLCommerz">
-                                        <Image 
-                                            src="https://securepay.sslcommerz.com/public/image/SSLCommerz-Pay-With-logo-All-Size-03.png"
-                                            alt="SSLCommerz Payment Gateways"
-                                            width={300}
-                                            height={55}
-                                        />
-                                    </a>
-                                </div>
-                            )}
                         </FormItem>
                     </RadioGroup>
                     </FormControl>

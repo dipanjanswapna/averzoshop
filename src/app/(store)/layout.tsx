@@ -3,6 +3,7 @@
 import { MobileBottomNav } from '@/components/mobile-bottom-nav';
 import AverzoNavbar from '@/components/store-header';
 import Link from 'next/link';
+import Image from 'next/image';
 import { CompareBar } from '@/components/compare/compare-bar';
 import { CartExpirationChecker } from '@/components/cart/cart-expiration-checker';
 
@@ -133,8 +134,18 @@ export default function StoreLayout({
               </ul>
             </div>
           </div>
-          <div className="mt-8 border-t pt-8 text-center text-sm text-muted-foreground font-body">
-            <p>&copy; {new Date().getFullYear()} Averzo. All rights reserved.</p>
+          <div className="mt-8 border-t pt-8">
+            <div className="flex justify-center mb-6">
+                <a target="_blank" rel="noopener noreferrer" href="https://www.sslcommerz.com/" title="SSLCommerz">
+                    <Image
+                        src="https://securepay.sslcommerz.com/public/image/SSLCommerz-Pay-With-logo-All-Size-01.png"
+                        alt="SSLCommerz Payment Gateways"
+                        width={400}
+                        height={58}
+                    />
+                </a>
+            </div>
+            <p className="text-center text-sm text-muted-foreground font-body">&copy; {new Date().getFullYear()} Averzo. All rights reserved.</p>
           </div>
         </div>
       </footer>
