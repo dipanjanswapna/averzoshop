@@ -121,7 +121,7 @@ export default function OutletsPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={outlet.status === 'Active' ? 'default' : 'secondary'} className={outlet.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                          <Badge variant={outlet.status === 'Active' ? 'default' : 'destructive'}>
                               <Power className="mr-1 h-3 w-3" />
                             {outlet.status}
                           </Badge>
@@ -165,7 +165,7 @@ export default function OutletsPage() {
                      <Card key={outlet.id}>
                       <CardHeader className="flex flex-row items-center justify-between">
                          <CardTitle className="text-lg">{outlet.name}</CardTitle>
-                         <Badge variant={outlet.status === 'Active' ? 'default' : 'secondary'} className={outlet.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                         <Badge variant={outlet.status === 'Active' ? 'default' : 'destructive'}>
                               <Power className="mr-1 h-3 w-3" />
                             {outlet.status}
                           </Badge>

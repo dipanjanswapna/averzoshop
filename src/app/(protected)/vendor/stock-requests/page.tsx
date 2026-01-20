@@ -50,20 +50,38 @@ export default function VendorStockRequestsPage() {
   );
 
   const getStatusBadge = (status: StockRequest['status']) => {
+    let variant: 'default' | 'secondary' | 'destructive' | 'outline' = 'outline';
+    let Icon = Clock;
+    
     switch (status) {
       case 'pending':
-        return <Badge variant="secondary" className="bg-orange-100 text-orange-800 capitalize"><Clock className="mr-1 h-3 w-3" /> {status}</Badge>;
+        variant = 'secondary';
+        Icon = Clock;
+        break;
       case 'approved':
-        return <Badge variant="default" className="bg-blue-100 text-blue-800 capitalize"><CheckCircle className="mr-1 h-3 w-3" /> {status}</Badge>;
+        variant = 'default';
+        Icon = CheckCircle;
+        break;
       case 'shipped':
-         return <Badge variant="default" className="bg-purple-100 text-purple-800 capitalize"><Truck className="mr-1 h-3 w-3" /> {status}</Badge>;
+         variant = 'secondary';
+         Icon = Truck;
+         break;
       case 'received':
-        return <Badge variant="default" className="bg-green-100 text-green-800 capitalize"><CheckCircle className="mr-1 h-3 w-3" /> {status}</Badge>;
+        variant = 'default';
+        Icon = CheckCircle;
+        break;
       case 'rejected':
-        return <Badge variant="destructive" className="capitalize"><XCircle className="mr-1 h-3 w-3" /> {status}</Badge>;
-      default:
-        return <Badge variant="outline" className="capitalize">{status}</Badge>;
+        variant = 'destructive';
+        Icon = XCircle;
+        break;
     }
+    
+    return (
+        <Badge variant={variant} className="capitalize gap-1">
+            <Icon className="h-3 w-3" />
+            {status}
+        </Badge>
+    );
   };
 
   return (

@@ -108,7 +108,7 @@ export default function LoyaltyPointsPage() {
                         <TableCell>{tx.createdAt?.toDate().toLocaleDateString()}</TableCell>
                         <TableCell>{tx.reason}</TableCell>
                         <TableCell className="text-right">
-                        <Badge variant={tx.pointsChange > 0 ? "default" : "destructive"} className={cn("gap-1", tx.pointsChange > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')}>
+                        <Badge variant={tx.pointsChange > 0 ? 'default' : 'destructive'} className="gap-1">
                             {tx.pointsChange > 0 ? <ArrowUpCircle size={14} /> : <ArrowDownCircle size={14} />}
                             {tx.pointsChange > 0 ? `+${tx.pointsChange}` : tx.pointsChange}
                         </Badge>
@@ -135,7 +135,7 @@ export default function LoyaltyPointsPage() {
                             <p className="text-sm font-semibold">{tx.reason}</p>
                             <p className="text-xs text-muted-foreground">{tx.createdAt?.toDate().toLocaleDateString()}</p>
                         </div>
-                         <Badge variant={tx.pointsChange > 0 ? "default" : "destructive"} className={cn("gap-1", tx.pointsChange > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')}>
+                         <Badge variant={tx.pointsChange > 0 ? "default" : "destructive"} className="gap-1">
                             {tx.pointsChange > 0 ? <ArrowUpCircle size={14} /> : <ArrowDownCircle size={14} />}
                             {tx.pointsChange > 0 ? `+${tx.pointsChange}` : tx.pointsChange}
                         </Badge>

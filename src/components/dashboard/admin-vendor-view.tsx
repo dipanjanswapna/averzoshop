@@ -77,7 +77,7 @@ export function AdminVendorView() {
                   <TableCell className="font-medium">{vendor.name}</TableCell>
                   <TableCell>{vendor.contact}</TableCell>
                   <TableCell>
-                    <Badge variant={vendor.status === 'Active' ? 'default' : 'secondary'} className={vendor.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                    <Badge variant={vendor.status === 'Active' ? 'default' : 'destructive'}>
                        {vendor.status === 'Active' ? <CheckCircle className="mr-1 h-3 w-3" /> : <XCircle className="mr-1 h-3 w-3" />}
                        {vendor.status}
                     </Badge>

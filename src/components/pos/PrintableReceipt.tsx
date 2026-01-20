@@ -118,7 +118,7 @@ export function PrintableReceipt({ sale, outletId }: PrintableReceiptProps) {
                     <Barcode value={sale.id} height={40} width={1.5} fontSize={12} />
                 </div>
                 {isPreOrder && releaseDate && (
-                    <p className="font-bold text-xs mt-2">Expected Delivery: {releaseDate.toLocaleDateString('bn-BD', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                    <p className="font-bold text-xs mt-2">Expected Delivery: {releaseDate.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
                 )}
                 <p className="font-bold italic mt-2">Thank you for shopping!</p>
                 <p>Software by: Averzo</p>

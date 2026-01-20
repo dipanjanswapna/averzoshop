@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -132,6 +133,15 @@ export function VendorDashboard() {
     return { totalRevenue: revenue, totalUnitsSold: unitsSold, salesData: chartData, topProducts: sortedTopProducts, lowStockCount: lowStock, preOrderCount: currentPreOrderCount };
 
   }, [vendorProducts, allOrders, allPosSales, user]);
+
+    const getStatusVariant = (status: 'approved' | 'pending' | 'rejected') => {
+        switch (status) {
+            case 'approved': return 'default';
+            case 'pending': return 'secondary';
+            case 'rejected': return 'destructive';
+            default: return 'outline';
+        }
+    };
 
   const renderSkeleton = () => (
     [...Array(3)].map((_, i) => (
@@ -283,14 +293,7 @@ export function VendorDashboard() {
                         </TableCell>
                         <TableCell className="font-medium">{product.name}</TableCell>
                         <TableCell>
-                           <Badge variant={
-                            product.status === 'approved' ? 'default' :
-                            product.status === 'pending' ? 'secondary' : 'destructive'
-                          } className={`capitalize ${
-                            product.status === 'approved' ? 'bg-green-100 text-green-800' :
-                            product.status === 'pending' ? 'bg-orange-100 text-orange-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
+                           <Badge variant={getStatusVariant(product.status)} className="capitalize">
                             {product.status}
                           </Badge>
                         </TableCell>

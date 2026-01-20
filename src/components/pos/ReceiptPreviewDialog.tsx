@@ -22,7 +22,7 @@ interface ReceiptPreviewDialogProps {
 export function ReceiptPreviewDialog({ open, onOpenChange, sale, outletId }: ReceiptPreviewDialogProps) {
     const handlePrint = () => {
         const style = document.createElement('style');
-        style.innerHTML = `@page { size: 80mm auto; margin: 0mm; }`;
+        style.innerHTML = `@page { size: 80mm auto; margin: 0; }`;
         document.head.appendChild(style);
         window.print();
         setTimeout(() => {
@@ -31,33 +31,35 @@ export function ReceiptPreviewDialog({ open, onOpenChange, sale, outletId }: Rec
     };
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-md w-full no-print">
-                <DialogHeader>
-                    <DialogTitle>Invoice Preview</DialogTitle>
-                    <DialogDescription>
-                       Review the receipt before printing.
-                    </DialogDescription>
-                </DialogHeader>
-                
-                <div className="bg-gray-100 p-4 rounded-md overflow-y-auto max-h-[60vh]">
-                     <div id="printable-invoice" className="mx-auto bg-white">
-                        <PrintableReceipt sale={sale} outletId={outletId} />
+        <>
+            <Dialog open={open} onOpenChange={onOpenChange}>
+                <DialogContent className="sm:max-w-md w-full no-print">
+                    <DialogHeader>
+                        <DialogTitle>Invoice Preview</DialogTitle>
+                        <DialogDescription>
+                        Review the receipt before printing.
+                        </DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="bg-gray-100 p-4 rounded-md overflow-y-auto max-h-[60vh]">
+                        <div className="mx-auto bg-white">
+                            <PrintableReceipt sale={sale} outletId={outletId} />
+                        </div>
                     </div>
-                </div>
 
-                <DialogFooter className="sm:justify-between gap-2">
-                     <DialogClose asChild>
-                        <Button variant="outline" className="w-full sm:w-auto">Close</Button>
-                    </DialogClose>
-                    <Button onClick={handlePrint} className="w-full sm:w-auto gap-2">
-                        <Printer size={18} /> Print Now
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
+                    <DialogFooter className="sm:justify-between gap-2">
+                        <DialogClose asChild>
+                            <Button variant="outline" className="w-full sm:w-auto">Close</Button>
+                        </DialogClose>
+                        <Button onClick={handlePrint} className="w-full sm:w-auto gap-2">
+                            <Printer size={18} /> Print Now
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
             <div className="printable-area">
                 <PrintableReceipt sale={sale} outletId={outletId} />
             </div>
-        </Dialog>
+        </>
     );
 }

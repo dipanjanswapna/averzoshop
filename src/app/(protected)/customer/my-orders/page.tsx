@@ -31,27 +31,25 @@ import { MessageCircle, Copy } from 'lucide-react';
 import { createSslCommerzSession } from '@/actions/payment-actions';
 
 const getStatusBadge = (status: OrderStatus) => {
+    let variant: 'default' | 'secondary' | 'destructive' | 'outline' = 'outline';
     switch (status) {
-      case 'pending_payment':
-        return <Badge variant="destructive" className="capitalize animate-pulse">{status.replace('_', ' ')}</Badge>;
-      case 'pre-ordered':
-        return <Badge variant="secondary" className="bg-blue-100 text-blue-800 capitalize">{status.replace('_', ' ')}</Badge>;
-      case 'new':
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 capitalize">Order Placed</Badge>;
-      case 'preparing':
-         return <Badge variant="secondary" className="bg-orange-100 text-orange-800 capitalize">{status}</Badge>;
-      case 'ready_for_pickup':
-         return <Badge variant="secondary" className="bg-purple-100 text-purple-800 capitalize">{status.replace('_', ' ')}</Badge>;
-      case 'out_for_delivery':
-          return <Badge variant="secondary" className="bg-cyan-100 text-cyan-800 capitalize">{status.replace('_', ' ')}</Badge>;
-      case 'fulfilled':
-      case 'delivered':
-        return <Badge variant="default" className="bg-green-100 text-green-800 capitalize">{status}</Badge>;
-      case 'canceled':
-         return <Badge variant="destructive" className="capitalize">{status}</Badge>;
-      default:
-        return <Badge variant="outline" className="capitalize">{status}</Badge>;
+        case 'delivered':
+        case 'fulfilled':
+            variant = 'default';
+            break;
+        case 'pending_payment':
+        case 'canceled':
+            variant = 'destructive';
+            break;
+        case 'new':
+        case 'preparing':
+        case 'ready_for_pickup':
+        case 'out_for_delivery':
+        case 'pre-ordered':
+            variant = 'secondary';
+            break;
     }
+    return <Badge variant={variant} className="capitalize">{status.replace(/_/g, ' ')}</Badge>;
 };
 
 export default function MyOrdersPage() {
