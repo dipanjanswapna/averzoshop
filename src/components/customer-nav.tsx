@@ -8,7 +8,8 @@ import {
   Package,
   Heart,
   Settings,
-  LayoutDashboard
+  LayoutDashboard,
+  Award
 } from 'lucide-react';
 import {
   SidebarMenu,
@@ -20,6 +21,7 @@ const navItems = [
   { href: '/customer', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/customer/profile', label: 'My Profile', icon: User },
   { href: '/customer/my-orders', label: 'My Orders', icon: Package },
+  { href: '/customer/loyalty-points', label: 'Loyalty Points', icon: Award },
   { href: '/customer/my-wishlist', label: 'My Wishlist', icon: Heart },
 ];
 

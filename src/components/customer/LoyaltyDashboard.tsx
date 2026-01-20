@@ -1,7 +1,9 @@
 
 'use client';
-import { Award, Star, TrendingUp } from "lucide-react";
+import { Award, Star, TrendingUp, History } from "lucide-react";
 import type { UserData } from "@/types/user";
+import { Button } from "@/components/ui/button";
+import Link from 'next/link';
 
 export function LoyaltyDashboard({ userData }: { userData: UserData }) {
   // Assuming 1 point = 0.20 BDT
@@ -46,7 +48,7 @@ export function LoyaltyDashboard({ userData }: { userData: UserData }) {
       </div>
 
       {/* Point Card */}
-      <div className="bg-background border-2 border-primary/10 p-6 rounded-2xl shadow-sm flex flex-col justify-between">
+      <div className="bg-background border-2 border-primary/10 p-6 rounded-2xl flex flex-col justify-between">
         <div className="flex justify-between items-start">
           <div>
             <p className="text-muted-foreground text-sm">Available Points</p>
@@ -56,10 +58,16 @@ export function LoyaltyDashboard({ userData }: { userData: UserData }) {
             <TrendingUp size={24} />
           </div>
         </div>
-        <div className="mt-4 p-3 bg-green-50 rounded-xl border border-green-100">
+        <div className="mt-4 p-3 bg-green-50 rounded-xl border border-green-100 flex items-center justify-between">
           <p className="text-green-700 text-sm font-bold">
             Equivalent to Cash: ৳{pointsToCash}
           </p>
+          <Link href="/customer/loyalty-points">
+            <Button variant="outline" size="sm" className="h-7 text-xs gap-1">
+                <History size={12} />
+                View History
+            </Button>
+          </Link>
         </div>
       </div>
     </div>
