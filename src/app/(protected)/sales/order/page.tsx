@@ -11,7 +11,7 @@ import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { useFirebase } from '@/firebase';
-import { doc, runTransaction, serverTimestamp, collection, increment, query, where } from 'firebase/firestore';
+import { doc, runTransaction, serverTimestamp, collection, increment, query, where, DocumentReference } from 'firebase/firestore';
 import type { Order, ShippingAddress } from '@/types/order';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
@@ -152,11 +152,11 @@ export default function SalesOrderPage() {
         // Logic to find the best outlet
         const regularItems = cart.filter(item => !item.product.preOrder?.enabled);
         let assignedOutletId: string | null = null;
-        if (regularItems.length > 0 && allOutlets) {
+        if (regularItems.length > 0 && allOutlets && allProducts) {
              const suitableOutlets = allOutlets.filter(outlet => 
                 outlet.status === 'Active' &&
                 regularItems.every(cartItem => {
-                    const product = allProducts?.find(p => p.id === cartItem.product.id);
+                    const product = allProducts.find(p => p.id === cartItem.product.id);
                     if (!product) return false;
                     const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants || {});
                     const variant = variantsArray.find(v => v.sku === cartItem.variant.sku);
@@ -214,27 +214,34 @@ export default function SalesOrderPage() {
                 transaction.set(orderRef, orderData);
 
                 // Stock deduction
-                for (const item of regularItems) {
-                    const productRef = doc(firestore, 'products', item.product.id);
-                    const productDoc = await transaction.get(productRef);
-                    if (!productDoc.exists()) throw new Error(`Product ${item.product.name} not found.`);
-                    
-                    const productData = productDoc.data() as Product;
-                    const variantsArray = Array.isArray(productData.variants) ? [...productData.variants] : [...Object.values(productData.variants)];
-                    const variantIndex = variantsArray.findIndex(v => v.sku === item.variant.sku);
+                if(assignedOutletId){
+                    for (const item of regularItems) {
+                        const productRef = doc(firestore, 'products', item.product.id);
+                        const productDoc = await transaction.get(productRef);
+                        if (!productDoc.exists()) throw new Error(`Product ${item.product.name} not found.`);
+                        
+                        const productData = productDoc.data() as Product;
+                        const variantsArray = Array.isArray(productData.variants) ? JSON.parse(JSON.stringify(productData.variants)) : JSON.parse(JSON.stringify(Object.values(productData.variants || {})));
+                        const variantIndex = variantsArray.findIndex((v: ProductVariant) => v.sku === item.variant.sku);
 
-                    if (variantIndex === -1) throw new Error(`Variant ${item.variant.sku} not found.`);
-                    
-                    // The outlet stock check was already done, here we just perform the deduction.
-                    if (assignedOutletId) {
-                        variantsArray[variantIndex].stock = (variantsArray[variantIndex].stock || 0) - item.quantity;
-                        variantsArray[variantIndex].outlet_stocks![assignedOutletId] = (variantsArray[variantIndex].outlet_stocks![assignedOutletId] || 0) - item.quantity;
+                        if (variantIndex === -1) throw new Error(`Variant ${item.variant.sku} not found for product ${product.name}.`);
+                        
+                        const variant = variantsArray[variantIndex];
+                        const currentOutletStock = variant.outlet_stocks?.[assignedOutletId] ?? 0;
+                        if (currentOutletStock < item.quantity) {
+                            throw new Error(`Not enough stock for ${item.product.name}. Available: ${currentOutletStock}`);
+                        }
+                        
+                        variant.stock = (variant.stock || 0) - item.quantity;
+                        if (variant.outlet_stocks) {
+                            variant.outlet_stocks[assignedOutletId] = currentOutletStock - item.quantity;
+                        }
+
+                        transaction.update(productRef, {
+                            variants: variantsArray,
+                            total_stock: increment(-item.quantity),
+                        });
                     }
-
-                    transaction.update(productRef, {
-                        variants: variantsArray,
-                        total_stock: increment(-item.quantity),
-                    });
                 }
             });
             toast({ title: 'Order Placed Successfully!', description: `Order ID: ${orderId}` });
