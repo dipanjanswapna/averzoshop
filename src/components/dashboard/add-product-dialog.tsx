@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -78,6 +79,7 @@ const formSchema = z.object({
     url: z.string().url("Must be a valid URL").or(z.literal('')),
   })).optional(),
   isNew: z.boolean().default(false),
+  isBestSeller: z.boolean().default(false),
   giftWithPurchase: z.object({
     enabled: z.boolean().default(false),
     description: z.string().optional(),
@@ -123,6 +125,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
       gallery: [],
       videos: [],
       isNew: false,
+      isBestSeller: false,
       giftWithPurchase: {
         enabled: false,
         description: '',
@@ -276,6 +279,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
         createdAt: serverTimestamp(),
         isBundle: false,
         isNew: values.isNew,
+        isBestSeller: values.isBestSeller,
         brand: values.brand,
         giftWithPurchase: {
             enabled: !!values.giftWithPurchase?.enabled,
@@ -504,6 +508,19 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
                             <div className="space-y-0.5">
                                 <FormLabel>Mark as New Arrival</FormLabel>
                                 <FormDescription>Display a "New" badge on the product card.</FormDescription>
+                            </div>
+                            <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
+                        </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="isBestSeller"
+                        render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                                <FormLabel>Mark as Best Seller</FormLabel>
+                                <FormDescription>Display a "Best Seller" badge on the product card.</FormDescription>
                             </div>
                             <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
                         </FormItem>
