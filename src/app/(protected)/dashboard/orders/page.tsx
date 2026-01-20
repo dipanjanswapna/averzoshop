@@ -1,4 +1,3 @@
-
 'use client';
 import { useMemo } from 'react';
 import {
@@ -87,53 +86,104 @@ export default function OrdersPage() {
 }
 
 function OrderTable({ orders, isLoading }: { orders: Order[], isLoading: boolean }) {
-  const renderSkeleton = () =>
-    [...Array(5)].map((_, i) => (
-      <TableRow key={i}>
-        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
-        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-        <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
-        <TableCell className="text-right"><Skeleton className="h-5 w-16 ml-auto" /></TableCell>
-      </TableRow>
-    ));
+  const getStatusBadge = (status: Order['status']) => {
+    switch (status) {
+      case 'pending_payment': return <Badge variant="destructive" className="capitalize animate-pulse">{status.replace('_', ' ')}</Badge>;
+      case 'pre-ordered': return <Badge variant="secondary" className="bg-blue-100 text-blue-800 capitalize">{status.replace('_', ' ')}</Badge>;
+      case 'new': return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 capitalize">Order Placed</Badge>;
+      case 'preparing': return <Badge variant="secondary" className="bg-orange-100 text-orange-800 capitalize">{status}</Badge>;
+      case 'ready_for_pickup': return <Badge variant="secondary" className="bg-purple-100 text-purple-800 capitalize">{status.replace('_', ' ')}</Badge>;
+      case 'out_for_delivery': return <Badge variant="secondary" className="bg-cyan-100 text-cyan-800 capitalize">{status.replace('_', ' ')}</Badge>;
+      case 'fulfilled':
+      case 'delivered': return <Badge variant="default" className="bg-green-100 text-green-800 capitalize">{status}</Badge>;
+      case 'canceled': return <Badge variant="destructive" className="capitalize">{status}</Badge>;
+      default: return <Badge variant="outline" className="capitalize">{status}</Badge>;
+    }
+  };
+
+  const renderDesktopSkeleton = () => [...Array(5)].map((_, i) => (
+    <TableRow key={i}>
+      <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+      <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+      <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+      <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
+      <TableCell className="text-right"><Skeleton className="h-5 w-16 ml-auto" /></TableCell>
+    </TableRow>
+  ));
+
+  const renderMobileSkeleton = () => [...Array(3)].map((_, i) => (
+    <Card key={i}>
+      <CardHeader>
+        <Skeleton className="h-5 w-3/4" />
+        <Skeleton className="h-4 w-1/2" />
+      </CardHeader>
+      <CardContent className="space-y-2">
+        <Skeleton className="h-4 w-full" />
+      </CardContent>
+    </Card>
+  ));
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Order ID</TableHead>
-          <TableHead>Customer</TableHead>
-          <TableHead>Date</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead className="text-right">Total</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {isLoading ? renderSkeleton() : orders.length > 0 ? (
-          orders.map(order => (
-            <TableRow key={order.id}>
-              <TableCell className="font-medium font-mono text-xs">{order.id.substring(0, 8)}...</TableCell>
-              <TableCell>{order.shippingAddress.name}</TableCell>
-              <TableCell>{order.createdAt.toDate().toLocaleDateString()}</TableCell>
-              <TableCell>
-                <Badge variant={order.status === 'delivered' ? 'default' : 'secondary'} className={order.status === 'delivered' ? 'bg-accent text-accent-foreground capitalize' : 'capitalize'}>
-                  {order.status}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-right">৳{order.totalAmount.toFixed(2)}</TableCell>
+    <>
+      <div className="hidden md:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Order ID</TableHead>
+              <TableHead>Customer</TableHead>
+              <TableHead>Date</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Total</TableHead>
             </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? renderDesktopSkeleton() : orders.length > 0 ? (
+              orders.map(order => (
+                <TableRow key={order.id}>
+                  <TableCell className="font-medium font-mono text-xs">{order.id.substring(0, 8)}...</TableCell>
+                  <TableCell>{order.shippingAddress?.name || 'N/A'}</TableCell>
+                  <TableCell>{order.createdAt.toDate().toLocaleDateString()}</TableCell>
+                  <TableCell>{getStatusBadge(order.status)}</TableCell>
+                  <TableCell className="text-right">৳{order.totalAmount.toFixed(2)}</TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center h-24">
+                  No orders found in this category.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+      <div className="grid md:hidden gap-4">
+        {isLoading ? renderMobileSkeleton() : orders.length > 0 ? (
+          orders.map(order => (
+            <Card key={order.id} className="flex flex-col">
+              <CardHeader>
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <CardTitle className="text-sm font-mono text-primary">{order.id.substring(0,8)}...</CardTitle>
+                    <CardDescription>{order.shippingAddress?.name || 'N/A'}</CardDescription>
+                  </div>
+                  {getStatusBadge(order.status)}
+                </div>
+              </CardHeader>
+              <CardContent className="flex-1">
+                <div className="flex justify-between items-end">
+                  <p className="text-xs text-muted-foreground">{order.createdAt?.toDate().toLocaleDateString()}</p>
+                  <p className="text-lg font-bold text-right">৳{order.totalAmount.toFixed(2)}</p>
+                </div>
+              </CardContent>
+            </Card>
           ))
         ) : (
-            <TableRow>
-                <TableCell colSpan={5} className="text-center h-24">
-                    No orders found in this category.
-                </TableCell>
-            </TableRow>
+          <div className="text-center h-24 flex items-center justify-center col-span-full">
+            No orders found in this category.
+          </div>
         )}
-      </TableBody>
-    </Table>
+      </div>
+    </>
   );
 }
-
-    

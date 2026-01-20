@@ -1,7 +1,6 @@
-
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -18,8 +17,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, MoreHorizontal } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { PlusCircle } from 'lucide-react';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AddCouponDialog } from '@/components/dashboard/add-coupon-dialog';
@@ -29,16 +27,36 @@ export default function CouponsPage() {
   const { data: coupons, isLoading } = useFirestoreQuery<Coupon>('coupons');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-  const renderSkeleton = () => (
+  const sortedCoupons = useMemo(() => {
+    if (!coupons) return [];
+    return [...coupons].sort((a, b) => (b.createdAt?.toDate?.().getTime() || 0) - (a.createdAt?.toDate?.().getTime() || 0));
+  }, [coupons]);
+
+
+  const renderDesktopSkeleton = () => (
     [...Array(5)].map((_, i) => (
       <TableRow key={i}>
         <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-        <TableCell><Skeleton className="h-5 w-32" /></TableCell>
+        <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+        <TableCell><Skeleton className="h-5 w-16" /></TableCell>
         <TableCell><Skeleton className="h-5 w-20" /></TableCell>
         <TableCell><Skeleton className="h-5 w-24" /></TableCell>
-        <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
-        <TableCell><Skeleton className="h-8 w-8" /></TableCell>
+        <TableCell><Skeleton className="h-5 w-20" /></TableCell>
       </TableRow>
+    ))
+  );
+
+  const renderMobileSkeleton = () => (
+    [...Array(3)].map((_, i) => (
+      <Card key={i}>
+        <CardHeader>
+          <Skeleton className="h-6 w-3/4" />
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-full" />
+        </CardContent>
+      </Card>
     ))
   );
 
@@ -58,38 +76,73 @@ export default function CouponsPage() {
             <CardDescription>Manage all promotional codes for the platform.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Code</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Value</TableHead>
-                  <TableHead>Min. Spend</TableHead>
-                  <TableHead>Expiry</TableHead>
-                  <TableHead>Usage</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? renderSkeleton() : coupons && coupons.length > 0 ? (
-                  coupons.map((coupon) => (
-                    <TableRow key={coupon.id}>
-                      <TableCell className="font-medium font-mono text-primary">{coupon.code}</TableCell>
-                      <TableCell className="capitalize">{coupon.discountType}</TableCell>
-                      <TableCell>{coupon.discountType === 'percentage' ? `${coupon.value}%` : `৳${coupon.value}`}</TableCell>
-                      <TableCell>৳{coupon.minimumSpend}</TableCell>
-                      <TableCell>{coupon.expiryDate.toDate().toLocaleDateString()}</TableCell>
-                      <TableCell>{coupon.usedCount} / {coupon.usageLimit}</TableCell>
+             {/* Desktop Table */}
+             <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Code</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Value</TableHead>
+                    <TableHead>Min. Spend</TableHead>
+                    <TableHead>Expiry</TableHead>
+                    <TableHead>Usage</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {isLoading ? renderDesktopSkeleton() : sortedCoupons && sortedCoupons.length > 0 ? (
+                    sortedCoupons.map((coupon) => (
+                      <TableRow key={coupon.id}>
+                        <TableCell className="font-medium font-mono text-primary">{coupon.code}</TableCell>
+                        <TableCell className="capitalize">{coupon.discountType}</TableCell>
+                        <TableCell>{coupon.discountType === 'percentage' ? `${coupon.value}%` : `৳${coupon.value}`}</TableCell>
+                        <TableCell>৳{coupon.minimumSpend}</TableCell>
+                        <TableCell>{coupon.expiryDate.toDate().toLocaleDateString()}</TableCell>
+                        <TableCell>{coupon.usedCount} / {coupon.usageLimit}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={6} className="h-24 text-center">No coupons found.</TableCell>
                     </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="grid md:hidden gap-4">
+               {isLoading ? renderMobileSkeleton() : sortedCoupons && sortedCoupons.length > 0 ? (
+                  sortedCoupons.map((coupon) => (
+                    <Card key={coupon.id}>
+                      <CardHeader>
+                        <CardTitle className="font-mono text-primary flex justify-between items-center">
+                            <span>{coupon.code}</span>
+                            <span className="font-sans text-sm font-bold text-foreground capitalize">
+                               {coupon.discountType === 'percentage' ? `${coupon.value}%` : `৳${coupon.value}`} OFF
+                            </span>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="text-sm space-y-1">
+                         <div className="flex justify-between">
+                            <span className="text-muted-foreground">Min. Spend:</span>
+                            <span>৳{coupon.minimumSpend}</span>
+                         </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Usage:</span>
+                            <span>{coupon.usedCount} / {coupon.usageLimit}</span>
+                         </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Expires:</span>
+                            <span>{coupon.expiryDate.toDate().toLocaleDateString()}</span>
+                         </div>
+                      </CardContent>
+                    </Card>
                   ))
                 ) : (
-                  <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
-                      No coupons found.
-                    </TableCell>
-                  </TableRow>
+                  <div className="text-center py-10">No coupons found.</div>
                 )}
-              </TableBody>
-            </Table>
+            </div>
           </CardContent>
         </Card>
       </div>
