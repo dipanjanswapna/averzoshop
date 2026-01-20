@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -15,6 +14,8 @@ import AverzoLogo from '@/components/averzo-logo';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/use-auth';
+import { usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 export default function OutletLayout({
   children,
@@ -22,6 +23,8 @@ export default function OutletLayout({
   children: React.ReactNode;
 }) {
   const { user, userData, loading } = useAuth();
+  const pathname = usePathname();
+  const isPosPage = pathname === '/outlet/pos';
   
   if (loading) {
     return (
@@ -81,7 +84,7 @@ export default function OutletLayout({
             </div>
             <UserNav />
         </header>
-        <main className="flex-1 p-0 text-sidebar-foreground">{children}</main>
+        <main className={cn("flex-1 text-sidebar-foreground", !isPosPage && "p-4 md:p-6")}>{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );
