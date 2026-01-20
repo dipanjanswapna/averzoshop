@@ -19,6 +19,7 @@ import { signOut as firebaseSignOut } from 'firebase/auth';
 import { Badge } from './ui/badge';
 import { useRouter } from 'next/navigation';
 import { LayoutDashboard } from 'lucide-react';
+import { NotificationBell } from './ui/notification-bell';
 
 export function UserNav() {
   const { user, auth, userData } = useAuth();
@@ -51,49 +52,52 @@ export function UserNav() {
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-          <Avatar className="h-9 w-9">
-            {user.photoURL && <AvatarImage src={user.photoURL} alt={user.displayName || 'User avatar'} />}
-            <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
-          </Avatar>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-2">
-            <div className="flex items-center justify-between">
-                <p className="text-sm font-medium leading-none">{user.displayName}</p>
-                {userData?.role && <Badge variant="secondary" className="capitalize">{userData.role}</Badge>}
+    <div className="flex items-center gap-2">
+      <NotificationBell />
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+            <Avatar className="h-9 w-9">
+              {user.photoURL && <AvatarImage src={user.photoURL} alt={user.displayName || 'User avatar'} />}
+              <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
+            </Avatar>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent className="w-56" align="end" forceMount>
+          <DropdownMenuLabel className="font-normal">
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium leading-none">{user.displayName}</p>
+                  {userData?.role && <Badge variant="secondary" className="capitalize">{userData.role}</Badge>}
+              </div>
+              <p className="text-xs leading-none text-muted-foreground">
+                {user.email}
+              </p>
             </div>
-            <p className="text-xs leading-none text-muted-foreground">
-              {user.email}
-            </p>
-          </div>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-           <DropdownMenuItem asChild>
-             <Link href={getDashboardLink()}>
-                <LayoutDashboard className="mr-2 h-4 w-4" />
-                <span>Dashboard</span>
-             </Link>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuGroup>
+             <DropdownMenuItem asChild>
+               <Link href={getDashboardLink()}>
+                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                  <span>Dashboard</span>
+               </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              Profile
+              <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+            </DropdownMenuItem>
+            <DropdownMenuItem>
+              Settings
+              <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+            </DropdownMenuItem>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleLogout}>
+            Log out
           </DropdownMenuItem>
-          <DropdownMenuItem>
-            Profile
-            <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            Settings
-            <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleLogout}>
-          Log out
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }

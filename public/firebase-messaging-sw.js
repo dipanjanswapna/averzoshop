@@ -1,29 +1,28 @@
-// This service worker must be in the public folder.
+// This file must be in the public folder.
 
-importScripts("https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js");
-importScripts("https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/10.9.0/firebase-messaging-compat.js");
 
-// The firebaseConfig object is passed in as a URL query parameter.
-const urlParams = new URLSearchParams(self.location.search);
-const firebaseConfigParam = urlParams.get("firebaseConfig");
+self.addEventListener('fetch', () => {
+  const urlParams = new URLSearchParams(location.search);
+  self.firebaseConfig = Object.fromEntries(urlParams);
+});
 
-if (firebaseConfigParam) {
-    const firebaseConfig = JSON.parse(decodeURIComponent(firebaseConfigParam));
-    firebase.initializeApp(firebaseConfig);
-    
-    const messaging = firebase.messaging();
+const app = firebase.initializeApp(self.firebaseConfig);
+const messaging = firebase.messaging(app);
 
-    messaging.onBackgroundMessage(function (payload) {
-      console.log('[firebase-messaging-sw.js] Received background message ', payload);
-      
-      const notificationTitle = payload.notification.title;
-      const notificationOptions = {
-        body: payload.notification.body,
-        icon: '/logo.png' 
-      };
 
-      self.registration.showNotification(notificationTitle, notificationOptions);
-    });
-} else {
-    console.error('Firebase config not found in service worker URL.');
-}
+messaging.onBackgroundMessage((payload) => {
+  console.log(
+    "[firebase-messaging-sw.js] Received background message ",
+    payload
+  );
+  
+  const notificationTitle = payload.notification.title;
+  const notificationOptions = {
+    body: payload.notification.body,
+    icon: payload.notification.image || '/icons/icon-192x192.png'
+  };
+
+  self.registration.showNotification(notificationTitle, notificationOptions);
+});

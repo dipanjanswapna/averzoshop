@@ -15,7 +15,7 @@ import {
   ClipboardList,
   ArrowRightLeft,
   BellRing,
-  Image as ImageIcon,
+  ImageIcon,
   Briefcase,
   Map,
 } from 'lucide-react';
