@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MapPin, Package, Check, Truck } from 'lucide-react';
+import { Package, Check, Truck, Warehouse, Home } from 'lucide-react';
 import type { Order } from '@/types/order';
 import type { Outlet } from '@/types/outlet';
 import { sendTargetedNotification } from '@/ai/flows/send-targeted-notification';
@@ -19,22 +19,27 @@ function DeliveryCard({ order, outlet, onAction, actionLabel, actionIcon: Icon, 
         <Card>
             <CardHeader>
                 <CardTitle className="text-base">Order ID: <span className="font-mono">{order.id.substring(0,8)}...</span></CardTitle>
-                <CardDescription>To: {order.shippingAddress.name}</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2 text-sm">
+            <CardContent className="space-y-4 text-sm">
                  {outlet && (
-                    <div className="flex items-start gap-2 font-semibold text-primary">
-                        <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                        <span>Pickup from: {outlet.name}</span>
+                    <div className="space-y-1">
+                        <p className="font-bold text-primary flex items-center gap-2"><Warehouse className="h-4 w-4" /> Pickup From</p>
+                        <p className="font-semibold">{outlet.name}</p>
+                        <p className="text-muted-foreground">{outlet.location.address}</p>
                     </div>
                 )}
-                <div className="flex items-start gap-2">
-                    <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground flex-shrink-0" />
-                    <span>{order.shippingAddress.streetAddress}, {order.shippingAddress.area}</span>
+                <div className="space-y-1">
+                    <p className="font-bold text-foreground flex items-center gap-2"><Home className="h-4 w-4" /> Deliver To</p>
+                    <p className="font-semibold">{order.shippingAddress.name}</p>
+                    <p className="text-muted-foreground">{order.shippingAddress.streetAddress}, {order.shippingAddress.area}, {order.shippingAddress.district}</p>
+                     <p className="text-muted-foreground">{order.shippingAddress.phone}</p>
                 </div>
-                 <div className="flex items-center gap-2">
+
+                 <div className="flex items-center gap-2 pt-2 border-t">
                     <Package className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                     <span>{order.items.reduce((acc, i) => acc + i.quantity, 0)} items</span>
+                    <span className="text-muted-foreground">•</span>
+                    <span className="font-bold">৳{order.totalAmount.toFixed(2)}</span>
                 </div>
             </CardContent>
             <CardFooter>

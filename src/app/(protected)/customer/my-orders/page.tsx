@@ -60,7 +60,6 @@ export default function MyOrdersPage() {
     return query(
       collection(firestore, 'orders'), 
       where('customerId', '==', user.uid)
-      // Removed orderBy to avoid needing a composite index. Sorting is now done client-side.
     );
   }, [firestore, user]);
 
