@@ -9,7 +9,7 @@ import Image from 'next/image';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { useFirebase } from '@/firebase';
 import type { Coupon } from '@/types/coupon';
 import { Award, XCircle } from 'lucide-react';
@@ -94,20 +94,25 @@ export function CheckoutOrderSummary() {
 
     setIsApplyingPromo(true);
     try {
-      const couponRef = doc(firestore, 'coupons', promoCodeInput.trim().toUpperCase());
-      const couponSnap = await getDoc(couponRef);
+      const code = promoCodeInput.trim().toUpperCase();
+      const couponsRef = collection(firestore, 'coupons');
+      const q = query(couponsRef, where("code", "==", code), limit(1));
+      const couponQuerySnap = await getDocs(q);
 
-      if (!couponSnap.exists()) {
+      if (couponQuerySnap.empty) {
         toast({ variant: 'destructive', title: 'Invalid Promo Code' });
         applyPromoCode(null);
+        setIsApplyingPromo(false);
         return;
       }
-
-      const coupon = { id: couponSnap.id, ...couponSnap.data() } as Coupon;
+      
+      const couponDoc = couponQuerySnap.docs[0];
+      const coupon = { id: couponDoc.id, ...couponDoc.data() } as Coupon;
       
       if (new Date(coupon.expiryDate.seconds * 1000) < new Date()) {
         toast({ variant: 'destructive', title: 'Promo code expired.' });
         applyPromoCode(null);
+        setIsApplyingPromo(false);
         return;
       }
       

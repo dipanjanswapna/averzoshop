@@ -11,7 +11,7 @@ import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { useFirebase } from '@/firebase';
-import { doc, runTransaction, serverTimestamp, collection, increment, query, where, DocumentReference, getDoc } from 'firebase/firestore';
+import { doc, runTransaction, serverTimestamp, collection, increment, query, where, DocumentReference, getDoc, getDocs, limit } from 'firebase/firestore';
 import type { Order, ShippingAddress } from '@/types/order';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
@@ -253,14 +253,17 @@ export default function SalesOrderPage() {
     const handleApplyPromo = async () => {
         if (!promoCodeInput.trim() || !firestore) return;
         setIsApplyingPromo(true);
-    
+
         const code = promoCodeInput.trim().toUpperCase();
-        const couponRef = doc(firestore, 'coupons', code);
+        const couponsRef = collection(firestore, 'coupons');
+        const q = query(couponsRef, where("code", "==", code), limit(1));
+
         try {
-            const couponSnap = await getDoc(couponRef);
-            if (!couponSnap.exists()) throw new Error('Invalid code');
+            const couponSnap = await getDocs(q);
+            if (couponSnap.empty) throw new Error('Invalid code');
             
-            const coupon = { id: couponSnap.id, ...couponSnap.data() } as Coupon;
+            const couponDoc = couponSnap.docs[0];
+            const coupon = { id: couponDoc.id, ...couponDoc.data() } as Coupon;
             if (new Date(coupon.expiryDate.seconds * 1000) < new Date()) throw new Error('Expired code');
             if (coupon.usedCount >= coupon.usageLimit) throw new Error('Usage limit reached');
     

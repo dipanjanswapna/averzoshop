@@ -11,7 +11,7 @@ import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { useFirebase } from '@/firebase';
-import { doc, serverTimestamp, collection, getDoc } from 'firebase/firestore';
+import { doc, serverTimestamp, collection, getDoc, query, where, getDocs, limit } from 'firebase/firestore';
 import type { POSSale } from '@/types/pos';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ReceiptPreviewDialog } from '@/components/pos/ReceiptPreviewDialog';
@@ -456,8 +456,8 @@ export default function POSPage() {
         let currentPromoDiscount = 0;
         if (appliedCoupon) {
             const eligibleItems = cart.filter(item => {
-                if (!coupon.applicableProducts || coupon.applicableProducts.length === 0) return true;
-                return coupon.applicableProducts.includes(item.product.id);
+                if (!appliedCoupon.applicableProducts || appliedCoupon.applicableProducts.length === 0) return true;
+                return appliedCoupon.applicableProducts.includes(item.product.id);
             });
     
             if (eligibleItems.length > 0) {
@@ -693,15 +693,19 @@ export default function POSPage() {
     const handleApplyPromo = async () => {
         if (!promoCodeInput.trim() || !firestore || isPreOrderCart) return;
         setIsApplyingPromo(true);
-    
+
         const code = promoCodeInput.trim().toUpperCase();
-        const couponRef = doc(firestore, 'coupons', code);
+        const couponsRef = collection(firestore, 'coupons');
+        const q = query(couponsRef, where("code", "==", code), limit(1));
+        
         try {
-            const couponSnap = await getDoc(couponRef);
-            if (!couponSnap.exists()) {
+            const couponSnap = await getDocs(q);
+
+            if (couponSnap.empty) {
                 throw new Error('Invalid code');
             }
-            const coupon = { id: couponSnap.id, ...couponSnap.data() } as Coupon;
+            const couponDoc = couponSnap.docs[0];
+            const coupon = { id: couponDoc.id, ...couponDoc.data() } as Coupon;
             
             if (new Date(coupon.expiryDate.seconds * 1000) < new Date()) {
                 throw new Error('Promo code expired.');
