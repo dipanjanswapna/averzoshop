@@ -178,13 +178,13 @@ export function CheckoutOrderSummary() {
                 </div>
                 {cardPromoDiscountAmount > 0 && (
                     <div className="flex justify-between text-green-600">
-                        <span>Membership Discount ({userData?.cardPromoDiscount}%)</span>
+                        <span className="font-medium">Card Promo ({userData?.cardPromoDiscount}%)</span>
                         <span>- ৳{cardPromoDiscountAmount.toFixed(2)}</span>
                     </div>
                 )}
                 {discount > 0 && (
                     <div className="flex justify-between text-green-600">
-                        <span>Promo Discount ({promoCode?.code})</span>
+                        <span className="font-medium">Coupon ({promoCode?.code})</span>
                         <span>- ৳{discount.toFixed(2)}</span>
                     </div>
                 )}
@@ -275,7 +275,7 @@ export function CheckoutOrderSummary() {
         <div className="space-y-2 text-sm">
             {pointsDiscount > 0 && (
                  <div className="flex justify-between text-green-600">
-                    <span>Points Discount</span>
+                    <span className="font-medium">Loyalty Points</span>
                     <span>- ৳{pointsDiscount.toFixed(2)}</span>
                 </div>
             )}
@@ -298,3 +298,5 @@ export function CheckoutOrderSummary() {
     </Card>
   );
 }
+
+    

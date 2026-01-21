@@ -172,24 +172,30 @@ const CartPanel = ({
                         <span>Subtotal</span>
                         <span>৳{cartSubtotal.toFixed(2)}</span>
                     </div>
-                    {cardPromoDiscountAmount > 0 && (
-                        <div className="flex justify-between text-green-600">
-                            <span>Card Discount ({selectedCustomer?.cardPromoDiscount}%)</span>
-                            <span>- ৳{cardPromoDiscountAmount.toFixed(2)}</span>
-                        </div>
+
+                    {(cardPromoDiscountAmount > 0 || discountAmount > 0 || pointsDiscount > 0) && (
+                      <div className="py-2 space-y-1">
+                        {cardPromoDiscountAmount > 0 && (
+                            <div className="flex justify-between text-green-600">
+                                <span className='font-medium'>Card Promo ({selectedCustomer?.cardPromoDiscount}%)</span>
+                                <span>- ৳{cardPromoDiscountAmount.toFixed(2)}</span>
+                            </div>
+                        )}
+                        {discountAmount > 0 && (
+                            <div className="flex justify-between text-green-600">
+                                <span className='font-medium'>Coupon ({appliedCoupon?.code})</span>
+                                <span>- ৳{discountAmount.toFixed(2)}</span>
+                            </div>
+                        )}
+                        {pointsDiscount > 0 && (
+                             <div className="flex justify-between text-green-600">
+                                <span className='font-medium'>Loyalty Points</span>
+                                <span>- ৳{pointsDiscount.toFixed(2)}</span>
+                            </div>
+                        )}
+                      </div>
                     )}
-                    {discountAmount > 0 && (
-                        <div className="flex justify-between text-green-600">
-                            <span>Promo Discount ({appliedCoupon?.code})</span>
-                            <span>- ৳{discountAmount.toFixed(2)}</span>
-                        </div>
-                    )}
-                    {pointsDiscount > 0 && (
-                         <div className="flex justify-between text-green-600">
-                            <span>Loyalty Discount</span>
-                            <span>- ৳{pointsDiscount.toFixed(2)}</span>
-                        </div>
-                    )}
+
                      <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2">
                         <span>Total ({totalItems} items)</span>
                         <span>৳{grandTotal.toFixed(2)}</span>
@@ -199,6 +205,7 @@ const CartPanel = ({
                 <Separator />
                 
                 <div className="space-y-2">
+                    <Label className="font-bold">Promotional Code</Label>
                     {appliedCoupon ? (
                         <div className="flex justify-between items-center bg-green-100/50 p-2 rounded-md">
                             <div className="text-green-700">
@@ -212,7 +219,6 @@ const CartPanel = ({
                     ) : (
                         <div className="flex items-end gap-2">
                             <div className="flex-1 space-y-1">
-                                <Label htmlFor="promo-code" className="text-xs font-medium">Promo Code</Label>
                                 <Input 
                                     id="promo-code" 
                                     placeholder="Enter code"

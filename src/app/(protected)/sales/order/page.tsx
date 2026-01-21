@@ -140,7 +140,7 @@ export default function SalesOrderPage() {
             const eligibleItems = cart.filter(item => {
                 if (item.product.preOrder?.enabled) return false;
                 if (!appliedCoupon.applicableProducts || appliedCoupon.applicableProducts.length === 0) return true;
-                return appliedCoupon.applicableProducts.includes(item.product.id);
+                return coupon.applicableProducts.includes(item.product.id);
             });
     
             if (eligibleItems.length > 0) {
@@ -591,10 +591,32 @@ export default function SalesOrderPage() {
                         </ScrollArea>
                         <CardFooter className="flex-col items-stretch space-y-4 border-t p-4 bg-muted/30">
                             <div className="space-y-1 text-sm">
-                                <div className="flex justify-between"><span>Subtotal</span><span>৳{cartSubtotal.toFixed(2)}</span></div>
-                                {cardPromoDiscountAmount > 0 && <div className="flex justify-between text-green-600"><span>Card Discount ({cardPromoDiscount}%)</span><span>- ৳{cardPromoDiscountAmount.toFixed(2)}</span></div>}
-                                {promoDiscount > 0 && <div className="flex justify-between text-green-600"><span>Promo ({appliedCoupon?.code})</span><span>- ৳{promoDiscount.toFixed(2)}</span></div>}
-                                {pointsDiscount > 0 && <div className="flex justify-between text-green-600"><span>Loyalty Discount</span><span>- ৳{pointsDiscount.toFixed(2)}</span></div>}
+                                <div className="flex justify-between">
+                                    <span>Subtotal</span>
+                                    <span>৳{cartSubtotal.toFixed(2)}</span>
+                                </div>
+                                {(cardPromoDiscountAmount > 0 || promoDiscount > 0 || pointsDiscount > 0) && (
+                                <div className="py-2 space-y-1">
+                                    {cardPromoDiscountAmount > 0 && (
+                                        <div className="flex justify-between text-green-600">
+                                            <span className='font-medium'>Card Promo ({cardPromoDiscount}%)</span>
+                                            <span>- ৳{cardPromoDiscountAmount.toFixed(2)}</span>
+                                        </div>
+                                    )}
+                                    {promoDiscount > 0 && (
+                                        <div className="flex justify-between text-green-600">
+                                            <span className='font-medium'>Coupon ({appliedCoupon?.code})</span>
+                                            <span>- ৳{promoDiscount.toFixed(2)}</span>
+                                        </div>
+                                    )}
+                                    {pointsDiscount > 0 && (
+                                        <div className="flex justify-between text-green-600">
+                                            <span className='font-medium'>Loyalty Points</span>
+                                            <span>- ৳{pointsDiscount.toFixed(2)}</span>
+                                        </div>
+                                    )}
+                                </div>
+                                )}
                                 <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2"><span>Total ({totalItems} items)</span><span>৳{grandTotal.toFixed(2)}</span></div>
                             </div>
                             <Separator />
@@ -619,3 +641,5 @@ export default function SalesOrderPage() {
         </div>
     );
 }
+
+    
