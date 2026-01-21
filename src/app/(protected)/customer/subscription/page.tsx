@@ -29,29 +29,20 @@ export default function SubscriptionPage() {
   const { userData, loading } = useAuth();
   
   const handlePrint = () => {
-    const style = document.createElement('style');
-    style.innerHTML = `@page { size: landscape; margin: 0; }`;
-    document.head.appendChild(style);
     window.print();
-    // Use a timeout to ensure printing is done before removing the style
-    setTimeout(() => {
-      document.head.removeChild(style);
-    }, 100);
   };
 
   if (loading || !userData) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-10 w-1/3" />
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-            <div>
-                <Skeleton className="w-full max-w-[380px] aspect-[1.586/1] rounded-2xl mx-auto" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+            <div className="lg:col-span-1 flex justify-center">
+                <Skeleton className="w-full max-w-[380px] aspect-[85.6/54] rounded-2xl" />
             </div>
-             <div>
-                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <Skeleton className="h-64 w-full" />
-                    <Skeleton className="h-64 w-full" />
-                </div>
+             <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <Skeleton className="h-64 w-full" />
+                <Skeleton className="h-64 w-full" />
             </div>
         </div>
       </div>
@@ -69,7 +60,7 @@ export default function SubscriptionPage() {
 
   return (
     <>
-      <div className="space-y-6">
+      <div className="space-y-8">
         <div className="flex flex-col sm:flex-row items-start justify-between gap-4 no-print">
             <div>
                 <h1 className="text-2xl md:text-3xl font-bold font-headline">My Subscription</h1>
@@ -80,16 +71,18 @@ export default function SubscriptionPage() {
             </Button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-            <div>
-                <PremiumCard userData={userData} />
-                <p className="text-xs text-muted-foreground text-center mt-2 flex items-center justify-center gap-1 no-print">
-                    <MousePointerClick size={12}/> Click card to flip
-                </p>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 xl:gap-12 items-start">
+            <div className="lg:col-span-1 flex justify-center lg:justify-start">
+                <div className="w-full">
+                    <PremiumCard userData={userData} />
+                    <p className="text-xs text-muted-foreground text-center mt-2 flex items-center justify-center gap-1 no-print">
+                        <MousePointerClick size={12}/> Click card to flip
+                    </p>
+                </div>
             </div>
 
-            {upgradeTiers.length > 0 ? (
-                <div className="no-print">
+            <div className="lg:col-span-2 no-print">
+                {upgradeTiers.length > 0 ? (
                     <Card>
                         <CardHeader>
                             <CardTitle>Upgrade Your Membership</CardTitle>
@@ -123,16 +116,16 @@ export default function SubscriptionPage() {
                             ))}
                         </CardContent>
                     </Card>
-                </div>
-            ) : (
-                <div className="no-print flex items-center justify-center">
-                    <div className="bg-card p-8 rounded-2xl text-center shadow-lg border">
-                        <Star className="mx-auto h-12 w-12 text-primary" />
-                        <h3 className="mt-4 text-xl font-bold text-foreground">Congratulations!</h3>
-                        <p className="mt-2 text-sm text-muted-foreground">You are at our highest membership tier. Thank you for your loyalty!</p>
+                ) : (
+                     <div className="h-full flex items-center justify-center">
+                        <div className="bg-card p-8 rounded-2xl text-center shadow-lg border">
+                            <Star className="mx-auto h-12 w-12 text-primary" />
+                            <h3 className="mt-4 text-xl font-bold text-foreground">Congratulations!</h3>
+                            <p className="mt-2 text-sm text-muted-foreground">You are at our highest membership tier. Thank you for your loyalty!</p>
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
       </div>
        <div className="printable-card-area">
