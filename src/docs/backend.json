@@ -177,6 +177,7 @@
           } 
         },
         "subtotal": { "type": "number", "description": "The total amount before discounts." },
+        "cardPromoDiscountAmount": { "type": "number", "description": "Discount amount in BDT from the user's membership card promo." },
         "discountAmount": { "type": "number", "description": "The amount discounted via a promo code." },
         "promoCode": { "type": "string", "description": "The promo code used for the sale." },
         "loyaltyPointsUsed": { "type": "number", "description": "Number of loyalty points redeemed for this sale." },
@@ -220,6 +221,7 @@
           }
         },
         "subtotal": { "type": "number", "description": "The total value of all items before discounts or shipping." },
+        "cardPromoDiscountAmount": { "type": "number", "description": "Discount amount in BDT from the user's membership card promo." },
         "discountAmount": { "type": "number", "description": "The amount discounted via a promo code." },
         "promoCode": { "type": "string", "description": "The promo code used." },
         "loyaltyPointsUsed": { "type": "number", "description": "Number of loyalty points redeemed for this order." },
@@ -505,3 +507,5 @@
     "/settings/loyalty": { "schema": { "$ref": "#/entities/loyalty_settings" }, "description": "Stores the global settings for the loyalty program." }
   }
 }
+
+    
