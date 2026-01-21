@@ -63,12 +63,30 @@ const CartPanel = ({
             </CardHeader>
             <CardContent className="space-y-3">
                {selectedCustomer ? (
-                    <div className="flex items-center justify-between p-3 border-2 border-dashed rounded-lg bg-green-50">
-                        <div>
-                            <p className="font-bold text-sm text-green-800">{selectedCustomer.displayName}</p>
-                            <p className="text-xs text-muted-foreground">{selectedCustomer.email}</p>
+                    <div className="p-3 border-2 border-dashed rounded-lg bg-green-50/50 border-green-200">
+                        <div className="flex items-start justify-between">
+                            <div>
+                                <p className="font-bold text-sm text-green-800">{selectedCustomer.displayName}</p>
+                                <p className="text-xs text-muted-foreground">{selectedCustomer.email}</p>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={handleClearCustomer}><XCircle className="h-4 w-4" /></Button>
                         </div>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={handleClearCustomer}><XCircle className="h-4 w-4" /></Button>
+                        <div className="mt-2 pt-2 border-t border-green-200/50 text-xs space-y-1">
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Tier:</span>
+                                <span className="font-bold capitalize">{selectedCustomer.membershipTier || 'Silver'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Points:</span>
+                                <span className="font-bold">{selectedCustomer.loyaltyPoints || 0}</span>
+                            </div>
+                            {selectedCustomer.cardPromoDiscount > 0 && (
+                                <div className="flex justify-between text-blue-600">
+                                    <span className="font-bold">Card Promo:</span>
+                                    <span className="font-bold">{selectedCustomer.cardPromoDiscount}% OFF</span>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 ) : (
                     <div className="space-y-2">
@@ -884,5 +902,3 @@ export default function POSPage() {
         </>
     );
 }
-
-    
