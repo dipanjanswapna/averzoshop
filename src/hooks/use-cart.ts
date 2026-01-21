@@ -1,4 +1,3 @@
-
 'use client';
 
 import { create } from 'zustand';
@@ -113,7 +112,8 @@ export const useCart = create<CartState>()(
       
       _recalculate: () => {
         const state = get();
-        const { items, promoCode, pointsDiscount, shippingInfo, orderMode, cardPromoPercent } = state;
+        const { items, promoCode, pointsApplied, shippingInfo, orderMode, cardPromoPercent } = state;
+        const pointValue = 0.20; // This should ideally come from settings
         
         let regularItemsSubtotal = 0;
         let preOrderItemsSubtotal = 0;
@@ -144,13 +144,19 @@ export const useCart = create<CartState>()(
         const shippingFee = orderMode === 'pickup' ? 0 : shippingInfo.fee;
         
         const cardPromoAmount = (regularItemsSubtotal * cardPromoPercent) / 100;
+        
         const regularItemsForDiscount = items.filter(item => !item.isPreOrder);
         const promoCodeDiscount = calculateDiscount(regularItemsForDiscount, promoCode);
         
-        const subtotalAfterDiscounts = regularItemsSubtotal - cardPromoAmount - promoCodeDiscount;
-        const applicablePointsDiscount = Math.min(pointsDiscount, subtotalAfterDiscounts > 0 ? subtotalAfterDiscounts : 0);
+        const payableBeforePoints = (regularItemsSubtotal - cardPromoAmount - promoCodeDiscount) + preOrderDepositPayable;
+
+        let applicablePointsDiscount = 0;
+        if (pointsApplied > 0) {
+            const maxDiscountFromPoints = pointsApplied * pointValue;
+            applicablePointsDiscount = Math.min(maxDiscountFromPoints, payableBeforePoints > 0 ? payableBeforePoints : 0);
+        }
         
-        const totalPayable = (subtotalAfterDiscounts - applicablePointsDiscount) + preOrderDepositPayable + shippingFee;
+        const totalPayable = (payableBeforePoints - applicablePointsDiscount) + shippingFee;
 
         set({
             subtotal,
@@ -184,7 +190,6 @@ export const useCart = create<CartState>()(
 
       setOrderMode: (mode) => {
           set({ orderMode: mode, pickupOutletId: null });
-          get()._recalculate();
       },
       setPickupOutlet: (outletId) => {
           set({ pickupOutletId: outletId });
@@ -308,14 +313,19 @@ export const useCart = create<CartState>()(
             return;
         }
         
-        const state = get();
-        const maxDiscount = state.regularItemsSubtotal - state.cardPromoDiscountAmount - state.discount + state.preOrderDepositPayable;
+        const { regularItemsSubtotal, cardPromoDiscountAmount, discount, preOrderDepositPayable } = get();
+        
+        const maxDiscount = (regularItemsSubtotal - cardPromoDiscountAmount - discount) + preOrderDepositPayable;
         const requestedDiscount = pointsToUse * pointValue;
 
         if (requestedDiscount > maxDiscount) {
-            const maxPoints = Math.floor(maxDiscount / pointValue);
+            const maxPoints = Math.floor(Math.max(0, maxDiscount) / pointValue);
             toast({ title: 'Discount Limit Exceeded', description: `You can use a maximum of ${maxPoints} points for this order.` });
-            set({ pointsApplied: maxPoints, pointsDiscount: maxPoints * pointValue });
+            if (maxPoints > 0) {
+                set({ pointsApplied: maxPoints, pointsDiscount: maxPoints * pointValue });
+            } else {
+                set({ pointsApplied: 0, pointsDiscount: 0 });
+            }
         } else {
             set({ pointsApplied: pointsToUse, pointsDiscount: requestedDiscount });
             toast({ title: 'Points Applied!', description: `${pointsToUse} points used for a discount of ৳${requestedDiscount.toFixed(2)}.` });
