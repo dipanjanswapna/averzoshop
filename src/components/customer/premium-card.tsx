@@ -40,9 +40,12 @@ export function PremiumCard({ userData }: { userData: UserData }) {
   };
 
   const s = tierStyles[tier];
+  
+  const barcodeColor = s.text.includes('white') ? '#FFFFFF' : '#1e293b';
+
 
   return (
-    <div className="w-full max-w-sm mx-auto [perspective:2000px]">
+    <div className="w-full max-w-sm mx-auto [perspective:2000px] no-print">
       <motion.div
         className="relative w-full aspect-[1.586/1] [transform-style:preserve-3d]"
         animate={{ rotateY: isFlipped ? 180 : 0 }}
@@ -102,12 +105,15 @@ export function PremiumCard({ userData }: { userData: UserData }) {
             <div className="px-6 mt-2 text-[6px] opacity-70 uppercase tracking-wider">
                 Authorized Signature - Not valid unless signed
             </div>
-             <div className="flex-1 flex flex-col justify-end items-center px-6 pb-4">
-                 <div className="w-20 h-20 bg-gradient-to-br from-blue-400/50 via-purple-400/50 to-red-400/50 rounded-md animate-pulse p-1">
-                     <div className="w-full h-full bg-white/20 backdrop-blur-sm" />
+             <div className="flex-1 flex flex-col justify-center items-center px-6">
+                 <div className="bg-white p-2 rounded-md shadow-inner">
+                    <Barcode value={userData.uid} height={40} width={1.5} displayValue={false} background="transparent" lineColor={barcodeColor} />
                 </div>
-                <p className="text-[8px] opacity-70 mt-1">Hologram Security</p>
+                <p className="text-[8px] opacity-70 mt-2 font-mono">{userData.uid}</p>
             </div>
+             <p className="text-center text-[8px] opacity-50 px-6 pb-4">
+                This card is non-transferable. If found, please return to any Averzo outlet.
+             </p>
         </div>
       </motion.div>
     </div>
