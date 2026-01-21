@@ -5,6 +5,11 @@ import * as admin from 'firebase-admin';
 import type { Order } from '@/types/order';
 import type { UserData } from '@/types/user';
 
+interface LoyaltySettingsData {
+    pointsPer100Taka: { silver: number; gold: number; platinum: number; };
+    tierThresholds: { gold: number; platinum: number; };
+}
+
 async function completeOrder(orderId: string, newStatus: 'delivered' | 'fulfilled') {
   const db = firestore();
 
@@ -26,10 +31,8 @@ async function completeOrder(orderId: string, newStatus: 'delivered' | 'fulfille
 
     const settingsRef = db.collection('settings').doc('loyalty');
     const settingsSnap = await transaction.get(settingsRef);
-    const loyaltySettings = settingsSnap.data() || { 
-        pointsPer100Taka: { silver: 5, gold: 7, platinum: 10 },
-        tierThresholds: { gold: 5000, platinum: 15000 } 
-    };
+    if (!settingsSnap.exists) throw new Error("Loyalty settings not configured.");
+    const loyaltySettings = settingsSnap.data() as LoyaltySettingsData;
 
     // Update order status
     transaction.update(orderRef, { status: newStatus, paymentStatus: 'Paid', updatedAt: admin.firestore.FieldValue.serverTimestamp() });
@@ -57,7 +60,7 @@ async function completeOrder(orderId: string, newStatus: 'delivered' | 'fulfille
     // 2. Award points for the purchase (only for COD/unpaid orders on completion)
     if (order.paymentStatus !== 'Paid') {
         const userTier = user.membershipTier || 'silver';
-        const pointsRate = loyaltySettings.pointsPer100Taka[userTier] || 5;
+        const pointsRate = loyaltySettings.pointsPer100Taka[userTier];
         const pointsEarned = Math.floor(order.totalAmount / 100) * pointsRate;
 
         if (pointsEarned > 0) {
@@ -76,8 +79,8 @@ async function completeOrder(orderId: string, newStatus: 'delivered' | 'fulfille
     const newTotalSpent = (user.totalSpent || 0) + order.totalAmount;
     let newTier = user.membershipTier || 'silver';
     
-    const goldThreshold = loyaltySettings.tierThresholds?.gold ?? 5000;
-    const platinumThreshold = loyaltySettings.tierThresholds?.platinum ?? 15000;
+    const goldThreshold = loyaltySettings.tierThresholds.gold;
+    const platinumThreshold = loyaltySettings.tierThresholds.platinum;
 
     if (newTotalSpent >= platinumThreshold && newTier !== 'platinum') {
       newTier = 'platinum';

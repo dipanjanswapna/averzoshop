@@ -7,6 +7,11 @@ import type { POSSale } from '@/types/pos';
 import type { UserData } from '@/types/user';
 import type { Product } from '@/types/product';
 
+interface LoyaltySettingsData {
+    pointsPer100Taka: { silver: number; gold: number; platinum: number; };
+    tierThresholds: { gold: number; platinum: number; };
+}
+
 export async function POST(request: NextRequest) {
   try {
     getFirebaseAdminApp();
@@ -53,10 +58,8 @@ export async function POST(request: NextRequest) {
 
             const settingsRef = db.collection('settings').doc('loyalty');
             const settingsSnap = await transaction.get(settingsRef);
-            const settings = settingsSnap.data() || { 
-                pointsPer100Taka: { silver: 5, gold: 7, platinum: 10 }, 
-                tierThresholds: { gold: 5000, platinum: 15000 } 
-            };
+            if (!settingsSnap.exists()) throw new Error("Loyalty settings not configured.");
+            const settings = settingsSnap.data() as LoyaltySettingsData;
             
             let netPointsChange = 0;
             const loyaltyPointsUsed = saleData.loyaltyPointsUsed || 0;
@@ -77,7 +80,7 @@ export async function POST(request: NextRequest) {
             }
             
             const userTier = user.membershipTier || 'silver';
-            const pointsRate = settings.pointsPer100Taka[userTier] || 5;
+            const pointsRate = settings.pointsPer100Taka[userTier];
             const pointsEarned = Math.floor(saleData.totalAmount / 100) * pointsRate;
             
             if (pointsEarned > 0) {
@@ -94,8 +97,8 @@ export async function POST(request: NextRequest) {
 
             const newTotalSpent = (user.totalSpent || 0) + saleData.totalAmount;
             let newTier = user.membershipTier || 'silver';
-            const goldThreshold = settings.tierThresholds?.gold ?? 5000;
-            const platinumThreshold = settings.tierThresholds?.platinum ?? 15000;
+            const goldThreshold = settings.tierThresholds.gold;
+            const platinumThreshold = settings.tierThresholds.platinum;
 
             if (newTotalSpent >= platinumThreshold && newTier !== 'platinum') newTier = 'platinum';
             else if (newTotalSpent >= goldThreshold && newTier === 'silver') newTier = 'gold';
