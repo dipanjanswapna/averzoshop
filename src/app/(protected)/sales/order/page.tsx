@@ -138,7 +138,7 @@ export default function SalesOrderPage() {
         let promoDiscountAmount = 0;
         if (appliedCoupon) {
             const eligibleItems = cart.filter(item => {
-                if (item.isPreOrder) return false;
+                if (item.product.preOrder?.enabled) return false;
                 if (!appliedCoupon.applicableProducts || appliedCoupon.applicableProducts.length === 0) return true;
                 return appliedCoupon.applicableProducts.includes(item.product.id);
             });
@@ -552,6 +552,23 @@ export default function SalesOrderPage() {
                             </div>
                             <Button variant="ghost" size="sm" onClick={handleClearCustomer}><ArrowLeft className="mr-2 h-4 w-4"/>Change</Button>
                         </CardHeader>
+                        <CardContent className="pt-0 text-xs space-y-1">
+                            <Separator className="mb-2" />
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Tier:</span>
+                                <span className="font-bold capitalize">{selectedCustomer.membershipTier || 'Silver'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-muted-foreground">Points:</span>
+                                <span className="font-bold">{selectedCustomer.loyaltyPoints || 0}</span>
+                            </div>
+                            {selectedCustomer.cardPromoDiscount > 0 && (
+                                <div className="flex justify-between text-blue-600">
+                                    <span className="font-bold">Card Promo:</span>
+                                    <span className="font-bold">{selectedCustomer.cardPromoDiscount}% OFF</span>
+                                </div>
+                            )}
+                        </CardContent>
                     </Card>
                     
                     <Card className="flex-1 flex flex-col shadow-lg">
