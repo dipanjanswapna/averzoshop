@@ -148,8 +148,9 @@ export function PremiumCard({ userData }: { userData: UserData }) {
               {/* Magnetic stripe */}
               <div className="w-full h-12 bg-black mt-4" />
 
-              <div className="px-6 py-3 flex-1 flex flex-col">
-                  <div className="border border-white/20 rounded-lg p-3 text-[10px] opacity-90 space-y-2">
+              <div className="px-6 py-2 flex-1 flex flex-col justify-between">
+                <div>
+                  <div className="border border-white/20 rounded-lg p-2 text-[10px] opacity-90 space-y-1">
                       <div className="grid grid-cols-2 gap-x-4">
                           <div>
                               <p className="font-bold text-[8px] uppercase opacity-60 tracking-widest">Email</p>
@@ -167,30 +168,31 @@ export function PremiumCard({ userData }: { userData: UserData }) {
                           </div>
                       )}
                   </div>
+                </div>
 
-                  <div className="flex-grow" />
+                <div>
+                    {/* Barcode and UID */}
+                    <div className="flex flex-col items-center justify-center gap-1">
+                        <div className="bg-white p-1.5 rounded-md shadow-inner cursor-pointer" onClick={handleBarcodeClick}>
+                            <Barcode value={userData.uid} height={20} width={1.2} displayValue={false} background="transparent" lineColor={barcodeColor} />
+                        </div>
+                        <p className="text-[7px] opacity-70 font-mono tracking-widest">{userData.uid}</p>
+                    </div>
 
-                  {/* Barcode and UID */}
-                  <div className="flex flex-col items-center justify-center gap-1">
-                      <div className="bg-white p-1.5 rounded-md shadow-inner cursor-pointer" onClick={handleBarcodeClick}>
-                          <Barcode value={userData.uid} height={30} width={1} displayValue={false} background="transparent" lineColor={barcodeColor} />
-                      </div>
-                      <p className="text-[7px] opacity-70 font-mono tracking-widest">{userData.uid}</p>
-                  </div>
-
-                  {/* NFC and Footer text */}
-                  <div className="flex flex-col items-center justify-center mt-2">
-                      <div 
-                          className={cn("w-10 h-6 flex items-center justify-center rounded-md cursor-pointer transition-all", s.hologram)}
-                          onClick={handleNfcWrite}
-                          title="Write to NFC Tag"
-                      >
-                          {isWritingNfc ? <Loader2 size={16} className="animate-spin" /> : <Nfc size={16} className="opacity-70" />}
-                      </div>
-                      <p className="text-center text-[9px] opacity-70 mt-1">
-                          If found, please return to any Averzo outlet. This card is non-transferable.
-                      </p>
-                  </div>
+                    {/* NFC and Footer text */}
+                    <div className="flex flex-col items-center justify-center mt-1">
+                        <div 
+                            className={cn("w-8 h-5 flex items-center justify-center rounded-md cursor-pointer transition-all", s.hologram)}
+                            onClick={handleNfcWrite}
+                            title="Write to NFC Tag"
+                        >
+                            {isWritingNfc ? <Loader2 size={12} className="animate-spin" /> : <Nfc size={12} className="opacity-70" />}
+                        </div>
+                        <p className="text-center text-[8px] opacity-70 mt-1">
+                            If found, please return to any Averzo outlet. This card is non-transferable.
+                        </p>
+                    </div>
+                </div>
               </div>
           </div>
         </motion.div>
