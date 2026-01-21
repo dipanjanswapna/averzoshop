@@ -64,6 +64,12 @@ export function PrintableReceipt({ sale, outletId }: PrintableReceiptProps) {
 
             <div className="text-[10px] space-y-0.5 border-t border-dashed mt-2 pt-2">
                 <div className="flex justify-between"><span>Subtotal:</span><span>৳{sale.subtotal.toFixed(2)}</span></div>
+                {sale.cardPromoDiscountAmount > 0 && (
+                    <div className="flex justify-between">
+                        <span>Card Discount:</span>
+                        <span>- ৳{sale.cardPromoDiscountAmount.toFixed(2)}</span>
+                    </div>
+                )}
                 {sale.discountAmount > 0 && (
                     <div className="flex justify-between">
                         <span>Promo Discount ({sale.promoCode}):</span>

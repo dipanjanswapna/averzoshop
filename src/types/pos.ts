@@ -1,4 +1,3 @@
-
 import { Timestamp } from "firebase/firestore";
 
 export interface POSSaleItem {
@@ -28,5 +27,3 @@ export interface POSSale {
 }
 
   
-
-    
