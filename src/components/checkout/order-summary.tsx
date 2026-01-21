@@ -19,7 +19,7 @@ export function CheckoutOrderSummary() {
   const { 
     items, discount, promoCode, pointsApplied, pointsDiscount, shippingInfo, totalPayable,
     regularItemsSubtotal, preOrderItemsSubtotal, preOrderDepositPayable,
-    cardPromoDiscountAmount
+    cardPromoDiscountAmount, fullOrderTotal, isPartialPayment
   } = useCart(state => ({
     items: state.items,
     discount: state.discount,
@@ -32,6 +32,8 @@ export function CheckoutOrderSummary() {
     preOrderItemsSubtotal: state.preOrderItemsSubtotal,
     preOrderDepositPayable: state.preOrderDepositPayable,
     cardPromoDiscountAmount: state.cardPromoDiscountAmount,
+    fullOrderTotal: state.fullOrderTotal,
+    isPartialPayment: state.isPartialPayment,
   }));
 
   const applyPromoCode = useCart(state => state.applyPromoCode);
@@ -48,7 +50,7 @@ export function CheckoutOrderSummary() {
   const [pointsToUseInput, setPointsToUseInput] = useState('');
   const [potentialPointsDiscount, setPotentialPointsDiscount] = useState(0);
 
-  const pointValue = 0.20; // 1 point = 0.20 BDT
+  const pointValue = 0.20; // This should ideally come from settings
   const availablePoints = userData?.loyaltyPoints || 0;
 
   const hasPreOrderItems = useMemo(() => items.some(item => item.isPreOrder), [items]);
@@ -169,50 +171,52 @@ export function CheckoutOrderSummary() {
         <Separator />
         
         <div className="space-y-2 text-sm">
-            {hasRegularItems && (
-              <div className="space-y-2 py-2">
-                <p className="font-bold text-muted-foreground">Regular Items</p>
-                <div className="flex justify-between">
-                    <span>Subtotal</span>
-                    <span>৳{regularItemsSubtotal.toFixed(2)}</span>
+            <div className="flex justify-between">
+              <span>Subtotal</span>
+              <span className="font-medium">৳{fullOrderTotal.toFixed(2)}</span>
+            </div>
+
+            {cardPromoDiscountAmount > 0 && (
+                <div className="flex justify-between text-green-600">
+                    <span className="font-medium pl-4">↳ Card Promo</span>
+                    <span>- ৳{cardPromoDiscountAmount.toFixed(2)}</span>
                 </div>
-                {cardPromoDiscountAmount > 0 && (
-                    <div className="flex justify-between text-green-600">
-                        <span className="font-medium">Card Promo ({userData?.cardPromoDiscount}%)</span>
-                        <span>- ৳{cardPromoDiscountAmount.toFixed(2)}</span>
-                    </div>
-                )}
-                {discount > 0 && (
-                    <div className="flex justify-between text-green-600">
-                        <span className="font-medium">Coupon ({promoCode?.code})</span>
-                        <span>- ৳{discount.toFixed(2)}</span>
-                    </div>
-                )}
-                 <div className="flex justify-between font-medium border-t pt-2 mt-1">
-                    <span>Payable for regular items</span>
-                    <span>৳{(regularItemsSubtotal - cardPromoDiscountAmount - discount).toFixed(2)}</span>
+            )}
+
+            {discount > 0 && (
+                <div className="flex justify-between text-green-600">
+                    <span className="font-medium pl-4">↳ Coupon ({promoCode?.code})</span>
+                    <span>- ৳{discount.toFixed(2)}</span>
                 </div>
-              </div>
+            )}
+
+            {pointsDiscount > 0 && (
+                <div className="flex justify-between text-green-600">
+                    <span className="font-medium pl-4">↳ Loyalty Points</span>
+                    <span>- ৳{pointsDiscount.toFixed(2)}</span>
+                </div>
             )}
             
-            {hasPreOrderItems && hasRegularItems && <Separator />}
-
-            {hasPreOrderItems && (
-              <div className="space-y-2 py-2">
-                 <p className="font-bold text-muted-foreground">Pre-order Items</p>
-                <div className="flex justify-between">
-                    <span>Total Value</span>
-                    <span>৳{preOrderItemsSubtotal.toFixed(2)}</span>
+            <div className="flex justify-between pt-2 border-t">
+                <span>Shipping Fee</span>
+                <span className="font-medium">{shippingInfo.fee > 0 ? `৳${shippingInfo.fee.toFixed(2)}` : 'Free'}</span>
+            </div>
+             {shippingInfo.estimate && (
+                <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Estimated Delivery</span>
+                    <span>{shippingInfo.estimate}</span>
                 </div>
-                <div className="flex justify-between font-medium text-primary border-t pt-2 mt-1">
-                    <span>Deposit Payable Now</span>
-                    <span>৳{preOrderDepositPayable.toFixed(2)}</span>
-                </div>
-                 <p className='text-xs text-blue-600 mt-2'>The remaining amount for pre-orders is due upon fulfillment.</p>
-              </div>
+            )}
+            <Separator />
+            <div className="flex justify-between font-bold text-lg">
+              <span>Total Payable Today</span>
+              <span>৳{totalPayable.toFixed(2)}</span>
+            </div>
+            {isPartialPayment && (
+                <p className="text-xs text-muted-foreground text-right">Full order value: ৳{fullOrderTotal.toFixed(2)}</p>
             )}
         </div>
-
+        
         <Separator />
         
         <div className="space-y-2">
@@ -271,32 +275,11 @@ export function CheckoutOrderSummary() {
             </div>
         )}
          
-        <Separator />
-        <div className="space-y-2 text-sm">
-            {pointsDiscount > 0 && (
-                 <div className="flex justify-between text-green-600">
-                    <span className="font-medium">Loyalty Points</span>
-                    <span>- ৳{pointsDiscount.toFixed(2)}</span>
-                </div>
-            )}
-            <div className="flex justify-between">
-                <span>Shipping Fee</span>
-                <span className="font-medium">{shippingInfo.fee > 0 ? `৳${shippingInfo.fee.toFixed(2)}` : 'Free'}</span>
-            </div>
-             {shippingInfo.estimate && (
-                <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Estimated Delivery</span>
-                    <span>{shippingInfo.estimate}</span>
-                </div>
-            )}
-            <div className="flex justify-between font-bold text-lg pt-2 border-t">
-              <span>Total Payable Today</span>
-              <span>৳{totalPayable.toFixed(2)}</span>
-            </div>
-        </div>
       </CardContent>
     </Card>
   );
 }
+
+    
 
     

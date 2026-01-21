@@ -173,27 +173,23 @@ const CartPanel = ({
                         <span>৳{cartSubtotal.toFixed(2)}</span>
                     </div>
 
-                    {(cardPromoDiscountAmount > 0 || discountAmount > 0 || pointsDiscount > 0) && (
-                      <div className="py-2 space-y-1">
-                        {cardPromoDiscountAmount > 0 && (
-                            <div className="flex justify-between text-green-600">
-                                <span className='font-medium'>Card Promo ({selectedCustomer?.cardPromoDiscount}%)</span>
-                                <span>- ৳{cardPromoDiscountAmount.toFixed(2)}</span>
-                            </div>
-                        )}
-                        {discountAmount > 0 && (
-                            <div className="flex justify-between text-green-600">
-                                <span className='font-medium'>Coupon ({appliedCoupon?.code})</span>
-                                <span>- ৳{discountAmount.toFixed(2)}</span>
-                            </div>
-                        )}
-                        {pointsDiscount > 0 && (
-                             <div className="flex justify-between text-green-600">
-                                <span className='font-medium'>Loyalty Points</span>
-                                <span>- ৳{pointsDiscount.toFixed(2)}</span>
-                            </div>
-                        )}
-                      </div>
+                    {cardPromoDiscountAmount > 0 && (
+                        <div className="flex justify-between text-green-600">
+                            <span className='font-medium'>↳ Card Promo ({selectedCustomer?.cardPromoDiscount}%)</span>
+                            <span>- ৳{cardPromoDiscountAmount.toFixed(2)}</span>
+                        </div>
+                    )}
+                    {discountAmount > 0 && (
+                        <div className="flex justify-between text-green-600">
+                            <span className='font-medium'>↳ Coupon ({appliedCoupon?.code})</span>
+                            <span>- ৳{discountAmount.toFixed(2)}</span>
+                        </div>
+                    )}
+                    {pointsDiscount > 0 && (
+                         <div className="flex justify-between text-green-600">
+                            <span className='font-medium'>↳ Loyalty Points</span>
+                            <span>- ৳{pointsDiscount.toFixed(2)}</span>
+                        </div>
                     )}
 
                      <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2">
@@ -480,8 +476,18 @@ export default function POSPage() {
         if (appliedCoupon) {
             const eligibleItems = cart.filter(item => {
                 if (item.isPreOrder) return false;
-                if (!appliedCoupon.applicableProducts || appliedCoupon.applicableProducts.length === 0) return true;
-                return appliedCoupon.applicableProducts.includes(item.product.id);
+                if (appliedCoupon.creatorType === 'admin') {
+                    if (!appliedCoupon.applicableProducts || appliedCoupon.applicableProducts.length === 0) return true;
+                    return appliedCoupon.applicableProducts.includes(item.product.id);
+                }
+                if (appliedCoupon.creatorType === 'vendor') {
+                    if (item.product.vendorId !== appliedCoupon.creatorId) {
+                        return false; 
+                    }
+                    if (!appliedCoupon.applicableProducts || appliedCoupon.applicableProducts.length === 0) return true;
+                    return appliedCoupon.applicableProducts.includes(item.product.id);
+                }
+                return false;
             });
             if (eligibleItems.length > 0) {
                 const eligibleSubtotal = eligibleItems.reduce((acc, item) => acc + (item.variant.price * item.quantity), 0);
@@ -741,7 +747,11 @@ export default function POSPage() {
     const changeDue = cashReceived - grandTotal;
 
     const handleApplyPromo = async () => {
-        if (!promoCodeInput.trim() || !firestore || isPreOrderCart) return;
+        if (!promoCodeInput.trim() || !firestore) return;
+        if (isPreOrderCart) {
+            toast({ variant: 'destructive', title: 'Not Applicable', description: 'Promo codes cannot be applied to pre-orders.' });
+            return;
+        }
         setIsApplyingPromo(true);
     
         const code = promoCodeInput.trim().toUpperCase();
@@ -767,15 +777,16 @@ export default function POSPage() {
     
             const eligibleItems = cart.filter(item => {
                 if (item.isPreOrder) return false;
-                
                 if (coupon.creatorType === 'admin') {
-                    return !coupon.applicableProducts || coupon.applicableProducts.length === 0 || coupon.applicableProducts.includes(item.product.id);
+                    if (!coupon.applicableProducts || coupon.applicableProducts.length === 0) return true;
+                    return coupon.applicableProducts.includes(item.product.id);
                 }
                 if (coupon.creatorType === 'vendor') {
                     if (item.product.vendorId !== coupon.creatorId) {
                         return false; 
                     }
-                    return !coupon.applicableProducts || coupon.applicableProducts.length === 0 || coupon.applicableProducts.includes(item.product.id);
+                    if (!coupon.applicableProducts || coupon.applicableProducts.length === 0) return true;
+                    return coupon.applicableProducts.includes(item.product.id);
                 }
                 return false;
             });
@@ -1000,3 +1011,5 @@ export default function POSPage() {
         </>
     );
 }
+
+    
