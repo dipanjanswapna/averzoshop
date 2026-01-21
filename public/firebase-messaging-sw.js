@@ -1,28 +1,31 @@
-// This file must be in the public folder.
+// This file must be in the public directory
+importScripts('https://www.gstatic.com/firebasejs/11.9.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/11.9.1/firebase-messaging-compat.js');
 
-importScripts("https://www.gstatic.com/firebasejs/10.9.0/firebase-app-compat.js");
-importScripts("https://www.gstatic.com/firebasejs/10.9.0/firebase-messaging-compat.js");
+const urlParams = new URLSearchParams(location.search);
+const firebaseConfigParam = urlParams.get('firebaseConfig');
 
-self.addEventListener('fetch', () => {
-  const urlParams = new URLSearchParams(location.search);
-  self.firebaseConfig = Object.fromEntries(urlParams);
-});
+if (firebaseConfigParam) {
+    try {
+        const firebaseConfig = JSON.parse(firebaseConfigParam);
+        if (firebaseConfig) {
+            firebase.initializeApp(firebaseConfig);
 
-const app = firebase.initializeApp(self.firebaseConfig);
-const messaging = firebase.messaging(app);
+            const messaging = firebase.messaging();
 
+            messaging.onBackgroundMessage(function(payload) {
+                console.log('Received background message ', payload);
 
-messaging.onBackgroundMessage((payload) => {
-  console.log(
-    "[firebase-messaging-sw.js] Received background message ",
-    payload
-  );
-  
-  const notificationTitle = payload.notification.title;
-  const notificationOptions = {
-    body: payload.notification.body,
-    icon: payload.notification.image || '/icons/icon-192x192.png'
-  };
+                const notificationTitle = payload.notification.title;
+                const notificationOptions = {
+                    body: payload.notification.body,
+                    icon: '/icons/icon-192x192.png'
+                };
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
-});
+                self.registration.showNotification(notificationTitle, notificationOptions);
+            });
+        }
+    } catch (e) {
+        console.error('Error parsing Firebase config in service worker:', e);
+    }
+}
