@@ -49,3 +49,31 @@ export async function adjustUserPoints(userId: string, pointsChange: number, rea
     return { success: false, message: error.message || 'An unexpected error occurred.' };
   }
 }
+
+
+export async function setCardPromoDiscount(userId: string, discount: number): Promise<AdjustPointsResult> {
+  if (!userId) {
+    return { success: false, message: 'User ID is required.' };
+  }
+  if (typeof discount !== 'number' || discount < 0 || discount > 100) {
+      return { success: false, message: 'Discount must be a number between 0 and 100.' };
+  }
+
+  try {
+    getFirebaseAdminApp();
+    const db = firestore();
+    const userRef = db.collection('users').doc(userId);
+
+    await userRef.update({
+        cardPromoDiscount: discount
+    });
+
+    revalidatePath('/dashboard/users');
+    revalidatePath(`/customer/subscription`); // Revalidate card page
+
+    return { success: true, message: 'Card promo discount updated successfully.' };
+  } catch (error: any) {
+    console.error("Error setting card promo discount:", error);
+    return { success: false, message: error.message || 'An unexpected error occurred.' };
+  }
+}

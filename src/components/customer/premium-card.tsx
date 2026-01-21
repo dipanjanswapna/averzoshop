@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import type { UserData } from '@/types/user';
-import { Nfc, QrCode, Loader2, Mail, Phone } from 'lucide-react';
+import { Nfc, QrCode, Loader2, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Barcode from 'react-barcode';
 import { BarcodePopup } from './barcode-popup';
@@ -31,6 +31,7 @@ export function PremiumCard({ userData }: { userData: UserData }) {
     displayName: userData.displayName || "Not Set",
     memberSince: userData.createdAt?.toDate ? (userData.createdAt.toDate().getMonth() + 1).toString().padStart(2, '0') + '/' + userData.createdAt.toDate().getFullYear().toString().slice(-2) : "N/A",
     validThru: userData.createdAt?.toDate ? `${(userData.createdAt.toDate().getMonth() + 1).toString().padStart(2, '0')}/${(userData.createdAt.toDate().getFullYear() + 4).toString().slice(-2)}` : "N/A",
+    promoDiscount: userData.cardPromoDiscount,
   };
 
   const tier = userData.membershipTier || 'silver';
@@ -117,11 +118,20 @@ export function PremiumCard({ userData }: { userData: UserData }) {
                   </Button>
               </div>
 
-              <div className="space-y-2 z-10">
+               <div className="z-10">
+                  {cardData.promoDiscount && cardData.promoDiscount > 0 && (
+                    <div className="mb-2 text-left">
+                        <p className="text-[7px] uppercase font-bold opacity-70 tracking-widest">Special Promo</p>
+                        <div className="flex items-center gap-1 font-mono text-sm tracking-wider bg-black/10 px-2 py-0.5 rounded-md w-fit">
+                            <Zap size={12} className="text-yellow-300"/>
+                            <span>SAVE {cardData.promoDiscount}%</span>
+                        </div>
+                    </div>
+                  )}
                   <div className="w-10 h-7 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-md flex items-center justify-center shadow-inner-lg border border-yellow-200/50">
                       <div className="w-8 h-5 bg-yellow-100 rounded-sm" />
                   </div>
-                  <p className="font-mono text-xl tracking-wider opacity-90">{cardData.cardNumber}</p>
+                  <p className="font-mono text-xl tracking-wider opacity-90 mt-2">{cardData.cardNumber}</p>
               </div>
 
               <div className="flex justify-between items-end z-10">
@@ -142,28 +152,27 @@ export function PremiumCard({ userData }: { userData: UserData }) {
           
           {/* BACK SIDE */}
           <div 
-            className={cn(`absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-2xl shadow-2xl flex flex-col justify-between cursor-pointer overflow-hidden bg-gradient-to-br border`, s.gradient, s.text, s.border)} 
+            className={cn(`absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-2xl shadow-2xl flex flex-col justify-around cursor-pointer overflow-hidden bg-gradient-to-br border`, s.gradient, s.text, s.border)} 
             onClick={() => setIsFlipped(!isFlipped)}
           >
-              {/* Magnetic stripe */}
-              <div className="w-full h-10 bg-black mt-2 shrink-0" />
+              <div className="w-full h-10 bg-black shrink-0" />
 
-              <div className="px-4 py-2 flex-1 flex flex-col justify-between">
-                <div className="border border-white/20 rounded-lg p-2 text-[9px] opacity-90 space-y-0.5">
+              <div className="px-4 flex-1 flex flex-col justify-around">
+                <div className="border border-white/20 rounded-lg p-2 text-[8px] opacity-90 space-y-0.5">
                     <div className="grid grid-cols-2 gap-x-2">
                         <div>
                             <p className="font-bold text-[6px] uppercase opacity-60 tracking-widest">Email</p>
-                            <p className="text-[7px] truncate">{userData.email || 'N/A'}</p>
+                            <p className="truncate">{userData.email || 'N/A'}</p>
                         </div>
                         <div>
                             <p className="font-bold text-[6px] uppercase opacity-60 tracking-widest">Phone</p>
-                            <p className="text-[7px] truncate">{userData.phone || 'N/A'}</p>
+                            <p className="truncate">{userData.phone || 'N/A'}</p>
                         </div>
                     </div>
                     {primaryAddress && (
                         <div>
                             <p className="font-bold text-[6px] uppercase opacity-60 tracking-widest">Address</p>
-                            <p className="text-[7px]">{primaryAddress.streetAddress}, {primaryAddress.area}, {primaryAddress.district}</p>
+                            <p className="truncate">{primaryAddress.streetAddress}, {primaryAddress.area}, {primaryAddress.district}</p>
                         </div>
                     )}
                 </div>
@@ -171,14 +180,14 @@ export function PremiumCard({ userData }: { userData: UserData }) {
                 <div className="space-y-1">
                     <div className="flex flex-col items-center justify-center">
                         <div className="bg-white p-1 rounded-md shadow-inner cursor-pointer" onClick={handleBarcodeClick}>
-                            <Barcode value={userData.uid} height={16} width={0.9} displayValue={false} background="transparent" lineColor={barcodeColor} />
+                            <Barcode value={userData.uid} height={14} width={0.8} displayValue={false} background="transparent" lineColor={barcodeColor} />
                         </div>
-                        <p className="text-[5px] opacity-70 font-mono tracking-wider">{userData.uid}</p>
+                        <p className="text-[5px] opacity-70 font-mono tracking-wider mt-0.5">{userData.uid}</p>
                     </div>
 
                     <div className="flex flex-col items-center justify-center">
                         <div 
-                            className={cn("w-8 h-5 flex items-center justify-center rounded-md cursor-pointer transition-all", s.hologram)}
+                            className={cn("w-6 h-5 flex items-center justify-center rounded-md cursor-pointer transition-all", s.hologram)}
                             onClick={handleNfcWrite}
                             title="Write to NFC Tag"
                         >

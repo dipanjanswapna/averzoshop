@@ -43,6 +43,7 @@ import { AddUserDialog } from '@/components/dashboard/add-user-dialog';
 import { AssignSalesRepDialog } from '@/components/dashboard/assign-sales-rep-dialog';
 import { AdjustPointsDialog } from '@/components/dashboard/adjust-points-dialog';
 import { cn } from '@/lib/utils';
+import { SetCardPromoDialog } from '@/components/dashboard/set-card-promo-dialog';
 
 
 export default function UsersPage() {
@@ -59,6 +60,8 @@ export default function UsersPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<UserData | null>(null);
   const [isAdjustPointsDialogOpen, setIsAdjustPointsDialogOpen] = useState(false);
   const [selectedUserForPoints, setSelectedUserForPoints] = useState<UserData | null>(null);
+  const [isSetPromoDialogOpen, setIsSetPromoDialogOpen] = useState(false);
+  const [selectedUserForPromo, setSelectedUserForPromo] = useState<UserData | null>(null);
 
 
   const handleStatusChange = async (uid: string, newStatus: 'approved' | 'rejected') => {
@@ -93,6 +96,11 @@ export default function UsersPage() {
   const handleAdjustPointsClick = (user: UserData) => {
     setSelectedUserForPoints(user);
     setIsAdjustPointsDialogOpen(true);
+  };
+
+  const handleSetPromoClick = (user: UserData) => {
+    setSelectedUserForPromo(user);
+    setIsSetPromoDialogOpen(true);
   };
 
   const salesRepMap = useMemo(() => {
@@ -261,6 +269,9 @@ export default function UsersPage() {
                                <DropdownMenuItem onClick={() => handleAdjustPointsClick(user)}>
                                 Adjust Points
                               </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleSetPromoClick(user)}>
+                                Set Card Promo
+                              </DropdownMenuItem>
                                {user.role === 'customer' && (
                                 <>
                                   <DropdownMenuSeparator />
@@ -350,6 +361,9 @@ export default function UsersPage() {
                                      <DropdownMenuItem onClick={() => handleAdjustPointsClick(user)}>
                                         Adjust Points
                                     </DropdownMenuItem>
+                                     <DropdownMenuItem onClick={() => handleSetPromoClick(user)}>
+                                      Set Card Promo
+                                    </DropdownMenuItem>
                                      {user.role === 'customer' && (
                                         <>
                                         <DropdownMenuSeparator />
@@ -418,6 +432,13 @@ export default function UsersPage() {
             open={isAdjustPointsDialogOpen}
             onOpenChange={setIsAdjustPointsDialogOpen}
             user={selectedUserForPoints}
+        />
+    )}
+    {selectedUserForPromo && (
+        <SetCardPromoDialog
+            open={isSetPromoDialogOpen}
+            onOpenChange={setIsSetPromoDialogOpen}
+            user={selectedUserForPromo}
         />
     )}
     </>

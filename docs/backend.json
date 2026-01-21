@@ -34,7 +34,8 @@
         "loyaltyPoints": { "type": "number", "description": "The user's current loyalty point balance." },
         "totalSpent": { "type": "number", "description": "The total amount of money spent by the user." },
         "membershipTier": { "type": "string", "enum": ["silver", "gold", "platinum"], "description": "The user's membership level." },
-        "managedBy": { "type": "string", "description": "The ID of the sales rep managing this customer." }
+        "managedBy": { "type": "string", "description": "The ID of the sales rep managing this customer." },
+        "cardPromoDiscount": { "type": "number", "description": "A special, admin-assigned discount percentage associated with the user's membership card." }
       },
       "required": ["uid", "email", "role", "status"]
     },
@@ -504,5 +505,3 @@
     "/settings/loyalty": { "schema": { "$ref": "#/entities/loyalty_settings" }, "description": "Stores the global settings for the loyalty program." }
   }
 }
-
-    

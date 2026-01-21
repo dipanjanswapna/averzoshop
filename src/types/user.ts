@@ -19,6 +19,5 @@ export interface UserData {
   phone?: string;
   fcmTokens?: string[];
   managedBy?: string;
+  cardPromoDiscount?: number;
 }
-
-    

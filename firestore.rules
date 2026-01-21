@@ -21,8 +21,8 @@ service cloud.firestore {
                       || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'sales' && request.resource.data.managedBy == request.auth.uid);
 
       allow update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' 
-                    || (request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'status', 'loyaltyPoints', 'membershipTier', 'totalSpent', 'outletId', 'managedBy']))
-                    || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'sales' && resource.data.managedBy == request.auth.uid && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'status', 'managedBy']));
+                    || (request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'status', 'loyaltyPoints', 'membershipTier', 'totalSpent', 'outletId', 'managedBy', 'cardPromoDiscount']))
+                    || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'sales' && resource.data.managedBy == request.auth.uid && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'status', 'managedBy', 'cardPromoDiscount']));
     }
 
 
