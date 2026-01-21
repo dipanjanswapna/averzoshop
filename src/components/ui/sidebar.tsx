@@ -206,10 +206,6 @@ const Sidebar = React.forwardRef<
             }
             side={side}
           >
-            <SheetHeader className="p-4 border-b">
-              <SheetTitle>Menu</SheetTitle>
-              <SheetDescription>Select a page to navigate to.</SheetDescription>
-            </SheetHeader>
             <div className="flex h-full w-full flex-col">{children}</div>
           </SheetContent>
         </Sheet>
