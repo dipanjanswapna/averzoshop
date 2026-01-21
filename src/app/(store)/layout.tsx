@@ -9,6 +9,7 @@ import { CartExpirationChecker } from '@/components/cart/cart-expiration-checker
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
+import { LiveSearch } from '@/components/live-search';
 
 export default function StoreLayout({
   children,
@@ -20,7 +21,12 @@ export default function StoreLayout({
     <div className="flex min-h-screen flex-col bg-background text-foreground font-body">
       <AverzoNavbar />
       <CartExpirationChecker />
-      <main className="flex-1 pt-[68px] lg:pt-[108px] pb-24 lg:pb-0">{children}</main>
+      <main className="flex-1 pt-[68px] lg:pt-[108px] pb-24 lg:pb-0">
+        <div className="p-4 border-b md:hidden bg-background sticky top-[68px] z-40">
+            <LiveSearch />
+        </div>
+        {children}
+      </main>
       
       <footer className="hidden bg-secondary text-secondary-foreground lg:block">
         <div className="container py-16">

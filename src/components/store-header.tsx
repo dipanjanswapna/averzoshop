@@ -172,9 +172,6 @@ export default function AverzoNavbar() {
         </div>
 
         <div className="flex items-center gap-2 md:gap-3">
-            <div className="md:hidden">
-              <LiveSearch trigger={<Button variant="ghost" size="icon" className="h-9 w-9"><Search size={22} /></Button>} />
-            </div>
             <Button
               variant="ghost"
               size="icon"
