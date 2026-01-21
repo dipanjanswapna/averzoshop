@@ -148,7 +148,7 @@ export function PremiumCard({ userData }: { userData: UserData }) {
               {/* Magnetic stripe */}
               <div className="w-full h-10 bg-black mt-2 shrink-0" />
 
-              <div className="px-4 py-1 flex-1 flex flex-col justify-around">
+              <div className="px-4 py-2 flex-1 flex flex-col justify-between">
                 <div>
                   <div className="border border-white/20 rounded-lg p-2 text-[10px] opacity-90 space-y-0.5">
                     <div className="grid grid-cols-2 gap-x-2">
@@ -171,16 +171,14 @@ export function PremiumCard({ userData }: { userData: UserData }) {
                 </div>
 
                 <div className="space-y-1">
-                    {/* Barcode and UID */}
                     <div className="flex flex-col items-center justify-center">
                         <div className="bg-white p-1 rounded-md shadow-inner cursor-pointer" onClick={handleBarcodeClick}>
-                            <Barcode value={userData.uid} height={20} width={1} displayValue={false} background="transparent" lineColor={barcodeColor} />
+                            <Barcode value={userData.uid} height={18} width={1} displayValue={false} background="transparent" lineColor={barcodeColor} />
                         </div>
                         <p className="text-[6px] opacity-70 font-mono tracking-wider">{userData.uid}</p>
                     </div>
 
-                    {/* NFC and Footer text */}
-                    <div className="flex flex-col items-center justify-center mt-0.5">
+                    <div className="flex flex-col items-center justify-center">
                         <div 
                             className={cn("w-8 h-5 flex items-center justify-center rounded-md cursor-pointer transition-all", s.hologram)}
                             onClick={handleNfcWrite}
@@ -188,7 +186,7 @@ export function PremiumCard({ userData }: { userData: UserData }) {
                         >
                             {isWritingNfc ? <Loader2 size={12} className="animate-spin" /> : <Nfc size={12} className="opacity-70" />}
                         </div>
-                        <p className="text-center text-[7px] opacity-70 mt-0.5 leading-tight">
+                        <p className="text-center text-[6px] opacity-70 leading-tight">
                             If found, please return to any Averzo outlet. This card is non-transferable.
                         </p>
                     </div>
