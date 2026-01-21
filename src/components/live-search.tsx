@@ -47,7 +47,7 @@ export function LiveSearch() {
     return products
       .filter((product) =>
         product.name.toLowerCase().includes(debouncedQuery.toLowerCase()) ||
-        product.brand.toLowerCase().includes(debouncedQuery.toLowerCase()) ||
+        (product.brand && product.brand.toLowerCase().includes(debouncedQuery.toLowerCase())) ||
         product.category.toLowerCase().includes(debouncedQuery.toLowerCase())
       )
       .slice(0, 5); // Limit results for performance

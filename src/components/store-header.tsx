@@ -11,6 +11,7 @@ import { useCart } from '@/hooks/use-cart';
 import { NotificationBell } from '@/components/ui/notification-bell';
 import { useTheme } from '@/components/providers';
 import { Input } from './ui/input';
+import { LiveSearch } from './live-search';
 
 
 const NestedAccordion = ({ category, onClose }: { category: any, onClose: () => void }) => {
@@ -123,19 +124,10 @@ export default function AverzoNavbar() {
   const { items } = useCart();
   const [isMounted, setIsMounted] = useState(false);
   const { theme, setTheme } = useTheme();
-  const [searchTerm, setSearchTerm] = useState('');
-  const router = useRouter();
-
+  
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!searchTerm.trim()) return;
-    router.push(`/shop?q=${encodeURIComponent(searchTerm.trim())}`);
-    setSearchTerm('');
-  };
   
   const createQueryString = (params: Record<string, string>) => {
     const searchParams = new URLSearchParams();
@@ -177,15 +169,7 @@ export default function AverzoNavbar() {
         </div>
 
         <div className="flex-1 max-w-lg relative hidden md:block">
-            <form onSubmit={handleSearchSubmit}>
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input 
-                    placeholder="Search products, brands, and categories..."
-                    className="pl-10 h-10"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
-            </form>
+            <LiveSearch />
         </div>
 
         <div className="flex items-center gap-2 md:gap-5">
