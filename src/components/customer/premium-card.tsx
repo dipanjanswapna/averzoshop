@@ -146,41 +146,41 @@ export function PremiumCard({ userData }: { userData: UserData }) {
             onClick={() => setIsFlipped(!isFlipped)}
           >
               {/* Magnetic stripe */}
-              <div className="w-full h-12 bg-black mt-4" />
+              <div className="w-full h-10 bg-black mt-2 shrink-0" />
 
-              <div className="px-6 py-2 flex-1 flex flex-col justify-between">
+              <div className="px-4 py-1 flex-1 flex flex-col justify-around">
                 <div>
-                  <div className="border border-white/20 rounded-lg p-2 text-[10px] opacity-90 space-y-1">
-                      <div className="grid grid-cols-2 gap-x-4">
-                          <div>
-                              <p className="font-bold text-[8px] uppercase opacity-60 tracking-widest">Email</p>
-                              <p className="text-[9px] truncate">{userData.email || 'N/A'}</p>
-                          </div>
-                          <div>
-                              <p className="font-bold text-[8px] uppercase opacity-60 tracking-widest">Phone</p>
-                              <p className="text-[9px] truncate">{userData.phone || 'N/A'}</p>
-                          </div>
-                      </div>
-                      {primaryAddress && (
-                          <div className="mt-1">
-                              <p className="font-bold text-[8px] uppercase opacity-60 tracking-widest">Address</p>
-                              <p className="text-[9px]">{primaryAddress.streetAddress}, {primaryAddress.area}, {primaryAddress.district}</p>
-                          </div>
-                      )}
+                  <div className="border border-white/20 rounded-lg p-2 text-[10px] opacity-90 space-y-0.5">
+                    <div className="grid grid-cols-2 gap-x-2">
+                        <div>
+                            <p className="font-bold text-[7px] uppercase opacity-60 tracking-widest">Email</p>
+                            <p className="text-[8px] truncate">{userData.email || 'N/A'}</p>
+                        </div>
+                        <div>
+                            <p className="font-bold text-[7px] uppercase opacity-60 tracking-widest">Phone</p>
+                            <p className="text-[8px] truncate">{userData.phone || 'N/A'}</p>
+                        </div>
+                    </div>
+                    {primaryAddress && (
+                        <div>
+                            <p className="font-bold text-[7px] uppercase opacity-60 tracking-widest">Address</p>
+                            <p className="text-[8px]">{primaryAddress.streetAddress}, {primaryAddress.area}, {primaryAddress.district}</p>
+                        </div>
+                    )}
                   </div>
                 </div>
 
-                <div>
+                <div className="space-y-1">
                     {/* Barcode and UID */}
-                    <div className="flex flex-col items-center justify-center gap-1">
-                        <div className="bg-white p-1.5 rounded-md shadow-inner cursor-pointer" onClick={handleBarcodeClick}>
-                            <Barcode value={userData.uid} height={20} width={1.2} displayValue={false} background="transparent" lineColor={barcodeColor} />
+                    <div className="flex flex-col items-center justify-center">
+                        <div className="bg-white p-1 rounded-md shadow-inner cursor-pointer" onClick={handleBarcodeClick}>
+                            <Barcode value={userData.uid} height={20} width={1} displayValue={false} background="transparent" lineColor={barcodeColor} />
                         </div>
-                        <p className="text-[7px] opacity-70 font-mono tracking-widest">{userData.uid}</p>
+                        <p className="text-[6px] opacity-70 font-mono tracking-wider">{userData.uid}</p>
                     </div>
 
                     {/* NFC and Footer text */}
-                    <div className="flex flex-col items-center justify-center mt-1">
+                    <div className="flex flex-col items-center justify-center mt-0.5">
                         <div 
                             className={cn("w-8 h-5 flex items-center justify-center rounded-md cursor-pointer transition-all", s.hologram)}
                             onClick={handleNfcWrite}
@@ -188,7 +188,7 @@ export function PremiumCard({ userData }: { userData: UserData }) {
                         >
                             {isWritingNfc ? <Loader2 size={12} className="animate-spin" /> : <Nfc size={12} className="opacity-70" />}
                         </div>
-                        <p className="text-center text-[8px] opacity-70 mt-1">
+                        <p className="text-center text-[7px] opacity-70 mt-0.5 leading-tight">
                             If found, please return to any Averzo outlet. This card is non-transferable.
                         </p>
                     </div>
