@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -101,6 +100,22 @@ body {
     -ms-overflow-style: none;  
     scrollbar-width: none;  
   }
+  .hologram-silver {
+    background: linear-gradient(45deg, #aaa, #ddd, #aaa);
+    background-size: 200% 200%;
+    animation: hologram 3s ease infinite;
+  }
+  .hologram-gold {
+      background: linear-gradient(45deg, #f0e68c, #ffd700, #daa520);
+      background-size: 200% 200%;
+      animation: hologram 3s ease infinite;
+  }
+  .hologram-platinum {
+      background: linear-gradient(45deg, #7F7FD5, #86A8E7, #91EAE4);
+      background-size: 200% 200%;
+      animation: hologram 3s ease infinite;
+  }
+  
   @media print {
     body {
         -webkit-print-color-adjust: exact;
@@ -138,5 +153,11 @@ body {
     .no-print {
       display: none !important;
     }
+  }
+
+  @keyframes hologram {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
   }
 }
