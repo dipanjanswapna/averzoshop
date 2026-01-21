@@ -1,10 +1,10 @@
-
 'use client';
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import type { UserData } from '@/types/user';
 import { Nfc } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Barcode from 'react-barcode';
 
 export function PremiumCard({ userData }: { userData: UserData }) {
   const [isFlipped, setIsFlipped] = useState(false);
@@ -89,7 +89,7 @@ export function PremiumCard({ userData }: { userData: UserData }) {
         </div>
         
         {/* BACK SIDE */}
-        <div className={`absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-2xl shadow-2xl flex flex-col cursor-pointer overflow-hidden bg-gradient-to-br ${s.gradient} ${textStyles[tier]} border ${s.border}`}>
+        <div className={`absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-2xl shadow-2xl flex flex-col cursor-pointer overflow-hidden bg-gradient-to-br ${s.gradient} ${s.text} border ${s.border}`}>
             <div className="w-full h-12 bg-black mt-6" />
             <div className="flex items-center gap-4 px-6 mt-4">
                 <div className="w-3/4 h-8 bg-white/80 rounded-md p-1 flex items-center justify-end">
