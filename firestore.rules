@@ -164,5 +164,11 @@ service cloud.firestore {
     match /id_generator/{docId} {
         allow read, write: if false;
     }
+
+    // Settings can be read by anyone, but only written by admins.
+    match /settings/{settingId} {
+        allow read: if true;
+        allow write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
   }
 }

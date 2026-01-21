@@ -1,3 +1,4 @@
+
 'use client';
 import { useMemo, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
@@ -109,14 +110,22 @@ export default function RiderDeliveriesPage() {
     };
 
     const handleMarkDelivered = async (orderId: string) => {
-        if (!firestore) return;
         setUpdatingId(orderId);
-        const orderRef = doc(firestore, 'orders', orderId);
         try {
-            await updateDoc(orderRef, { status: 'delivered' });
+            const response = await fetch('/api/orders/complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId, newStatus: 'delivered' })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || 'Failed to update status.');
+            }
             toast({ title: "Delivery Complete!", description: "Great job on another successful delivery." });
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Failed to update status.' });
+        } catch (error: any) {
+            toast({ variant: 'destructive', title: 'Failed to update status.', description: error.message });
             console.error("Error marking delivered:", error);
         } finally {
             setUpdatingId(null);

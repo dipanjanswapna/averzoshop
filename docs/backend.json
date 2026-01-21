@@ -75,6 +75,23 @@
       },
       "required": ["userId", "pointsChange", "type", "reason", "createdAt"]
     },
+    "loyalty_settings": {
+      "title": "Loyalty Settings",
+      "description": "Configuration for the loyalty points system.",
+      "type": "object",
+      "properties": {
+        "pointsPer100Taka": { "type": "number", "description": "Points earned for every 100 BDT spent." },
+        "pointValueInTaka": { "type": "number", "description": "The value of a single point in BDT." },
+        "tierThresholds": {
+          "type": "object",
+          "properties": {
+            "gold": { "type": "number", "description": "Total spend required to reach Gold tier." },
+            "platinum": { "type": "number", "description": "Total spend required to reach Platinum tier." }
+          }
+        }
+      },
+      "required": ["pointsPer100Taka", "pointValueInTaka", "tierThresholds"]
+    },
     "vendor": {
       "title": "Vendor",
       "description": "A product supplier for Averzo.",
@@ -472,8 +489,7 @@
     "/orders/{orderId}": { "schema": { "$ref": "#/entities/order" }, "description": "Stores customer online orders routed to specific outlets for fulfillment." },
     "/stock_transfers/{transferId}": { "schema": { "$ref": "#/entities/stock_transfer" }, "description": "Tracks inter-outlet stock transfers initiated by admins." },
     "/coupons/{couponId}": { "schema": { "$ref": "#/entities/coupon" }, "description": "Stores all promotional codes for discounts." },
-    "/notification_subscriptions/{subscriptionId}": { "schema": { "$ref": "#/entities/notification_subscription" }, "description": "Stores all user requests for back-in-stock notifications." }
+    "/notification_subscriptions/{subscriptionId}": { "schema": { "$ref": "#/entities/notification_subscription" }, "description": "Stores all user requests for back-in-stock notifications." },
+    "/settings/loyalty": { "schema": { "$ref": "#/entities/loyalty_settings" }, "description": "Stores the global settings for the loyalty program." }
   }
 }
-
-    

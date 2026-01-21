@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useMemo } from 'react';
 import Image from 'next/image';
@@ -18,7 +19,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, MoreHorizontal, Mail, Search, CheckCircle, XCircle, Clock, Users } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Mail, Search, CheckCircle, XCircle, Clock, Users, Award } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
@@ -130,6 +131,7 @@ export default function UsersPage() {
         <TableCell><Skeleton className="h-5 w-16" /></TableCell>
         <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
         <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+        <TableCell className="text-right"><Skeleton className="h-5 w-12 ml-auto" /></TableCell>
         <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
       </TableRow>
     ))
@@ -194,13 +196,14 @@ export default function UsersPage() {
                       <TableHead>Role</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Managed By</TableHead>
+                      <TableHead className="text-right">Loyalty Points</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {isLoading ? renderSkeleton() : filteredUsers.length === 0 ? (
                       <TableRow>
-                          <TableCell colSpan={5} className="h-24 text-center">
+                          <TableCell colSpan={6} className="h-24 text-center">
                               No users found for this filter.
                           </TableCell>
                       </TableRow>
@@ -229,6 +232,12 @@ export default function UsersPage() {
                                 ? salesRepMap.get(user.managedBy) || 'Unknown Rep' 
                                 : 'N/A'
                             }
+                        </TableCell>
+                        <TableCell className="text-right font-medium">
+                            <div className="flex items-center justify-end gap-1">
+                                <Award className="h-4 w-4 text-yellow-500" />
+                                {user.loyaltyPoints ?? 0}
+                            </div>
                         </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
@@ -359,11 +368,15 @@ export default function UsersPage() {
                             <Badge variant="outline" className="capitalize">{user.role}</Badge>
                             {getStatusBadge(user.status)}
                         </CardContent>
-                        {user.role === 'customer' && user.managedBy && (
-                            <CardFooter className="text-xs text-muted-foreground pt-0 pb-3 px-4">
-                                Managed by: {salesRepMap.get(user.managedBy) || 'Unknown'}
-                            </CardFooter>
-                         )}
+                         <CardFooter className="flex-col items-start gap-2 text-xs text-muted-foreground pt-0 pb-3 px-4">
+                            {user.role === 'customer' && user.managedBy && (
+                                <p>Managed by: {salesRepMap.get(user.managedBy) || 'Unknown'}</p>
+                            )}
+                            <div className="flex items-center gap-1 font-semibold">
+                                <Award className="h-3 w-3 text-yellow-500"/>
+                                Loyalty Points: {user.loyaltyPoints ?? 0}
+                            </div>
+                         </CardFooter>
                     </Card>
                  ))}
               </div>

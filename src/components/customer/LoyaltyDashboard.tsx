@@ -1,23 +1,45 @@
+
 'use client';
 import { Award, Star, TrendingUp, History } from "lucide-react";
 import type { UserData } from "@/types/user";
 import { Button } from "@/components/ui/button";
 import Link from 'next/link';
+import { useFirestoreDoc } from '@/hooks/useFirestoreQuery';
+import { Skeleton } from "../ui/skeleton";
+
+interface LoyaltySettings {
+    pointValueInTaka: number;
+    tierThresholds: { gold: number; platinum: number };
+}
 
 export function LoyaltyDashboard({ userData }: { userData: UserData }) {
-  // Assuming 1 point = 0.20 BDT
-  const pointsToCash = ((userData.loyaltyPoints || 0) * 0.20).toFixed(2);
-  const totalSpent = userData.totalSpent || 0;
-  
-  const tiers = {
-    silver: { name: 'Silver', next: 'Gold', spendToNext: 5000 },
-    gold: { name: 'Gold', next: 'Platinum', spendToNext: 15000 },
-    platinum: { name: 'Platinum', next: null, spendToNext: Infinity },
-  };
+    const { data: settings, isLoading } = useFirestoreDoc<LoyaltySettings>('settings/loyalty');
+    
+    const pointValue = settings?.pointValueInTaka ?? 0.20;
+    const goldThreshold = settings?.tierThresholds?.gold ?? 5000;
+    const platinumThreshold = settings?.tierThresholds?.platinum ?? 15000;
+    
+    const pointsToCash = ((userData.loyaltyPoints || 0) * pointValue).toFixed(2);
+    const totalSpent = userData.totalSpent || 0;
 
-  const currentTier = tiers[userData.membershipTier || 'silver'];
-  const spendProgress = currentTier.next ? (totalSpent / currentTier.spendToNext) * 100 : 100;
-  const spendNeeded = currentTier.next ? currentTier.spendToNext - totalSpent : 0;
+    const tiers = {
+        silver: { name: 'Silver', next: 'Gold', spendToNext: goldThreshold },
+        gold: { name: 'Gold', next: 'Platinum', spendToNext: platinumThreshold },
+        platinum: { name: 'Platinum', next: null, spendToNext: Infinity },
+    };
+
+    const currentTier = tiers[userData.membershipTier || 'silver'];
+    const spendProgress = currentTier.next ? (totalSpent / currentTier.spendToNext) * 100 : 100;
+    const spendNeeded = currentTier.next ? currentTier.spendToNext - totalSpent : 0;
+    
+    if (isLoading) {
+        return (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <Skeleton className="h-48 rounded-2xl" />
+                <Skeleton className="h-48 rounded-2xl" />
+            </div>
+        )
+    }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -34,7 +56,7 @@ export function LoyaltyDashboard({ userData }: { userData: UserData }) {
               <div className="w-full bg-slate-600 h-2 mt-2 rounded-full">
                 <div className="bg-yellow-400 h-full rounded-full" style={{width: `${Math.min(spendProgress, 100)}%`}}></div>
               </div>
-              <p className="text-[10px] mt-2 text-slate-300">Spend ৳{spendNeeded.toFixed(2)} more to reach {currentTier.next}</p>
+              <p className="text-[10px] mt-2 text-slate-300">Spend ৳{spendNeeded > 0 ? spendNeeded.toFixed(2) : 0} more to reach {currentTier.next}</p>
             </div>
           )}
            {currentTier.name === 'Platinum' && (
@@ -72,5 +94,3 @@ export function LoyaltyDashboard({ userData }: { userData: UserData }) {
     </div>
   );
 }
-
-    
