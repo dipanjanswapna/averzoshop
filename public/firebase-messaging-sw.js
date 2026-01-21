@@ -1,43 +1,31 @@
-// This service worker is essential for PWA functionality and Firebase Cloud Messaging.
-
-// We use importScripts to load the Firebase SDK into the service worker.
-// The version should ideally match the one in your package.json.
-importScripts('https://www.gstatic.com/firebasejs/11.9.1/firebase-app-compat.js');
-importScripts('https://www.gstatic.com/firebasejs/11.9.1/firebase-messaging-compat.js');
-
-// An empty fetch event listener makes the app installable (a PWA requirement).
-// You can add caching strategies here later for offline functionality.
-self.addEventListener('fetch', (event) => {
-  // Placeholder for caching logic
-});
+importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js');
 
 try {
-  // Firebase configuration is passed as a URL parameter from the client.
-  const urlParams = new URLSearchParams(location.search);
-  const firebaseConfigStr = urlParams.get("firebaseConfig");
-  
-  if (firebaseConfigStr) {
-    const firebaseConfig = JSON.parse(firebaseConfigStr);
-    firebase.initializeApp(firebaseConfig);
-    
-    // Check if Firebase Messaging is supported in this browser.
-    if (firebase.messaging.isSupported()) {
-      const messaging = firebase.messaging();
-      
-      // Handle background messages (notifications) when the app is not in the foreground.
-      messaging.onBackgroundMessage((payload) => {
-        console.log('[firebase-messaging-sw.js] Received background message ', payload);
+    const urlParams = new URLSearchParams(self.location.search);
+    const firebaseConfigStr = urlParams.get('firebaseConfig');
+
+    if (firebaseConfigStr) {
+        const firebaseConfig = JSON.parse(firebaseConfigStr);
         
-        const notificationTitle = payload.notification.title;
-        const notificationOptions = {
-          body: payload.notification.body,
-          icon: '/icons/icon-192x192.png' // Default icon for notifications
-        };
-        
-        self.registration.showNotification(notificationTitle, notificationOptions);
-      });
+        if (firebase.apps.length === 0) {
+            firebase.initializeApp(firebaseConfig);
+        }
+
+        const messaging = firebase.messaging();
+
+        messaging.onBackgroundMessage((payload) => {
+            console.log('[firebase-messaging-sw.js] Received background message ', payload);
+            
+            const notificationTitle = payload.notification?.title || 'New Notification';
+            const notificationOptions = {
+                body: payload.notification?.body || 'You have a new message.',
+                icon: '/icons/icon-192x192.png'
+            };
+
+            self.registration.showNotification(notificationTitle, notificationOptions);
+        });
     }
-  }
 } catch (e) {
-  console.error('Error initializing Firebase in service worker:', e);
+    console.error('Error in service worker', e);
 }
