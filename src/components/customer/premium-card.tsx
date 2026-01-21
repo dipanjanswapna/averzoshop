@@ -148,28 +148,30 @@ export function PremiumCard({ userData }: { userData: UserData }) {
               {/* Magnetic stripe */}
               <div className="w-full h-12 bg-black mt-4" />
 
-              <div className="px-6 py-3 flex-1 flex flex-col justify-start gap-4">
-                  <div className="text-[10px] opacity-90 space-y-2">
-                        <div className="grid grid-cols-2 gap-x-4">
-                            <div>
-                                <p className="font-bold text-[8px] uppercase opacity-60 tracking-widest">Email</p>
-                                <p className="text-[9px] truncate">{userData.email || 'N/A'}</p>
-                            </div>
-                            <div>
-                                <p className="font-bold text-[8px] uppercase opacity-60 tracking-widest">Phone</p>
-                                <p className="text-[9px] truncate">{userData.phone || 'N/A'}</p>
-                            </div>
-                        </div>
-                        {primaryAddress && (
-                            <div className="mt-1">
-                                <p className="font-bold text-[8px] uppercase opacity-60 tracking-widest">Address</p>
-                                <p className="text-[9px]">{primaryAddress.streetAddress}, {primaryAddress.area}, {primaryAddress.district}</p>
-                            </div>
-                        )}
-                    </div>
-                  
+              <div className="px-6 py-3 flex-1 flex flex-col">
+                  <div className="border border-white/20 rounded-lg p-3 text-[10px] opacity-90 space-y-2">
+                      <div className="grid grid-cols-2 gap-x-4">
+                          <div>
+                              <p className="font-bold text-[8px] uppercase opacity-60 tracking-widest">Email</p>
+                              <p className="text-[9px] truncate">{userData.email || 'N/A'}</p>
+                          </div>
+                          <div>
+                              <p className="font-bold text-[8px] uppercase opacity-60 tracking-widest">Phone</p>
+                              <p className="text-[9px] truncate">{userData.phone || 'N/A'}</p>
+                          </div>
+                      </div>
+                      {primaryAddress && (
+                          <div className="mt-1">
+                              <p className="font-bold text-[8px] uppercase opacity-60 tracking-widest">Address</p>
+                              <p className="text-[9px]">{primaryAddress.streetAddress}, {primaryAddress.area}, {primaryAddress.district}</p>
+                          </div>
+                      )}
+                  </div>
+
+                  <div className="flex-grow" />
+
                   {/* Barcode and UID */}
-                  <div className="flex flex-col items-center justify-center gap-1 mt-auto">
+                  <div className="flex flex-col items-center justify-center gap-1">
                       <div className="bg-white p-1.5 rounded-md shadow-inner cursor-pointer" onClick={handleBarcodeClick}>
                           <Barcode value={userData.uid} height={30} width={1} displayValue={false} background="transparent" lineColor={barcodeColor} />
                       </div>
@@ -177,15 +179,15 @@ export function PremiumCard({ userData }: { userData: UserData }) {
                   </div>
 
                   {/* NFC and Footer text */}
-                  <div className="flex flex-col items-center justify-center">
+                  <div className="flex flex-col items-center justify-center mt-2">
                       <div 
-                          className={cn("mt-2 w-10 h-6 flex items-center justify-center rounded-md cursor-pointer transition-all", s.hologram)}
+                          className={cn("w-10 h-6 flex items-center justify-center rounded-md cursor-pointer transition-all", s.hologram)}
                           onClick={handleNfcWrite}
                           title="Write to NFC Tag"
                       >
                           {isWritingNfc ? <Loader2 size={16} className="animate-spin" /> : <Nfc size={16} className="opacity-70" />}
                       </div>
-                      <p className="text-center text-[9px] opacity-70 mt-2">
+                      <p className="text-center text-[9px] opacity-70 mt-1">
                           If found, please return to any Averzo outlet. This card is non-transferable.
                       </p>
                   </div>
