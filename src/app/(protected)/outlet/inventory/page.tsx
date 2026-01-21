@@ -217,23 +217,18 @@ export default function InventoryPage() {
                            {isLoading ? renderMobileSkeleton() : outletProducts.length > 0 ? (
                             outletProducts.map(product => (
                                 <Card key={product.id}>
-                                    <CardHeader className="flex flex-row items-center gap-4">
+                                    <CardHeader className="p-4 flex flex-row items-center gap-4">
                                         <Image alt={product.name} className="aspect-square rounded-md object-cover" height={64} src={product.image || 'https://placehold.co/64'} width={64} />
-                                        <div className="flex-1">
+                                        <div className="flex-1 space-y-1">
                                             <h4 className="font-semibold text-sm leading-tight">{product.name}</h4>
-                                             {getProductStatusBadge(product)}
+                                            <p className="text-xs text-muted-foreground">{product.baseSku}</p>
+                                            {getProductStatusBadge(product)}
                                         </div>
                                     </CardHeader>
-                                    <CardContent className="flex justify-between items-center">
-                                        <p className="text-muted-foreground">Stock:</p>
-                                        <p className="text-lg font-bold">{product.stockInOutlet}</p>
+                                    <CardContent className="p-4 pt-0 flex justify-between items-center">
+                                        <div className="text-sm"><span className="text-muted-foreground">Stock:</span> <span className="font-bold text-lg">{product.stockInOutlet}</span></div>
+                                        <Button variant="outline" size="sm" onClick={() => handleViewDetailsClick(product)}><Eye className="mr-2 h-4 w-4"/>Details</Button>
                                     </CardContent>
-                                    <CardFooter>
-                                         <Button variant="outline" size="sm" onClick={() => handleViewDetailsClick(product)} className="w-full">
-                                            <Eye className="mr-2 h-4 w-4"/>
-                                            View Details
-                                        </Button>
-                                    </CardFooter>
                                 </Card>
                             ))
                            ) : (
