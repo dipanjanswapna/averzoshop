@@ -142,40 +142,38 @@ export function PremiumCard({ userData }: { userData: UserData }) {
           
           {/* BACK SIDE */}
           <div 
-            className={cn(`absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-2xl shadow-2xl flex flex-col cursor-pointer overflow-hidden bg-gradient-to-br border`, s.gradient, s.text, s.border)} 
+            className={cn(`absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-2xl shadow-2xl flex flex-col justify-between cursor-pointer overflow-hidden bg-gradient-to-br border`, s.gradient, s.text, s.border)} 
             onClick={() => setIsFlipped(!isFlipped)}
           >
               {/* Magnetic stripe */}
               <div className="w-full h-10 bg-black mt-2 shrink-0" />
 
               <div className="px-4 py-2 flex-1 flex flex-col justify-between">
-                <div>
-                  <div className="border border-white/20 rounded-lg p-2 text-[10px] opacity-90 space-y-0.5">
+                <div className="border border-white/20 rounded-lg p-2 text-[9px] opacity-90 space-y-0.5">
                     <div className="grid grid-cols-2 gap-x-2">
                         <div>
-                            <p className="font-bold text-[7px] uppercase opacity-60 tracking-widest">Email</p>
-                            <p className="text-[8px] truncate">{userData.email || 'N/A'}</p>
+                            <p className="font-bold text-[6px] uppercase opacity-60 tracking-widest">Email</p>
+                            <p className="text-[7px] truncate">{userData.email || 'N/A'}</p>
                         </div>
                         <div>
-                            <p className="font-bold text-[7px] uppercase opacity-60 tracking-widest">Phone</p>
-                            <p className="text-[8px] truncate">{userData.phone || 'N/A'}</p>
+                            <p className="font-bold text-[6px] uppercase opacity-60 tracking-widest">Phone</p>
+                            <p className="text-[7px] truncate">{userData.phone || 'N/A'}</p>
                         </div>
                     </div>
                     {primaryAddress && (
                         <div>
-                            <p className="font-bold text-[7px] uppercase opacity-60 tracking-widest">Address</p>
-                            <p className="text-[8px]">{primaryAddress.streetAddress}, {primaryAddress.area}, {primaryAddress.district}</p>
+                            <p className="font-bold text-[6px] uppercase opacity-60 tracking-widest">Address</p>
+                            <p className="text-[7px]">{primaryAddress.streetAddress}, {primaryAddress.area}, {primaryAddress.district}</p>
                         </div>
                     )}
-                  </div>
                 </div>
 
                 <div className="space-y-1">
                     <div className="flex flex-col items-center justify-center">
                         <div className="bg-white p-1 rounded-md shadow-inner cursor-pointer" onClick={handleBarcodeClick}>
-                            <Barcode value={userData.uid} height={18} width={1} displayValue={false} background="transparent" lineColor={barcodeColor} />
+                            <Barcode value={userData.uid} height={16} width={0.9} displayValue={false} background="transparent" lineColor={barcodeColor} />
                         </div>
-                        <p className="text-[6px] opacity-70 font-mono tracking-wider">{userData.uid}</p>
+                        <p className="text-[5px] opacity-70 font-mono tracking-wider">{userData.uid}</p>
                     </div>
 
                     <div className="flex flex-col items-center justify-center">
@@ -186,9 +184,6 @@ export function PremiumCard({ userData }: { userData: UserData }) {
                         >
                             {isWritingNfc ? <Loader2 size={12} className="animate-spin" /> : <Nfc size={12} className="opacity-70" />}
                         </div>
-                        <p className="text-center text-[6px] opacity-70 leading-tight">
-                            If found, please return to any Averzo outlet. This card is non-transferable.
-                        </p>
                     </div>
                 </div>
               </div>
