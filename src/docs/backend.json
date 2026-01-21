@@ -75,6 +75,31 @@
       },
       "required": ["userId", "pointsChange", "type", "reason", "createdAt"]
     },
+    "loyalty_settings": {
+      "title": "Loyalty Settings",
+      "description": "Configuration for the loyalty points system.",
+      "type": "object",
+      "properties": {
+        "pointsPer100Taka": {
+          "type": "object",
+          "description": "Points earned for every 100 BDT spent, per tier.",
+          "properties": {
+            "silver": { "type": "number" },
+            "gold": { "type": "number" },
+            "platinum": { "type": "number" }
+          }
+        },
+        "pointValueInTaka": { "type": "number", "description": "The value of a single point in BDT." },
+        "tierThresholds": {
+          "type": "object",
+          "properties": {
+            "gold": { "type": "number", "description": "Total spend required to reach Gold tier." },
+            "platinum": { "type": "number", "description": "Total spend required to reach Platinum tier." }
+          }
+        }
+      },
+      "required": ["pointsPer100Taka", "pointValueInTaka", "tierThresholds"]
+    },
     "vendor": {
       "title": "Vendor",
       "description": "A product supplier for Averzo.",
@@ -152,6 +177,8 @@
         "subtotal": { "type": "number", "description": "The total amount before discounts." },
         "discountAmount": { "type": "number", "description": "The amount discounted via a promo code." },
         "promoCode": { "type": "string", "description": "The promo code used for the sale." },
+        "loyaltyPointsUsed": { "type": "number", "description": "Number of loyalty points redeemed for this sale." },
+        "loyaltyDiscount": { "type": "number", "description": "The discount amount in BDT from redeemed loyalty points." },
         "totalAmount": { "type": "number", "description": "The final amount after discounts." },
         "paymentMethod": { "type": "string", "enum": ["cash", "card", "mobile"] },
         "createdAt": { "type": "string", "format": "date-time" }
@@ -472,6 +499,7 @@
     "/orders/{orderId}": { "schema": { "$ref": "#/entities/order" }, "description": "Stores customer online orders routed to specific outlets for fulfillment." },
     "/stock_transfers/{transferId}": { "schema": { "$ref": "#/entities/stock_transfer" }, "description": "Tracks inter-outlet stock transfers initiated by admins." },
     "/coupons/{couponId}": { "schema": { "$ref": "#/entities/coupon" }, "description": "Stores all promotional codes for discounts." },
-    "/notification_subscriptions/{subscriptionId}": { "schema": { "$ref": "#/entities/notification_subscription" }, "description": "Stores all user requests for back-in-stock notifications." }
+    "/notification_subscriptions/{subscriptionId}": { "schema": { "$ref": "#/entities/notification_subscription" }, "description": "Stores all user requests for back-in-stock notifications." },
+    "/settings/loyalty": { "schema": { "$ref": "#/entities/loyalty_settings" }, "description": "Stores the global settings for the loyalty program." }
   }
 }
