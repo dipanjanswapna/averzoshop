@@ -1,3 +1,4 @@
+
 import { Timestamp } from "firebase/firestore";
 
 export interface OrderItem {
@@ -26,6 +27,7 @@ export interface Order {
     shippingAddress?: ShippingAddress;
     items: OrderItem[];
     subtotal?: number;
+    cardPromoDiscountAmount?: number;
     discountAmount?: number;
     promoCode?: string | null;
     loyaltyPointsUsed?: number;

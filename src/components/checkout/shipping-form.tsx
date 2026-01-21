@@ -49,7 +49,7 @@ export function ShippingForm() {
     const { 
         cartItems, clearCart, totalPayable, subtotal, fullOrderTotal, promoCode, 
         discount, setShippingInfo, shippingInfo, pointsApplied, pointsDiscount,
-        orderMode, setOrderMode, pickupOutletId, setPickupOutlet
+        orderMode, setOrderMode, pickupOutletId, setPickupOutlet, cardPromoDiscountAmount
     } = useCart(state => ({
         cartItems: state.items,
         clearCart: state.clearCart,
@@ -66,6 +66,7 @@ export function ShippingForm() {
         setOrderMode: state.setOrderMode,
         pickupOutletId: state.pickupOutletId,
         setPickupOutlet: state.setPickupOutlet,
+        cardPromoDiscountAmount: state.cardPromoDiscountAmount,
     }));
 
   const [isLoading, setIsLoading] = useState(false);
@@ -207,7 +208,7 @@ export function ShippingForm() {
 
     const baseOrderData: Omit<Order, 'status' | 'createdAt' | 'paymentStatus'> = {
         id: orderId, customerId: user.uid, items: cartItems.map(item => ({ productId: item.product.id, productName: item.product.name, variantSku: item.variant.sku, quantity: item.quantity, price: item.variant.price })),
-        subtotal: subtotal, discountAmount: discount, promoCode: promoCode ? promoCode.code : undefined, loyaltyPointsUsed: pointsApplied, loyaltyDiscount: pointsDiscount,
+        subtotal: subtotal, cardPromoDiscountAmount: cardPromoDiscountAmount, discountAmount: discount, promoCode: promoCode ? promoCode.code : undefined, loyaltyPointsUsed: pointsApplied, loyaltyDiscount: pointsDiscount,
         totalAmount: totalPayable, fullOrderValue: fullOrderTotal, orderType: isPreOrderInCart ? 'pre-order' as const : 'regular' as const,
         orderMode: orderMode, pickupOutletId: orderMode === 'pickup' ? pickupOutletId : undefined,
         assignedOutletId: assignedOutletId, pickupCode: pickupCode, shippingAddress: finalShippingAddress

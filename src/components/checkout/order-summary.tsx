@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useCart } from '@/hooks/use-cart';
 import { useAuth } from '@/hooks/use-auth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,17 +17,10 @@ import { Award, XCircle } from 'lucide-react';
 import { Label } from '../ui/label';
 
 export function CheckoutOrderSummary() {
-  const {
-    items,
-    discount,
-    promoCode,
-    pointsApplied,
-    pointsDiscount,
-    shippingInfo,
-    totalPayable,
-    regularItemsSubtotal,
-    preOrderItemsSubtotal,
-    preOrderDepositPayable,
+  const { 
+    items, discount, promoCode, pointsApplied, pointsDiscount, shippingInfo, totalPayable,
+    regularItemsSubtotal, preOrderItemsSubtotal, preOrderDepositPayable,
+    cardPromoDiscountAmount
   } = useCart(state => ({
     items: state.items,
     discount: state.discount,
@@ -38,10 +32,13 @@ export function CheckoutOrderSummary() {
     regularItemsSubtotal: state.regularItemsSubtotal,
     preOrderItemsSubtotal: state.preOrderItemsSubtotal,
     preOrderDepositPayable: state.preOrderDepositPayable,
+    cardPromoDiscountAmount: state.cardPromoDiscountAmount,
   }));
+
   const applyPromoCode = useCart(state => state.applyPromoCode);
   const applyPoints = useCart(state => state.applyPoints);
   const removePoints = useCart(state => state.removePoints);
+  const applyCardPromo = useCart(state => state.applyCardPromo);
   
   const { userData } = useAuth();
   const { firestore } = useFirebase();
@@ -55,6 +52,11 @@ export function CheckoutOrderSummary() {
 
   const hasPreOrderItems = useMemo(() => items.some(item => item.isPreOrder), [items]);
   const hasRegularItems = useMemo(() => items.some(item => !item.isPreOrder), [items]);
+  
+  useEffect(() => {
+    applyCardPromo(userData);
+    // This effect runs when the user data changes, ensuring the card promo is applied/removed.
+  }, [userData, applyCardPromo]);
 
   const handleApplyPromoCode = async () => {
     if (!promoCodeInput.trim() || !firestore) {
@@ -144,15 +146,21 @@ export function CheckoutOrderSummary() {
                     <span>Subtotal</span>
                     <span>৳{regularItemsSubtotal.toFixed(2)}</span>
                 </div>
+                {cardPromoDiscountAmount > 0 && (
+                    <div className="flex justify-between text-green-600">
+                        <span>Membership Discount ({userData?.cardPromoDiscount}%)</span>
+                        <span>- ৳{cardPromoDiscountAmount.toFixed(2)}</span>
+                    </div>
+                )}
                 {discount > 0 && (
                     <div className="flex justify-between text-green-600">
-                        <span>Discount ({promoCode?.code})</span>
+                        <span>Promo Discount ({promoCode?.code})</span>
                         <span>- ৳{discount.toFixed(2)}</span>
                     </div>
                 )}
                  <div className="flex justify-between font-medium border-t pt-2 mt-1">
                     <span>Payable for regular items</span>
-                    <span>৳{(regularItemsSubtotal - discount).toFixed(2)}</span>
+                    <span>৳{(regularItemsSubtotal - cardPromoDiscountAmount - discount).toFixed(2)}</span>
                 </div>
               </div>
             )}

@@ -1,3 +1,4 @@
+
 import { Timestamp } from "firebase/firestore";
 
 export interface POSSaleItem {
@@ -16,6 +17,7 @@ export interface POSSale {
     customerName?: string;
     items: POSSaleItem[];
     subtotal: number;
+    cardPromoDiscountAmount?: number;
     discountAmount?: number;
     promoCode?: string | null;
     loyaltyPointsUsed?: number;

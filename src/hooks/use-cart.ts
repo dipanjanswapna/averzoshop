@@ -6,6 +6,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Product, ProductVariant } from '@/types/product';
 import { toast } from './use-toast';
 import type { Coupon } from '@/types/coupon';
+import type { UserData } from '@/types/user';
 
 export type CartItem = {
   product: Product;
@@ -20,6 +21,8 @@ type CartState = {
   orderMode: 'delivery' | 'pickup';
   pickupOutletId: string | null;
   promoCode: Coupon | null;
+  cardPromoPercent: number;
+  cardPromoDiscountAmount: number;
   pointsApplied: number;
   pointsDiscount: number;
   shippingInfo: {
@@ -41,6 +44,8 @@ type CartState = {
   updateQuantity: (variantSku: string, quantity: number) => void;
   clearCart: () => void;
   applyPromoCode: (coupon: Coupon | null) => void;
+  applyCardPromo: (user: UserData | null) => void;
+  removeCardPromo: () => void;
   applyPoints: (points: number, userPoints: number, pointValue: number) => void;
   removePoints: () => void;
   setOrderMode: (mode: 'delivery' | 'pickup') => void;
@@ -92,6 +97,8 @@ export const useCart = create<CartState>()(
       orderMode: 'delivery',
       pickupOutletId: null,
       promoCode: null,
+      cardPromoPercent: 0,
+      cardPromoDiscountAmount: 0,
       pointsApplied: 0,
       pointsDiscount: 0,
       shippingInfo: { fee: 0, outletId: null, distance: null, estimate: null },
@@ -106,7 +113,7 @@ export const useCart = create<CartState>()(
       
       _recalculate: () => {
         const state = get();
-        const { items, promoCode, pointsDiscount, shippingInfo, orderMode } = state;
+        const { items, promoCode, pointsDiscount, shippingInfo, orderMode, cardPromoPercent } = state;
         
         let regularItemsSubtotal = 0;
         let preOrderItemsSubtotal = 0;
@@ -135,18 +142,20 @@ export const useCart = create<CartState>()(
 
         const subtotal = regularItemsSubtotal + preOrderItemsSubtotal;
         const shippingFee = orderMode === 'pickup' ? 0 : shippingInfo.fee;
-
+        
+        const cardPromoAmount = (regularItemsSubtotal * cardPromoPercent) / 100;
         const regularItemsForDiscount = items.filter(item => !item.isPreOrder);
         const promoCodeDiscount = calculateDiscount(regularItemsForDiscount, promoCode);
         
-        const subtotalAfterPromo = regularItemsSubtotal - promoCodeDiscount;
-        const applicablePointsDiscount = Math.min(pointsDiscount, subtotalAfterPromo > 0 ? subtotalAfterPromo : 0);
+        const subtotalAfterDiscounts = regularItemsSubtotal - cardPromoAmount - promoCodeDiscount;
+        const applicablePointsDiscount = Math.min(pointsDiscount, subtotalAfterDiscounts > 0 ? subtotalAfterDiscounts : 0);
         
-        const totalPayable = (subtotalAfterPromo - applicablePointsDiscount) + preOrderDepositPayable + shippingFee;
+        const totalPayable = (subtotalAfterDiscounts - applicablePointsDiscount) + preOrderDepositPayable + shippingFee;
 
         set({
             subtotal,
             discount: promoCodeDiscount,
+            cardPromoDiscountAmount: cardPromoAmount,
             pointsDiscount: applicablePointsDiscount,
             totalPayable,
             fullOrderTotal: subtotal,
@@ -155,6 +164,17 @@ export const useCart = create<CartState>()(
             preOrderItemsSubtotal,
             preOrderDepositPayable,
         });
+      },
+
+      applyCardPromo: (user) => {
+        const discountPercent = user?.cardPromoDiscount ?? 0;
+        set({ cardPromoPercent: discountPercent > 0 ? discountPercent : 0 });
+        get()._recalculate();
+      },
+
+      removeCardPromo: () => {
+        set({ cardPromoPercent: 0, cardPromoDiscountAmount: 0 });
+        get()._recalculate();
       },
       
       setShippingInfo: (info) => {
@@ -241,6 +261,8 @@ export const useCart = create<CartState>()(
         set({ 
             items: [], 
             promoCode: null, 
+            cardPromoPercent: 0,
+            cardPromoDiscountAmount: 0,
             pointsApplied: 0,
             pointsDiscount: 0,
             subtotal: 0, 
@@ -287,7 +309,7 @@ export const useCart = create<CartState>()(
         }
         
         const state = get();
-        const maxDiscount = state.regularItemsSubtotal - state.discount + state.preOrderDepositPayable;
+        const maxDiscount = state.regularItemsSubtotal - state.cardPromoDiscountAmount - state.discount + state.preOrderDepositPayable;
         const requestedDiscount = pointsToUse * pointValue;
 
         if (requestedDiscount > maxDiscount) {
