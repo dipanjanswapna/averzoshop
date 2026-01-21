@@ -253,11 +253,11 @@ export default function SalesOrderPage() {
     const handleApplyPromo = async () => {
         if (!promoCodeInput.trim() || !firestore) return;
         setIsApplyingPromo(true);
-
+    
         const code = promoCodeInput.trim().toUpperCase();
         const couponsRef = collection(firestore, 'coupons');
         const q = query(couponsRef, where("code", "==", code), limit(1));
-
+    
         try {
             const couponSnap = await getDocs(q);
             if (couponSnap.empty) throw new Error('Invalid code');
@@ -269,8 +269,17 @@ export default function SalesOrderPage() {
     
             const eligibleItems = cart.filter(item => {
                 if (item.product.preOrder?.enabled) return false;
-                if (!coupon.applicableProducts || coupon.applicableProducts.length === 0) return true;
-                return coupon.applicableProducts.includes(item.product.id);
+                
+                if (coupon.creatorType === 'admin') {
+                    return !coupon.applicableProducts || coupon.applicableProducts.length === 0 || coupon.applicableProducts.includes(item.product.id);
+                }
+                if (coupon.creatorType === 'vendor') {
+                    if (item.product.vendorId !== coupon.creatorId) {
+                        return false;
+                    }
+                    return !coupon.applicableProducts || coupon.applicableProducts.length === 0 || coupon.applicableProducts.includes(item.product.id);
+                }
+                return false;
             });
     
             if (eligibleItems.length === 0) {
@@ -641,5 +650,3 @@ export default function SalesOrderPage() {
         </div>
     );
 }
-
-    
