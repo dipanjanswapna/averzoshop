@@ -10,8 +10,8 @@ import { CheckCircle, Star, Printer, Award } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
 interface LoyaltySettings {
-    pointsPer100Taka: { silver: number; gold: number; platinum: number; };
-    tierThresholds: { gold: number; platinum: number; };
+    pointsPer100Taka?: { silver: number; gold: number; platinum: number; };
+    tierThresholds?: { gold: number; platinum: number; };
 }
 
 export default function SubscriptionPage() {
@@ -24,7 +24,7 @@ export default function SubscriptionPage() {
 
   const isLoading = authLoading || settingsLoading;
 
-  if (isLoading || !userData || !settings) {
+  if (isLoading || !userData) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-10 w-1/3" />
@@ -49,19 +49,19 @@ export default function SubscriptionPage() {
     {
       name: 'Silver',
       spendRequired: 0,
-      features: [`Basic access`, `${settings.pointsPer100Taka.silver} points per ৳100 spent`, `Standard support`],
+      features: [`Basic access`, `${settings?.pointsPer100Taka?.silver ?? 5} points per ৳100 spent`, `Standard support`],
       isCurrentUserTier: userTier === 'silver',
     },
     {
       name: 'Gold',
-      spendRequired: settings.tierThresholds.gold,
-      features: [`Everything in Silver`, `${settings.pointsPer100Taka.gold} points per ৳100 spent`, `Early access to sales`, `Priority support`],
+      spendRequired: settings?.tierThresholds?.gold ?? 5000,
+      features: [`Everything in Silver`, `${settings?.pointsPer100Taka?.gold ?? 7} points per ৳100 spent`, `Early access to sales`, `Priority support`],
       isCurrentUserTier: userTier === 'gold',
     },
     {
       name: 'Platinum',
-      spendRequired: settings.tierThresholds.platinum,
-      features: [`Everything in Gold`, `${settings.pointsPer100Taka.platinum} points per ৳100 spent`, `Exclusive offers & gifts`, `24/7 dedicated support`],
+      spendRequired: settings?.tierThresholds?.platinum ?? 15000,
+      features: [`Everything in Gold`, `${settings?.pointsPer100Taka?.platinum ?? 10} points per ৳100 spent`, `Exclusive offers & gifts`, `24/7 dedicated support`],
       isCurrentUserTier: userTier === 'platinum',
     },
   ];
@@ -126,7 +126,7 @@ export default function SubscriptionPage() {
                         {nextTier ? (
                           <>
                             <p className="text-sm font-bold">You are ৳{(nextTier.spendRequired - totalSpent).toLocaleString()} away from {nextTier.name}!</p>
-                            <Progress value={(totalSpent / nextTier.spendRequired) * 100} className="w-full h-3 mt-2" />
+                            <Progress value={(totalSpent / (nextTier.spendRequired || 1)) * 100} className="w-full h-3 mt-2" />
                             <div className="w-full flex justify-between text-xs text-muted-foreground mt-1">
                                 <span>৳{totalSpent.toLocaleString()}</span>
                                 <span>৳{nextTier.spendRequired.toLocaleString()}</span>
