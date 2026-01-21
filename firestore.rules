@@ -27,11 +27,10 @@ service cloud.firestore {
 
 
     // Point history can be read by the owner or an admin. It cannot be updated or deleted.
-    // Creation is handled by secure server-side logic (simulated by transactions).
+    // Creation is handled by secure server-side logic.
     match /users/{userId}/points_history/{transactionId} {
         allow read: if request.auth.uid == userId || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-        allow create: if request.auth.uid == userId; // Allow creation by the user for whom the transaction is
-        allow update, delete: if false;
+        allow create, update, delete: if false;
     }
 
     // Products can be read by anyone.

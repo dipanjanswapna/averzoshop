@@ -80,7 +80,15 @@
       "description": "Configuration for the loyalty points system.",
       "type": "object",
       "properties": {
-        "pointsPer100Taka": { "type": "number", "description": "Points earned for every 100 BDT spent." },
+        "pointsPer100Taka": {
+          "type": "object",
+          "description": "Points earned for every 100 BDT spent, per tier.",
+          "properties": {
+            "silver": { "type": "number" },
+            "gold": { "type": "number" },
+            "platinum": { "type": "number" }
+          }
+        },
         "pointValueInTaka": { "type": "number", "description": "The value of a single point in BDT." },
         "tierThresholds": {
           "type": "object",
@@ -169,6 +177,8 @@
         "subtotal": { "type": "number", "description": "The total amount before discounts." },
         "discountAmount": { "type": "number", "description": "The amount discounted via a promo code." },
         "promoCode": { "type": "string", "description": "The promo code used for the sale." },
+        "loyaltyPointsUsed": { "type": "number", "description": "Number of loyalty points redeemed for this sale." },
+        "loyaltyDiscount": { "type": "number", "description": "The discount amount in BDT from redeemed loyalty points." },
         "totalAmount": { "type": "number", "description": "The final amount after discounts." },
         "paymentMethod": { "type": "string", "enum": ["cash", "card", "mobile"] },
         "createdAt": { "type": "string", "format": "date-time" }
