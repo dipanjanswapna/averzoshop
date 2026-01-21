@@ -12,24 +12,33 @@ export default function LayoutDebugger() {
           if (el instanceof HTMLElement) {
             const rect = el.getBoundingClientRect();
 
-            // Check for horizontal overflow
             const isOverflowing = rect.left < 0 || rect.right > docWidth;
             
-            // Check if the element is visibly within the viewport at all.
-            // This is to avoid flagging off-screen sidebars that are hidden using transforms.
-            const isPartiallyVisible = rect.right > 0 && rect.left < docWidth;
+            const isVisuallyHidden = (
+              el.offsetParent === null ||
+              window.getComputedStyle(el).visibility === 'hidden' ||
+              window.getComputedStyle(el).display === 'none'
+            );
             
-            // Get computed styles to check for visibility and display properties
             const style = window.getComputedStyle(el);
 
-            if (isOverflowing && isPartiallyVisible && style.display !== 'none' && style.visibility !== 'hidden') {
-              // Only flag elements that are actually causing a visual overflow.
+            if (isOverflowing && !isVisuallyHidden) {
+              const transform = style.transform;
+              if (transform && transform !== 'none') {
+                const matrix = new DOMMatrix(transform);
+                if (matrix.m41 < -docWidth || matrix.m41 > docWidth) {
+                   if (el.style.outline === '2px solid red') {
+                     el.style.outline = '';
+                   }
+                   return;
+                }
+              }
+
               if (el.style.outline !== '2px solid red') {
                 el.style.outline = '2px solid red';
                 console.warn('Layout Overflow Detected on:', el);
               }
             } else {
-              // Remove outline if it's not overflowing or not visible
               if (el.style.outline === '2px solid red') {
                 el.style.outline = '';
               }
@@ -47,15 +56,11 @@ export default function LayoutDebugger() {
       };
 
       const debouncedCheck = debounce(checkOverflow, 150);
-
-      // Initial check
+      
       debouncedCheck();
 
-      // Check on resize
       window.addEventListener('resize', debouncedCheck);
-      // Also check on scroll, as some elements might become visible
       document.addEventListener('scroll', debouncedCheck, true);
-
 
       // Clean up the event listener
       return () => {
