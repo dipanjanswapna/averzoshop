@@ -134,23 +134,30 @@ export default function SalesOrderPage() {
         const cardDiscountAmount = (regularItemsSubtotal * cardPromoDiscount) / 100;
         setCardPromoDiscountAmount(cardDiscountAmount);
 
-        const subtotalForPromo = regularItemsSubtotal - cardDiscountAmount;
-
-        // Coupon discount also applies only to regular items' subtotal after card promo
+        // Coupon discount also applies only to eligible regular items
         let promoDiscountAmount = 0;
         if (appliedCoupon) {
-            if (subtotalForPromo < appliedCoupon.minimumSpend) {
-                promoDiscountAmount = 0;
-            } else if (appliedCoupon.discountType === 'fixed') {
-                promoDiscountAmount = Math.min(appliedCoupon.value, subtotalForPromo);
-            } else if (appliedCoupon.discountType === 'percentage') {
-                promoDiscountAmount = (subtotalForPromo * appliedCoupon.value) / 100;
+            const eligibleItems = cart.filter(item => {
+                if (item.isPreOrder) return false;
+                if (!appliedCoupon.applicableProducts || appliedCoupon.applicableProducts.length === 0) return true;
+                return appliedCoupon.applicableProducts.includes(item.product.id);
+            });
+    
+            if (eligibleItems.length > 0) {
+                const eligibleSubtotal = eligibleItems.reduce((acc, item) => acc + (item.variant.price * item.quantity), 0);
+                if (eligibleSubtotal >= appliedCoupon.minimumSpend) {
+                    if (appliedCoupon.discountType === 'fixed') {
+                        promoDiscountAmount = Math.min(appliedCoupon.value, eligibleSubtotal);
+                    } else { // percentage
+                        promoDiscountAmount = (eligibleSubtotal * appliedCoupon.value) / 100;
+                    }
+                }
             }
         }
         setPromoDiscount(promoDiscountAmount);
 
         // Subtotal after all percentage/fixed discounts
-        const subtotalAfterDiscounts = subtotalForPromo - promoDiscountAmount;
+        const subtotalAfterDiscounts = regularItemsSubtotal - cardDiscountAmount - promoDiscountAmount;
 
         // Points can be applied against the remaining regular item total + pre-order deposit
         const maxPayableBeforePoints = subtotalAfterDiscounts + preOrderDepositPayable;
@@ -162,7 +169,7 @@ export default function SalesOrderPage() {
 
         const finalTotal = maxPayableBeforePoints - applicablePointsDiscount;
         setGrandTotal(finalTotal < 0 ? 0 : finalTotal);
-    }, [regularItemsSubtotal, preOrderDepositPayable, cardPromoDiscount, appliedCoupon, pointsDiscount, cartSubtotal]);
+    }, [regularItemsSubtotal, preOrderDepositPayable, cardPromoDiscount, appliedCoupon, pointsDiscount, cart]);
 
 
     const filteredCustomers = useMemo(() => {
@@ -246,7 +253,7 @@ export default function SalesOrderPage() {
     const handleApplyPromo = async () => {
         if (!promoCodeInput.trim() || !firestore) return;
         setIsApplyingPromo(true);
-
+    
         const code = promoCodeInput.trim().toUpperCase();
         const couponRef = doc(firestore, 'coupons', code);
         try {
@@ -254,17 +261,27 @@ export default function SalesOrderPage() {
             if (!couponSnap.exists()) throw new Error('Invalid code');
             
             const coupon = { id: couponSnap.id, ...couponSnap.data() } as Coupon;
-             if (new Date(coupon.expiryDate.seconds * 1000) < new Date()) throw new Error('Expired code');
+            if (new Date(coupon.expiryDate.seconds * 1000) < new Date()) throw new Error('Expired code');
             if (coupon.usedCount >= coupon.usageLimit) throw new Error('Usage limit reached');
-
-            const subtotalAfterCardPromo = regularItemsSubtotal - cardPromoDiscountAmount;
-            if (subtotalAfterCardPromo < coupon.minimumSpend) {
-                 throw new Error(`Minimum spend of ৳${coupon.minimumSpend} on eligible items is required.`);
+    
+            const eligibleItems = cart.filter(item => {
+                if (item.product.preOrder?.enabled) return false;
+                if (!coupon.applicableProducts || coupon.applicableProducts.length === 0) return true;
+                return coupon.applicableProducts.includes(item.product.id);
+            });
+    
+            if (eligibleItems.length === 0) {
+                throw new Error('This coupon does not apply to any items in your cart.');
+            }
+    
+            const eligibleSubtotal = eligibleItems.reduce((acc, item) => acc + (item.variant.price * item.quantity), 0);
+            if (eligibleSubtotal < coupon.minimumSpend) {
+                throw new Error(`A minimum spend of ৳${coupon.minimumSpend} on eligible items is required.`);
             }
             
             setAppliedCoupon(coupon);
             toast({ title: 'Promo code applied!' });
-
+    
         } catch (error: any) {
             toast({ variant: 'destructive', title: 'Error applying promo code', description: error.message });
             setAppliedCoupon(null);
