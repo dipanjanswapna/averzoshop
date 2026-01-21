@@ -504,3 +504,5 @@
     "/settings/loyalty": { "schema": { "$ref": "#/entities/loyalty_settings" }, "description": "Stores the global settings for the loyalty program." }
   }
 }
+
+    
