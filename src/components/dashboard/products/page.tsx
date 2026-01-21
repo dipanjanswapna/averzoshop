@@ -17,6 +17,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { doc, updateDoc } from 'firebase/firestore';
 import { useFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 export default function ProductsPage() {
   const { data: products, isLoading } = useFirestoreQuery<Product>('products');
@@ -92,20 +93,25 @@ export default function ProductsPage() {
     )
   }
 
-  const getStatusVariant = (status: 'approved' | 'pending' | 'rejected') => {
-    switch (status) {
-        case 'approved': return 'default';
-        case 'pending': return 'secondary';
-        case 'rejected': return 'destructive';
-        default: return 'outline';
-    }
-  };
+  const renderProductStatusBadge = (product: Product) => {
+    let variant: 'default' | 'secondary' | 'destructive' = 'secondary';
+    let className = '';
 
-  const renderProductStatusBadge = (product: Product) => (
-     <Badge variant={getStatusVariant(product.status)} className="capitalize">
-        {product.status}
-      </Badge>
-  );
+    switch (product.status) {
+        case 'approved':
+            variant = 'default';
+            className = 'bg-green-500/10 text-green-600';
+            break;
+        case 'pending':
+            variant = 'secondary';
+            className = 'bg-orange-500/10 text-orange-600';
+            break;
+        case 'rejected':
+            variant = 'destructive';
+            break;
+    }
+    return <Badge variant={variant} className={cn('capitalize', className)}>{product.status}</Badge>;
+  };
 
   const renderActionsDropdown = (product: Product) => (
      <DropdownMenu>
