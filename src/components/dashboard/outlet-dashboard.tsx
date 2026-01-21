@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -127,14 +126,14 @@ export function OutletDashboard() {
   const isLoading = productsLoading || salesLoading;
 
   return (
-    <div className="flex flex-col gap-6">
-        <div className="flex items-center justify-between">
+    <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <div>
                 <h1 className="text-3xl font-bold font-headline">Welcome, {userData?.displayName}!</h1>
                 <p className="text-muted-foreground">Live performance for your outlet: <span className="font-bold text-primary">{outletId}</span></p>
             </div>
        </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Today's Offline Sales</CardTitle>
@@ -185,7 +184,7 @@ export function OutletDashboard() {
         </Card>
       </div>
 
-       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+       <div className="grid gap-6 grid-cols-1 lg:grid-cols-7">
         <Card className="lg:col-span-4">
           <CardHeader>
             <CardTitle className="font-headline">Outlet Sales Overview</CardTitle>
