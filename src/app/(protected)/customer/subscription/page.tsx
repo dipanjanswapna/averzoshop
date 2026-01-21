@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useAuth } from '@/hooks/use-auth';
@@ -37,11 +36,11 @@ export default function SubscriptionPage() {
     return (
       <div className="space-y-6">
         <Skeleton className="h-10 w-1/3" />
-        <div className="flex flex-col lg:flex-row gap-8 items-start">
-            <div className="w-full lg:w-1/3 flex-shrink-0">
-                <Skeleton className="w-full max-w-sm mx-auto aspect-[1.586/1] rounded-2xl" />
+        <div className="flex flex-col items-center gap-8">
+            <div className="w-full max-w-sm">
+                <Skeleton className="w-full aspect-[1.586/1] rounded-2xl" />
             </div>
-             <div className="w-full lg:w-2/3 grid grid-cols-1 sm:grid-cols-2 gap-6">
+             <div className="w-full max-w-4xl grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Skeleton className="h-64 w-full" />
                 <Skeleton className="h-64 w-full" />
             </div>
@@ -72,12 +71,12 @@ export default function SubscriptionPage() {
             </Button>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-8 xl:gap-12 items-start">
-            <div className="w-full lg:w-1/3 flex-shrink-0">
+        <div className="flex flex-col gap-12 items-center">
+            <div className="w-full">
                 <PremiumCard userData={userData} />
             </div>
 
-            <div className="w-full lg:w-2/3 no-print">
+            <div className="w-full max-w-4xl no-print">
                 {upgradeTiers.length > 0 ? (
                     <Card>
                         <CardHeader>
