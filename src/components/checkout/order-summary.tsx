@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -45,7 +44,9 @@ export function CheckoutOrderSummary() {
   const { toast } = useToast();
   const [promoCodeInput, setPromoCodeInput] = useState('');
   const [isApplyingPromo, setIsApplyingPromo] = useState(false);
-  const [pointsToUse, setPointsToUse] = useState<string>('');
+  
+  const [pointsToUseInput, setPointsToUseInput] = useState('');
+  const [potentialPointsDiscount, setPotentialPointsDiscount] = useState(0);
 
   const pointValue = 0.20; // 1 point = 0.20 BDT
   const availablePoints = userData?.loyaltyPoints || 0;
@@ -57,6 +58,29 @@ export function CheckoutOrderSummary() {
     applyCardPromo(userData);
     // This effect runs when the user data changes, ensuring the card promo is applied/removed.
   }, [userData, applyCardPromo]);
+
+  const { maxPointsForOrder, maxDiscountFromPoints } = useMemo(() => {
+    const maxDiscount = regularItemsSubtotal - cardPromoDiscountAmount - discount + preOrderDepositPayable;
+    const maxPoints = Math.floor(Math.max(0, maxDiscount) / pointValue);
+    const usablePoints = Math.min(maxPoints, availablePoints);
+    const discountValue = usablePoints * pointValue;
+    return { maxPointsForOrder: usablePoints, maxDiscountFromPoints: discountValue };
+  }, [regularItemsSubtotal, cardPromoDiscountAmount, discount, preOrderDepositPayable, availablePoints, pointValue]);
+
+  useEffect(() => {
+      const pointsNum = parseInt(pointsToUseInput, 10);
+      if (!isNaN(pointsNum) && pointsNum > 0) {
+          const discountValue = Math.min(pointsNum, maxPointsForOrder) * pointValue;
+          setPotentialPointsDiscount(discountValue);
+      } else {
+          setPotentialPointsDiscount(0);
+      }
+  }, [pointsToUseInput, maxPointsForOrder, pointValue]);
+
+  const handleApplyMaxPoints = () => {
+    setPointsToUseInput(String(maxPointsForOrder));
+  };
+
 
   const handleApplyPromoCode = async () => {
     if (!promoCodeInput.trim() || !firestore) {
@@ -98,12 +122,13 @@ export function CheckoutOrderSummary() {
   };
 
   const handleApplyPoints = () => {
-    const pointsNum = parseInt(pointsToUse, 10);
+    const pointsNum = parseInt(pointsToUseInput, 10);
     if (isNaN(pointsNum) || pointsNum <= 0) {
       toast({ variant: 'destructive', title: 'Invalid amount', description: 'Please enter a valid number of points.' });
       return;
     }
     applyPoints(pointsNum, availablePoints, pointValue);
+    setPointsToUseInput('');
   };
 
 
@@ -217,15 +242,25 @@ export function CheckoutOrderSummary() {
                             </Button>
                         </div>
                     ) : (
-                        <div className="flex items-end gap-2">
+                       <div className="space-y-2">
+                         <div className="flex items-center gap-2">
                             <Input
                                 placeholder="Points to use"
                                 type="number"
-                                value={pointsToUse}
-                                onChange={(e) => setPointsToUse(e.target.value)}
+                                value={pointsToUseInput}
+                                onChange={(e) => setPointsToUseInput(e.target.value)}
                             />
                             <Button onClick={handleApplyPoints}>Apply</Button>
                         </div>
+                         {potentialPointsDiscount > 0 && (
+                            <p className="text-xs text-center text-muted-foreground">Will apply a discount of ~৳{potentialPointsDiscount.toFixed(2)}</p>
+                        )}
+                        {maxPointsForOrder > 0 && (
+                            <Button type="button" variant="link" size="sm" className="h-auto p-0 text-xs w-full" onClick={handleApplyMaxPoints}>
+                                Use maximum ({maxPointsForOrder} pts for ৳{maxDiscountFromPoints.toFixed(2)})
+                            </Button>
+                        )}
+                       </div>
                     )}
                 </div>
             </div>

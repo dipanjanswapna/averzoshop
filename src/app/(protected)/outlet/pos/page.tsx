@@ -51,7 +51,8 @@ const CartPanel = ({
     isPreOrderCart, selectedCustomer, customerSearch,
     setCustomerSearch, filteredCustomers, handleSelectCustomer, handleClearCustomer,
     handleNfcRead, isScanningNfc, pointsToUse, setPointsToUse, handleApplyPoints,
-    pointsApplied, pointsDiscount, removePoints, cardPromoDiscountAmount
+    pointsApplied, pointsDiscount, removePoints, cardPromoDiscountAmount, potentialPointsDiscount,
+    handleApplyMaxPoints, maxPointsForSale, maxDiscountFromPoints
 }: any) => (
     <div className="flex flex-col gap-4 h-full">
         <Card className="shadow-md flex-shrink-0">
@@ -241,9 +242,19 @@ const CartPanel = ({
                                     <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={removePoints}><XCircle className="h-4 w-4" /></Button>
                                 </div>
                             ) : (
-                                <div className="flex items-end gap-2">
-                                    <Input placeholder="Points to use" type="number" value={pointsToUse} onChange={(e) => setPointsToUse(e.target.value)} />
-                                    <Button onClick={handleApplyPoints}>Apply</Button>
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <Input placeholder="Points to use" type="number" value={pointsToUse} onChange={(e) => setPointsToUse(e.target.value)} />
+                                        <Button onClick={handleApplyPoints}>Apply</Button>
+                                    </div>
+                                    {potentialPointsDiscount > 0 && (
+                                        <p className="text-xs text-center text-muted-foreground">Will apply a discount of ~৳{potentialPointsDiscount.toFixed(2)}</p>
+                                    )}
+                                    {maxPointsForSale > 0 && (
+                                        <Button type="button" variant="link" size="sm" className="h-auto p-0 text-xs w-full" onClick={handleApplyMaxPoints}>
+                                            Use maximum ({maxPointsForSale} pts for ৳{maxDiscountFromPoints.toFixed(2)})
+                                        </Button>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -336,6 +347,7 @@ export default function POSPage() {
     const [promoDiscount, setPromoDiscount] = useState(0);
     const [cartSubtotal, setCartSubtotal] = useState(0);
     const [grandTotal, setGrandTotal] = useState(0);
+    const [potentialPointsDiscount, setPotentialPointsDiscount] = useState(0);
 
     const isLoading = productsLoading || usersLoading;
     const outletId = useMemo(() => userData?.outletId, [userData]);
@@ -403,6 +415,33 @@ export default function POSPage() {
     
     const isPreOrderCart = useMemo(() => cart.length > 0 && !!cart[0].isPreOrder, [cart]);
 
+    const { maxPointsForSale, maxDiscountFromPoints } = useMemo(() => {
+        if (!selectedCustomer) return { maxPointsForSale: 0, maxDiscountFromPoints: 0 };
+    
+        const currentSubtotalAfterDiscounts = cartSubtotal - promoDiscount - cardPromoDiscountAmount;
+        const maxDiscount = Math.max(0, currentSubtotalAfterDiscounts);
+        const maxPoints = Math.floor(maxDiscount / pointValue);
+        
+        const usablePoints = Math.min(maxPoints, selectedCustomer.loyaltyPoints || 0);
+        const discount = usablePoints * pointValue;
+    
+        return { maxPointsForSale: usablePoints, maxDiscountFromPoints: discount };
+    }, [cartSubtotal, promoDiscount, cardPromoDiscountAmount, selectedCustomer, pointValue]);
+    
+    useEffect(() => {
+        const pointsNum = parseInt(pointsToUse, 10);
+        if (!isNaN(pointsNum) && pointsNum > 0) {
+            const discountValue = Math.min(pointsNum, maxPointsForSale) * pointValue;
+            setPotentialPointsDiscount(discountValue);
+        } else {
+            setPotentialPointsDiscount(0);
+        }
+    }, [pointsToUse, maxPointsForSale, pointValue]);
+
+    const handleApplyMaxPoints = () => {
+        setPointsToUse(String(maxPointsForSale));
+    };
+
     // Central effect for recalculating totals
     useEffect(() => {
         const subtotal = cart.reduce((total, item) => total + item.variant.price * item.quantity, 0);
@@ -417,8 +456,8 @@ export default function POSPage() {
         let currentPromoDiscount = 0;
         if (appliedCoupon) {
             const eligibleItems = cart.filter(item => {
-                if (!appliedCoupon.applicableProducts || appliedCoupon.applicableProducts.length === 0) return true;
-                return appliedCoupon.applicableProducts.includes(item.product.id);
+                if (!coupon.applicableProducts || coupon.applicableProducts.length === 0) return true;
+                return coupon.applicableProducts.includes(item.product.id);
             });
     
             if (eligibleItems.length > 0) {
@@ -795,7 +834,8 @@ export default function POSPage() {
         isPreOrderCart, selectedCustomer, customerSearch,
         setCustomerSearch, filteredCustomers, handleSelectCustomer, handleClearCustomer,
         handleNfcRead, isScanningNfc, pointsToUse, setPointsToUse, handleApplyPoints,
-        pointsApplied, pointsDiscount, removePoints, cardPromoDiscountAmount
+        pointsApplied, pointsDiscount, removePoints, cardPromoDiscountAmount, potentialPointsDiscount,
+        handleApplyMaxPoints, maxPointsForSale, maxDiscountFromPoints,
     };
 
     return (
