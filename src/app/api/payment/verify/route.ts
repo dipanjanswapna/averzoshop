@@ -1,4 +1,3 @@
-
 import { NextResponse, type NextRequest } from 'next/server';
 import { firestore } from '@/firebase/server';
 import { FieldValue } from 'firebase-admin/firestore';
@@ -141,34 +140,20 @@ export async function POST(request: NextRequest) {
         }
     
         if(userDoc.exists) {
-            let netPointsChange = 0;
             const loyaltyPointsUsed = currentOrderData.loyaltyPointsUsed || 0;
 
+            // Only handle redemption here. Earning happens on completion.
             if (loyaltyPointsUsed > 0 && !isPreOrderCompletion) {
-                netPointsChange -= loyaltyPointsUsed;
+                const userPoints = userDoc.data()?.loyaltyPoints || 0;
+                if (userPoints < loyaltyPointsUsed) {
+                    throw new Error("Insufficient loyalty points on user account.");
+                }
+                transaction.update(userRef, { loyaltyPoints: FieldValue.increment(-loyaltyPointsUsed) });
                 const redeemHistoryRef = firestore().collection(`users/${currentOrderData.customerId}/points_history`).doc();
                 transaction.set(redeemHistoryRef, {
                     userId: currentOrderData.customerId, pointsChange: -loyaltyPointsUsed, type: 'redeem',
                     reason: `Online Order: ${tran_id}`, createdAt: FieldValue.serverTimestamp(),
                 });
-            }
-
-            const amountForPoints = isPreOrderCompletion ? expectedAmount : currentOrderData.totalAmount;
-            const pointsEarned = Math.floor(amountForPoints / 100) * 5;
-            if (pointsEarned > 0) {
-                netPointsChange += pointsEarned;
-                const earnHistoryRef = firestore().collection(`users/${currentOrderData.customerId}/points_history`).doc();
-                transaction.set(earnHistoryRef, {
-                    userId: currentOrderData.customerId, pointsChange: pointsEarned, type: 'earn',
-                    reason: `Online Order: ${tran_id}`, createdAt: FieldValue.serverTimestamp(),
-                });
-            }
-
-            if (netPointsChange !== 0) {
-              transaction.update(userRef, { loyaltyPoints: FieldValue.increment(netPointsChange) });
-            }
-            if (!isPreOrderCompletion) { // Only add to total spent on initial purchase
-                transaction.update(userRef, { totalSpent: FieldValue.increment(currentOrderData.totalAmount) });
             }
         }
       });
@@ -198,3 +183,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: 'Internal Server Error', error: error.message }, { status: 500 });
   }
 }
+
+    

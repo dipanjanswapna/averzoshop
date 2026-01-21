@@ -1,14 +1,23 @@
 
+
 import { NextResponse, type NextRequest } from 'next/server';
 import { firestore, getFirebaseAdminApp } from '@/firebase/server';
 import * as admin from 'firebase-admin';
 import type { Order } from '@/types/order';
 import type { UserData } from '@/types/user';
+import { sendTargetedNotification } from '@/ai/flows/send-targeted-notification';
+
+interface LoyaltySettingsData {
+    pointsPer100Taka: { silver: number; gold: number; platinum: number; };
+    tierThresholds: { gold: number; platinum: number; };
+}
 
 async function completeOrder(orderId: string, newStatus: 'delivered' | 'fulfilled') {
   const db = firestore();
+  
+  let tierUpdateInfo = { tierUpdated: false, newTier: '', userId: '' };
 
-  return db.runTransaction(async (transaction) => {
+  const transactionResult = await db.runTransaction(async (transaction) => {
     const orderRef = db.collection('orders').doc(orderId);
     const orderSnap = await transaction.get(orderRef);
     if (!orderSnap.exists) throw new Error('Order not found.');
@@ -26,17 +35,25 @@ async function completeOrder(orderId: string, newStatus: 'delivered' | 'fulfille
 
     const settingsRef = db.collection('settings').doc('loyalty');
     const settingsSnap = await transaction.get(settingsRef);
-    const settings = settingsSnap.data() || { pointsPer100Taka: 5, pointValueInTaka: 0.20, tierThresholds: { gold: 5000, platinum: 15000 } };
+    if (!settingsSnap.exists) throw new Error("Loyalty settings not configured.");
+    const loyaltySettings = settingsSnap.data() as LoyaltySettingsData;
 
     // Update order status
-    transaction.update(orderRef, { status: newStatus, paymentStatus: 'Paid', updatedAt: admin.firestore.FieldValue.serverTimestamp() });
-
-    // Update user stats and loyalty points
-    let netPointsChange = 0;
+    transaction.update(orderRef, { status: newStatus, updatedAt: admin.firestore.FieldValue.serverTimestamp() });
     
-    // Only award points for COD/unpaid orders. Pre-order points are handled on initial payment.
-    if (order.paymentStatus !== 'Paid') {
-        const pointsEarned = Math.floor(order.totalAmount / 100) * (settings.pointsPer100Taka || 5);
+    // For completed orders, we award points and update total spend.
+    // Point redemption was already handled at the time of order placement/payment.
+    const amountForPoints = order.totalAmount;
+    let netPointsChange = 0;
+
+    const userTier = user.membershipTier || 'silver';
+    const pointsRate = loyaltySettings.pointsPer100Taka[userTier];
+
+    if (!pointsRate && pointsRate !== 0) {
+        console.error(`Invalid points rate for tier: ${userTier}.`);
+    } else {
+        const pointsEarned = Math.floor(amountForPoints / 100) * pointsRate;
+
         if (pointsEarned > 0) {
             netPointsChange += pointsEarned;
             const earnHistoryRef = db.collection(`users/${order.customerId}/points_history`).doc();
@@ -50,32 +67,35 @@ async function completeOrder(orderId: string, newStatus: 'delivered' | 'fulfille
         }
     }
     
-    const newTotalSpent = (user.totalSpent || 0) + order.totalAmount;
+    const newTotalSpent = (user.totalSpent || 0) + amountForPoints;
     let newTier = user.membershipTier || 'silver';
     
-    const goldThreshold = settings.tierThresholds?.gold ?? 5000;
-    const platinumThreshold = settings.tierThresholds?.platinum ?? 15000;
+    const goldThreshold = loyaltySettings.tierThresholds.gold;
+    const platinumThreshold = loyaltySettings.tierThresholds.platinum;
 
     if (newTotalSpent >= platinumThreshold && newTier !== 'platinum') {
       newTier = 'platinum';
-    } else if (newTotalSpent >= goldThreshold && newTier !== 'gold') {
+    } else if (newTotalSpent >= goldThreshold && newTier === 'silver') {
       newTier = 'gold';
     }
     
     let userUpdates: any = {
-        totalSpent: admin.firestore.FieldValue.increment(order.totalAmount),
+        totalSpent: admin.firestore.FieldValue.increment(amountForPoints),
     };
     if (netPointsChange !== 0) {
         userUpdates.loyaltyPoints = admin.firestore.FieldValue.increment(netPointsChange);
     }
     if (newTier !== user.membershipTier) {
         userUpdates.membershipTier = newTier;
+        tierUpdateInfo = { tierUpdated: true, newTier: newTier, userId: user.uid };
     }
 
     transaction.update(userRef, userUpdates);
     
-    return { success: true, message: `Order ${newStatus} and points awarded.` };
+    return { success: true, message: `Order ${newStatus} and points updated.` };
   });
+  
+  return { ...transactionResult, ...tierUpdateInfo };
 }
 
 
@@ -89,10 +109,27 @@ export async function POST(request: NextRequest) {
     }
     
     const result = await completeOrder(orderId, newStatus);
-    return NextResponse.json(result);
+    
+    if (result.success && result.tierUpdated) {
+        await sendTargetedNotification({
+            userId: result.userId,
+            title: "Congratulations! You've Leveled Up!",
+            body: `You've been promoted to the ${result.newTier.charAt(0).toUpperCase() + result.newTier.slice(1)} tier! Enjoy your new benefits.`,
+            link: '/customer/subscription'
+        });
+    }
+    
+    const clientResponse = {
+        success: result.success,
+        message: result.message,
+    };
+
+    return NextResponse.json(clientResponse);
 
   } catch (error: any) {
     console.error('Error completing order:', error);
     return NextResponse.json({ success: false, message: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }
+
+    

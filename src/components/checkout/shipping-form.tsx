@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -22,7 +21,7 @@ import { CardHeader, CardTitle } from '../ui/card';
 import { useCart } from '@/hooks/use-cart';
 import { useFirebase } from '@/firebase';
 import { useAuth } from '@/hooks/use-auth';
-import { collection, doc, setDoc, runTransaction, increment, DocumentReference } from 'firebase/firestore';
+import { collection, doc, setDoc, runTransaction, increment, DocumentReference, serverTimestamp } from 'firebase/firestore';
 import { calculateDistance } from '@/lib/distance';
 import type { Outlet } from '@/types/outlet';
 import type { Product, ProductVariant } from '@/types/product';
@@ -218,8 +217,7 @@ export function ShippingForm() {
         try {
             await runTransaction(firestore, async (transaction) => {
                 const userRef = doc(firestore, 'users', user.uid);
-                transaction.get(userRef);
-
+                
                 const regularItems = cartItems.filter(item => !item.isPreOrder);
                 let productUpdates: { ref: DocumentReference; data: any }[] = [];
                 if (regularItems.length > 0) {
@@ -246,15 +244,22 @@ export function ShippingForm() {
                 const orderDataForCod: Order = { ...baseOrderData, status: isPreOrderInCart ? 'pre-ordered' : 'new', paymentStatus: 'Unpaid', createdAt: new Date() as any };
                 transaction.set(orderRef, orderDataForCod);
                 productUpdates.forEach(update => transaction.update(update.ref, update.data));
-                let netPointsChange = -(pointsApplied || 0);
-                if (pointsApplied > 0) transaction.set(doc(collection(firestore, `users/${user.uid}/points_history`)), { userId: user.uid, pointsChange: -pointsApplied, type: 'redeem', reason: `Order: ${orderId}`, createdAt: new Date() });
-                const pointsEarned = Math.floor(totalPayable / 100) * 5;
-                if (pointsEarned > 0) {
-                    netPointsChange += pointsEarned;
-                    transaction.set(doc(collection(firestore, `users/${user.uid}/points_history`)), { userId: user.uid, pointsChange: pointsEarned, type: 'earn', reason: `Order: ${orderId}`, createdAt: new Date() });
+
+                if (pointsApplied > 0) {
+                    const userDoc = await transaction.get(userRef);
+                    if (!userDoc.exists() || (userDoc.data().loyaltyPoints || 0) < pointsApplied) {
+                        throw new Error("Insufficient loyalty points.");
+                    }
+                    transaction.update(userRef, { loyaltyPoints: increment(-pointsApplied) });
+                    const redeemHistoryRef = doc(collection(firestore, `users/${user.uid}/points_history`));
+                    transaction.set(redeemHistoryRef, {
+                        userId: user.uid,
+                        pointsChange: -pointsApplied,
+                        type: 'redeem',
+                        reason: `Order: ${orderId}`,
+                        createdAt: serverTimestamp(),
+                    });
                 }
-                if (netPointsChange !== 0) transaction.update(userRef, { loyaltyPoints: increment(netPointsChange) });
-                transaction.update(userRef, { totalSpent: increment(totalPayable) });
             });
             clearCart();
             toast({ title: 'Order Placed!', description: `Your order has been confirmed.` });
@@ -405,3 +410,4 @@ export function ShippingForm() {
       </Form>
   );
 }
+    
