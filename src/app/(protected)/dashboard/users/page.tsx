@@ -41,6 +41,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ManageVendorOutletsDialog } from '@/components/dashboard/manage-vendor-outlets-dialog';
 import { AddUserDialog } from '@/components/dashboard/add-user-dialog';
 import { AssignSalesRepDialog } from '@/components/dashboard/assign-sales-rep-dialog';
+import { AdjustPointsDialog } from '@/components/dashboard/adjust-points-dialog';
 import { cn } from '@/lib/utils';
 
 
@@ -56,6 +57,8 @@ export default function UsersPage() {
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
   const [isAssignRepOpen, setIsAssignRepOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<UserData | null>(null);
+  const [isAdjustPointsDialogOpen, setIsAdjustPointsDialogOpen] = useState(false);
+  const [selectedUserForPoints, setSelectedUserForPoints] = useState<UserData | null>(null);
 
 
   const handleStatusChange = async (uid: string, newStatus: 'approved' | 'rejected') => {
@@ -85,6 +88,11 @@ export default function UsersPage() {
   const handleAssignRepClick = (customer: UserData) => {
     setSelectedCustomer(customer);
     setIsAssignRepOpen(true);
+  };
+  
+  const handleAdjustPointsClick = (user: UserData) => {
+    setSelectedUserForPoints(user);
+    setIsAdjustPointsDialogOpen(true);
   };
 
   const salesRepMap = useMemo(() => {
@@ -250,7 +258,9 @@ export default function UsersPage() {
                             <DropdownMenuContent align="end">
                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
                               <DropdownMenuItem>Edit</DropdownMenuItem>
-                              <DropdownMenuItem>View Details</DropdownMenuItem>
+                               <DropdownMenuItem onClick={() => handleAdjustPointsClick(user)}>
+                                Adjust Points
+                              </DropdownMenuItem>
                                {user.role === 'customer' && (
                                 <>
                                   <DropdownMenuSeparator />
@@ -337,6 +347,9 @@ export default function UsersPage() {
                                     <DropdownMenuContent align="end">
                                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                     <DropdownMenuItem>Edit</DropdownMenuItem>
+                                     <DropdownMenuItem onClick={() => handleAdjustPointsClick(user)}>
+                                        Adjust Points
+                                    </DropdownMenuItem>
                                      {user.role === 'customer' && (
                                         <>
                                         <DropdownMenuSeparator />
@@ -398,6 +411,13 @@ export default function UsersPage() {
             open={isAssignRepOpen}
             onOpenChange={setIsAssignRepOpen}
             customer={selectedCustomer}
+        />
+    )}
+    {selectedUserForPoints && (
+        <AdjustPointsDialog
+            open={isAdjustPointsDialogOpen}
+            onOpenChange={setIsAdjustPointsDialogOpen}
+            user={selectedUserForPoints}
         />
     )}
     </>
