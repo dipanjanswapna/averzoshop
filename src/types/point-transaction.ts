@@ -9,3 +9,5 @@ export interface PointTransaction {
   reason: string;
   createdAt: Timestamp;
 }
+
+    

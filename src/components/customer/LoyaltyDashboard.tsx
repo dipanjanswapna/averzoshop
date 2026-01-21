@@ -72,3 +72,5 @@ export function LoyaltyDashboard({ userData }: { userData: UserData }) {
     </div>
   );
 }
+
+    
