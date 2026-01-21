@@ -4,6 +4,7 @@ import { firestore, getFirebaseAdminApp } from '@/firebase/server';
 import * as admin from 'firebase-admin';
 import type { Order } from '@/types/order';
 import type { UserData } from '@/types/user';
+import { sendTargetedNotification } from '@/ai/flows/send-targeted-notification';
 
 interface LoyaltySettingsData {
     pointsPer100Taka: { silver: number; gold: number; platinum: number; };
@@ -12,8 +13,10 @@ interface LoyaltySettingsData {
 
 async function completeOrder(orderId: string, newStatus: 'delivered' | 'fulfilled') {
   const db = firestore();
+  
+  let tierUpdateInfo = { tierUpdated: false, newTier: '', userId: '' };
 
-  return db.runTransaction(async (transaction) => {
+  const transactionResult = await db.runTransaction(async (transaction) => {
     const orderRef = db.collection('orders').doc(orderId);
     const orderSnap = await transaction.get(orderRef);
     if (!orderSnap.exists) throw new Error('Order not found.');
@@ -96,12 +99,15 @@ async function completeOrder(orderId: string, newStatus: 'delivered' | 'fulfille
     }
     if (newTier !== user.membershipTier) {
         userUpdates.membershipTier = newTier;
+        tierUpdateInfo = { tierUpdated: true, newTier: newTier, userId: user.uid };
     }
 
     transaction.update(userRef, userUpdates);
     
     return { success: true, message: `Order ${newStatus} and points updated.` };
   });
+  
+  return { ...transactionResult, ...tierUpdateInfo };
 }
 
 
@@ -115,7 +121,22 @@ export async function POST(request: NextRequest) {
     }
     
     const result = await completeOrder(orderId, newStatus);
-    return NextResponse.json(result);
+    
+    if (result.success && result.tierUpdated) {
+        await sendTargetedNotification({
+            userId: result.userId,
+            title: "Congratulations! You've Leveled Up!",
+            body: `You've been promoted to the ${result.newTier.charAt(0).toUpperCase() + result.newTier.slice(1)} tier! Enjoy your new benefits.`,
+            link: '/customer/subscription'
+        });
+    }
+    
+    const clientResponse = {
+        success: result.success,
+        message: result.message,
+    };
+
+    return NextResponse.json(clientResponse);
 
   } catch (error: any) {
     console.error('Error completing order:', error);

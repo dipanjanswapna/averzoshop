@@ -6,6 +6,7 @@ import type { Order } from '@/types/order';
 import type { POSSale } from '@/types/pos';
 import type { UserData } from '@/types/user';
 import type { Product } from '@/types/product';
+import { sendTargetedNotification } from '@/ai/flows/send-targeted-notification';
 
 interface LoyaltySettingsData {
     pointsPer100Taka: { silver: number; gold: number; platinum: number; };
@@ -17,6 +18,8 @@ export async function POST(request: NextRequest) {
     getFirebaseAdminApp();
     const saleData: POSSale = await request.json();
     const db = firestore();
+
+    let tierUpdateInfo = { tierUpdated: false, newTier: '', userId: '' };
 
     await db.runTransaction(async (transaction) => {
         const saleRef = db.collection('pos_sales').doc(saleData.id);
@@ -100,8 +103,12 @@ export async function POST(request: NextRequest) {
             const goldThreshold = settings.tierThresholds.gold;
             const platinumThreshold = settings.tierThresholds.platinum;
 
-            if (newTotalSpent >= platinumThreshold && newTier !== 'platinum') newTier = 'platinum';
-            else if (newTotalSpent >= goldThreshold && newTier === 'silver') newTier = 'gold';
+            if (newTotalSpent >= platinumThreshold && newTier !== 'platinum') {
+                newTier = 'platinum';
+            }
+            else if (newTotalSpent >= goldThreshold && newTier === 'silver') {
+                newTier = 'gold';
+            }
             
             let userUpdates: any = {
                 totalSpent: admin.firestore.FieldValue.increment(saleData.totalAmount),
@@ -111,10 +118,22 @@ export async function POST(request: NextRequest) {
             }
             if (newTier !== user.membershipTier) {
                 userUpdates.membershipTier = newTier;
+                if(saleData.customerId) {
+                    tierUpdateInfo = { tierUpdated: true, newTier: newTier, userId: saleData.customerId };
+                }
             }
             transaction.update(userRef, userUpdates);
         }
     });
+
+    if (tierUpdateInfo.tierUpdated) {
+        await sendTargetedNotification({
+            userId: tierUpdateInfo.userId,
+            title: "Congratulations! You've Leveled Up!",
+            body: `You've been promoted to the ${tierUpdateInfo.newTier.charAt(0).toUpperCase() + tierUpdateInfo.newTier.slice(1)} tier! Enjoy your new benefits.`,
+            link: '/customer/subscription'
+        });
+    }
 
     return NextResponse.json({ success: true, message: 'Sale completed successfully.' });
 
