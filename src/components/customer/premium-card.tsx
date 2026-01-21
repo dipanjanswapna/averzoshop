@@ -1,4 +1,3 @@
-
 'use client';
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
@@ -9,6 +8,7 @@ import Barcode from 'react-barcode';
 import { BarcodePopup } from './barcode-popup';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import Image from 'next/image';
 
 // Helper function to format the UID into a card number format
 const formatCardNumber = (uid: string) => {
@@ -157,11 +157,11 @@ export function PremiumCard({ userData }: { userData: UserData }) {
           
           {/* BACK SIDE */}
           <div 
-            className={cn(`absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-2xl shadow-2xl flex flex-col justify-around cursor-pointer overflow-hidden bg-gradient-to-br border`, s.gradient, s.text, s.border)} 
+            className={cn(`absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-2xl shadow-2xl flex flex-col justify-between cursor-pointer overflow-hidden bg-gradient-to-br border p-4`, s.gradient, s.text, s.border)} 
             onClick={() => setIsFlipped(!isFlipped)}
           >
-              <div className="w-full h-10 bg-black shrink-0" />
-               <div className="border border-white/20 rounded-lg p-2 text-[8px] opacity-90 space-y-0.5 mx-4">
+              <div className="w-full h-10 bg-black shrink-0 -mx-4 -mt-4" />
+               <div className="border border-white/20 rounded-lg p-2 text-[8px] opacity-90 space-y-0.5">
                   <div className="grid grid-cols-2 gap-x-2">
                       <div>
                           <p className="font-bold text-[6px] uppercase opacity-60 tracking-widest">Email</p>
@@ -179,16 +179,32 @@ export function PremiumCard({ userData }: { userData: UserData }) {
                       </div>
                   )}
               </div>
-
-              <div className="space-y-1">
-                  <div className="flex flex-col items-center justify-center">
-                      <div className="bg-white p-1 rounded-md shadow-inner cursor-pointer" onClick={handleBarcodeClick}>
-                          <Barcode value={userData.uid} height={14} width={0.8} displayValue={false} background="transparent" lineColor={barcodeColor} />
+              
+              <div className="space-y-2">
+                  <div className="flex justify-around items-center">
+                      {/* Barcode */}
+                      <div className="flex flex-col items-center justify-center">
+                          <div className="bg-white p-1 rounded-md shadow-inner cursor-pointer" onClick={handleBarcodeClick}>
+                              <Barcode value={userData.uid} height={16} width={0.7} displayValue={false} background="transparent" lineColor={barcodeColor} />
+                          </div>
+                          <p className="text-[5px] opacity-70 font-mono tracking-wider mt-0.5">{userData.uid}</p>
                       </div>
-                      <p className="text-[5px] opacity-70 font-mono tracking-wider mt-0.5">{userData.uid}</p>
+                      {/* QR Code */}
+                      <div className="flex flex-col items-center justify-center">
+                           <div className="bg-white p-0.5 rounded-md shadow-inner">
+                                <Image
+                                    src={`https://api.qrserver.com/v1/create-qr-code/?size=48x48&data=${userData.uid}&bgcolor=ffffff&color=${barcodeColor.replace('#','')}&qzone=1`}
+                                    width={48}
+                                    height={48}
+                                    alt="Membership QR Code"
+                                />
+                            </div>
+                            <p className="text-[5px] opacity-70 font-mono tracking-wider mt-0.5">SCAN ME</p>
+                      </div>
                   </div>
 
-                  <div className="flex flex-col items-center justify-center">
+                  <div className="flex flex-col items-center justify-center pt-2">
+                      <p className="text-[8px] font-bold uppercase opacity-60 tracking-widest mb-1">NFC Ready</p>
                       <div 
                           className={cn("w-6 h-5 flex items-center justify-center rounded-md cursor-pointer transition-all", s.hologram)}
                           onClick={handleNfcWrite}
