@@ -11,7 +11,7 @@ import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { useFirebase } from '@/firebase';
-import { doc, getDoc, runTransaction, serverTimestamp, collection, increment } from 'firebase/firestore';
+import { doc, serverTimestamp, collection } from 'firebase/firestore';
 import type { POSSale } from '@/types/pos';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ReceiptPreviewDialog } from '@/components/pos/ReceiptPreviewDialog';
@@ -684,100 +684,54 @@ export default function POSPage() {
         
         try {
             const saleId = doc(collection(firestore, 'id_generator')).id;
-            await runTransaction(firestore, async (transaction) => {
-                const saleRef = doc(firestore, 'pos_sales', saleId);
+            const saleData: POSSale = {
+                id: saleId,
+                outletId,
+                soldBy: user.uid,
+                items: cart.map(item => ({
+                    productId: item.product.id,
+                    productName: item.product.name,
+                    variantSku: item.variant.sku,
+                    quantity: item.quantity,
+                    price: item.variant.price,
+                })),
+                subtotal: cartSubtotal,
+                cardPromoDiscountAmount: cardPromoDiscountAmount,
+                discountAmount: promoDiscount,
+                promoCode: appliedCoupon ? appliedCoupon.code : undefined,
+                loyaltyPointsUsed: pointsApplied,
+                loyaltyDiscount: pointsDiscount,
+                totalAmount: grandTotal,
+                paymentMethod: paymentMethod,
+                createdAt: serverTimestamp(),
+                customerId: selectedCustomer?.uid,
+                customerName: selectedCustomer?.displayName || 'Walk-in Customer',
+            };
 
-                const saleData: POSSale = {
-                    id: saleId,
-                    outletId,
-                    soldBy: user.uid,
-                    items: cart.map(item => ({
-                        productId: item.product.id,
-                        productName: item.product.name,
-                        variantSku: item.variant.sku,
-                        quantity: item.quantity,
-                        price: item.variant.price,
-                    })),
-                    subtotal: cartSubtotal,
-                    cardPromoDiscountAmount: cardPromoDiscountAmount,
-                    discountAmount: promoDiscount,
-                    promoCode: appliedCoupon ? appliedCoupon.code : undefined,
-                    loyaltyPointsUsed: pointsApplied,
-                    loyaltyDiscount: pointsDiscount,
-                    totalAmount: grandTotal,
-                    paymentMethod: paymentMethod,
-                    createdAt: serverTimestamp(),
-                    customerId: selectedCustomer?.uid,
-                    customerName: selectedCustomer?.displayName || 'Walk-in Customer',
-                };
-                transaction.set(saleRef, saleData);
-
-                for (const item of cart) {
-                    if (item.isPreOrder) continue;
-                    const productRef = doc(firestore, 'products', item.product.id);
-                    const productDoc = await transaction.get(productRef);
-                    if (!productDoc.exists()) throw new Error(`Product ${item.product.name} not found.`);
-                    
-                    const productData = productDoc.data() as Product;
-                    const variantsArray = Array.isArray(productData.variants) ? [...productData.variants] : [...Object.values(productData.variants)];
-                    const variantIndex = variantsArray.findIndex(v => v.sku === item.variant.sku);
-
-                    if (variantIndex === -1) throw new Error(`Variant ${item.variant.sku} not found.`);
-                    
-                    const currentStock = variantsArray[variantIndex].outlet_stocks?.[outletId] ?? 0;
-                    if (currentStock < item.quantity) throw new Error(`Not enough stock for ${item.product.name}. Available: ${currentStock}`);
-                    
-                    variantsArray[variantIndex].stock = (variantsArray[variantIndex].stock || 0) - item.quantity;
-                    variantsArray[variantIndex].outlet_stocks![outletId] = currentStock - item.quantity;
-
-                    transaction.update(productRef, {
-                        variants: variantsArray,
-                        total_stock: increment(-item.quantity),
-                    });
-                }
-    
-                if (appliedCoupon) {
-                    const couponRef = doc(firestore, 'coupons', appliedCoupon.id);
-                    transaction.update(couponRef, { usedCount: increment(1) });
-                }
-
-                if (selectedCustomer) {
-                    const userRef = doc(firestore, 'users', selectedCustomer.uid);
-                    const currentPoints = selectedCustomer.loyaltyPoints || 0;
-                    if (pointsApplied > currentPoints) throw new Error("Insufficient points.");
-
-                    let netPointsChange = -pointsApplied;
-                    if (pointsApplied > 0) {
-                        const redeemHistoryRef = doc(collection(firestore, `users/${selectedCustomer.uid}/points_history`));
-                        transaction.set(redeemHistoryRef, { userId: selectedCustomer.uid, pointsChange: -pointsApplied, type: 'redeem', reason: `POS Sale: ${saleId}`, createdAt: serverTimestamp() });
-                    }
-                    
-                    const pointsEarned = Math.floor(grandTotal / 100) * (loyaltySettings?.pointsPer100Taka[selectedCustomer?.membershipTier || 'silver'] || 5);
-                    if(pointsEarned > 0) {
-                        netPointsChange += pointsEarned;
-                        const earnHistoryRef = doc(collection(firestore, `users/${selectedCustomer.uid}/points_history`));
-                        transaction.set(earnHistoryRef, { userId: selectedCustomer.uid, pointsChange: pointsEarned, type: 'earn', reason: `POS Sale: ${saleId}`, createdAt: serverTimestamp() });
-                    }
-                    
-                    transaction.update(userRef, { 
-                        loyaltyPoints: increment(netPointsChange),
-                        totalSpent: increment(grandTotal),
-                    });
-                }
-                
-                let saleInfoForReceipt: any = { ...saleData, orderType: 'regular' };
-                if (paymentMethod === 'cash') {
-                    saleInfoForReceipt = { ...saleInfoForReceipt, cashReceived, changeDue };
-                }
-                setLastSale(saleInfoForReceipt);
+            const response = await fetch('/api/pos/complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(saleData),
             });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || 'Failed to complete sale from server.');
+            }
+            
+            let saleInfoForReceipt: any = { ...saleData, orderType: 'regular', createdAt: new Date() };
+            if (paymentMethod === 'cash') {
+                saleInfoForReceipt = { ...saleInfoForReceipt, cashReceived, changeDue };
+            }
+            setLastSale(saleInfoForReceipt);
     
             toast({ title: 'Sale Completed!', description: 'Receipt is being prepared.' });
             setIsReceiptPreviewOpen(true);
             clearSaleState();
     
         } catch (error: any) {
-            console.error('Sale transaction failed: ', error);
+            console.error('Sale completion failed: ', error);
             toast({ variant: 'destructive', title: 'Sale Failed', description: error.message || 'An unexpected error occurred.' });
         } finally {
             setIsProcessing(false);
