@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import type { UserData } from '@/types/user';
-import { Nfc, QrCode, Loader2, MapPin } from 'lucide-react';
+import { Nfc, QrCode, Loader2, Mail, Phone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Barcode from 'react-barcode';
 import { BarcodePopup } from './barcode-popup';
@@ -149,25 +149,29 @@ export function PremiumCard({ userData }: { userData: UserData }) {
               <div className="w-full h-12 bg-black mt-6" />
 
               <div className="px-6 py-4 flex-1 flex flex-col justify-between">
-                  {/* Signature and Address */}
-                  <div>
-                      <div className="w-full bg-white/80 rounded-md p-1 mt-1 shadow-inner h-8 flex items-end justify-end">
-                          <p className="text-[6px] opacity-70 uppercase tracking-wider text-slate-600 mr-2">
-                              AUTHORIZED SIGNATURE - NOT VALID UNLESS SIGNED
-                          </p>
-                      </div>
-                      {primaryAddress && (
-                          <div className="mt-2 text-[8px] flex items-start gap-1.5 opacity-80">
-                              <MapPin className="w-3 h-3 flex-shrink-0 mt-0.5"/>
-                              <span>{primaryAddress.streetAddress}, {primaryAddress.area}, {primaryAddress.district}</span>
-                          </div>
-                      )}
-                  </div>
+                  <div className="text-[10px] opacity-90 space-y-2">
+                        <div className="grid grid-cols-2 gap-x-4">
+                            <div>
+                                <p className="font-bold text-[8px] uppercase opacity-60 tracking-widest">Email</p>
+                                <p className="text-[9px] truncate">{userData.email || 'N/A'}</p>
+                            </div>
+                            <div>
+                                <p className="font-bold text-[8px] uppercase opacity-60 tracking-widest">Phone</p>
+                                <p className="text-[9px] truncate">{userData.phone || 'N/A'}</p>
+                            </div>
+                        </div>
+                        {primaryAddress && (
+                            <div className="mt-1">
+                                <p className="font-bold text-[8px] uppercase opacity-60 tracking-widest">Address</p>
+                                <p className="text-[9px]">{primaryAddress.streetAddress}, {primaryAddress.area}, {primaryAddress.district}</p>
+                            </div>
+                        )}
+                    </div>
 
                   {/* Barcode and UID */}
                   <div className="flex flex-col items-center justify-center gap-1">
                       <div className="bg-white p-1.5 rounded-md shadow-inner cursor-pointer" onClick={handleBarcodeClick}>
-                          <Barcode value={userData.uid} height={40} width={1.2} displayValue={false} background="transparent" lineColor={barcodeColor} />
+                          <Barcode value={userData.uid} height={30} width={1} displayValue={false} background="transparent" lineColor={barcodeColor} />
                       </div>
                       <p className="text-[7px] opacity-70 font-mono tracking-widest">{userData.uid}</p>
                   </div>
