@@ -48,23 +48,24 @@ async function completeOrder(orderId: string, newStatus: 'delivered' | 'fulfille
 
     const userTier = user.membershipTier || 'silver';
     const pointsRate = loyaltySettings.pointsPer100Taka[userTier];
-
-    if (!pointsRate && pointsRate !== 0) {
-        console.error(`Invalid points rate for tier: ${userTier}.`);
+    let pointsEarned = 0;
+    
+    if (typeof pointsRate === 'number') {
+        pointsEarned = Math.floor(amountForPoints / 100) * pointsRate;
     } else {
-        const pointsEarned = Math.floor(amountForPoints / 100) * pointsRate;
+        console.warn(`Invalid points rate for tier: ${userTier}. Defaulting to 0.`);
+    }
 
-        if (pointsEarned > 0) {
-            netPointsChange += pointsEarned;
-            const earnHistoryRef = db.collection(`users/${order.customerId}/points_history`).doc();
-            transaction.set(earnHistoryRef, {
-                userId: order.customerId,
-                pointsChange: pointsEarned,
-                type: 'earn',
-                reason: `Order: ${orderId}`,
-                createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            });
-        }
+    if (pointsEarned > 0) {
+        netPointsChange += pointsEarned;
+        const earnHistoryRef = db.collection(`users/${order.customerId}/points_history`).doc();
+        transaction.set(earnHistoryRef, {
+            userId: order.customerId,
+            pointsChange: pointsEarned,
+            type: 'earn',
+            reason: `Order: ${orderId}`,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
     }
     
     const newTotalSpent = (user.totalSpent || 0) + amountForPoints;
@@ -131,5 +132,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, message: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }
-
-    
