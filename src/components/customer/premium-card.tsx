@@ -2,10 +2,11 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import type { UserData } from '@/types/user';
-import { Nfc, Wifi } from 'lucide-react';
+import { Nfc, Wifi, QrCode } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Barcode from 'react-barcode';
 import { BarcodePopup } from './barcode-popup';
+import { Button } from '@/components/ui/button';
 
 // Helper function to format the UID into a card number format
 const formatCardNumber = (uid: string) => {
@@ -67,12 +68,15 @@ export function PremiumCard({ userData }: { userData: UserData }) {
           transition={{ duration: 0.7, ease: "easeInOut" }}
         >
           {/* FRONT SIDE */}
-          <div className={cn(`absolute w-full h-full [backface-visibility:hidden] rounded-2xl shadow-2xl p-6 flex flex-col justify-between cursor-pointer overflow-hidden bg-gradient-to-br border`, s.gradient, s.text, s.border)} onClick={() => setIsFlipped(!isFlipped)}>
-              <svg className="absolute inset-0 w-full h-full opacity-[0.03]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900"><path fill="currentColor" d="M800 50C400 50 100 300 100 500s300 400 700 400 700-200 700-400S1200 50 800 50z" opacity=".1"/><path fill="currentColor" d="M800,0C358.18,0,0,201.31,0,450S358.18,900,800,900s800-201.31,800-450S1241.82,0,800,0Zm0,850C386.59,850,50,672.34,50,450S386.59,50,800,50s750,177.66,750,400S1213.41,850,800,850Z"/><path fill="currentColor" opacity="0.4" d="m203 543l-1-3l2-1l2 2z M454 227l-1-2l-1 2z M454 227l1 1l-1-1z M1444 388l-1 1l1-1z M1179 676l-1 2l1-2z M1065 678l-1-1l1 1z" /></svg>
-              
+          <div 
+            className={cn(`absolute w-full h-full [backface-visibility:hidden] rounded-2xl shadow-2xl p-6 flex flex-col justify-between cursor-pointer overflow-hidden bg-gradient-to-br border`, s.gradient, s.text, s.border)} 
+            onClick={() => setIsFlipped(!isFlipped)}
+          >
               <div className="flex justify-between items-start z-10">
                   <p className="text-2xl font-black italic tracking-tighter opacity-90">AVERZO<span className="text-blue-500">.</span></p>
-                  <Wifi size={24} className="opacity-70 -rotate-45" />
+                  <Button variant="ghost" size="icon" className="h-8 w-8 text-current" onClick={(e) => { e.stopPropagation(); setIsBarcodePopupOpen(true); }}>
+                      <QrCode />
+                  </Button>
               </div>
 
               <div className="space-y-2 z-10">
@@ -114,7 +118,7 @@ export function PremiumCard({ userData }: { userData: UserData }) {
               </div>
               <div className="flex-1 flex flex-col justify-center items-center px-6 cursor-pointer" onClick={handleBarcodeClick}>
                   <div className="bg-white p-1.5 rounded-md shadow-inner">
-                      <Barcode value={userData.uid} height={30} width={1.2} displayValue={false} background="transparent" lineColor={barcodeColor} />
+                      <Barcode value={userData.uid} height={20} width={0.8} displayValue={false} background="transparent" lineColor={barcodeColor} />
                   </div>
                   <p className="text-[7px] opacity-70 mt-1 font-mono">{userData.uid}</p>
               </div>
