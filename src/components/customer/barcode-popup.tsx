@@ -26,8 +26,10 @@ export function BarcodePopup({ open, onOpenChange, userName, uid }: BarcodePopup
           <DialogTitle>{userName}</DialogTitle>
           <DialogDescription>Membership ID: {uid}</DialogDescription>
         </DialogHeader>
-        <div className="flex flex-col items-center justify-center py-8">
-          <Barcode value={uid} width={2} height={80} />
+        <div className="flex flex-col items-center justify-center py-4">
+          <div className="bg-white p-4 rounded-lg">
+            <Barcode value={uid} width={1.2} height={50} />
+          </div>
         </div>
       </DialogContent>
     </Dialog>
