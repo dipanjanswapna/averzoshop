@@ -78,7 +78,7 @@ export function PrintableReceipt({ sale, outletId }: PrintableReceiptProps) {
                 )}
                  {sale.loyaltyDiscount > 0 && (
                     <div className="flex justify-between">
-                        <span>Loyalty Discount:</span>
+                        <span>Loyalty Discount ({sale.loyaltyPointsUsed} pts):</span>
                         <span>- ৳{sale.loyaltyDiscount.toFixed(2)}</span>
                     </div>
                 )}
