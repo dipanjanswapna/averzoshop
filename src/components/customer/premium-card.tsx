@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import type { UserData } from '@/types/user';
-import { Nfc, Wifi, QrCode, Loader2 } from 'lucide-react';
+import { Nfc, QrCode, Loader2, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Barcode from 'react-barcode';
 import { BarcodePopup } from './barcode-popup';
@@ -21,6 +21,8 @@ export function PremiumCard({ userData }: { userData: UserData }) {
   const [isBarcodePopupOpen, setIsBarcodePopupOpen] = useState(false);
   const [isWritingNfc, setIsWritingNfc] = useState(false);
   const { toast } = useToast();
+
+  const primaryAddress = userData.addresses?.[0];
 
   // Dynamic card data generation
   const cardData = {
@@ -61,7 +63,7 @@ export function PremiumCard({ userData }: { userData: UserData }) {
     e.stopPropagation(); // Prevents the card from flipping back
     setIsBarcodePopupOpen(true);
   };
-  
+
   const handleNfcWrite = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!('NDEFReader' in window)) {
@@ -139,30 +141,39 @@ export function PremiumCard({ userData }: { userData: UserData }) {
           </div>
           
           {/* BACK SIDE */}
-          <div className={cn(`absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-2xl shadow-2xl flex flex-col cursor-pointer overflow-hidden bg-gradient-to-br border`, s.gradient, s.text, s.border)} onClick={() => setIsFlipped(!isFlipped)}>
+          <div className={cn(`absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-2xl shadow-2xl flex flex-col justify-between cursor-pointer overflow-hidden bg-gradient-to-br border`, s.gradient, s.text, s.border)} onClick={() => setIsFlipped(!isFlipped)}>
               <div className="w-full h-12 bg-black mt-6" />
-              <div className="flex items-center gap-4 px-6 mt-4">
-                  <div className="w-3/4 h-8 bg-white/80 rounded-md p-1 flex items-center justify-end shadow-inner">
-                      <p className="text-right text-black font-mono italic text-sm pr-2">{cardData.cvv}</p>
+              
+              <div className="px-6 mt-4">
+                  <p className="text-[6px] opacity-70 uppercase tracking-wider">Authorized Signature - Not valid unless signed</p>
+                  <div className="w-full h-8 bg-white/80 rounded-md p-1 mt-1 shadow-inner">
+                      {/* Signature area */}
                   </div>
+              </div>
+
+              {primaryAddress && (
+                  <div className="px-6 mt-2 text-[8px] flex items-start gap-1.5 opacity-80">
+                      <MapPin className="w-3 h-3 flex-shrink-0 mt-0.5"/>
+                      <span>{primaryAddress.streetAddress}, {primaryAddress.area}, {primaryAddress.district}, {primaryAddress.division}</span>
+                  </div>
+              )}
+              
+              <div className="flex-1 flex flex-col justify-end items-center px-6 pb-2">
+                  <div className="bg-white p-1.5 rounded-md shadow-inner cursor-pointer" onClick={handleBarcodeClick}>
+                      <Barcode value={userData.uid} height={30} width={1} displayValue={false} background="transparent" lineColor={barcodeColor} />
+                  </div>
+                  <p className="text-[7px] opacity-70 mt-1 font-mono">{userData.uid}</p>
+                  
                    <div 
-                    className={cn("w-1/4 h-8 flex items-center justify-center rounded-md cursor-pointer transition-all", s.hologram)}
+                    className={cn("mt-2 w-10 h-6 flex items-center justify-center rounded-md cursor-pointer transition-all", s.hologram)}
                     onClick={handleNfcWrite}
                     title="Write to NFC Tag"
                   >
-                      {isWritingNfc ? <Loader2 size={20} className="animate-spin" /> : <Nfc size={20} className="opacity-70" />}
+                      {isWritingNfc ? <Loader2 size={16} className="animate-spin" /> : <Nfc size={16} className="opacity-70" />}
                   </div>
               </div>
-              <div className="px-6 mt-2 text-[6px] opacity-70 uppercase tracking-wider">
-                  Authorized Signature - Not valid unless signed
-              </div>
-              <div className="flex-1 flex flex-col justify-center items-center px-6 cursor-pointer" onClick={handleBarcodeClick}>
-                  <div className="bg-white p-1.5 rounded-md shadow-inner">
-                      <Barcode value={userData.uid} height={20} width={0.8} displayValue={false} background="transparent" lineColor={barcodeColor} />
-                  </div>
-                  <p className="text-[7px] opacity-70 mt-1 font-mono">{userData.uid}</p>
-              </div>
-              <p className="text-center text-xs text-muted-foreground px-6 pb-4">
+
+              <p className="text-center text-[9px] opacity-70 px-6 pb-4">
                   If found, please return to any Averzo outlet. This card is non-transferable.
               </p>
           </div>
