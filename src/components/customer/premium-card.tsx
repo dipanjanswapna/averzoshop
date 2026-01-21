@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
@@ -115,8 +116,8 @@ export function PremiumCard({ userData }: { userData: UserData }) {
                 </div>
                 <p className="text-[7px] opacity-70 mt-1 font-mono">{userData.uid}</p>
             </div>
-             <p className="text-center text-[7px] opacity-50 px-6 pb-4">
-                This card is non-transferable. If found, please return to any Averzo outlet.
+             <p className="text-center text-xs text-muted-foreground px-6 pb-4">
+                If found, please return to any Averzo outlet. This card is non-transferable.
              </p>
         </div>
       </motion.div>
