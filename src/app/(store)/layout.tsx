@@ -78,6 +78,7 @@ export default function StoreLayout({
                 <li><Link href="/track-order" className="text-muted-foreground hover:text-primary">Track Your Order</Link></li>
                 <li><Link href="#" className="text-muted-foreground hover:text-primary">FAQ</Link></li>
                 <li><Link href="#" className="text-muted-foreground hover:text-primary">Shipping & Returns</Link></li>
+                <li><Link href="/install-pwa" className="text-muted-foreground hover:text-primary">Install App</Link></li>
               </ul>
             </div>
              <div>
