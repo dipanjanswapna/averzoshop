@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useAuth } from '@/hooks/use-auth';
@@ -5,7 +6,7 @@ import { PremiumCard } from '@/components/customer/premium-card';
 import { Card, CardContent, CardDescription, CardHeader, CardFooter, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CheckCircle, Star, Printer, MousePointerClick } from 'lucide-react';
+import { CheckCircle, Star, Printer } from 'lucide-react';
 
 const tiers = [
   {
@@ -38,7 +39,7 @@ export default function SubscriptionPage() {
         <Skeleton className="h-10 w-1/3" />
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             <div className="lg:col-span-1 flex justify-center">
-                <Skeleton className="w-full max-w-[380px] aspect-[85.6/54] rounded-2xl" />
+                <Skeleton className="w-full max-w-[380px] aspect-[1.586/1] rounded-2xl" />
             </div>
              <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Skeleton className="h-64 w-full" />
@@ -75,9 +76,6 @@ export default function SubscriptionPage() {
             <div className="lg:col-span-1 flex justify-center lg:justify-start">
                 <div className="w-full">
                     <PremiumCard userData={userData} />
-                    <p className="text-xs text-muted-foreground text-center mt-2 flex items-center justify-center gap-1 no-print">
-                        <MousePointerClick size={12}/> Click card to flip
-                    </p>
                 </div>
             </div>
 
