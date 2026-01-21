@@ -82,37 +82,87 @@ export default function SalesOrderPage() {
         setPointsDiscount(0);
         setPointsToUse('');
     }, [selectedCustomer]);
-
-    const { cartSubtotal, totalItems } = useMemo(() => {
-        const subtotal = cart.reduce((total, item) => total + item.variant.price * item.quantity, 0);
-        const itemsCount = cart.reduce((total, item) => total + item.quantity, 0);
-        return { cartSubtotal: subtotal, totalItems: itemsCount };
-    }, [cart]);
     
+    const { 
+        totalItems,
+        regularItemsSubtotal,
+        preOrderItemsSubtotal,
+        preOrderDepositPayable,
+        isPartialPayment
+    } = useMemo(() => {
+        let regularSub = 0;
+        let preOrderSub = 0;
+        let preOrderDeposit = 0;
+        let partialPayment = false;
+        let itemsCount = 0;
+
+        cart.forEach(item => {
+            const itemTotal = (item.variant?.price || 0) * item.quantity;
+            itemsCount += item.quantity;
+
+            if (item.product.preOrder?.enabled) {
+                preOrderSub += itemTotal;
+                const preOrderInfo = item.product.preOrder;
+                if (preOrderInfo.enabled && preOrderInfo.depositAmount != null && preOrderInfo.depositAmount > 0) {
+                    partialPayment = true;
+                    if (preOrderInfo.depositType === 'percentage') {
+                        preOrderDeposit += (itemTotal * preOrderInfo.depositAmount) / 100;
+                    } else { // fixed
+                        preOrderDeposit += (preOrderInfo.depositAmount * item.quantity);
+                    }
+                } else {
+                    preOrderDeposit += itemTotal;
+                }
+            } else {
+                regularSub += itemTotal;
+            }
+        });
+        
+        return { 
+            totalItems: itemsCount,
+            regularItemsSubtotal: regularSub,
+            preOrderItemsSubtotal: preOrderSub,
+            preOrderDepositPayable: preOrderDeposit,
+            isPartialPayment: partialPayment,
+        };
+    }, [cart]);
+
+    const cartSubtotal = regularItemsSubtotal + preOrderItemsSubtotal;
+
      useEffect(() => {
-        const cardDiscountAmount = (cartSubtotal * cardPromoDiscount) / 100;
+        // Card promo discount applies only to regular items
+        const cardDiscountAmount = (regularItemsSubtotal * cardPromoDiscount) / 100;
         setCardPromoDiscountAmount(cardDiscountAmount);
 
+        const subtotalForPromo = regularItemsSubtotal - cardDiscountAmount;
+
+        // Coupon discount also applies only to regular items' subtotal after card promo
         let promoDiscountAmount = 0;
         if (appliedCoupon) {
-            const subtotalAfterCardPromo = cartSubtotal - cardDiscountAmount;
-             if (subtotalAfterCardPromo < appliedCoupon.minimumSpend) {
+            if (subtotalForPromo < appliedCoupon.minimumSpend) {
                 promoDiscountAmount = 0;
             } else if (appliedCoupon.discountType === 'fixed') {
-                promoDiscountAmount = Math.min(appliedCoupon.value, subtotalAfterCardPromo);
+                promoDiscountAmount = Math.min(appliedCoupon.value, subtotalForPromo);
             } else if (appliedCoupon.discountType === 'percentage') {
-                promoDiscountAmount = (subtotalAfterCardPromo * appliedCoupon.value) / 100;
+                promoDiscountAmount = (subtotalForPromo * appliedCoupon.value) / 100;
             }
         }
         setPromoDiscount(promoDiscountAmount);
+
+        // Subtotal after all percentage/fixed discounts
+        const subtotalAfterDiscounts = subtotalForPromo - promoDiscountAmount;
+
+        // Points can be applied against the remaining regular item total + pre-order deposit
+        const maxPayableBeforePoints = subtotalAfterDiscounts + preOrderDepositPayable;
+        const applicablePointsDiscount = Math.min(pointsDiscount, maxPayableBeforePoints > 0 ? maxPayableBeforePoints : 0);
         
-        const subtotalAfterDiscounts = cartSubtotal - cardDiscountAmount - promoDiscountAmount;
-        const applicablePointsDiscount = Math.min(pointsDiscount, subtotalAfterDiscounts > 0 ? subtotalAfterDiscounts : 0);
-        setPointsDiscount(applicablePointsDiscount);
+        if (pointsDiscount > 0 && applicablePointsDiscount < pointsDiscount) {
+            setPointsDiscount(applicablePointsDiscount);
+        }
 
-        setGrandTotal(subtotalAfterDiscounts - applicablePointsDiscount);
-
-    }, [cartSubtotal, cardPromoDiscount, appliedCoupon, pointsDiscount]);
+        const finalTotal = maxPayableBeforePoints - applicablePointsDiscount;
+        setGrandTotal(finalTotal < 0 ? 0 : finalTotal);
+    }, [regularItemsSubtotal, preOrderDepositPayable, cardPromoDiscount, appliedCoupon, pointsDiscount, cartSubtotal]);
 
 
     const filteredCustomers = useMemo(() => {
@@ -207,6 +257,11 @@ export default function SalesOrderPage() {
              if (new Date(coupon.expiryDate.seconds * 1000) < new Date()) throw new Error('Expired code');
             if (coupon.usedCount >= coupon.usageLimit) throw new Error('Usage limit reached');
 
+            const subtotalAfterCardPromo = regularItemsSubtotal - cardPromoDiscountAmount;
+            if (subtotalAfterCardPromo < coupon.minimumSpend) {
+                 throw new Error(`Minimum spend of ৳${coupon.minimumSpend} on eligible items is required.`);
+            }
+            
             setAppliedCoupon(coupon);
             toast({ title: 'Promo code applied!' });
 
@@ -233,10 +288,25 @@ export default function SalesOrderPage() {
             return;
         }
 
-        setPointsApplied(pointsNum);
-        setPointsDiscount(pointsNum * pointValue);
+        const maxDiscount = (regularItemsSubtotal - cardPromoDiscountAmount - promoDiscount) + preOrderDepositPayable;
+        const requestedDiscount = pointsNum * pointValue;
+
+        if (requestedDiscount > maxDiscount) {
+            const maxPoints = Math.floor(maxDiscount / pointValue);
+            toast({ title: 'Discount Limit Exceeded', description: `You can use a maximum of ${maxPoints} points for this order.` });
+            if(maxPoints > 0) {
+              setPointsApplied(maxPoints);
+              setPointsDiscount(maxPoints * pointValue);
+            } else {
+              setPointsApplied(0);
+              setPointsDiscount(0);
+            }
+        } else {
+            setPointsApplied(pointsNum);
+            setPointsDiscount(requestedDiscount);
+            toast({ title: 'Points Applied!', description: `${pointsNum} points used for a discount of ৳${requestedDiscount.toFixed(2)}.` });
+        }
         setPointsToUse('');
-        toast({ title: 'Points Applied!', description: `${pointsNum} points used for a discount of ৳${(pointsNum * pointValue).toFixed(2)}.` });
     };
 
     const removePoints = () => {
@@ -311,6 +381,7 @@ export default function SalesOrderPage() {
                     loyaltyPointsUsed: pointsApplied,
                     loyaltyDiscount,
                     totalAmount: grandTotal,
+                    fullOrderValue: cartSubtotal,
                     assignedOutletId: assignedOutletId || undefined,
                     status: 'new',
                     paymentStatus: 'Unpaid',
