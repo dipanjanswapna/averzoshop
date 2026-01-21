@@ -417,10 +417,14 @@ export default function POSPage() {
         totalItems,
         regularItemsSubtotal,
         preOrderItemsSubtotal,
+        preOrderDepositPayable,
+        isPartialPayment,
         isPreOrderCart
     } = useMemo(() => {
         let regularSub = 0;
         let preOrderSub = 0;
+        let preOrderDeposit = 0;
+        let partialPayment = false;
         let itemsCount = 0;
 
         cart.forEach(item => {
@@ -429,6 +433,17 @@ export default function POSPage() {
 
             if (item.isPreOrder) {
                 preOrderSub += itemTotal;
+                const preOrderInfo = item.product.preOrder;
+                if (preOrderInfo?.enabled && preOrderInfo.depositAmount != null && preOrderInfo.depositAmount > 0) {
+                    partialPayment = true;
+                    if (preOrderInfo.depositType === 'percentage') {
+                        preOrderDeposit += (itemTotal * preOrderInfo.depositAmount) / 100;
+                    } else { // fixed
+                        preOrderDeposit += (preOrderInfo.depositAmount * item.quantity);
+                    }
+                } else {
+                    preOrderDeposit += itemTotal;
+                }
             } else {
                 regularSub += itemTotal;
             }
@@ -438,6 +453,8 @@ export default function POSPage() {
             totalItems: itemsCount,
             regularItemsSubtotal: regularSub,
             preOrderItemsSubtotal: preOrderSub,
+            preOrderDepositPayable: preOrderDeposit,
+            isPartialPayment: partialPayment,
             isPreOrderCart: cart.length > 0 && cart.some(i => i.isPreOrder),
         };
     }, [cart]);
@@ -447,12 +464,12 @@ export default function POSPage() {
         const subtotal = regularItemsSubtotal + preOrderItemsSubtotal;
         setCartSubtotal(subtotal);
 
-        // 1. Apply Card Promo (only on regular items)
+        // 1. Card Promo on regular items
         const cardDiscountPercent = selectedCustomer?.cardPromoDiscount || 0;
         const cardDiscount = (regularItemsSubtotal * cardDiscountPercent) / 100;
         setCardPromoDiscountAmount(cardDiscount);
 
-        // 2. Apply Coupon (only on eligible regular items)
+        // 2. Coupon on eligible regular items
         let currentPromoDiscount = 0;
         if (appliedCoupon) {
             const eligibleItems = cart.filter(item => {
@@ -460,47 +477,50 @@ export default function POSPage() {
                 if (!appliedCoupon.applicableProducts || appliedCoupon.applicableProducts.length === 0) return true;
                 return appliedCoupon.applicableProducts.includes(item.product.id);
             });
-
             if (eligibleItems.length > 0) {
                 const eligibleSubtotal = eligibleItems.reduce((acc, item) => acc + (item.variant.price * item.quantity), 0);
                 if (eligibleSubtotal >= appliedCoupon.minimumSpend) {
                     if (appliedCoupon.discountType === 'fixed') {
                         currentPromoDiscount = Math.min(appliedCoupon.value, eligibleSubtotal);
-                    } else { // percentage
+                    } else {
                         currentPromoDiscount = (eligibleSubtotal * appliedCoupon.value) / 100;
                     }
                 }
             }
         }
         setPromoDiscount(currentPromoDiscount);
+        
+        // This is what's payable today before points are applied
+        const regularSubtotalAfterDiscounts = regularItemsSubtotal - cardDiscount - currentPromoDiscount;
+        const payableBeforePoints = (regularSubtotalAfterDiscounts > 0 ? regularSubtotalAfterDiscounts : 0) + preOrderDepositPayable;
 
-        // 3. Apply Points (on the remaining total)
+        // 3. Apply Points on the remaining payable amount
         let currentPointsDiscount = 0;
-        const subtotalAfterPromos = subtotal - cardDiscount - currentPromoDiscount;
         if (pointsApplied > 0) {
             const maxDiscountFromPoints = pointsApplied * pointValue;
-            currentPointsDiscount = Math.min(maxDiscountFromPoints, subtotalAfterPromos > 0 ? subtotalAfterPromos : 0);
+            currentPointsDiscount = Math.min(maxDiscountFromPoints, payableBeforePoints > 0 ? payableBeforePoints : 0);
         }
         setPointsDiscount(currentPointsDiscount);
         
-        const finalTotal = subtotal - cardDiscount - currentPromoDiscount - currentPointsDiscount;
+        const finalTotal = payableBeforePoints - currentPointsDiscount;
         setGrandTotal(finalTotal < 0 ? 0 : finalTotal);
 
-    }, [cart, regularItemsSubtotal, preOrderItemsSubtotal, selectedCustomer, appliedCoupon, pointsApplied, pointValue]);
+    }, [cart, regularItemsSubtotal, preOrderItemsSubtotal, preOrderDepositPayable, selectedCustomer, appliedCoupon, pointsApplied, pointValue]);
 
 
     const { maxPointsForSale, maxDiscountFromPoints } = useMemo(() => {
         if (!selectedCustomer) return { maxPointsForSale: 0, maxDiscountFromPoints: 0 };
     
-        const currentSubtotalAfterDiscounts = (regularItemsSubtotal + preOrderItemsSubtotal) - promoDiscount - cardPromoDiscountAmount;
-        const maxDiscount = Math.max(0, currentSubtotalAfterDiscounts);
+        const regularSubtotalAfterDiscounts = regularItemsSubtotal - cardPromoDiscountAmount - promoDiscount;
+        const payableBeforePoints = (regularSubtotalAfterDiscounts > 0 ? regularSubtotalAfterDiscounts : 0) + preOrderDepositPayable;
+        const maxDiscount = Math.max(0, payableBeforePoints);
         const maxPoints = Math.floor(maxDiscount / pointValue);
         
         const usablePoints = Math.min(maxPoints, selectedCustomer.loyaltyPoints || 0);
         const discount = usablePoints * pointValue;
     
         return { maxPointsForSale: usablePoints, maxDiscountFromPoints: discount };
-    }, [regularItemsSubtotal, preOrderItemsSubtotal, promoDiscount, cardPromoDiscountAmount, selectedCustomer, pointValue]);
+    }, [regularItemsSubtotal, preOrderDepositPayable, promoDiscount, cardPromoDiscountAmount, selectedCustomer, pointValue]);
     
     useEffect(() => {
         const pointsNum = parseInt(pointsToUse, 10);
@@ -809,6 +829,7 @@ export default function POSPage() {
                 loyaltyPointsUsed: pointsApplied,
                 loyaltyDiscount: pointsDiscount,
                 totalAmount: grandTotal,
+                ...(isPartialPayment && { fullOrderValue: cartSubtotal }),
                 paymentMethod: paymentMethod,
                 createdAt: serverTimestamp(),
                 customerId: selectedCustomer?.uid,
@@ -827,7 +848,7 @@ export default function POSPage() {
                 throw new Error(result.message || 'Failed to complete sale from server.');
             }
             
-            let saleInfoForReceipt: any = { ...saleData, orderType: 'regular', createdAt: new Date() };
+            let saleInfoForReceipt: any = { ...saleData, orderType: isPreOrderCart ? 'pre-order' : 'regular', createdAt: new Date() };
             if (paymentMethod === 'cash') {
                 saleInfoForReceipt = { ...saleInfoForReceipt, cashReceived, changeDue };
             }
@@ -964,3 +985,5 @@ export default function POSPage() {
         </>
     );
 }
+
+    

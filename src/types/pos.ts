@@ -22,8 +22,9 @@ export interface POSSale {
     loyaltyPointsUsed?: number;
     loyaltyDiscount?: number;
     totalAmount: number;
+    fullOrderValue?: number;
     paymentMethod: 'cash' | 'card' | 'mobile';
     createdAt: any; // Firestore Timestamp
 }
 
-  
+    
