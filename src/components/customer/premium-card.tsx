@@ -146,9 +146,9 @@ export function PremiumCard({ userData }: { userData: UserData }) {
             onClick={() => setIsFlipped(!isFlipped)}
           >
               {/* Magnetic stripe */}
-              <div className="w-full h-12 bg-black mt-6" />
+              <div className="w-full h-12 bg-black mt-4" />
 
-              <div className="px-6 py-4 flex-1 flex flex-col justify-between">
+              <div className="px-6 py-3 flex-1 flex flex-col justify-start gap-4">
                   <div className="text-[10px] opacity-90 space-y-2">
                         <div className="grid grid-cols-2 gap-x-4">
                             <div>
@@ -167,9 +167,9 @@ export function PremiumCard({ userData }: { userData: UserData }) {
                             </div>
                         )}
                     </div>
-
+                  
                   {/* Barcode and UID */}
-                  <div className="flex flex-col items-center justify-center gap-1">
+                  <div className="flex flex-col items-center justify-center gap-1 mt-auto">
                       <div className="bg-white p-1.5 rounded-md shadow-inner cursor-pointer" onClick={handleBarcodeClick}>
                           <Barcode value={userData.uid} height={30} width={1} displayValue={false} background="transparent" lineColor={barcodeColor} />
                       </div>
