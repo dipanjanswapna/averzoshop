@@ -413,12 +413,86 @@ export default function POSPage() {
         setPointsDiscount(0);
     }
     
-    const isPreOrderCart = useMemo(() => cart.length > 0 && !!cart[0].isPreOrder, [cart]);
+    const { 
+        totalItems,
+        regularItemsSubtotal,
+        preOrderItemsSubtotal,
+        isPreOrderCart
+    } = useMemo(() => {
+        let regularSub = 0;
+        let preOrderSub = 0;
+        let itemsCount = 0;
+
+        cart.forEach(item => {
+            const itemTotal = (item.variant?.price || 0) * item.quantity;
+            itemsCount += item.quantity;
+
+            if (item.isPreOrder) {
+                preOrderSub += itemTotal;
+            } else {
+                regularSub += itemTotal;
+            }
+        });
+        
+        return { 
+            totalItems: itemsCount,
+            regularItemsSubtotal: regularSub,
+            preOrderItemsSubtotal: preOrderSub,
+            isPreOrderCart: cart.length > 0 && cart.some(i => i.isPreOrder),
+        };
+    }, [cart]);
+
+    // Central effect for recalculating totals
+    useEffect(() => {
+        const subtotal = regularItemsSubtotal + preOrderItemsSubtotal;
+        setCartSubtotal(subtotal);
+
+        // 1. Apply Card Promo (only on regular items)
+        const cardDiscountPercent = selectedCustomer?.cardPromoDiscount || 0;
+        const cardDiscount = (regularItemsSubtotal * cardDiscountPercent) / 100;
+        setCardPromoDiscountAmount(cardDiscount);
+
+        // 2. Apply Coupon (only on eligible regular items)
+        let currentPromoDiscount = 0;
+        if (appliedCoupon) {
+            const eligibleItems = cart.filter(item => {
+                if (item.isPreOrder) return false;
+                if (!appliedCoupon.applicableProducts || appliedCoupon.applicableProducts.length === 0) return true;
+                return appliedCoupon.applicableProducts.includes(item.product.id);
+            });
+
+            if (eligibleItems.length > 0) {
+                const eligibleSubtotal = eligibleItems.reduce((acc, item) => acc + (item.variant.price * item.quantity), 0);
+                if (eligibleSubtotal >= appliedCoupon.minimumSpend) {
+                    if (appliedCoupon.discountType === 'fixed') {
+                        currentPromoDiscount = Math.min(appliedCoupon.value, eligibleSubtotal);
+                    } else { // percentage
+                        currentPromoDiscount = (eligibleSubtotal * appliedCoupon.value) / 100;
+                    }
+                }
+            }
+        }
+        setPromoDiscount(currentPromoDiscount);
+
+        // 3. Apply Points (on the remaining total)
+        let currentPointsDiscount = 0;
+        const subtotalAfterPromos = subtotal - cardDiscount - currentPromoDiscount;
+        if (pointsApplied > 0) {
+            const maxDiscountFromPoints = pointsApplied * pointValue;
+            currentPointsDiscount = Math.min(maxDiscountFromPoints, subtotalAfterPromos > 0 ? subtotalAfterPromos : 0);
+        }
+        setPointsDiscount(currentPointsDiscount);
+        
+        const finalTotal = subtotal - cardDiscount - currentPromoDiscount - currentPointsDiscount;
+        setGrandTotal(finalTotal < 0 ? 0 : finalTotal);
+
+    }, [cart, regularItemsSubtotal, preOrderItemsSubtotal, selectedCustomer, appliedCoupon, pointsApplied, pointValue]);
+
 
     const { maxPointsForSale, maxDiscountFromPoints } = useMemo(() => {
         if (!selectedCustomer) return { maxPointsForSale: 0, maxDiscountFromPoints: 0 };
     
-        const currentSubtotalAfterDiscounts = cartSubtotal - promoDiscount - cardPromoDiscountAmount;
+        const currentSubtotalAfterDiscounts = (regularItemsSubtotal + preOrderItemsSubtotal) - promoDiscount - cardPromoDiscountAmount;
         const maxDiscount = Math.max(0, currentSubtotalAfterDiscounts);
         const maxPoints = Math.floor(maxDiscount / pointValue);
         
@@ -426,7 +500,7 @@ export default function POSPage() {
         const discount = usablePoints * pointValue;
     
         return { maxPointsForSale: usablePoints, maxDiscountFromPoints: discount };
-    }, [cartSubtotal, promoDiscount, cardPromoDiscountAmount, selectedCustomer, pointValue]);
+    }, [regularItemsSubtotal, preOrderItemsSubtotal, promoDiscount, cardPromoDiscountAmount, selectedCustomer, pointValue]);
     
     useEffect(() => {
         const pointsNum = parseInt(pointsToUse, 10);
@@ -441,52 +515,6 @@ export default function POSPage() {
     const handleApplyMaxPoints = () => {
         setPointsToUse(String(maxPointsForSale));
     };
-
-    // Central effect for recalculating totals
-    useEffect(() => {
-        const subtotal = cart.reduce((total, item) => total + item.variant.price * item.quantity, 0);
-        setCartSubtotal(subtotal);
-    
-        // 1. Apply Card Promo
-        const cardDiscountPercent = selectedCustomer?.cardPromoDiscount || 0;
-        const cardDiscount = (subtotal * cardDiscountPercent) / 100;
-        setCardPromoDiscountAmount(cardDiscount);
-    
-        // 2. Apply Coupon
-        let currentPromoDiscount = 0;
-        if (appliedCoupon) {
-            const eligibleItems = cart.filter(item => {
-                if (!appliedCoupon.applicableProducts || appliedCoupon.applicableProducts.length === 0) return true;
-                return appliedCoupon.applicableProducts.includes(item.product.id);
-            });
-    
-            if (eligibleItems.length > 0) {
-                const eligibleSubtotal = eligibleItems.reduce((acc, item) => acc + (item.variant.price * item.quantity), 0);
-                if (eligibleSubtotal >= appliedCoupon.minimumSpend) {
-                    if (appliedCoupon.discountType === 'fixed') {
-                        currentPromoDiscount = Math.min(appliedCoupon.value, eligibleSubtotal);
-                    } else { // percentage
-                        currentPromoDiscount = (eligibleSubtotal * appliedCoupon.value) / 100;
-                    }
-                }
-            }
-        }
-        setPromoDiscount(currentPromoDiscount);
-    
-        // 3. Apply Points
-        let currentPointsDiscount = 0;
-        if (pointsApplied > 0) {
-            const subtotalAfterPromos = subtotal - cardDiscount - currentPromoDiscount;
-            const maxDiscountFromPoints = pointsApplied * pointValue;
-            currentPointsDiscount = Math.min(maxDiscountFromPoints, subtotalAfterPromos > 0 ? subtotalAfterPromos : 0);
-        }
-        setPointsDiscount(currentPointsDiscount);
-        
-        const finalTotal = subtotal - cardDiscount - currentPromoDiscount - currentPointsDiscount;
-        setGrandTotal(finalTotal < 0 ? 0 : finalTotal);
-    
-    }, [cart, selectedCustomer, appliedCoupon, pointsApplied, pointValue]);
-
 
     const availableVariants = useMemo(() => {
         if (!allProducts || !outletId) return [];
@@ -684,10 +712,6 @@ export default function POSPage() {
         }
     };
 
-    const totalItems = useMemo(() => {
-        return cart.reduce((total, item) => total + item.quantity, 0);
-    }, [cart]);
-    
     const changeDue = cashReceived - grandTotal;
 
     const handleApplyPromo = async () => {
@@ -716,6 +740,7 @@ export default function POSPage() {
             }
     
             const eligibleItems = cart.filter(item => {
+                if (item.isPreOrder) return false;
                 if (!coupon.applicableProducts || coupon.applicableProducts.length === 0) return true;
                 return coupon.applicableProducts.includes(item.product.id);
             });
