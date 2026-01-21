@@ -110,7 +110,9 @@ function ShopPageContent() {
             p.category.toLowerCase().includes(searchTerm) ||
             (p.group && p.group.toLowerCase().includes(searchTerm)) ||
             (p.subcategory && p.subcategory.toLowerCase().includes(searchTerm)) ||
-            (p.description && p.description.toLowerCase().includes(searchTerm))
+            (p.description && p.description.toLowerCase().includes(searchTerm)) ||
+            p.baseSku.toLowerCase().includes(searchTerm) ||
+            p.variants.some(v => v.sku.toLowerCase().includes(searchTerm))
         );
     }
 

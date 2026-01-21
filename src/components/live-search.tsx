@@ -12,11 +12,12 @@ import {
   CommandGroup,
   CommandItem,
 } from '@/components/ui/command';
-import { Search } from 'lucide-react';
+import { Search, Layers } from 'lucide-react';
 import Image from 'next/image';
 import { useDebounce } from '@/hooks/use-debounce';
+import React from 'react';
 
-export function LiveSearch() {
+export function LiveSearch({ trigger }: { trigger?: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebounce(query, 300);
@@ -39,25 +40,46 @@ export function LiveSearch() {
     setIsOpen(false);
     command();
   }, []);
+  
+  useEffect(() => {
+      if (!isOpen) {
+          setQuery('');
+      }
+  }, [isOpen]);
 
   const filteredProducts = useMemo(() => {
     if (!debouncedQuery || !products) {
       return [];
     }
+    const lowerQuery = debouncedQuery.toLowerCase();
     return products
       .filter((product) =>
-        product.name.toLowerCase().includes(debouncedQuery.toLowerCase()) ||
-        (product.brand && product.brand.toLowerCase().includes(debouncedQuery.toLowerCase())) ||
-        product.category.toLowerCase().includes(debouncedQuery.toLowerCase())
+        product.name.toLowerCase().includes(lowerQuery) ||
+        (product.brand && product.brand.toLowerCase().includes(lowerQuery)) ||
+        product.baseSku.toLowerCase().includes(lowerQuery) ||
+        product.variants.some(v => v.sku.toLowerCase().includes(lowerQuery))
       )
       .slice(0, 5); // Limit results for performance
   }, [products, debouncedQuery]);
 
-  return (
-    <>
+  const categories = useMemo(() => {
+    if (!debouncedQuery || !products) return [];
+    const lowerQuery = debouncedQuery.toLowerCase();
+    const seen = new Set();
+    return products
+      .map(p => p.category)
+      .filter(c => {
+        if (!c || !c.toLowerCase().includes(lowerQuery) || seen.has(c)) return false;
+        seen.add(c);
+        return true;
+      })
+      .slice(0, 3);
+  }, [products, debouncedQuery]);
+
+  const TriggerButton = trigger ? React.cloneElement(trigger as React.ReactElement, { onClick: () => setIsOpen(true) }) : (
       <button
         onClick={() => setIsOpen(true)}
-        className="text-sm text-muted-foreground w-full flex items-center justify-between bg-muted border-none rounded-md py-2 px-5 outline-none focus:ring-2 focus:ring-primary"
+        className="text-sm text-muted-foreground w-full flex items-center justify-between bg-muted border-none rounded-md py-2 px-5 outline-none focus:ring-2 focus:ring-primary h-10"
       >
         <div className="flex items-center gap-2">
             <Search size={18} />
@@ -67,41 +89,69 @@ export function LiveSearch() {
           <span className="text-xs">⌘</span>K
         </kbd>
       </button>
+  );
 
+  return (
+    <>
+      {TriggerButton}
       <CommandDialog open={isOpen} onOpenChange={setIsOpen}>
         <CommandInput
-          placeholder="Type a product name, brand, or category..."
+          placeholder="Type a product name, sku, brand, or category..."
           value={query}
           onValueChange={setQuery}
         />
         <CommandList>
-          {isLoading && debouncedQuery && <CommandEmpty>Loading products...</CommandEmpty>}
-          {!isLoading && filteredProducts.length === 0 && debouncedQuery && (
+          {isLoading && debouncedQuery && <CommandEmpty>Loading...</CommandEmpty>}
+          {!isLoading && debouncedQuery && filteredProducts.length === 0 && categories.length === 0 && (
             <CommandEmpty>No results found.</CommandEmpty>
           )}
+
           {filteredProducts.length > 0 && (
             <CommandGroup heading="Products">
               {filteredProducts.map((product) => (
                 <CommandItem
                   key={product.id}
                   value={product.name}
-                  onSelect={() => {
-                    runCommand(() => router.push(`/product/${product.id}`));
-                  }}
+                  onSelect={() => runCommand(() => router.push(`/product/${product.id}`))}
                 >
                   <div className="flex items-center gap-3">
-                     <div className="relative h-10 w-10 rounded-md overflow-hidden">
+                     <div className="relative h-10 w-10 rounded-md overflow-hidden bg-muted flex-shrink-0">
                         <Image src={product.image} alt={product.name} fill className="object-cover" />
                     </div>
                     <div>
-                        <p className="font-semibold">{product.name}</p>
-                        <p className="text-xs text-muted-foreground">in {product.category}</p>
+                        <p className="font-semibold text-sm">{product.name}</p>
+                        <p className="text-xs text-muted-foreground">{product.brand}</p>
                     </div>
                   </div>
                 </CommandItem>
               ))}
             </CommandGroup>
           )}
+
+           {categories.length > 0 && (
+                <CommandGroup heading="Categories">
+                    {categories.map(category => (
+                        <CommandItem
+                            key={category}
+                            value={category}
+                            onSelect={() => runCommand(() => router.push(`/shop?mother_category=${encodeURIComponent(category)}`))}
+                        >
+                            <Layers className="mr-2 h-4 w-4" />
+                            <span>{category}</span>
+                        </CommandItem>
+                    ))}
+                </CommandGroup>
+            )}
+
+            {debouncedQuery && (
+                <CommandItem
+                    onSelect={() => runCommand(() => router.push(`/shop?q=${debouncedQuery}`))}
+                >
+                    <Search className="mr-2 h-4 w-4" />
+                    <span>Search for "{debouncedQuery}"</span>
+                </CommandItem>
+            )}
+
         </CommandList>
       </CommandDialog>
     </>

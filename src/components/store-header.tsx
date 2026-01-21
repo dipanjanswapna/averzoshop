@@ -10,7 +10,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/hooks/use-cart';
 import { NotificationBell } from '@/components/ui/notification-bell';
 import { useTheme } from '@/components/providers';
-import { Input } from './ui/input';
 import { LiveSearch } from './live-search';
 
 
@@ -172,7 +171,10 @@ export default function AverzoNavbar() {
             <LiveSearch />
         </div>
 
-        <div className="flex items-center gap-2 md:gap-5">
+        <div className="flex items-center gap-2 md:gap-3">
+            <div className="md:hidden">
+              <LiveSearch trigger={<Button variant="ghost" size="icon" className="h-9 w-9"><Search size={22} /></Button>} />
+            </div>
             <Button
               variant="ghost"
               size="icon"
