@@ -41,9 +41,8 @@ export default function LoyaltyPointsPage() {
 
   const { data: history, isLoading } = useFirestoreQuery<PointTransaction>(pointsHistoryQuery);
 
-  const renderSkeleton = () => (
+  const renderDesktopSkeleton = () => (
     <>
-      <tbody className="hidden md:table-row-group">
         {[...Array(5)].map((_, i) => (
           <TableRow key={i}>
             <TableCell><Skeleton className="h-5 w-24" /></TableCell>
@@ -51,18 +50,20 @@ export default function LoyaltyPointsPage() {
             <TableCell className="text-right"><Skeleton className="h-5 w-16 ml-auto" /></TableCell>
           </TableRow>
         ))}
-      </tbody>
-       <div className="grid md:hidden gap-3">
-        {[...Array(3)].map((_, i) => (
-          <Card key={i} className="p-4 space-y-2">
-            <Skeleton className="h-5 w-3/4" />
-            <Skeleton className="h-4 w-1/2" />
-             <div className="text-right">
-                <Skeleton className="h-6 w-20 ml-auto" />
-            </div>
-          </Card>
-        ))}
-      </div>
+    </>
+  );
+
+  const renderMobileSkeleton = () => (
+    <>
+      {[...Array(3)].map((_, i) => (
+        <Card key={i} className="p-4 space-y-2">
+          <Skeleton className="h-5 w-3/4" />
+          <Skeleton className="h-4 w-1/2" />
+           <div className="text-right">
+              <Skeleton className="h-6 w-20 ml-auto" />
+          </div>
+        </Card>
+      ))}
     </>
   );
 
@@ -102,7 +103,7 @@ export default function LoyaltyPointsPage() {
                 </TableRow>
                 </TableHeader>
                 <TableBody>
-                {isLoading ? renderSkeleton() : history && history.length > 0 ? (
+                {isLoading ? renderDesktopSkeleton() : history && history.length > 0 ? (
                     history.map(tx => (
                     <TableRow key={tx.id}>
                         <TableCell>{tx.createdAt?.toDate().toLocaleDateString()}</TableCell>
@@ -127,7 +128,7 @@ export default function LoyaltyPointsPage() {
            </div>
            {/* Mobile Cards */}
            <div className="grid md:hidden gap-3">
-              {isLoading ? renderSkeleton() : history && history.length > 0 ? (
+              {isLoading ? renderMobileSkeleton() : history && history.length > 0 ? (
                 history.map(tx => (
                   <Card key={tx.id} className="p-4">
                     <div className="flex justify-between items-start">
