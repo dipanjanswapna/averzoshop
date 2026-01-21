@@ -49,14 +49,14 @@ export function PremiumCard({ userData }: { userData: UserData }) {
       border: 'border-slate-300'
     },
     gold: {
-      bg: 'bg-[#C5A021]',
-      text: 'text-white',
+      bg: 'bg-gradient-to-br from-yellow-300 to-amber-500',
+      text: 'text-black',
       accent: 'bg-black/20 text-white',
       tag: 'Gold Excellence',
-      border: 'border-[#B8860B]'
+      border: 'border-yellow-600/50'
     },
     platinum: {
-      bg: 'bg-slate-950',
+      bg: 'bg-gradient-to-br from-slate-900 to-slate-700',
       text: 'text-white',
       accent: 'bg-white/10 text-cyan-400',
       tag: 'Platinum Elite',
@@ -82,7 +82,7 @@ export function PremiumCard({ userData }: { userData: UserData }) {
           >
             <div className="flex justify-between items-start z-10">
               <div className="flex flex-col">
-                <span className="text-2xl font-black italic tracking-tighter">AZO<span className="text-blue-500">.</span></span>
+                <span className="text-2xl font-black italic tracking-tighter">AVERZO<span className="text-primary">.</span></span>
                 <span className="text-[8px] font-bold uppercase tracking-[0.2em] opacity-60">Loyalty Member</span>
               </div>
               <div className={`px-3 py-1 rounded-md text-[8px] font-bold uppercase tracking-widest ${s.accent}`}>
@@ -97,7 +97,6 @@ export function PremiumCard({ userData }: { userData: UserData }) {
                     <h3 className="text-3xl font-black tracking-tight leading-none">{cardData.points}</h3>
                   </div>
                   
-                  {/* LARGER SCAN-READY BARCODE AREA */}
                   <div 
                     onClick={(e) => {
                       e.stopPropagation();
@@ -115,7 +114,7 @@ export function PremiumCard({ userData }: { userData: UserData }) {
               <div className="space-y-0.5">
                 <p className="text-[7px] font-bold uppercase opacity-50 tracking-tighter">Card Holder</p>
                 <p className="text-[12px] font-bold tracking-widest uppercase leading-tight">{cardData.displayName}</p>
-                <p className="text-[9px] font-mono font-bold text-blue-500 tracking-wider">ID: {cardData.uid.replace('AZO-', '')}</p>
+                <p className="text-[9px] font-mono font-bold text-primary tracking-wider">ID: {cardData.uid.replace('AZO-', '')}</p>
               </div>
               <div className="text-right space-y-0.5">
                 <p className="text-[7px] font-bold uppercase opacity-50 tracking-tighter">Valid Thru</p>
@@ -141,7 +140,7 @@ export function PremiumCard({ userData }: { userData: UserData }) {
                 <div className="space-y-3.5">
                   <div>
                     <span className="text-[8px] uppercase font-black opacity-40 tracking-widest block mb-1">Registered Address</span>
-                    <p className="text-[10px] leading-relaxed font-medium border-l-2 border-blue-500 pl-2">{cardData.address}</p>
+                    <p className="text-[10px] leading-relaxed font-medium border-l-2 border-primary pl-2">{cardData.address}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-2 pt-1">
                     <div>
@@ -150,7 +149,7 @@ export function PremiumCard({ userData }: { userData: UserData }) {
                     </div>
                     <div className="text-right">
                       <span className="text-[7px] uppercase font-black opacity-40 tracking-widest block mb-0.5">Security Code</span>
-                      <span className="text-[10.5px] font-bold tracking-wider">{cardData.uid.split('-')[1]}-{cardData.uid.split('-')[2]}</span>
+                      <span className="text-[10.5px] font-bold tracking-widest">{cardData.uid.split('-')[1]}-{cardData.uid.split('-')[2]}</span>
                     </div>
                   </div>
                   <div className="pt-1">
@@ -164,7 +163,7 @@ export function PremiumCard({ userData }: { userData: UserData }) {
                 </div>
                 <div className="pt-3 border-t border-current/10">
                   <p className="text-[6.5px] font-medium leading-[1.3] opacity-40 uppercase tracking-tighter text-center">
-                    This card is non-transferable and remains property of AZO. If found, please return to any authorized AZO outlet.
+                    This card is non-transferable and remains property of AVERZO. If found, please return to any authorized AVERZO outlet.
                   </p>
                 </div>
               </div>
@@ -185,7 +184,7 @@ export function PremiumCard({ userData }: { userData: UserData }) {
               className="relative bg-white rounded-[32px] p-8 max-w-sm w-full shadow-2xl flex flex-col items-center text-slate-900" 
               onClick={(e) => e.stopPropagation()}
             >
-              <h4 className="text-xl font-black tracking-tighter italic mb-6 uppercase">AZO Redeem</h4>
+              <h4 className="text-xl font-black tracking-tighter italic mb-6 uppercase">AVERZO Redeem</h4>
               <div className="w-full bg-slate-50 p-8 rounded-2xl border border-slate-100 mb-6 flex flex-col items-center">
                 <Barcode color="#000000" height="h-24" />
                 <p className="text-[10px] font-mono mt-4 tracking-[0.4em] text-slate-500 font-black">{cardData.uid_raw.replace(/-/g, '')}</p>
@@ -193,7 +192,7 @@ export function PremiumCard({ userData }: { userData: UserData }) {
               <div className="text-center mb-6">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Point Holder</p>
                 <p className="text-lg font-black uppercase tracking-widest leading-none mb-1">{cardData.displayName}</p>
-                <p className="text-[11px] font-bold text-blue-600 uppercase">Redeem Code: {cardData.uid.replace('AZO-', '')}</p>
+                <p className="text-[11px] font-bold text-primary uppercase">Redeem Code: {cardData.uid.replace('AZO-', '')}</p>
               </div>
               <Button onClick={() => setShowPopup(false)} className="w-full py-3.5 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-[0.2em] active:scale-95 transition-all shadow-lg shadow-slate-200">Close Panel</Button>
             </motion.div>

@@ -43,11 +43,11 @@ export default function SubscriptionPage() {
     return (
       <div className="space-y-6">
         <Skeleton className="h-10 w-1/3" />
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
-            <div className="lg:col-span-2">
-                <Skeleton className="w-full max-w-lg aspect-[85.6/54] rounded-2xl" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+            <div>
+                <Skeleton className="w-full max-w-[380px] aspect-[1.586/1] rounded-2xl mx-auto" />
             </div>
-             <div className="lg:col-span-3">
+             <div>
                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <Skeleton className="h-64 w-full" />
                     <Skeleton className="h-64 w-full" />
@@ -80,8 +80,8 @@ export default function SubscriptionPage() {
             </Button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
-            <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+            <div>
                 <PremiumCard userData={userData} />
                 <p className="text-xs text-muted-foreground text-center mt-2 flex items-center justify-center gap-1 no-print">
                     <MousePointerClick size={12}/> Click card to flip
@@ -89,7 +89,7 @@ export default function SubscriptionPage() {
             </div>
 
             {upgradeTiers.length > 0 ? (
-                <div className="lg:col-span-3 no-print">
+                <div className="no-print">
                     <Card>
                         <CardHeader>
                             <CardTitle>Upgrade Your Membership</CardTitle>
@@ -125,7 +125,7 @@ export default function SubscriptionPage() {
                     </Card>
                 </div>
             ) : (
-                <div className="lg:col-span-3 no-print flex items-center justify-center">
+                <div className="no-print flex items-center justify-center">
                     <div className="bg-card p-8 rounded-2xl text-center shadow-lg border">
                         <Star className="mx-auto h-12 w-12 text-primary" />
                         <h3 className="mt-4 text-xl font-bold text-foreground">Congratulations!</h3>
