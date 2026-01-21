@@ -108,46 +108,46 @@ export function PremiumCard({ userData }: { userData: UserData }) {
         >
           {/* FRONT SIDE */}
           <div 
-            className={cn(`absolute w-full h-full [backface-visibility:hidden] rounded-2xl shadow-2xl p-4 flex flex-col justify-between cursor-pointer overflow-hidden bg-gradient-to-br border`, s.gradient, s.text, s.border)} 
+            className={cn(`absolute w-full h-full [backface-visibility:hidden] rounded-2xl shadow-2xl p-6 flex flex-col cursor-pointer overflow-hidden bg-gradient-to-br border`, s.gradient, s.text, s.border)} 
             onClick={() => setIsFlipped(!isFlipped)}
           >
               <div className="flex justify-between items-start z-10">
-                  <p className="text-xl font-black italic tracking-tighter opacity-90">AVERZO<span className="text-blue-500">.</span></p>
+                  <p className="text-lg font-black italic tracking-tighter opacity-90">AVERZO<span className="text-blue-500">.</span></p>
                   <Button variant="ghost" size="icon" className="h-8 w-8 text-current" onClick={(e) => { e.stopPropagation(); setIsBarcodePopupOpen(true); }}>
                       <QrCode />
                   </Button>
               </div>
-
-               <div className="z-10 space-y-2">
+              
+              <div className="z-10 space-y-3 mt-4">
                   {cardData.promoDiscount && cardData.promoDiscount > 0 && (
                     <div className="text-left">
-                        <p className="text-[8px] uppercase font-bold opacity-70 tracking-widest">Special Promo</p>
-                        <div className="flex items-center gap-1 font-mono text-xs tracking-wider bg-black/10 px-2 py-0.5 rounded-md w-fit">
+                        <p className="text-[9px] uppercase font-bold opacity-70 tracking-widest">Special Promo</p>
+                        <div className="flex items-center gap-1 font-mono text-sm tracking-wider bg-black/10 px-2 py-0.5 rounded-md w-fit">
                             <Zap size={10} className="text-yellow-300"/>
                             <span>SAVE {cardData.promoDiscount}%</span>
                         </div>
                     </div>
                   )}
-                  <div className="w-10 h-7 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-md flex items-center justify-center shadow-inner-lg border border-yellow-200/50">
-                      <div className="w-8 h-5 bg-yellow-100 rounded-sm" />
+                  <div className="w-10 h-8 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-md flex items-center justify-center shadow-inner-lg border border-yellow-200/50">
+                      <div className="w-8 h-6 bg-yellow-100 rounded" />
                   </div>
-                  <p className="font-mono text-lg tracking-wider opacity-90 pt-1">{cardData.cardNumber}</p>
+                  <p className="font-mono text-xl tracking-wider opacity-90 pt-1">{cardData.cardNumber}</p>
               </div>
 
-              <div className="flex justify-between items-end z-10">
+              <div className="flex justify-between items-end z-10 mt-auto">
                   <div className="w-2/3">
-                      <p className="text-[7px] font-bold uppercase opacity-60 tracking-widest">Card Holder</p>
-                      <p className="text-sm font-bold tracking-wider uppercase leading-tight">{cardData.displayName}</p>
+                      <p className="text-[8px] font-bold uppercase opacity-60 tracking-widest">Card Holder</p>
+                      <p className="text-base font-bold tracking-wider uppercase leading-tight">{cardData.displayName}</p>
                   </div>
                   <div className="text-right flex-shrink-0">
-                     <div className="flex gap-3">
+                     <div className="flex gap-4">
                        <div>
-                           <p className="text-[7px] font-bold uppercase opacity-60 tracking-widest">Member Since</p>
-                           <p className="text-[10px] font-mono tracking-widest">{cardData.memberSince}</p>
+                           <p className="text-[8px] font-bold uppercase opacity-60 tracking-widest">Member Since</p>
+                           <p className="text-xs font-mono tracking-widest">{cardData.memberSince}</p>
                        </div>
                        <div>
-                           <p className="text-[7px] font-bold uppercase opacity-60 tracking-widest">Valid Thru</p>
-                           <p className="text-[10px] font-mono tracking-widest">{cardData.validThru}</p>
+                           <p className="text-[8px] font-bold uppercase opacity-60 tracking-widest">Valid Thru</p>
+                           <p className="text-xs font-mono tracking-widest">{cardData.validThru}</p>
                        </div>
                      </div>
                   </div>
