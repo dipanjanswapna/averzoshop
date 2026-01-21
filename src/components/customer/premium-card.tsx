@@ -156,45 +156,42 @@ export function PremiumCard({ userData }: { userData: UserData }) {
             onClick={() => setIsFlipped(!isFlipped)}
           >
               <div className="w-full h-10 bg-black shrink-0" />
+               <div className="border border-white/20 rounded-lg p-2 text-[8px] opacity-90 space-y-0.5 mx-4">
+                  <div className="grid grid-cols-2 gap-x-2">
+                      <div>
+                          <p className="font-bold text-[6px] uppercase opacity-60 tracking-widest">Email</p>
+                          <p className="truncate">{userData.email || 'N/A'}</p>
+                      </div>
+                      <div>
+                          <p className="font-bold text-[6px] uppercase opacity-60 tracking-widest">Phone</p>
+                          <p className="truncate">{userData.phone || 'N/A'}</p>
+                      </div>
+                  </div>
+                  {primaryAddress && (
+                      <div>
+                          <p className="font-bold text-[6px] uppercase opacity-60 tracking-widest">Address</p>
+                          <p className="truncate">{primaryAddress.streetAddress}, {primaryAddress.area}, {primaryAddress.district}</p>
+                      </div>
+                  )}
+              </div>
 
-              <div className="px-4 flex-1 flex flex-col justify-around">
-                <div className="border border-white/20 rounded-lg p-2 text-[8px] opacity-90 space-y-0.5">
-                    <div className="grid grid-cols-2 gap-x-2">
-                        <div>
-                            <p className="font-bold text-[6px] uppercase opacity-60 tracking-widest">Email</p>
-                            <p className="truncate">{userData.email || 'N/A'}</p>
-                        </div>
-                        <div>
-                            <p className="font-bold text-[6px] uppercase opacity-60 tracking-widest">Phone</p>
-                            <p className="truncate">{userData.phone || 'N/A'}</p>
-                        </div>
-                    </div>
-                    {primaryAddress && (
-                        <div>
-                            <p className="font-bold text-[6px] uppercase opacity-60 tracking-widest">Address</p>
-                            <p className="truncate">{primaryAddress.streetAddress}, {primaryAddress.area}, {primaryAddress.district}</p>
-                        </div>
-                    )}
-                </div>
+              <div className="space-y-1">
+                  <div className="flex flex-col items-center justify-center">
+                      <div className="bg-white p-1 rounded-md shadow-inner cursor-pointer" onClick={handleBarcodeClick}>
+                          <Barcode value={userData.uid} height={14} width={0.8} displayValue={false} background="transparent" lineColor={barcodeColor} />
+                      </div>
+                      <p className="text-[5px] opacity-70 font-mono tracking-wider mt-0.5">{userData.uid}</p>
+                  </div>
 
-                <div className="space-y-1">
-                    <div className="flex flex-col items-center justify-center">
-                        <div className="bg-white p-1 rounded-md shadow-inner cursor-pointer" onClick={handleBarcodeClick}>
-                            <Barcode value={userData.uid} height={14} width={0.8} displayValue={false} background="transparent" lineColor={barcodeColor} />
-                        </div>
-                        <p className="text-[5px] opacity-70 font-mono tracking-wider mt-0.5">{userData.uid}</p>
-                    </div>
-
-                    <div className="flex flex-col items-center justify-center">
-                        <div 
-                            className={cn("w-6 h-5 flex items-center justify-center rounded-md cursor-pointer transition-all", s.hologram)}
-                            onClick={handleNfcWrite}
-                            title="Write to NFC Tag"
-                        >
-                            {isWritingNfc ? <Loader2 size={12} className="animate-spin" /> : <Nfc size={12} className="opacity-70" />}
-                        </div>
-                    </div>
-                </div>
+                  <div className="flex flex-col items-center justify-center">
+                      <div 
+                          className={cn("w-6 h-5 flex items-center justify-center rounded-md cursor-pointer transition-all", s.hologram)}
+                          onClick={handleNfcWrite}
+                          title="Write to NFC Tag"
+                      >
+                          {isWritingNfc ? <Loader2 size={12} className="animate-spin" /> : <Nfc size={12} className="opacity-70" />}
+                      </div>
+                  </div>
               </div>
           </div>
         </motion.div>
