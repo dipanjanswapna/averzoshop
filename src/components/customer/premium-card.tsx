@@ -2,11 +2,12 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import type { UserData } from '@/types/user';
-import { Nfc, Wifi, QrCode } from 'lucide-react';
+import { Nfc, Wifi, QrCode, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Barcode from 'react-barcode';
 import { BarcodePopup } from './barcode-popup';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 
 // Helper function to format the UID into a card number format
 const formatCardNumber = (uid: string) => {
@@ -18,6 +19,8 @@ const formatCardNumber = (uid: string) => {
 export function PremiumCard({ userData }: { userData: UserData }) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isBarcodePopupOpen, setIsBarcodePopupOpen] = useState(false);
+  const [isWritingNfc, setIsWritingNfc] = useState(false);
+  const { toast } = useToast();
 
   // Dynamic card data generation
   const cardData = {
@@ -57,6 +60,39 @@ export function PremiumCard({ userData }: { userData: UserData }) {
   const handleBarcodeClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevents the card from flipping back
     setIsBarcodePopupOpen(true);
+  };
+  
+  const handleNfcWrite = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!('NDEFReader' in window)) {
+        toast({
+            variant: "destructive",
+            title: "NFC Not Supported",
+            description: "Your browser or device does not support Web NFC.",
+        });
+        return;
+    }
+
+    setIsWritingNfc(true);
+    try {
+        const ndef = new (window as any).NDEFReader();
+        await ndef.write({
+            records: [{ recordType: "text", data: userData.uid }]
+        });
+        toast({
+            title: "NFC Tag Written!",
+            description: "Your membership ID has been written to the NFC tag.",
+        });
+    } catch (error: any) {
+        console.error("NFC write error:", error);
+        toast({
+            variant: "destructive",
+            title: "NFC Write Failed",
+            description: error.message || "Could not write to NFC tag. Please try again.",
+        });
+    } finally {
+        setIsWritingNfc(false);
+    }
   };
 
   return (
@@ -109,8 +145,12 @@ export function PremiumCard({ userData }: { userData: UserData }) {
                   <div className="w-3/4 h-8 bg-white/80 rounded-md p-1 flex items-center justify-end shadow-inner">
                       <p className="text-right text-black font-mono italic text-sm pr-2">{cardData.cvv}</p>
                   </div>
-                  <div className={cn("w-1/4 h-8 flex items-center justify-center rounded-md", s.hologram)}>
-                      <Nfc size={20} className="opacity-70" />
+                   <div 
+                    className={cn("w-1/4 h-8 flex items-center justify-center rounded-md cursor-pointer transition-all", s.hologram)}
+                    onClick={handleNfcWrite}
+                    title="Write to NFC Tag"
+                  >
+                      {isWritingNfc ? <Loader2 size={20} className="animate-spin" /> : <Nfc size={20} className="opacity-70" />}
                   </div>
               </div>
               <div className="px-6 mt-2 text-[6px] opacity-70 uppercase tracking-wider">

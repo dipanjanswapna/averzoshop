@@ -4,7 +4,7 @@ import { useState, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Search, PlusCircle, MinusCircle, XCircle, ShoppingCart, Banknote, CreditCard, Smartphone, User } from 'lucide-react';
+import { Search, PlusCircle, MinusCircle, XCircle, ShoppingCart, Banknote, CreditCard, Smartphone, User, Nfc, Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { Product, ProductVariant } from '@/types/product';
@@ -72,7 +72,9 @@ const CartPanel = ({
     setCustomerSearch,
     filteredCustomers,
     handleSelectCustomer,
-    handleClearCustomer
+    handleClearCustomer,
+    handleNfcRead,
+    isScanningNfc,
 }: any) => (
     <div className="flex flex-col gap-4 h-full">
         <Card className="shadow-md flex-shrink-0">
@@ -91,32 +93,43 @@ const CartPanel = ({
                         <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={handleClearCustomer}><XCircle className="h-4 w-4" /></Button>
                     </div>
                 ) : (
-                    <div className="relative">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            placeholder="Search by name, email, or phone..."
-                            value={customerSearch}
-                            onChange={(e) => setCustomerSearch(e.target.value)}
-                            className="pl-8"
-                        />
-                        {customerSearch && (
-                             <div className="absolute top-full left-0 right-0 bg-background border rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
-                                {filteredCustomers.length > 0 ? filteredCustomers.map((cust: UserData) => (
-                                    <div
-                                        key={cust.uid}
-                                        onClick={() => handleSelectCustomer(cust)}
-                                        className="p-3 hover:bg-muted cursor-pointer border-b"
-                                    >
-                                        <p className="font-semibold text-sm">{cust.displayName}</p>
-                                        <p className="text-xs text-muted-foreground">{cust.email}</p>
-                                    </div>
-                                )) : (
-                                    <div className="p-3 text-center text-xs text-muted-foreground">
-                                        No customers found.
-                                    </div>
-                                )}
-                            </div>
-                        )}
+                    <div className="space-y-2">
+                        <div className="relative">
+                            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <Input
+                                placeholder="Search by name, email, or phone..."
+                                value={customerSearch}
+                                onChange={(e) => setCustomerSearch(e.target.value)}
+                                className="pl-8"
+                            />
+                            {customerSearch && (
+                                <div className="absolute top-full left-0 right-0 bg-background border rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
+                                    {filteredCustomers.length > 0 ? filteredCustomers.map((cust: UserData) => (
+                                        <div
+                                            key={cust.uid}
+                                            onClick={() => handleSelectCustomer(cust)}
+                                            className="p-3 hover:bg-muted cursor-pointer border-b"
+                                        >
+                                            <p className="font-semibold text-sm">{cust.displayName}</p>
+                                            <p className="text-xs text-muted-foreground">{cust.email}</p>
+                                        </div>
+                                    )) : (
+                                        <div className="p-3 text-center text-xs text-muted-foreground">
+                                            No customers found.
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                        <Button 
+                            variant="outline" 
+                            className="w-full gap-2" 
+                            onClick={handleNfcRead} 
+                            disabled={isScanningNfc}
+                        >
+                            {isScanningNfc ? <Loader2 className="animate-spin" /> : <Nfc />}
+                            {isScanningNfc ? 'Scanning...' : 'Scan Customer NFC'}
+                        </Button>
                     </div>
                 )}
                  {!selectedCustomer && (
@@ -297,6 +310,8 @@ export default function POSPage() {
     
     const [customerSearch, setCustomerSearch] = useState('');
     const [selectedCustomer, setSelectedCustomer] = useState<UserData | null>(null);
+    const [isScanningNfc, setIsScanningNfc] = useState(false);
+
 
     const isLoading = productsLoading || usersLoading;
 
@@ -459,6 +474,64 @@ export default function POSPage() {
              toast({ variant: 'destructive', title: 'Product Not Found', description: `No product with barcode "${decodedText}" found in this outlet.` });
         }
     };
+    
+    const handleNfcRead = async () => {
+        if (!('NDEFReader' in window)) {
+            toast({ variant: "destructive", title: "NFC Not Supported", description: "This browser or device does not support Web NFC for reading." });
+            return;
+        }
+        
+        setIsScanningNfc(true);
+        toast({ title: "Scanning for NFC Tag", description: "Please tap a customer's membership card/device." });
+
+        try {
+            const ndef = new (window as any).NDEFReader();
+            const controller = new AbortController();
+            
+            const timeoutId = setTimeout(() => {
+                try { controller.abort(); } catch(e) {}
+                if (isScanningNfc) {
+                    setIsScanningNfc(false);
+                    toast({ variant: 'destructive', title: 'NFC Scan Timed Out' });
+                }
+            }, 15000);
+
+            await ndef.scan({ signal: controller.signal });
+
+            ndef.onreading = (event: any) => {
+                clearTimeout(timeoutId);
+                const decoder = new TextDecoder();
+                for (const record of event.message.records) {
+                    if (record.recordType === "text") {
+                        const customerId = decoder.decode(record.data);
+                        const customer = allUsers?.find(u => u.uid === customerId);
+                        if (customer) {
+                            handleSelectCustomer(customer);
+                            toast({ title: "Customer Found!", description: `${customer.displayName} has been selected.` });
+                        } else {
+                            toast({ variant: 'destructive', title: 'Customer Not Found', description: 'The scanned NFC tag does not correspond to a valid customer.' });
+                        }
+                        setIsScanningNfc(false);
+                        try { controller.abort(); } catch(e) {}
+                        return;
+                    }
+                }
+            };
+            ndef.onreadingerror = () => {
+                clearTimeout(timeoutId);
+                toast({ variant: 'destructive', title: 'NFC Read Error', description: 'Could not read data from the tag.' });
+                setIsScanningNfc(false);
+            };
+            
+        } catch (error: any) {
+            if (error.name !== 'AbortError') {
+              console.error("NFC scan error:", error);
+              toast({ variant: 'destructive', title: 'NFC Error', description: error.message });
+            }
+            setIsScanningNfc(false);
+        }
+    };
+
 
     const isPreOrderCart = useMemo(() => cart.length > 0 && !!cart[0].isPreOrder, [cart]);
 
@@ -794,7 +867,9 @@ export default function POSPage() {
         setCustomerSearch,
         filteredCustomers,
         handleSelectCustomer,
-        handleClearCustomer
+        handleClearCustomer,
+        handleNfcRead,
+        isScanningNfc
     };
 
     return (
@@ -894,7 +969,3 @@ export default function POSPage() {
         </>
     );
 }
-
-    
-
-    
