@@ -153,11 +153,10 @@ export default function AverzoNavbar() {
   };
 
   return (
-    <header className="fixed top-0 left-0 w-full z-[100] bg-background shadow-sm transition-all duration-300">
-      
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4 md:gap-8 h-[68px]">
-        <div className="flex items-center gap-4">
-             <button 
+    <header className="fixed top-0 left-0 w-full z-[100] bg-background/95 backdrop-blur-sm border-b transition-all duration-300">
+      <div className="container mx-auto px-4 flex items-center justify-between gap-4 md:gap-8 h-[68px]">
+        <div className="flex items-center gap-2">
+            <button 
                 onClick={() => setIsDrawerOpen(true)}
                 className="p-2 lg:hidden hover:bg-muted rounded-md transition-colors"
             >
@@ -166,29 +165,50 @@ export default function AverzoNavbar() {
             <Link href="/" className="text-2xl font-black font-saira tracking-tighter text-foreground">
                 AVERZO<span className="text-primary">.</span>
             </Link>
-            <div className="hidden lg:flex items-center gap-2">
-                <Link href="/shop">
-                    <Button variant="ghost" className="font-bold">Shop</Button>
-                </Link>
-                <Link href="/track-order">
-                    <Button variant="ghost" className="font-bold">Track Order</Button>
-                </Link>
+        </div>
+
+        <nav 
+            className="hidden lg:flex items-center gap-1 h-full"
+            onMouseLeave={() => setActiveMenu(null)}
+        >
+            <Link href="/shop" className="h-full flex items-center px-3">
+                <span className="text-sm font-bold uppercase tracking-widest hover:text-primary">Shop</span>
+            </Link>
+            {categoriesData.slice(0, 5).map((item) => {
+                const motherCategoryPath = item.path || `/shop?${createQueryString({ mother_category: item.mother_name })}`;
+                return (
+                    <div 
+                      key={item.mother_name} 
+                      className="group relative h-full flex items-center"
+                      onMouseEnter={() => setActiveMenu(item.mother_name)}
+                    >
+                      <Link href={motherCategoryPath} className="h-full flex items-center px-3">
+                          <span className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-1 hover:text-primary">
+                              {item.mother_name} <ChevronDown size={12} />
+                          </span>
+                      </Link>
+                    </div>
+                )
+            })}
+             <Link href="/flash-sale" className="h-full flex items-center px-3">
+                <span className="text-sm font-bold uppercase tracking-widest flex items-center gap-1 text-destructive animate-pulse">
+                  <Zap size={14} /> Flash Sale
+                </span>
+              </Link>
+        </nav>
+
+        <div className="flex items-center gap-2 md:gap-3">
+            <div className="relative hidden sm:block">
+                <form onSubmit={handleSearchSubmit}>
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                        placeholder="Search..."
+                        className="pl-10 h-9 w-32 md:w-48"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </form>
             </div>
-        </div>
-
-        <div className="flex-1 max-w-lg relative hidden md:block">
-            <form onSubmit={handleSearchSubmit}>
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input 
-                    placeholder="Search products, brands, and categories..."
-                    className="pl-10 h-10"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
-            </form>
-        </div>
-
-        <div className="flex items-center gap-2 md:gap-5">
             <Button
               variant="ghost"
               size="icon"
@@ -201,10 +221,10 @@ export default function AverzoNavbar() {
             </Button>
           <NotificationBell />
           <Link href="/login">
-            <User size={22} className="cursor-pointer hover:text-primary transition-colors" />
+            <User size={20} className="cursor-pointer hover:text-primary transition-colors" />
           </Link>
           <Link href="/cart" className="relative cursor-pointer">
-            <ShoppingBag size={22} className="hover:text-primary transition-colors" />
+            <ShoppingBag size={20} className="hover:text-primary transition-colors" />
             {isMounted && items.length > 0 && (
               <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
                 {items.reduce((acc, item) => acc + item.quantity, 0)}
@@ -213,78 +233,48 @@ export default function AverzoNavbar() {
           </Link>
         </div>
       </div>
+      
+       <AnimatePresence>
+          {activeMenu && (
+             <motion.div
+                initial="hidden"
+                animate="visible"
+                exit="hidden"
+                variants={menuVariants}
+                className="fixed top-[68px] left-0 w-full bg-background/95 backdrop-blur-sm text-foreground border-t shadow-lg z-[110]"
+                style={{ maxHeight: 'calc(100vh - 68px)', overflowY: 'auto' }}
+                onMouseEnter={() => setActiveMenu(activeMenu)}
+                onMouseLeave={() => setActiveMenu(null)}
+              >
+                  <div className="container mx-auto grid grid-cols-5 gap-x-10 gap-y-6 p-10">
+                      {categoriesData.find(c => c.mother_name === activeMenu)?.groups.map(group => (
+                          <motion.div 
+                            key={group.group_name} 
+                            className="col-span-1"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                          >
+                              <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">
+                                  <Link href={`/shop?${createQueryString({ mother_category: activeMenu, group: group.group_name })}`} className="truncate block">
+                                  {group.group_name}
+                                  </Link>
+                              </h4>
+                              <ul className="space-y-2 text-sm text-muted-foreground font-body">
+                              {group.subs.map(sub => (
+                                  <li key={sub} className="hover:text-primary cursor-pointer">
+                                      <Link href={`/shop?${createQueryString({ mother_category: activeMenu, group: group.group_name, subcategory: sub })}`} className="truncate block">
+                                          {sub}
+                                      </Link>
+                                  </li>
+                              ))}
+                              </ul>
+                          </motion.div>
+                      ))}
+                  </div>
+              </motion.div>
+          )}
+        </AnimatePresence>
 
-      <nav 
-        className={cn(
-          "bg-secondary text-secondary-foreground transition-all duration-300 origin-top",
-          "hidden lg:flex h-10"
-      )}>
-        <div className="w-full overflow-x-auto whitespace-nowrap no-scrollbar">
-            <div className="container mx-auto flex items-center gap-8 h-full">
-              <Link href="/flash-sale" className="h-full flex items-center">
-                <span className="text-sm font-bold uppercase tracking-widest flex items-center gap-1 text-destructive animate-pulse">
-                  <Zap size={14} /> Flash Sale
-                </span>
-              </Link>
-            {categoriesData.map((item) => {
-                const motherCategoryPath = item.path || `/shop?${createQueryString({ mother_category: item.mother_name })}`;
-                return (
-                    <div 
-                      key={item.mother_name} 
-                      className="group relative h-full flex items-center"
-                      onMouseEnter={() => setActiveMenu(item.mother_name)}
-                      onMouseLeave={() => setActiveMenu(null)}
-                    >
-                      <Link href={motherCategoryPath} className="h-full flex items-center">
-                          <span className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-1 hover:text-primary">
-                              {item.mother_name} <ChevronDown size={12} />
-                          </span>
-                      </Link>
-                    
-                      <AnimatePresence>
-                        {activeMenu === item.mother_name && (
-                           <motion.div
-                              initial="hidden"
-                              animate="visible"
-                              exit="hidden"
-                              variants={menuVariants}
-                              className="fixed top-[108px] left-0 w-full bg-background text-foreground border-t shadow-lg z-[110]"
-                              style={{ maxHeight: 'calc(100vh - 108px)', overflowY: 'auto' }}
-                            >
-                                <div className="container mx-auto grid grid-cols-5 gap-x-10 gap-y-6 p-10">
-                                    {item.groups.map(group => (
-                                        <motion.div 
-                                          key={group.group_name} 
-                                          className="col-span-1"
-                                          initial={{ opacity: 0, x: -10 }}
-                                          animate={{ opacity: 1, x: 0 }}
-                                        >
-                                            <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">
-                                                <Link href={`/shop?${createQueryString({ mother_category: item.mother_name, group: group.group_name })}`} className="truncate block">
-                                                {group.group_name}
-                                                </Link>
-                                            </h4>
-                                            <ul className="space-y-2 text-sm text-muted-foreground font-body">
-                                            {group.subs.map(sub => (
-                                                <li key={sub} className="hover:text-primary cursor-pointer">
-                                                    <Link href={`/shop?${createQueryString({ mother_category: item.mother_name, group: group.group_name, subcategory: sub })}`} className="truncate block">
-                                                        {sub}
-                                                    </Link>
-                                                </li>
-                                            ))}
-                                            </ul>
-                                        </motion.div>
-                                    ))}
-                                </div>
-                            </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                )
-            })}
-            </div>
-        </div>
-      </nav>
 
        <MobileSidebar 
           isOpen={isDrawerOpen} 

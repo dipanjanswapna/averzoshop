@@ -16,7 +16,7 @@ export default function LayoutDebugger() {
           if (rect.left >= 0 && rect.right <= docWidth) return;
 
           const style = window.getComputedStyle(el);
-          if (style.display === 'none' || style.visibility === 'hidden' || el.offsetParent === null) return;
+          if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0' || el.offsetParent === null) return;
           
           let parent = el.parentElement;
           let parentHidesOverflow = false;
