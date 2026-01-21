@@ -116,8 +116,8 @@ const ForYouProducts = () => {
             </div>
             <CarouselContent className="-ml-2">
                 {isLoading ? (
-                    [...Array(6)].map((_, i) => (
-                        <CarouselItem key={i} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6 pl-2">
+                    [...Array(5)].map((_, i) => (
+                        <CarouselItem key={i} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 pl-2">
                             <div className="space-y-2">
                                 <Skeleton className="aspect-square w-full rounded-xl" />
                                 <Skeleton className="h-4 mt-2 w-3/4" />
@@ -127,7 +127,7 @@ const ForYouProducts = () => {
                     ))
                 ) : recommendedProducts.length > 0 ? (
                     recommendedProducts.map(product => (
-                        <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6 pl-2">
+                        <CarouselItem key={product.id} className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 pl-2">
                             <ProductCard product={product} />
                         </CarouselItem>
                     ))
