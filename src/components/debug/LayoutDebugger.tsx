@@ -10,6 +10,8 @@ export default function LayoutDebugger() {
 
         document.querySelectorAll('body *').forEach((el) => {
           if (!(el instanceof HTMLElement)) return;
+          
+          // Clear previous outlines
           if (el.style.outline === '2px solid red') el.style.outline = '';
 
           const rect = el.getBoundingClientRect();
@@ -18,18 +20,20 @@ export default function LayoutDebugger() {
           const style = window.getComputedStyle(el);
           if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0' || el.offsetParent === null) return;
           
+          // Check if any parent has overflow: hidden
           let parent = el.parentElement;
-          let parentHidesOverflow = false;
+          let isContained = false;
           while(parent) {
             const parentStyle = window.getComputedStyle(parent);
             if (parentStyle.overflowX === 'hidden') {
-              parentHidesOverflow = true;
+              isContained = true;
               break;
             }
+            if (parent === document.body) break;
             parent = parent.parentElement;
           }
 
-          if (!parentHidesOverflow) {
+          if (!isContained) {
             el.style.outline = '2px solid red';
             console.warn('Layout Overflow Detected on:', el);
           }
