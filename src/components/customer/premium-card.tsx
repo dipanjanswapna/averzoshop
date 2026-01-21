@@ -141,41 +141,51 @@ export function PremiumCard({ userData }: { userData: UserData }) {
           </div>
           
           {/* BACK SIDE */}
-          <div className={cn(`absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-2xl shadow-2xl flex flex-col justify-between cursor-pointer overflow-hidden bg-gradient-to-br border`, s.gradient, s.text, s.border)} onClick={() => setIsFlipped(!isFlipped)}>
+          <div 
+            className={cn(`absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-2xl shadow-2xl flex flex-col cursor-pointer overflow-hidden bg-gradient-to-br border`, s.gradient, s.text, s.border)} 
+            onClick={() => setIsFlipped(!isFlipped)}
+          >
+              {/* Magnetic stripe */}
               <div className="w-full h-12 bg-black mt-6" />
-              
-              <div className="px-6 mt-4">
-                  <p className="text-[6px] opacity-70 uppercase tracking-wider">Authorized Signature - Not valid unless signed</p>
-                  <div className="w-full h-8 bg-white/80 rounded-md p-1 mt-1 shadow-inner">
-                      {/* Signature area */}
+
+              <div className="px-6 py-4 flex-1 flex flex-col justify-between">
+                  {/* Signature and Address */}
+                  <div>
+                      <div className="w-full bg-white/80 rounded-md p-1 mt-1 shadow-inner h-8 flex items-end justify-end">
+                          <p className="text-[6px] opacity-70 uppercase tracking-wider text-slate-600 mr-2">
+                              AUTHORIZED SIGNATURE - NOT VALID UNLESS SIGNED
+                          </p>
+                      </div>
+                      {primaryAddress && (
+                          <div className="mt-2 text-[8px] flex items-start gap-1.5 opacity-80">
+                              <MapPin className="w-3 h-3 flex-shrink-0 mt-0.5"/>
+                              <span>{primaryAddress.streetAddress}, {primaryAddress.area}, {primaryAddress.district}</span>
+                          </div>
+                      )}
+                  </div>
+
+                  {/* Barcode and UID */}
+                  <div className="flex flex-col items-center justify-center gap-1">
+                      <div className="bg-white p-1.5 rounded-md shadow-inner cursor-pointer" onClick={handleBarcodeClick}>
+                          <Barcode value={userData.uid} height={40} width={1.2} displayValue={false} background="transparent" lineColor={barcodeColor} />
+                      </div>
+                      <p className="text-[7px] opacity-70 font-mono tracking-widest">{userData.uid}</p>
+                  </div>
+
+                  {/* NFC and Footer text */}
+                  <div className="flex flex-col items-center justify-center">
+                      <div 
+                          className={cn("mt-2 w-10 h-6 flex items-center justify-center rounded-md cursor-pointer transition-all", s.hologram)}
+                          onClick={handleNfcWrite}
+                          title="Write to NFC Tag"
+                      >
+                          {isWritingNfc ? <Loader2 size={16} className="animate-spin" /> : <Nfc size={16} className="opacity-70" />}
+                      </div>
+                      <p className="text-center text-[9px] opacity-70 mt-2">
+                          If found, please return to any Averzo outlet. This card is non-transferable.
+                      </p>
                   </div>
               </div>
-
-              {primaryAddress && (
-                  <div className="px-6 mt-2 text-[8px] flex items-start gap-1.5 opacity-80">
-                      <MapPin className="w-3 h-3 flex-shrink-0 mt-0.5"/>
-                      <span>{primaryAddress.streetAddress}, {primaryAddress.area}, {primaryAddress.district}, {primaryAddress.division}</span>
-                  </div>
-              )}
-              
-              <div className="flex-1 flex flex-col justify-end items-center px-6 pb-2">
-                  <div className="bg-white p-1.5 rounded-md shadow-inner cursor-pointer" onClick={handleBarcodeClick}>
-                      <Barcode value={userData.uid} height={30} width={1} displayValue={false} background="transparent" lineColor={barcodeColor} />
-                  </div>
-                  <p className="text-[7px] opacity-70 mt-1 font-mono">{userData.uid}</p>
-                  
-                   <div 
-                    className={cn("mt-2 w-10 h-6 flex items-center justify-center rounded-md cursor-pointer transition-all", s.hologram)}
-                    onClick={handleNfcWrite}
-                    title="Write to NFC Tag"
-                  >
-                      {isWritingNfc ? <Loader2 size={16} className="animate-spin" /> : <Nfc size={16} className="opacity-70" />}
-                  </div>
-              </div>
-
-              <p className="text-center text-[9px] opacity-70 px-6 pb-4">
-                  If found, please return to any Averzo outlet. This card is non-transferable.
-              </p>
           </div>
         </motion.div>
       </div>
