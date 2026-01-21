@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -68,11 +69,13 @@ body {
     --border: 240 5% 16%;
     --input: 240 5% 16%;
     --ring: 262 86% 61%;
-    --sidebar-background: 260 30% 10%;
-    --sidebar-foreground: 260 15% 95%;
-    --sidebar-accent: 260 30% 20%;
+    --sidebar-background: 240 10% 6%;
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 0 0% 98%;
+    --sidebar-primary-foreground: 240 10% 4%;
+    --sidebar-accent: 240 5% 14%;
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 260 30% 15%;
+    --sidebar-border: 240 5% 14%;
     --sidebar-ring: 262 86% 61%;
   }
 }
@@ -113,25 +116,6 @@ body {
       background-size: 200% 200%;
       animation: hologram 3s ease infinite;
   }
-  .loader {
-    width: 48px;
-    height: 48px;
-    border: 5px solid hsl(var(--primary));
-    border-bottom-color: transparent;
-    border-radius: 50%;
-    display: inline-block;
-    box-sizing: border-box;
-    animation: rotation 1s linear infinite;
-  }
-
-  @keyframes rotation {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-  } 
   
   @media print {
     body {

@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from 'next/image';
@@ -85,7 +84,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
 
   return (
     <>
-      <div className="group relative bg-card border border-border/50 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-primary/50 flex flex-col text-foreground">
+      <div className="group relative bg-card border border-border/50 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 flex flex-col text-foreground">
         <div className="relative aspect-square overflow-hidden bg-muted rounded-t-xl">
            <Link href={`/product/${product.id}`} className="relative block w-full h-full">
             {product.image && (

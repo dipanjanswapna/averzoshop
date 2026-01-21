@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -83,7 +82,7 @@ export function ProductImageGallery({ product, selectedVariant }: ProductImageGa
         whileHover="hover"
       >
         <motion.div
-          className="w-full h-full"
+          className="relative w-full h-full"
            variants={{
             hover: activeMedia.type === 'image' ? { scale: 1.1 } : {},
           }}

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import type { UserData } from '@/types/user';
 import { Nfc, QrCode, Loader2, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Barcode from 'react-barcode';
 import { BarcodePopup } from './barcode-popup';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -200,21 +201,18 @@ export function PremiumCard({ userData }: { userData: UserData }) {
                             </div>
                             <p className="text-[5px] opacity-70 font-mono tracking-wider mt-0.5">SCAN ME</p>
                       </div>
-                      {/* NFC Icon */}
-                       <div 
-                          className="flex flex-col items-center justify-center cursor-pointer"
-                          onClick={handleNfcWrite}
-                          title="Write to NFC Tag"
-                       >
-                          <div 
-                              className={cn("w-8 h-6 flex items-center justify-center rounded-md", s.hologram)}
-                          >
-                              {isWritingNfc ? <Loader2 size={12} className="animate-spin" /> : <Nfc size={12} className="opacity-70" />}
-                          </div>
-                          <p className="text-[5px] opacity-70 font-mono tracking-wider mt-0.5">NFC READY</p>
-                      </div>
                   </div>
 
+                  <div className="flex flex-col items-center justify-center pt-2">
+                      <p className="text-[8px] font-bold uppercase opacity-60 tracking-widest mb-1">NFC Ready</p>
+                      <div 
+                          className={cn("w-6 h-5 flex items-center justify-center rounded-md cursor-pointer transition-all", s.hologram)}
+                          onClick={handleNfcWrite}
+                          title="Write to NFC Tag"
+                      >
+                          {isWritingNfc ? <Loader2 size={12} className="animate-spin" /> : <Nfc size={12} className="opacity-70" />}
+                      </div>
+                  </div>
               </div>
           </div>
         </motion.div>

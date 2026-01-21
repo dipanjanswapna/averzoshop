@@ -41,8 +41,8 @@ export function ReceiptPreviewDialog({ open, onOpenChange, sale, outletId }: Rec
                         </DialogDescription>
                     </DialogHeader>
                     
-                    <div className="bg-gray-100 p-4 rounded-lg overflow-y-auto max-h-[60vh]">
-                        <div className="mx-auto bg-white shadow-sm">
+                    <div className="bg-gray-100 p-4 rounded-md overflow-y-auto max-h-[60vh]">
+                        <div className="mx-auto bg-white">
                             <PrintableReceipt sale={sale} outletId={outletId} />
                         </div>
                     </div>

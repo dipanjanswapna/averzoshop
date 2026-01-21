@@ -8,4 +8,5 @@ export type StoreAsset = {
   assetType: 'hero-carousel' | 'promo-banner';
   categorySlug: string;
 };
+
   
