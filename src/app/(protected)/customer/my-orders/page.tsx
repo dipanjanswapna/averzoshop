@@ -1,6 +1,8 @@
+
 'use client';
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import {
   Card,
   CardContent,
@@ -27,7 +29,7 @@ import type { Order, OrderStatus } from '@/types/order';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import type { UserData } from '@/types/user';
-import { MessageCircle, Copy } from 'lucide-react';
+import { MessageCircle, Copy, ArrowRight } from 'lucide-react';
 import { createSslCommerzSession } from '@/actions/payment-actions';
 
 const getStatusBadge = (status: OrderStatus) => {
@@ -152,7 +154,7 @@ export default function MyOrdersPage() {
     
     if (order.status === 'pending_payment') {
       return (
-        <Button onClick={() => handleCompletePayment(order)} disabled={updatingId === order.id} size="sm" className="w-full">
+        <Button onClick={(e) => {e.stopPropagation(); e.preventDefault(); handleCompletePayment(order);}} disabled={updatingId === order.id} size="sm" className="w-full md:w-auto">
             {updatingId === order.id ? 'Processing...' : 'Complete Payment'}
         </Button>
       );
@@ -160,10 +162,10 @@ export default function MyOrdersPage() {
 
     if (order.status === 'out_for_delivery' && riderPhone) {
       return (
-        <div className="text-right">
+        <div className="text-right w-full">
             <p className="text-xs text-muted-foreground">Contact your rider:</p>
-            <Button asChild variant="outline" size="sm" className="mt-1 bg-green-50 hover:bg-green-100 border-green-200 text-green-800 w-full">
-                <a href={`https://wa.me/${riderPhone}`} target="_blank" rel="noopener noreferrer">
+            <Button asChild variant="outline" size="sm" className="mt-1 bg-green-50 hover:bg-green-100 border-green-200 text-green-800 w-full md:w-auto">
+                <a href={`https://wa.me/${riderPhone}`} target="_blank" rel="noopener noreferrer" onClick={(e) => {e.stopPropagation();}}>
                     <MessageCircle className="mr-2 h-4 w-4" />
                     WhatsApp Rider
                 </a>
@@ -192,34 +194,41 @@ export default function MyOrdersPage() {
                     <TableHead>Date</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Total</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
                 </TableHeader>
                 <TableBody>
                 {isLoading ? renderDesktopSkeleton() : sortedUserOrders && sortedUserOrders.length > 0 ? (
                     sortedUserOrders.map(order => (
-                    <TableRow key={order.id}>
+                    <TableRow key={order.id} className="group">
                         <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                            <span className="font-mono text-xs">{order.id.substring(0, 8)}...</span>
-                                <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7"
-                                onClick={() => handleCopyOrderId(order.id)}
-                            >
-                                <Copy className="h-4 w-4" />
-                                <span className="sr-only">Copy Order ID</span>
-                            </Button>
-                        </div>
+                            <Link href={`/customer/my-orders/${order.id}`} className="hover:underline">
+                                <div className="flex items-center gap-2">
+                                    <span className="font-mono text-xs">{order.id.substring(0, 8)}...</span>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7"
+                                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleCopyOrderId(order.id); }}
+                                    >
+                                        <Copy className="h-4 w-4" />
+                                        <span className="sr-only">Copy Order ID</span>
+                                    </Button>
+                                </div>
+                            </Link>
                         </TableCell>
                         <TableCell>{order.createdAt?.toDate().toLocaleDateString()}</TableCell>
-                        <TableCell>
-                        {getStatusBadge(order.status)}
-                        </TableCell>
+                        <TableCell>{getStatusBadge(order.status)}</TableCell>
                         <TableCell className="text-right">৳{order.totalAmount.toFixed(2)}</TableCell>
                         <TableCell className="text-right">
-                           {renderAction(order)}
+                           <div className="flex items-center justify-end gap-2">
+                                {renderAction(order)}
+                                <Link href={`/customer/my-orders/${order.id}`} passHref>
+                                    <Button variant="outline" size="icon" className="h-9 w-9">
+                                        <ArrowRight className="h-4 w-4" />
+                                    </Button>
+                                </Link>
+                           </div>
                         </TableCell>
                     </TableRow>
                     ))
@@ -238,25 +247,27 @@ export default function MyOrdersPage() {
           <div className="grid md:hidden gap-4">
               {isLoading ? renderMobileSkeleton() : sortedUserOrders && sortedUserOrders.length > 0 ? (
                 sortedUserOrders.map(order => (
-                    <Card key={order.id} className="flex flex-col">
-                        <CardHeader>
-                           <div className="flex items-start justify-between gap-4">
+                    <Link key={order.id} href={`/customer/my-orders/${order.id}`} className="block">
+                        <Card className="flex flex-col h-full hover:bg-muted/50">
+                            <CardHeader>
+                            <div className="flex items-start justify-between gap-4">
                                 <div>
                                     <CardTitle className="text-sm font-mono text-primary">{order.id.substring(0,8)}...</CardTitle>
                                     <CardDescription>{order.createdAt?.toDate().toLocaleDateString()}</CardDescription>
                                 </div>
                                 {getStatusBadge(order.status)}
-                           </div>
-                        </CardHeader>
-                        <CardContent className="flex-1">
-                           <p className="text-lg font-bold text-right">৳{order.totalAmount.toFixed(2)}</p>
-                        </CardContent>
-                        {renderAction(order) && (
-                             <CardFooter>
-                                {renderAction(order)}
-                            </CardFooter>
-                        )}
-                    </Card>
+                            </div>
+                            </CardHeader>
+                            <CardContent className="flex-1">
+                            <p className="text-lg font-bold text-right">৳{order.totalAmount.toFixed(2)}</p>
+                            </CardContent>
+                            {renderAction(order) && (
+                                <CardFooter onClick={(e) => {e.preventDefault(); e.stopPropagation();}}>
+                                    {renderAction(order)}
+                                </CardFooter>
+                            )}
+                        </Card>
+                    </Link>
                 ))
               ) : (
                 <div className="text-center py-10">You haven't placed any orders yet.</div>

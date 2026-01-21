@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -25,6 +26,19 @@ import { useFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { Award, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
+
+const renderReason = (reason: string) => {
+    if (reason?.startsWith('Order: ')) {
+      const orderId = reason.replace('Order: ', '');
+      return (
+        <Link href={`/customer/my-orders/${orderId}`} className="hover:underline text-primary">
+          {reason}
+        </Link>
+      );
+    }
+    return reason;
+};
 
 
 export default function LoyaltyPointsPage() {
@@ -107,7 +121,7 @@ export default function LoyaltyPointsPage() {
                     history.map(tx => (
                     <TableRow key={tx.id}>
                         <TableCell>{tx.createdAt?.toDate().toLocaleDateString()}</TableCell>
-                        <TableCell>{tx.reason}</TableCell>
+                        <TableCell>{renderReason(tx.reason)}</TableCell>
                         <TableCell className="text-right">
                         <Badge variant={tx.pointsChange > 0 ? 'default' : 'destructive'} className="gap-1">
                             {tx.pointsChange > 0 ? <ArrowUpCircle size={14} /> : <ArrowDownCircle size={14} />}
@@ -133,7 +147,7 @@ export default function LoyaltyPointsPage() {
                   <Card key={tx.id} className="p-4">
                     <div className="flex justify-between items-start">
                         <div>
-                            <p className="text-sm font-semibold">{tx.reason}</p>
+                            <div className="text-sm font-semibold">{renderReason(tx.reason)}</div>
                             <p className="text-xs text-muted-foreground">{tx.createdAt?.toDate().toLocaleDateString()}</p>
                         </div>
                          <Badge variant={tx.pointsChange > 0 ? "default" : "destructive"} className="gap-1">
