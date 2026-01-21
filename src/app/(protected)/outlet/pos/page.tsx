@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -11,7 +12,7 @@ import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { useFirebase } from '@/firebase';
-import { doc, serverTimestamp, collection } from 'firebase/firestore';
+import { doc, serverTimestamp, collection, getDoc } from 'firebase/firestore';
 import type { POSSale } from '@/types/pos';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ReceiptPreviewDialog } from '@/components/pos/ReceiptPreviewDialog';
@@ -29,7 +30,6 @@ import {
 import { Separator } from '@/components/ui/separator';
 import type { Coupon } from '@/types/coupon';
 import { UserData } from '@/types/user';
-import { useCart } from '@/hooks/use-cart';
 
 
 type CartItem = {
@@ -49,7 +49,7 @@ const CartPanel = ({
     promoCodeInput, setPromoCodeInput, handleApplyPromo, isApplyingPromo,
     appliedCoupon, removePromoCode, paymentMethod, setPaymentMethod,
     cashReceived, setCashReceived, changeDue, isProcessing, handleCompleteSale,
-    isPreOrderCart, fullOrderTotal, selectedCustomer, customerSearch,
+    isPreOrderCart, selectedCustomer, customerSearch,
     setCustomerSearch, filteredCustomers, handleSelectCustomer, handleClearCustomer,
     handleNfcRead, isScanningNfc, pointsToUse, setPointsToUse, handleApplyPoints,
     pointsApplied, pointsDiscount, removePoints, cardPromoDiscountAmount
@@ -331,15 +331,14 @@ export default function POSPage() {
     const [isScanningNfc, setIsScanningNfc] = useState(false);
     
     const [pointsToUse, setPointsToUse] = useState<string>('');
-    const { applyCardPromo, removeCardPromo, cardPromoDiscountAmount, discount: promoDiscount, pointsDiscount, applyPoints, removePoints, pointsApplied } = useCart();
-    
-    useEffect(() => {
-        applyCardPromo(selectedCustomer);
-        return () => removeCardPromo(); // Cleanup on unmount or customer change
-    }, [selectedCustomer, applyCardPromo, removeCardPromo]);
+    const [pointsApplied, setPointsApplied] = useState(0);
+    const [pointsDiscount, setPointsDiscount] = useState(0);
+    const [cardPromoDiscountAmount, setCardPromoDiscountAmount] = useState(0);
+    const [promoDiscount, setPromoDiscount] = useState(0);
+    const [cartSubtotal, setCartSubtotal] = useState(0);
+    const [grandTotal, setGrandTotal] = useState(0);
 
     const isLoading = productsLoading || usersLoading;
-
     const outletId = useMemo(() => userData?.outletId, [userData]);
 
     const filteredCustomers = useMemo(() => {
@@ -355,12 +354,21 @@ export default function POSPage() {
     const handleSelectCustomer = (customer: UserData) => {
         setSelectedCustomer(customer);
         setCustomerSearch('');
+        // Reset discounts when customer changes
+        setAppliedCoupon(null);
+        setPromoDiscount(0);
+        setPointsApplied(0);
+        setPointsDiscount(0);
     };
 
     const handleClearCustomer = () => {
         setSelectedCustomer(null);
-        removePoints(); // Also clear points when customer is cleared
-        removeCardPromo();
+        // Reset discounts
+        setAppliedCoupon(null);
+        setPromoDiscount(0);
+        setCardPromoDiscountAmount(0);
+        setPointsApplied(0);
+        setPointsDiscount(0);
     };
     
     const handleApplyPoints = () => {
@@ -376,18 +384,63 @@ export default function POSPage() {
             return;
         }
 
-        const currentSubtotal = cartSubtotal - promoDiscount - cardPromoDiscountAmount;
+        const currentSubtotalAfterDiscounts = cartSubtotal - promoDiscount - cardPromoDiscountAmount;
         const requestedDiscount = pointsNum * pointValue;
 
-        if (requestedDiscount > currentSubtotal) {
-            const maxPoints = Math.floor(currentSubtotal / pointValue);
-            toast({ title: `You can use a maximum of ${maxPoints} points.` });
-            applyPoints(maxPoints, availablePoints, pointValue);
+        if (requestedDiscount > currentSubtotalAfterDiscounts) {
+            const maxPoints = Math.floor(currentSubtotalAfterDiscounts / pointValue);
+            toast({ title: `You can use a maximum of ${maxPoints} points for this sale.` });
+            setPointsApplied(maxPoints);
         } else {
-            applyPoints(pointsNum, availablePoints, pointValue);
+            setPointsApplied(pointsNum);
         }
         setPointsToUse('');
     };
+
+    const removePoints = () => {
+        setPointsApplied(0);
+        setPointsDiscount(0);
+    }
+    
+    const isPreOrderCart = useMemo(() => cart.length > 0 && !!cart[0].isPreOrder, [cart]);
+
+    // Central effect for recalculating totals
+    useEffect(() => {
+        const subtotal = cart.reduce((total, item) => total + item.variant.price * item.quantity, 0);
+        setCartSubtotal(subtotal);
+
+        // 1. Apply Card Promo
+        const cardDiscountPercent = selectedCustomer?.cardPromoDiscount || 0;
+        const cardDiscount = (subtotal * cardDiscountPercent) / 100;
+        setCardPromoDiscountAmount(cardDiscount);
+
+        // 2. Apply Coupon
+        let currentPromoDiscount = 0;
+        if (appliedCoupon) {
+            const subtotalForPromo = subtotal - cardDiscount;
+            if (subtotalForPromo >= appliedCoupon.minimumSpend) {
+                if (appliedCoupon.discountType === 'fixed') {
+                    currentPromoDiscount = Math.min(appliedCoupon.value, subtotalForPromo);
+                } else if (appliedCoupon.discountType === 'percentage') {
+                    currentPromoDiscount = (subtotalForPromo * appliedCoupon.value) / 100;
+                }
+            }
+        }
+        setPromoDiscount(currentPromoDiscount);
+
+        // 3. Apply Points
+        let currentPointsDiscount = 0;
+        if (pointsApplied > 0) {
+            const subtotalAfterPromos = subtotal - cardDiscount - currentPromoDiscount;
+            const maxDiscountFromPoints = pointsApplied * pointValue;
+            currentPointsDiscount = Math.min(maxDiscountFromPoints, subtotalAfterPromos > 0 ? subtotalAfterPromos : 0);
+        }
+        setPointsDiscount(currentPointsDiscount);
+        
+        const finalTotal = subtotal - cardDiscount - currentPromoDiscount - currentPointsDiscount;
+        setGrandTotal(finalTotal < 0 ? 0 : finalTotal);
+
+    }, [cart, selectedCustomer, appliedCoupon, pointsApplied, pointValue]);
 
 
     const availableVariants = useMemo(() => {
@@ -586,15 +639,6 @@ export default function POSPage() {
         }
     };
 
-
-    const isPreOrderCart = useMemo(() => cart.length > 0 && !!cart[0].isPreOrder, [cart]);
-
-    const { cartSubtotal, grandTotal } = useMemo(() => {
-        const subtotal = cart.reduce((total, item) => total + item.variant.price * item.quantity, 0);
-        return { cartSubtotal: subtotal, grandTotal: subtotal - cardPromoDiscountAmount - promoDiscount - pointsDiscount };
-    }, [cart, cardPromoDiscountAmount, promoDiscount, pointsDiscount]);
-
-
     const totalItems = useMemo(() => {
         return cart.reduce((total, item) => total + item.quantity, 0);
     }, [cart]);
@@ -639,20 +683,12 @@ export default function POSPage() {
                 return;
             }
             
-            const subtotalAfterCardPromo = cartSubtotal - cardPromoDiscountAmount;
-            const discount = calculateCouponDiscount(subtotalAfterCardPromo, coupon);
-
-            if (discount > 0) {
-                setAppliedCoupon(coupon);
-                // The discount state in useCart will be updated by this
-                useCart.getState().applyPromoCode(coupon);
-                toast({ title: 'Promo code applied!' });
-            } else {
-                 useCart.getState().applyPromoCode(null);
-            }
+            setAppliedCoupon(coupon);
+            toast({ title: 'Promo code applied!' });
 
         } catch (error) {
             toast({ variant: 'destructive', title: 'Error applying promo code.' });
+            setAppliedCoupon(null);
         } finally {
             setIsApplyingPromo(false);
         }
@@ -660,8 +696,8 @@ export default function POSPage() {
 
     const removePromoCode = () => {
         setAppliedCoupon(null);
+        setPromoDiscount(0);
         setPromoCodeInput('');
-        useCart.getState().applyPromoCode(null);
         toast({ title: 'Promo code removed.' });
     };
     
@@ -670,7 +706,6 @@ export default function POSPage() {
         setSearchTerm('');
         setCashReceived(0);
         setPromoCodeInput('');
-        setAppliedCoupon(null);
         handleClearCustomer();
     };
 
@@ -753,7 +788,7 @@ export default function POSPage() {
         promoCodeInput, setPromoCodeInput, handleApplyPromo, isApplyingPromo,
         appliedCoupon, removePromoCode, paymentMethod, setPaymentMethod,
         cashReceived, setCashReceived, changeDue, isProcessing, handleCompleteSale,
-        isPreOrderCart, fullOrderTotal: 0, selectedCustomer, customerSearch,
+        isPreOrderCart, selectedCustomer, customerSearch,
         setCustomerSearch, filteredCustomers, handleSelectCustomer, handleClearCustomer,
         handleNfcRead, isScanningNfc, pointsToUse, setPointsToUse, handleApplyPoints,
         pointsApplied, pointsDiscount, removePoints, cardPromoDiscountAmount
