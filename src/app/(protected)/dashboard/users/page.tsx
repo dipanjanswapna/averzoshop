@@ -40,6 +40,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ManageVendorOutletsDialog } from '@/components/dashboard/manage-vendor-outlets-dialog';
 import { AddUserDialog } from '@/components/dashboard/add-user-dialog';
 import { AssignSalesRepDialog } from '@/components/dashboard/assign-sales-rep-dialog';
+import { cn } from '@/lib/utils';
 
 
 export default function UsersPage() {
@@ -133,6 +134,20 @@ export default function UsersPage() {
       </TableRow>
     ))
   );
+  
+  const getStatusBadge = (status: UserData['status']) => {
+    switch (status) {
+        case 'approved':
+            return <Badge className="bg-green-500/10 text-green-600 capitalize"><CheckCircle className="mr-1 h-3 w-3" />{status}</Badge>;
+        case 'pending':
+            return <Badge className="bg-orange-500/10 text-orange-600 capitalize"><Clock className="mr-1 h-3 w-3" />{status}</Badge>;
+        case 'rejected':
+            return <Badge variant="destructive" className="capitalize"><XCircle className="mr-1 h-3 w-3" />{status}</Badge>;
+        default:
+            return <Badge variant="outline" className="capitalize">{status}</Badge>;
+    }
+  };
+
 
   return (
     <>
@@ -207,18 +222,7 @@ export default function UsersPage() {
                           <Badge variant="outline" className="capitalize">{user.role}</Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={user.status === 'approved' ? 'default' : (user.status === 'pending' ? 'secondary' : 'destructive')} 
-                            className={
-                            user.status === 'approved' ? 'bg-green-100 text-green-800' : 
-                            user.status === 'pending' ? 'bg-orange-100 text-orange-800' :
-                            'bg-red-100 text-red-800'
-                          }>
-                            {user.status === 'approved' ? <CheckCircle className="mr-1 h-3 w-3" /> : 
-                             user.status === 'pending' ? <Clock className="mr-1 h-3 w-3" /> :
-                             <XCircle className="mr-1 h-3 w-3" />
-                            }
-                            <span className="capitalize">{user.status}</span>
-                          </Badge>
+                          {getStatusBadge(user.status)}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                             {user.role === 'customer' && user.managedBy 
@@ -353,15 +357,7 @@ export default function UsersPage() {
                         </CardHeader>
                         <CardContent className="flex items-center justify-between">
                             <Badge variant="outline" className="capitalize">{user.role}</Badge>
-                            <Badge variant={user.status === 'approved' ? 'default' : (user.status === 'pending' ? 'secondary' : 'destructive')} 
-                                className={
-                                user.status === 'approved' ? 'bg-green-100 text-green-800' : 
-                                user.status === 'pending' ? 'bg-orange-100 text-orange-800' :
-                                'bg-red-100 text-red-800'
-                            }>
-                                {user.status === 'approved' ? <CheckCircle className="mr-1 h-3 w-3" /> : <Clock className="mr-1 h-3 w-3" />}
-                                <span className="capitalize">{user.status}</span>
-                            </Badge>
+                            {getStatusBadge(user.status)}
                         </CardContent>
                         {user.role === 'customer' && user.managedBy && (
                             <CardFooter className="text-xs text-muted-foreground pt-0 pb-3 px-4">

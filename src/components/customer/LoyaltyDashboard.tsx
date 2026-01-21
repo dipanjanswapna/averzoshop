@@ -1,4 +1,3 @@
-
 'use client';
 import { Award, Star, TrendingUp, History } from "lucide-react";
 import type { UserData } from "@/types/user";
@@ -48,7 +47,7 @@ export function LoyaltyDashboard({ userData }: { userData: UserData }) {
       </div>
 
       {/* Point Card */}
-      <div className="bg-background border-2 border-primary/10 p-6 rounded-2xl flex flex-col justify-between">
+      <div className="bg-background border p-6 rounded-2xl flex flex-col justify-between">
         <div className="flex justify-between items-start">
           <div>
             <p className="text-muted-foreground text-sm">Available Points</p>
@@ -58,7 +57,7 @@ export function LoyaltyDashboard({ userData }: { userData: UserData }) {
             <TrendingUp size={24} />
           </div>
         </div>
-        <div className="mt-4 p-3 bg-green-50 rounded-xl border border-green-100 flex items-center justify-between">
+        <div className="mt-4 p-3 bg-green-500/10 rounded-xl border border-green-500/20 flex items-center justify-between">
           <p className="text-green-700 text-sm font-bold">
             Equivalent to Cash: ৳{pointsToCash}
           </p>

@@ -26,6 +26,7 @@ import { ReceiveStockDialog } from '@/components/outlet/receive-stock-dialog';
 import { DispatchStockDialog } from '@/components/outlet/dispatch-stock-dialog';
 import { ReceiveTransferDialog } from '@/components/outlet/receive-transfer-dialog';
 import { StockDetailsDialog } from '@/components/outlet/stock-details-dialog';
+import { cn } from '@/lib/utils';
 
 
 export default function InventoryPage() {
@@ -54,7 +55,7 @@ export default function InventoryPage() {
   const outletProducts = useMemo(() => {
     if (!products || !outletId) return [];
     return products.map(p => {
-        const variantsArray = Array.isArray(p.variants) ? p.variants : Object.values(p.variants);
+        const variantsArray = Array.isArray(p.variants) ? p.variants : Object.values(p.variants || {});
         const stockInOutlet = variantsArray.reduce((sum, v) => sum + (v.outlet_stocks?.[outletId] ?? 0), 0);
         return {
             ...p,
@@ -133,6 +134,26 @@ export default function InventoryPage() {
     ))
   );
 
+  const getProductStatusBadge = (product: Product) => {
+    let variant: 'default' | 'secondary' | 'destructive' = 'secondary';
+    let className = '';
+
+    switch (product.status) {
+        case 'approved':
+            variant = 'secondary';
+            className = 'bg-green-500/10 text-green-600';
+            break;
+        case 'pending':
+            variant = 'secondary';
+            className = 'bg-orange-500/10 text-orange-600';
+            break;
+        case 'rejected':
+            variant = 'destructive';
+            break;
+    }
+    return <Badge variant={variant} className={cn('capitalize', className)}>{product.status}</Badge>;
+  }
+
   return (
     <>
     <div className="flex flex-col gap-6">
@@ -174,14 +195,7 @@ export default function InventoryPage() {
                                         </TableCell>
                                         <TableCell className="font-medium">{product.name}</TableCell>
                                         <TableCell>
-                                        <Badge variant={
-                                            product.status === 'approved' ? 'default' :
-                                            product.status === 'pending' ? 'secondary' : 'destructive'
-                                        } className={`capitalize ${
-                                            product.status === 'approved' ? 'bg-green-100 text-green-800' :
-                                            product.status === 'pending' ? 'bg-orange-100 text-orange-800' :
-                                            'bg-red-100 text-red-800'
-                                        }`}>{product.status}</Badge>
+                                        {getProductStatusBadge(product)}
                                         </TableCell>
                                         <TableCell>{product.stockInOutlet}</TableCell>
                                         <TableCell className="text-right">
@@ -207,14 +221,7 @@ export default function InventoryPage() {
                                         <Image alt={product.name} className="aspect-square rounded-md object-cover" height={64} src={product.image || 'https://placehold.co/64'} width={64} />
                                         <div className="flex-1">
                                             <h4 className="font-semibold text-sm leading-tight">{product.name}</h4>
-                                             <Badge variant={
-                                                product.status === 'approved' ? 'default' :
-                                                product.status === 'pending' ? 'secondary' : 'destructive'
-                                            } className={`capitalize mt-2 ${
-                                                product.status === 'approved' ? 'bg-green-100 text-green-800' :
-                                                product.status === 'pending' ? 'bg-orange-100 text-orange-800' :
-                                                'bg-red-100 text-red-800'
-                                            }`}>{product.status}</Badge>
+                                             {getProductStatusBadge(product)}
                                         </div>
                                     </CardHeader>
                                     <CardContent className="flex justify-between items-center">

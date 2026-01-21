@@ -67,7 +67,8 @@ export function OutletDashboard() {
     let lowStockProductCount = 0;
 
     products.forEach(product => {
-        const stockInOutlet = product.variants.reduce((sum, v) => sum + (v.outlet_stocks?.[outletId] ?? 0), 0);
+        const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants || {});
+        const stockInOutlet = variantsArray.reduce((sum, v) => sum + (v.outlet_stocks?.[outletId] ?? 0), 0);
         if (stockInOutlet > 0) {
             totalProductCount++;
             if (stockInOutlet < 10) {

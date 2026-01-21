@@ -89,13 +89,13 @@ function OrderTable({ orders, isLoading }: { orders: Order[], isLoading: boolean
   const getStatusBadge = (status: Order['status']) => {
     switch (status) {
       case 'pending_payment': return <Badge variant="destructive" className="capitalize animate-pulse">{status.replace('_', ' ')}</Badge>;
-      case 'pre-ordered': return <Badge variant="secondary" className="bg-blue-100 text-blue-800 capitalize">{status.replace('_', ' ')}</Badge>;
-      case 'new': return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 capitalize">Order Placed</Badge>;
-      case 'preparing': return <Badge variant="secondary" className="bg-orange-100 text-orange-800 capitalize">{status}</Badge>;
-      case 'ready_for_pickup': return <Badge variant="secondary" className="bg-purple-100 text-purple-800 capitalize">{status.replace('_', ' ')}</Badge>;
-      case 'out_for_delivery': return <Badge variant="secondary" className="bg-cyan-100 text-cyan-800 capitalize">{status.replace('_', ' ')}</Badge>;
+      case 'pre-ordered': return <Badge className="bg-purple-600/10 text-purple-600 capitalize">{status.replace('_', ' ')}</Badge>;
+      case 'new': return <Badge className="bg-orange-500/10 text-orange-600 capitalize">Order Placed</Badge>;
+      case 'preparing': return <Badge className="bg-yellow-500/10 text-yellow-600 capitalize">{status}</Badge>;
+      case 'ready_for_pickup': return <Badge className="bg-cyan-500/10 text-cyan-600 capitalize">{status.replace('_', ' ')}</Badge>;
+      case 'out_for_delivery': return <Badge className="bg-blue-500/10 text-blue-600 capitalize">{status.replace('_', ' ')}</Badge>;
       case 'fulfilled':
-      case 'delivered': return <Badge variant="default" className="bg-green-100 text-green-800 capitalize">{status}</Badge>;
+      case 'delivered': return <Badge className="bg-green-500/10 text-green-600 capitalize">{status}</Badge>;
       case 'canceled': return <Badge variant="destructive" className="capitalize">{status}</Badge>;
       default: return <Badge variant="outline" className="capitalize">{status}</Badge>;
     }

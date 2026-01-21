@@ -38,6 +38,7 @@ import type { UserData } from '@/types/user';
 import type { Outlet } from '@/types/outlet';
 import { RequestDetailsDialog } from './request-details-dialog';
 import { sendTargetedNotification } from '@/ai/flows/send-targeted-notification';
+import { cn } from '@/lib/utils';
 
 export default function StockRequestsPage() {
   const { firestore } = useFirebase();
@@ -121,22 +122,28 @@ export default function StockRequestsPage() {
     setIsDetailsOpen(true);
   };
   
-  const getStatusBadge = (status: StockRequest['status']) => (
-    <Badge variant={
-        status === 'approved' ? 'default' : 
-        status === 'rejected' ? 'destructive' : 'secondary'
-      } className={
-        `capitalize ${status === 'approved' ? 'bg-green-100 text-green-800' :
-        status === 'rejected' ? 'bg-red-100 text-red-800' :
-        'bg-orange-100 text-orange-800'}`
-      }>
-        {status === 'approved' ? <CheckCircle className="mr-1 h-3 w-3" /> :
-          status === 'rejected' ? <XCircle className="mr-1 h-3 w-3" /> :
-          <Clock className="mr-1 h-3 w-3" />
-        }
-        <span className="capitalize">{status}</span>
-    </Badge>
-  );
+  const getStatusBadge = (status: StockRequest['status']) => {
+    let variant: 'default' | 'secondary' | 'destructive' = 'secondary';
+    let className = '';
+
+    switch (status) {
+        case 'approved':
+        case 'shipped':
+        case 'received':
+            variant = 'secondary';
+            className = 'bg-green-500/10 text-green-600';
+            break;
+        case 'pending':
+            variant = 'secondary';
+            className = 'bg-orange-500/10 text-orange-600';
+            break;
+        case 'rejected':
+            variant = 'destructive';
+            break;
+    }
+    
+    return <Badge variant={variant} className={cn('capitalize', className)}>{status}</Badge>;
+  };
 
   const renderDesktopSkeleton = () => (
     [...Array(5)].map((_, i) => (

@@ -100,25 +100,25 @@ export const ProductCard = ({ product }: { product: Product }) => {
           
           <div className="absolute top-2 left-2 z-10 flex flex-col gap-1.5">
             {variantDiscount > 0 && !isOutOfStock && (
-              <span className="bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">{variantDiscount}% OFF</span>
+              <span className="bg-accent text-accent-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">{variantDiscount}% OFF</span>
             )}
             {isFlashSaleActive && (
-              <span className="bg-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse flex items-center gap-1"><Zap size={12} /> SALE</span>
+              <span className="bg-destructive text-destructive-foreground text-[10px] font-bold px-2 py-0.5 rounded-full animate-pulse flex items-center gap-1"><Zap size={12} /> SALE</span>
             )}
             {product.preOrder?.enabled && (
-              <span className="bg-purple-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Pre-order</span>
+              <span className="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Pre-order</span>
             )}
             {product.giftWithPurchase?.enabled && (
                 <span className="bg-green-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase flex items-center gap-1"><Gift size={12} /> Gift</span>
             )}
              {product.isNew && (
-              <span className="bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">New</span>
+              <span className="bg-cyan-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">New</span>
             )}
              {product.isBestSeller && (
-              <span className="bg-teal-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Best Seller</span>
+              <span className="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Best Seller</span>
             )}
             {product.isBundle && (
-              <span className="bg-cyan-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase flex items-center gap-1"><Archive size={12} /> Bundle</span>
+              <span className="bg-indigo-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase flex items-center gap-1"><Archive size={12} /> Bundle</span>
             )}
           </div>
 

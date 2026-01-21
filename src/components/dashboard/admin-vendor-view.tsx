@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 interface Vendor {
   id: string;
@@ -77,7 +78,7 @@ export function AdminVendorView() {
                   <TableCell className="font-medium">{vendor.name}</TableCell>
                   <TableCell>{vendor.contact}</TableCell>
                   <TableCell>
-                    <Badge variant={vendor.status === 'Active' ? 'default' : 'destructive'}>
+                    <Badge variant={vendor.status === 'Active' ? 'secondary' : 'destructive'} className={cn(vendor.status === 'Active' && 'bg-green-500/10 text-green-600')}>
                        {vendor.status === 'Active' ? <CheckCircle className="mr-1 h-3 w-3" /> : <XCircle className="mr-1 h-3 w-3" />}
                        {vendor.status}
                     </Badge>

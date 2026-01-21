@@ -32,6 +32,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useState } from 'react';
 import { AddOutletDialog } from '@/components/dashboard/add-outlet-dialog';
 import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 interface Outlet {
   id: string;
@@ -121,7 +122,7 @@ export default function OutletsPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant={outlet.status === 'Active' ? 'default' : 'destructive'}>
+                           <Badge variant={outlet.status === 'Active' ? 'secondary' : 'destructive'} className={cn(outlet.status === 'Active' && 'bg-green-500/10 text-green-600')}>
                               <Power className="mr-1 h-3 w-3" />
                             {outlet.status}
                           </Badge>
@@ -165,7 +166,7 @@ export default function OutletsPage() {
                      <Card key={outlet.id}>
                       <CardHeader className="flex flex-row items-center justify-between">
                          <CardTitle className="text-lg">{outlet.name}</CardTitle>
-                         <Badge variant={outlet.status === 'Active' ? 'default' : 'destructive'}>
+                          <Badge variant={outlet.status === 'Active' ? 'secondary' : 'destructive'} className={cn(outlet.status === 'Active' && 'bg-green-500/10 text-green-600')}>
                               <Power className="mr-1 h-3 w-3" />
                             {outlet.status}
                           </Badge>

@@ -5,7 +5,7 @@ import { Dispatch, SetStateAction, useMemo, useState } from 'react';
 import type { Product, ProductVariant } from '@/types/product';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, ShoppingBag, Ruler, Barcode, MapPin, Share2, Star, Gift } from 'lucide-react';
+import { Heart, ShoppingBag, Ruler, Barcode, MapPin, Share2, Star, Gift, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
@@ -134,7 +134,7 @@ export function ProductDetails({
       </div>
 
       {product.giftWithPurchase?.enabled && product.giftWithPurchase.description && (
-        <div className="bg-green-50 border-l-4 border-green-500 text-green-800 p-4 rounded-r-lg flex items-center gap-4 animate-pulse">
+        <div className="bg-green-500/10 border-l-4 border-green-500 text-green-700 p-4 rounded-r-lg flex items-center gap-4">
             <Gift size={28} />
             <div>
             <p className="font-bold text-sm">FREE GIFT!</p>
@@ -144,7 +144,7 @@ export function ProductDetails({
       )}
       
        {product.preOrder?.enabled && product.preOrder.releaseDate?.toDate && (
-        <div className="text-sm text-purple-600 font-semibold bg-purple-50 p-3 rounded-md border border-purple-200">
+        <div className="text-sm text-blue-600 font-semibold bg-blue-500/10 p-3 rounded-md border border-blue-200">
             This is a pre-order item. Expected release date: {format(product.preOrder.releaseDate.toDate(), "MMMM d, yyyy")}
         </div>
       )}
@@ -181,9 +181,9 @@ export function ProductDetails({
         {isOutOfStock ? (
           <Badge variant="destructive">Out of Stock</Badge>
         ) : product.preOrder?.enabled ? (
-          <Badge className="bg-purple-100 text-purple-800">Pre-order</Badge>
+          <Badge className="bg-blue-600/10 text-blue-600">Pre-order</Badge>
         ) : (
-          <Badge className="bg-green-100 text-green-800">In Stock</Badge>
+          <Badge className="bg-green-600/10 text-green-600">In Stock</Badge>
         )}
       </div>
 
