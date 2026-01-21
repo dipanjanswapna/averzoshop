@@ -1,5 +1,3 @@
-
-
 import { NextResponse, type NextRequest } from 'next/server';
 import { firestore, getFirebaseAdminApp } from '@/firebase/server';
 import * as admin from 'firebase-admin';
@@ -39,48 +37,36 @@ async function completeOrder(orderId: string, newStatus: 'delivered' | 'fulfille
     const loyaltySettings = settingsSnap.data() as LoyaltySettingsData;
 
     // Update order status
-    transaction.update(orderRef, { status: newStatus, paymentStatus: 'Paid', updatedAt: admin.firestore.FieldValue.serverTimestamp() });
-
+    transaction.update(orderRef, { status: newStatus, updatedAt: admin.firestore.FieldValue.serverTimestamp() });
+    
+    // For completed orders, we award points and update total spend.
+    // Point redemption was already handled at the time of order placement/payment.
+    const amountForPoints = order.totalAmount;
     let netPointsChange = 0;
 
-    // 1. Handle points redemption if any were used
-    if (order.loyaltyPointsUsed && order.loyaltyPointsUsed > 0) {
-        if ((user.loyaltyPoints || 0) < order.loyaltyPointsUsed) {
-            // This case should ideally be prevented by client-side checks, but as a safeguard:
-            console.warn(`User ${user.uid} had insufficient points for order ${orderId}. Points not redeemed.`);
-        } else {
-            netPointsChange -= order.loyaltyPointsUsed;
-            const redeemHistoryRef = db.collection(`users/${order.customerId}/points_history`).doc();
-            transaction.set(redeemHistoryRef, {
-                userId: order.customerId,
-                pointsChange: -order.loyaltyPointsUsed,
-                type: 'redeem',
-                reason: `Order: ${orderId}`,
-                createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            });
-        }
-    }
+    const userTier = user.membershipTier || 'silver';
+    const pointsRate = loyaltySettings.pointsPer100Taka[userTier];
+    let pointsEarned = 0;
     
-    // 2. Award points for the purchase (only for COD/unpaid orders on completion)
-    if (order.paymentStatus !== 'Paid') {
-        const userTier = user.membershipTier || 'silver';
-        const pointsRate = loyaltySettings.pointsPer100Taka[userTier];
-        const pointsEarned = Math.floor(order.totalAmount / 100) * pointsRate;
+    if (typeof pointsRate === 'number') {
+        pointsEarned = Math.floor(amountForPoints / 100) * pointsRate;
+    } else {
+        console.warn(`Invalid points rate for tier: ${userTier}. Defaulting to 0.`);
+    }
 
-        if (pointsEarned > 0) {
-            netPointsChange += pointsEarned;
-            const earnHistoryRef = db.collection(`users/${order.customerId}/points_history`).doc();
-            transaction.set(earnHistoryRef, {
-                userId: order.customerId,
-                pointsChange: pointsEarned,
-                type: 'earn',
-                reason: `Order: ${orderId}`,
-                createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            });
-        }
+    if (pointsEarned > 0) {
+        netPointsChange += pointsEarned;
+        const earnHistoryRef = db.collection(`users/${order.customerId}/points_history`).doc();
+        transaction.set(earnHistoryRef, {
+            userId: order.customerId,
+            pointsChange: pointsEarned,
+            type: 'earn',
+            reason: `Order: ${orderId}`,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
     }
     
-    const newTotalSpent = (user.totalSpent || 0) + order.totalAmount;
+    const newTotalSpent = (user.totalSpent || 0) + amountForPoints;
     let newTier = user.membershipTier || 'silver';
     
     const goldThreshold = loyaltySettings.tierThresholds.gold;
@@ -93,7 +79,7 @@ async function completeOrder(orderId: string, newStatus: 'delivered' | 'fulfille
     }
     
     let userUpdates: any = {
-        totalSpent: admin.firestore.FieldValue.increment(order.totalAmount),
+        totalSpent: admin.firestore.FieldValue.increment(amountForPoints),
     };
     if (netPointsChange !== 0) {
         userUpdates.loyaltyPoints = admin.firestore.FieldValue.increment(netPointsChange);
@@ -144,5 +130,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, message: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }
-
-    

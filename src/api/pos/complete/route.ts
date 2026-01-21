@@ -1,5 +1,3 @@
-
-
 import { NextResponse, type NextRequest } from 'next/server';
 import { firestore, getFirebaseAdminApp } from '@/firebase/server';
 import * as admin from 'firebase-admin';
@@ -85,7 +83,13 @@ export async function POST(request: NextRequest) {
             
             const userTier = user.membershipTier || 'silver';
             const pointsRate = settings.pointsPer100Taka[userTier];
-            const pointsEarned = Math.floor(saleData.totalAmount / 100) * pointsRate;
+            let pointsEarned = 0;
+            
+            if (typeof pointsRate === 'number') {
+                pointsEarned = Math.floor(saleData.totalAmount / 100) * pointsRate;
+            } else {
+                 console.warn(`Invalid points rate for tier: ${userTier}. Defaulting to 0.`);
+            }
             
             if (pointsEarned > 0) {
                 netPointsChange += pointsEarned;
@@ -143,5 +147,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, message: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }
-
-    
