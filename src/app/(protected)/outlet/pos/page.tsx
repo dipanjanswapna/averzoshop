@@ -4,16 +4,15 @@ import { useState, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Search, PlusCircle, MinusCircle, XCircle, ShoppingCart, Banknote, CreditCard, Smartphone, User, Nfc, Loader2 } from 'lucide-react';
+import { Search, PlusCircle, MinusCircle, XCircle, ShoppingCart, Banknote, CreditCard, Smartphone, User, Nfc, Loader2, Award } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
-import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
+import { useFirestoreQuery, useFirestoreDoc } from '@/hooks/useFirestoreQuery';
 import { Product, ProductVariant } from '@/types/product';
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { useFirebase } from '@/firebase';
 import { doc, getDoc, runTransaction, serverTimestamp, collection, increment } from 'firebase/firestore';
-import type { Order } from '@/types/order';
 import type { POSSale } from '@/types/pos';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ReceiptPreviewDialog } from '@/components/pos/ReceiptPreviewDialog';
@@ -46,35 +45,14 @@ type SearchableVariant = ProductVariant & {
 };
 
 const CartPanel = ({
-    cart,
-    updateQuantity,
-    totalItems,
-    cartSubtotal,
-    discountAmount,
-    grandTotal,
-    promoCodeInput,
-    setPromoCodeInput,
-    handleApplyPromo,
-    isApplyingPromo,
-    appliedCoupon,
-    removePromoCode,
-    paymentMethod,
-    setPaymentMethod,
-    cashReceived,
-    setCashReceived,
-    changeDue,
-    isProcessing,
-    handleCompleteSale,
-    isPreOrderCart,
-    fullOrderTotal,
-    selectedCustomer,
-    customerSearch,
-    setCustomerSearch,
-    filteredCustomers,
-    handleSelectCustomer,
-    handleClearCustomer,
-    handleNfcRead,
-    isScanningNfc,
+    cart, updateQuantity, totalItems, cartSubtotal, discountAmount, grandTotal,
+    promoCodeInput, setPromoCodeInput, handleApplyPromo, isApplyingPromo,
+    appliedCoupon, removePromoCode, paymentMethod, setPaymentMethod,
+    cashReceived, setCashReceived, changeDue, isProcessing, handleCompleteSale,
+    isPreOrderCart, fullOrderTotal, selectedCustomer, customerSearch,
+    setCustomerSearch, filteredCustomers, handleSelectCustomer, handleClearCustomer,
+    handleNfcRead, isScanningNfc, pointsToUse, setPointsToUse, handleApplyPoints,
+    pointsApplied, pointsDiscount, removePoints,
 }: any) => (
     <div className="flex flex-col gap-4 h-full">
         <Card className="shadow-md flex-shrink-0">
@@ -171,36 +149,28 @@ const CartPanel = ({
             </ScrollArea>
             <CardFooter className="flex-col items-stretch space-y-4 border-t p-4 bg-muted/30">
                 
-                {isPreOrderCart ? (
-                    <div className="space-y-1 text-sm">
-                        <div className="flex justify-between">
-                            <span>Total Value</span>
-                            <span>৳{fullOrderTotal.toFixed(2)}</span>
-                        </div>
-                         <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2 text-primary">
-                            <span>Deposit Payable</span>
-                            <span>৳{grandTotal.toFixed(2)}</span>
-                        </div>
+                <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                        <span>Subtotal</span>
+                        <span>৳{cartSubtotal.toFixed(2)}</span>
                     </div>
-                ) : (
-                    <div className="space-y-1 text-sm">
-                        <div className="flex justify-between">
-                            <span>Subtotal</span>
-                            <span>৳{cartSubtotal.toFixed(2)}</span>
+                    {discountAmount > 0 && (
+                        <div className="flex justify-between text-green-600">
+                            <span>Promo Discount ({appliedCoupon?.code})</span>
+                            <span>- ৳{discountAmount.toFixed(2)}</span>
                         </div>
-                        {discountAmount > 0 && (
-                            <div className="flex justify-between text-green-600">
-                                <span>Discount ({appliedCoupon?.code})</span>
-                                <span>- ৳{discountAmount.toFixed(2)}</span>
-                            </div>
-                        )}
-                         <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2">
-                            <span>Total ({totalItems} items)</span>
-                            <span>৳{grandTotal.toFixed(2)}</span>
+                    )}
+                    {pointsDiscount > 0 && (
+                         <div className="flex justify-between text-green-600">
+                            <span>Loyalty Discount</span>
+                            <span>- ৳{pointsDiscount.toFixed(2)}</span>
                         </div>
+                    )}
+                     <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2">
+                        <span>Total ({totalItems} items)</span>
+                        <span>৳{grandTotal.toFixed(2)}</span>
                     </div>
-                )}
-                
+                </div>
 
                 <Separator />
                 
@@ -233,6 +203,29 @@ const CartPanel = ({
                         </div>
                     )}
                 </div>
+
+                {selectedCustomer && (selectedCustomer.loyaltyPoints || 0) > 0 && (
+                   <div className="space-y-3 pt-2">
+                        <Label className="font-bold flex items-center gap-2"><Award size={16} className="text-primary" /> Use Loyalty Points</Label>
+                        <div className="p-3 bg-primary/5 border border-primary/10 rounded-lg space-y-2">
+                            <p className="text-xs text-muted-foreground">Available: <span className="font-bold text-primary">{selectedCustomer.loyaltyPoints}</span> points</p>
+                            {pointsApplied > 0 ? (
+                                <div className="flex justify-between items-center bg-green-100/50 p-2 rounded-md">
+                                    <div className="text-green-700">
+                                        <p className="text-sm font-bold">Points Applied: {pointsApplied}</p>
+                                        <p className="text-xs">-৳{pointsDiscount.toFixed(2)}</p>
+                                    </div>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={removePoints}><XCircle className="h-4 w-4" /></Button>
+                                </div>
+                            ) : (
+                                <div className="flex items-end gap-2">
+                                    <Input placeholder="Points to use" type="number" value={pointsToUse} onChange={(e) => setPointsToUse(e.target.value)} />
+                                    <Button onClick={handleApplyPoints}>Apply</Button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
 
                 <Separator />
                 
@@ -291,6 +284,8 @@ export default function POSPage() {
     const { user, userData } = useAuth();
     const { data: allProducts, isLoading: productsLoading } = useFirestoreQuery('products');
     const { data: allUsers, isLoading: usersLoading } = useFirestoreQuery<UserData>('users');
+    const { data: loyaltySettings } = useFirestoreDoc<any>('settings/loyalty');
+    const pointValue = loyaltySettings?.pointValueInTaka ?? 0.20;
 
     const [searchTerm, setSearchTerm] = useState('');
     const [cart, setCart] = useState<CartItem[]>([]);
@@ -311,7 +306,10 @@ export default function POSPage() {
     const [customerSearch, setCustomerSearch] = useState('');
     const [selectedCustomer, setSelectedCustomer] = useState<UserData | null>(null);
     const [isScanningNfc, setIsScanningNfc] = useState(false);
-
+    
+    const [pointsToUse, setPointsToUse] = useState<string>('');
+    const [pointsApplied, setPointsApplied] = useState(0);
+    const [pointsDiscount, setPointsDiscount] = useState(0);
 
     const isLoading = productsLoading || usersLoading;
 
@@ -334,7 +332,43 @@ export default function POSPage() {
 
     const handleClearCustomer = () => {
         setSelectedCustomer(null);
+        removePoints(); // Also clear points when customer is cleared
     };
+    
+    const handleApplyPoints = () => {
+        if (!selectedCustomer) return;
+        const pointsNum = parseInt(pointsToUse, 10);
+        const availablePoints = selectedCustomer.loyaltyPoints || 0;
+        if (isNaN(pointsNum) || pointsNum <= 0) {
+            toast({ variant: 'destructive', title: 'Invalid amount' });
+            return;
+        }
+        if (pointsNum > availablePoints) {
+            toast({ variant: 'destructive', title: 'Not enough points' });
+            return;
+        }
+
+        const currentSubtotal = cartSubtotal - discountAmount;
+        const requestedDiscount = pointsNum * pointValue;
+
+        if (requestedDiscount > currentSubtotal) {
+            const maxPoints = Math.floor(currentSubtotal / pointValue);
+            toast({ title: `You can use a maximum of ${maxPoints} points.` });
+            setPointsApplied(maxPoints);
+            setPointsDiscount(maxPoints * pointValue);
+        } else {
+            setPointsApplied(pointsNum);
+            setPointsDiscount(requestedDiscount);
+        }
+        setPointsToUse('');
+    };
+
+    const removePoints = () => {
+        setPointsApplied(0);
+        setPointsDiscount(0);
+        setPointsToUse('');
+    };
+
 
     const availableVariants = useMemo(() => {
         if (!allProducts || !outletId) return [];
@@ -535,29 +569,11 @@ export default function POSPage() {
 
     const isPreOrderCart = useMemo(() => cart.length > 0 && !!cart[0].isPreOrder, [cart]);
 
-    const { cartSubtotal, grandTotal, fullOrderTotal } = useMemo(() => {
+    const { cartSubtotal, grandTotal } = useMemo(() => {
         const subtotal = cart.reduce((total, item) => total + item.variant.price * item.quantity, 0);
+        return { cartSubtotal: subtotal, grandTotal: subtotal - discountAmount - pointsDiscount };
+    }, [cart, discountAmount, pointsDiscount]);
 
-        if (isPreOrderCart) {
-            let depositTotal = 0;
-            cart.forEach(item => {
-                const preOrderInfo = item.product.preOrder;
-                const itemSubtotal = item.variant.price * item.quantity;
-                if (preOrderInfo?.enabled && preOrderInfo.depositAmount != null && preOrderInfo.depositAmount > 0) {
-                  if (preOrderInfo.depositType === 'percentage') {
-                    depositTotal += (itemSubtotal * preOrderInfo.depositAmount) / 100;
-                  } else { // fixed
-                    depositTotal += (preOrderInfo.depositAmount * item.quantity);
-                  }
-                } else {
-                  depositTotal += itemSubtotal;
-                }
-            });
-            return { cartSubtotal: subtotal, grandTotal: depositTotal, fullOrderTotal: subtotal };
-        }
-
-        return { cartSubtotal: subtotal, grandTotal: subtotal - discountAmount, fullOrderTotal: subtotal };
-    }, [cart, discountAmount, isPreOrderCart]);
 
     const totalItems = useMemo(() => {
         return cart.reduce((total, item) => total + item.quantity, 0);
@@ -633,6 +649,7 @@ export default function POSPage() {
         setDiscountAmount(0);
         setSelectedCustomer(null);
         setCustomerSearch('');
+        removePoints();
     };
 
     const handleCompleteSale = async () => {
@@ -643,104 +660,6 @@ export default function POSPage() {
     
         setIsProcessing(true);
         
-        if (isPreOrderCart) {
-            if (!selectedCustomer) {
-                toast({ variant: 'destructive', title: 'Customer Required', description: 'Please select a customer for pre-orders.' });
-                setIsProcessing(false);
-                return;
-            }
-
-            let latestReleaseDate: Date | null = null;
-            cart.forEach(item => {
-                if (item.product.preOrder?.enabled && item.product.preOrder.releaseDate) {
-                    const releaseDateValue = item.product.preOrder.releaseDate as any;
-                    const itemReleaseDate = releaseDateValue?.toDate ? releaseDateValue.toDate() : new Date(releaseDateValue);
-                    
-                    if (itemReleaseDate instanceof Date && !isNaN(itemReleaseDate.getTime())) {
-                        if (!latestReleaseDate || itemReleaseDate > latestReleaseDate) {
-                            latestReleaseDate = itemReleaseDate;
-                        }
-                    }
-                }
-            });
-
-            const orderId = doc(collection(firestore, 'id_generator')).id;
-
-            const preOrderData: Omit<Order, 'id'> & { id: string } = {
-                id: orderId,
-                customerId: selectedCustomer.uid,
-                shippingAddress: { 
-                    name: selectedCustomer.displayName || 'In-Store Customer',
-                    phone: selectedCustomer.phone || 'N/A',
-                    streetAddress: `Pickup at Outlet ID: ${outletId}`,
-                    area: '',
-                    district: '',
-                    division: '',
-                    upazila: '',
-                },
-                items: cart.map(item => ({
-                    productId: item.product.id,
-                    productName: item.product.name,
-                    variantSku: item.variant.sku,
-                    quantity: item.quantity,
-                    price: item.variant.price
-                })),
-                subtotal: cartSubtotal,
-                discountAmount: discountAmount,
-                promoCode: appliedCoupon ? appliedCoupon.code : null,
-                totalAmount: grandTotal,
-                fullOrderValue: fullOrderTotal,
-                assignedOutletId: outletId,
-                status: 'pre-ordered',
-                orderType: 'pre-order',
-                createdAt: serverTimestamp(),
-            };
-
-            try {
-                const orderRef = doc(firestore, 'orders', orderId);
-                const userRef = doc(firestore, 'users', selectedCustomer.uid);
-                
-                await runTransaction(firestore, async (transaction) => {
-                    transaction.set(orderRef, preOrderData);
-                    
-                    const pointsEarned = Math.floor(grandTotal / 100) * 5;
-                    transaction.update(userRef, {
-                        loyaltyPoints: increment(pointsEarned),
-                        totalSpent: increment(grandTotal),
-                    });
-
-                    const pointsHistoryRef = doc(collection(firestore, `users/${selectedCustomer.uid}/points_history`));
-                    transaction.set(pointsHistoryRef, {
-                        userId: selectedCustomer.uid,
-                        pointsChange: pointsEarned,
-                        type: 'earn',
-                        reason: `Pre-order Booking: ${orderId}`,
-                        createdAt: serverTimestamp(),
-                    });
-                });
-                
-                const receiptData = {
-                    ...preOrderData,
-                    paymentMethod: paymentMethod,
-                    cashReceived: cashReceived,
-                    changeDue: cashReceived - grandTotal,
-                    releaseDate: latestReleaseDate,
-                };
-                
-                setLastSale(receiptData);
-                setIsReceiptPreviewOpen(true);
-                clearSaleState();
-                toast({ title: 'Pre-order Booked!', description: 'Receipt is being prepared.' });
-            } catch (error: any) {
-                console.error('Pre-order failed: ', error);
-                toast({ variant: 'destructive', title: 'Pre-order Failed', description: error.message || 'An unexpected error occurred.' });
-            } finally {
-                setIsProcessing(false);
-            }
-            return;
-        }
-
-        // Regular Sale
         try {
             const saleId = doc(collection(firestore, 'id_generator')).id;
             await runTransaction(firestore, async (transaction) => {
@@ -759,14 +678,19 @@ export default function POSPage() {
                     })),
                     subtotal: cartSubtotal,
                     discountAmount: discountAmount,
-                    promoCode: appliedCoupon ? appliedCoupon.code : null,
+                    promoCode: appliedCoupon ? appliedCoupon.code : undefined,
+                    loyaltyPointsUsed: pointsApplied,
+                    loyaltyDiscount: pointsDiscount,
                     totalAmount: grandTotal,
                     paymentMethod: paymentMethod,
                     createdAt: serverTimestamp(),
+                    customerId: selectedCustomer?.uid,
+                    customerName: selectedCustomer?.displayName || 'Walk-in Customer',
                 };
                 transaction.set(saleRef, saleData);
 
                 for (const item of cart) {
+                    if (item.isPreOrder) continue;
                     const productRef = doc(firestore, 'products', item.product.id);
                     const productDoc = await transaction.get(productRef);
                     if (!productDoc.exists()) throw new Error(`Product ${item.product.name} not found.`);
@@ -796,18 +720,25 @@ export default function POSPage() {
 
                 if (selectedCustomer) {
                     const userRef = doc(firestore, 'users', selectedCustomer.uid);
-                    const pointsEarned = Math.floor(grandTotal / 100) * 5;
-                    transaction.update(userRef, {
-                        loyaltyPoints: increment(pointsEarned),
+                    const currentPoints = selectedCustomer.loyaltyPoints || 0;
+                    if (pointsApplied > currentPoints) throw new Error("Insufficient points.");
+
+                    let netPointsChange = -pointsApplied;
+                    if (pointsApplied > 0) {
+                        const redeemHistoryRef = doc(collection(firestore, `users/${selectedCustomer.uid}/points_history`));
+                        transaction.set(redeemHistoryRef, { userId: selectedCustomer.uid, pointsChange: -pointsApplied, type: 'redeem', reason: `POS Sale: ${saleId}`, createdAt: serverTimestamp() });
+                    }
+                    
+                    const pointsEarned = Math.floor(grandTotal / 100) * (loyaltySettings?.pointsPer100Taka[selectedCustomer?.membershipTier || 'silver'] || 5);
+                    if(pointsEarned > 0) {
+                        netPointsChange += pointsEarned;
+                        const earnHistoryRef = doc(collection(firestore, `users/${selectedCustomer.uid}/points_history`));
+                        transaction.set(earnHistoryRef, { userId: selectedCustomer.uid, pointsChange: pointsEarned, type: 'earn', reason: `POS Sale: ${saleId}`, createdAt: serverTimestamp() });
+                    }
+                    
+                    transaction.update(userRef, { 
+                        loyaltyPoints: increment(netPointsChange),
                         totalSpent: increment(grandTotal),
-                    });
-                     const pointsHistoryRef = doc(collection(firestore, `users/${selectedCustomer.uid}/points_history`));
-                    transaction.set(pointsHistoryRef, {
-                        userId: selectedCustomer.uid,
-                        pointsChange: pointsEarned,
-                        type: 'earn',
-                        reason: `POS Sale: ${saleId}`,
-                        createdAt: serverTimestamp(),
                     });
                 }
                 
@@ -841,35 +772,14 @@ export default function POSPage() {
     );
     
     const cartPanelProps = {
-        cart,
-        updateQuantity,
-        totalItems,
-        cartSubtotal,
-        discountAmount,
-        grandTotal,
-        promoCodeInput,
-        setPromoCodeInput,
-        handleApplyPromo,
-        isApplyingPromo,
-        appliedCoupon,
-        removePromoCode,
-        paymentMethod,
-        setPaymentMethod,
-        cashReceived,
-        setCashReceived,
-        changeDue,
-        isProcessing,
-        handleCompleteSale,
-        isPreOrderCart,
-        fullOrderTotal,
-        selectedCustomer,
-        customerSearch,
-        setCustomerSearch,
-        filteredCustomers,
-        handleSelectCustomer,
-        handleClearCustomer,
-        handleNfcRead,
-        isScanningNfc
+        cart, updateQuantity, totalItems, cartSubtotal, discountAmount, grandTotal,
+        promoCodeInput, setPromoCodeInput, handleApplyPromo, isApplyingPromo,
+        appliedCoupon, removePromoCode, paymentMethod, setPaymentMethod,
+        cashReceived, setCashReceived, changeDue, isProcessing, handleCompleteSale,
+        isPreOrderCart, fullOrderTotal: 0, selectedCustomer, customerSearch,
+        setCustomerSearch, filteredCustomers, handleSelectCustomer, handleClearCustomer,
+        handleNfcRead, isScanningNfc, pointsToUse, setPointsToUse, handleApplyPoints,
+        pointsApplied, pointsDiscount, removePoints
     };
 
     return (
