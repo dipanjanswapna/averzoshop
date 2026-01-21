@@ -57,30 +57,33 @@ export function PremiumCard({ userData }: { userData: UserData }) {
 
   const cardNumber = `AVZ-${userData.uid.substring(0, 4).toUpperCase()}-${userData.uid.substring(4, 8).toUpperCase()}-${userData.uid.substring(8, 12).toUpperCase()}`;
 
-  const tierStyles = {
+ const tierStyles = {
     silver: {
-        bg: 'bg-gradient-to-br from-slate-100 via-white to-gray-200',
-        text: 'text-gray-800',
-        logo: 'text-gray-800',
-        secondaryText: 'text-gray-500',
-        highlight: 'text-blue-700',
-        textShadow: '',
+      bg: 'bg-gradient-to-br from-slate-200 via-white to-slate-100',
+      text: 'text-slate-800',
+      logo: 'text-slate-800',
+      secondaryText: 'text-slate-500',
+      highlight: 'text-blue-700',
+      textShadow: '',
+      lineColor: 'black',
     },
     gold: {
-        bg: 'bg-gradient-to-br from-amber-300 via-yellow-400 to-amber-500',
-        text: 'text-black/80',
-        logo: 'text-black/80',
-        secondaryText: 'text-black/60',
-        highlight: 'text-white',
-        textShadow: 'text-shadow-[0_1px_2px_rgba(0,0,0,0.2)]',
+      bg: 'bg-gradient-to-br from-amber-300 via-yellow-400 to-amber-500',
+      text: 'text-black/80',
+      logo: 'text-black/80',
+      secondaryText: 'text-black/60',
+      highlight: 'text-white',
+      textShadow: 'text-shadow-[0_1px_2px_rgba(0,0,0,0.2)]',
+      lineColor: 'black',
     },
     platinum: {
-        bg: 'bg-gradient-to-br from-slate-800 via-black to-slate-900',
-        text: 'text-white',
-        logo: 'text-white',
-        secondaryText: 'text-slate-400',
-        highlight: 'text-cyan-400',
-        textShadow: 'text-shadow-[0_1px_3px_rgba(0,0,0,0.5)]',
+      bg: 'bg-gradient-to-br from-slate-800 via-black to-slate-900',
+      text: 'text-white',
+      logo: 'text-white',
+      secondaryText: 'text-slate-400',
+      highlight: 'text-cyan-400',
+      textShadow: 'text-shadow-[0_1px_3px_rgba(0,0,0,0.5)]',
+      lineColor: 'white',
     },
   };
 
@@ -127,19 +130,19 @@ export function PremiumCard({ userData }: { userData: UserData }) {
                 </div>
                 
                 {/* Footer */}
-                <div className="flex justify-between items-end z-10 text-xs">
+                <div className="flex justify-between items-end z-10">
                      <div className='text-left'>
                         <p className={cn("text-[9px] uppercase opacity-70", styles.secondaryText)}>Card Holder</p>
-                        <p className="font-semibold tracking-wider uppercase">{userData.displayName}</p>
+                        <p className="font-semibold tracking-wider uppercase text-sm">{userData.displayName}</p>
                      </div>
                      <div className="flex gap-4 text-right">
                         <div>
                             <p className={cn("text-[9px] uppercase opacity-70", styles.secondaryText)}>Member Since</p>
-                            <p className="font-semibold font-mono tracking-wider">{memberSince}</p>
+                            <p className="font-semibold font-mono tracking-wider text-sm">{memberSince}</p>
                         </div>
                         <div>
                             <p className={cn("text-[9px] uppercase opacity-70", styles.secondaryText)}>Valid Thru</p>
-                            <p className="font-semibold font-mono tracking-wider">{validThru}</p>
+                            <p className="font-semibold font-mono tracking-wider text-sm">{validThru}</p>
                         </div>
                      </div>
                 </div>
@@ -172,7 +175,7 @@ export function PremiumCard({ userData }: { userData: UserData }) {
                         height={40}
                         width={1.5}
                         background="transparent"
-                        lineColor={currentTier === 'platinum' ? 'white' : 'black'}
+                        lineColor={styles.lineColor}
                         displayValue={false}
                         margin={0}
                     />
