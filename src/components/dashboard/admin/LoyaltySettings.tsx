@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect } from 'react';
 import { Settings, Save, Loader2 } from "lucide-react";
@@ -150,5 +149,3 @@ export function LoyaltySettings() {
     </Card>
   );
 }
-
-    

@@ -1,4 +1,3 @@
-
 'use client';
 import React, { useMemo } from 'react';
 import type { Outlet } from '@/types/outlet';
@@ -25,11 +24,6 @@ export function PrintableReceipt({ sale, outletId }: PrintableReceiptProps) {
 
     const saleDate = sale.createdAt?.seconds ? new Date(sale.createdAt.seconds * 1000) : new Date();
     
-    const isPreOrder = sale.orderType === 'pre-order';
-    
-    const releaseDate = sale.releaseDate ? new Date(sale.releaseDate) : null;
-
-
     if (isLoading && !outlet) {
         return <div className="p-2">Loading outlet details...</div>;
     }
@@ -41,17 +35,9 @@ export function PrintableReceipt({ sale, outletId }: PrintableReceiptProps) {
                 <p className="text-[9px]">Trade License: TRAD/DNCC/XXXXXX</p>
                 <p className="text-[9px]">VAT Reg: 00XXXXXXXX-XXXX</p>
                 {outlet && <p className="text-[9px]">Address: {outlet.location.address}</p>}
-                <p className="text-[9px] font-bold mt-1">
-                    {isPreOrder ? 'Booking ID' : 'Sale ID'}: #{sale.id.substring(0, 8).toUpperCase()}
-                </p>
+                <p className="text-[9px] font-bold mt-1">Sale ID: #{sale.id.substring(0, 8).toUpperCase()}</p>
                  <p className="text-[9px]">Date: {saleDate.toLocaleString()}</p>
             </div>
-
-            {isPreOrder && (
-                 <div className="text-center font-bold my-2 text-xs uppercase border-y border-dashed py-1">
-                    Pre-Order Advance Receipt
-                </div>
-            )}
 
             <table className="w-full text-[9px]">
                 <thead>
@@ -77,30 +63,23 @@ export function PrintableReceipt({ sale, outletId }: PrintableReceiptProps) {
             </table>
 
             <div className="text-[10px] space-y-0.5 border-t border-dashed mt-2 pt-2">
-                {isPreOrder ? (
-                     <>
-                        <div className="flex justify-between"><span>Total Value:</span><span>৳{sale.fullOrderValue.toFixed(2)}</span></div>
-                        <div className="flex justify-between font-bold text-primary"><span>Advance Paid:</span><span>৳{sale.totalAmount.toFixed(2)}</span></div>
-                        <div className="flex justify-between font-bold border-t border-dotted mt-1 pt-1">
-                            <span>Due Amount:</span>
-                            <span>৳{(sale.fullOrderValue - sale.totalAmount).toFixed(2)}</span>
-                        </div>
-                    </>
-                ) : (
-                    <>
-                        <div className="flex justify-between"><span>Subtotal:</span><span>৳{sale.subtotal.toFixed(2)}</span></div>
-                        {sale.discountAmount > 0 && (
-                            <div className="flex justify-between">
-                                <span>Discount ({sale.promoCode}):</span>
-                                <span>- ৳{sale.discountAmount.toFixed(2)}</span>
-                            </div>
-                        )}
-                        <div className="flex justify-between font-bold text-xs">
-                            <span>Grand Total:</span>
-                            <span>৳{sale.totalAmount.toFixed(2)}</span>
-                        </div>
-                    </>
+                <div className="flex justify-between"><span>Subtotal:</span><span>৳{sale.subtotal.toFixed(2)}</span></div>
+                {sale.discountAmount > 0 && (
+                    <div className="flex justify-between">
+                        <span>Promo Discount ({sale.promoCode}):</span>
+                        <span>- ৳{sale.discountAmount.toFixed(2)}</span>
+                    </div>
                 )}
+                 {sale.loyaltyDiscount > 0 && (
+                    <div className="flex justify-between">
+                        <span>Loyalty Discount:</span>
+                        <span>- ৳{sale.loyaltyDiscount.toFixed(2)}</span>
+                    </div>
+                )}
+                <div className="flex justify-between font-bold text-xs border-t border-dotted mt-1 pt-1">
+                    <span>Grand Total:</span>
+                    <span>৳{sale.totalAmount.toFixed(2)}</span>
+                </div>
                  {sale.paymentMethod === 'cash' && (
                     <>
                          <div className="flex justify-between mt-2 pt-2 border-t border-dotted">
@@ -117,9 +96,6 @@ export function PrintableReceipt({ sale, outletId }: PrintableReceiptProps) {
                 <div className="flex justify-center">
                     <Barcode value={sale.id} height={40} width={1.5} fontSize={12} />
                 </div>
-                {isPreOrder && releaseDate && (
-                    <p className="font-bold text-xs mt-2">Expected Delivery: {releaseDate.toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                )}
                 <p className="font-bold italic mt-2">Thank you for shopping!</p>
                 <p>Software by: Averzo</p>
                 <p>Return policy: Within 7 days with invoice.</p>
