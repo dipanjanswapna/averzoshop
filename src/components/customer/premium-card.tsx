@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { UserData } from '@/types/user';
-import { Wifi, Nfc } from 'lucide-react';
+import { Nfc } from 'lucide-react';
 import AverzoLogo from '../averzo-logo';
 import Barcode from 'react-barcode';
 import { cn } from '@/lib/utils';
@@ -59,27 +59,27 @@ export function PremiumCard({ userData }: { userData: UserData }) {
 
   const tierStyles = {
     silver: {
-        bg: 'bg-gradient-to-br from-slate-200 via-white to-slate-300',
-        text: 'text-slate-800',
-        logo: 'text-slate-800',
-        secondaryText: 'text-slate-500',
-        highlight: 'text-blue-600',
+        bg: 'bg-gradient-to-br from-slate-100 via-white to-gray-200',
+        text: 'text-gray-800',
+        logo: 'text-gray-800',
+        secondaryText: 'text-gray-500',
+        highlight: 'text-blue-700',
         textShadow: '',
     },
     gold: {
-        bg: 'bg-gradient-to-br from-amber-400 via-yellow-300 to-orange-500',
-        text: 'text-white',
-        logo: 'text-white',
-        secondaryText: 'text-amber-100',
+        bg: 'bg-gradient-to-br from-amber-300 via-yellow-400 to-amber-500',
+        text: 'text-black/80',
+        logo: 'text-black/80',
+        secondaryText: 'text-black/60',
         highlight: 'text-white',
-        textShadow: 'text-shadow-[0_1px_3px_rgba(0,0,0,0.3)]',
+        textShadow: 'text-shadow-[0_1px_2px_rgba(0,0,0,0.2)]',
     },
     platinum: {
-        bg: 'bg-gradient-to-br from-slate-900 via-blue-900 to-black',
+        bg: 'bg-gradient-to-br from-slate-800 via-black to-slate-900',
         text: 'text-white',
         logo: 'text-white',
         secondaryText: 'text-slate-400',
-        highlight: 'text-blue-400',
+        highlight: 'text-cyan-400',
         textShadow: 'text-shadow-[0_1px_3px_rgba(0,0,0,0.5)]',
     },
   };
@@ -107,34 +107,40 @@ export function PremiumCard({ userData }: { userData: UserData }) {
         >
             {/* Front of the card */}
             <div className={cn(
-                "absolute w-full h-full [backface-visibility:hidden] rounded-2xl shadow-2xl p-4 md:p-6 flex flex-col justify-between overflow-hidden",
+                "absolute w-full h-full [backface-visibility:hidden] rounded-2xl shadow-2xl p-6 flex flex-col justify-between overflow-hidden",
                 styles.bg, styles.text
             )}>
                 <WorldPattern />
+                {/* Header */}
                 <div className="flex justify-between items-start z-10">
-                    <AverzoLogo className={cn("text-2xl md:text-3xl", styles.logo)} />
+                    <AverzoLogo className={cn("text-3xl", styles.logo)} />
                      <div className="text-right">
-                        <p className={cn("font-black text-base md:text-lg capitalize", styles.highlight)}>{currentTier}</p>
-                        <p className={cn("text-[10px] md:text-xs", styles.secondaryText)}>Membership</p>
+                        <p className={cn("font-black text-lg capitalize", styles.highlight)}>{currentTier}</p>
+                        <p className={cn("text-xs -mt-1", styles.secondaryText)}>Membership</p>
                     </div>
                 </div>
 
+                {/* Middle section with Chip and Card Number */}
                 <div className="z-10">
-                    <div className="flex items-center gap-4">
-                        <ChipIcon />
-                        <Nfc size={24} className="opacity-70" />
-                    </div>
-                    <p className="font-mono text-lg md:text-xl lg:text-2xl tracking-widest mt-2 md:mt-3">{cardNumber.split('-').slice(1).join(' ')}</p>
+                    <ChipIcon />
+                    <p className="font-mono text-xl md:text-2xl tracking-[0.2em] mt-3">{cardNumber.split('-').slice(1).join(' ')}</p>
                 </div>
                 
-                <div className="flex justify-between items-end z-10">
+                {/* Footer */}
+                <div className="flex justify-between items-end z-10 text-xs">
                      <div className='text-left'>
-                        <p className={cn("text-[8px] opacity-70", styles.secondaryText)}>Card Holder</p>
-                        <p className="font-semibold tracking-wider text-sm md:text-base uppercase">{userData.displayName}</p>
+                        <p className={cn("text-[9px] uppercase opacity-70", styles.secondaryText)}>Card Holder</p>
+                        <p className="font-semibold tracking-wider uppercase">{userData.displayName}</p>
                      </div>
-                     <div className='text-right'>
-                        <p className={cn("text-[8px] opacity-70", styles.secondaryText)}>Phone</p>
-                        <p className="font-semibold tracking-wider text-sm md:text-base">{userData.phone || 'N/A'}</p>
+                     <div className="flex gap-4 text-right">
+                        <div>
+                            <p className={cn("text-[9px] uppercase opacity-70", styles.secondaryText)}>Member Since</p>
+                            <p className="font-semibold font-mono tracking-wider">{memberSince}</p>
+                        </div>
+                        <div>
+                            <p className={cn("text-[9px] uppercase opacity-70", styles.secondaryText)}>Valid Thru</p>
+                            <p className="font-semibold font-mono tracking-wider">{validThru}</p>
+                        </div>
                      </div>
                 </div>
             </div>
@@ -144,18 +150,23 @@ export function PremiumCard({ userData }: { userData: UserData }) {
                 "absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)] rounded-2xl shadow-2xl flex flex-col overflow-hidden",
                 styles.bg, styles.text
             )}>
-                 <div className="w-full h-12 md:h-16 bg-black mt-6 md:mt-8"></div>
+                 <div className="w-full h-16 bg-black mt-8"></div>
 
-                 <div className="px-4 md:px-6 mt-4 space-y-1 z-10">
-                    <p className={cn("text-[10px] uppercase", styles.secondaryText)}>Signature</p>
-                    <div className="flex items-center gap-4 h-8 md:h-10 bg-white/80 p-1 rounded-md">
-                        <div className="flex-1 text-right italic font-mono text-sm pr-2 text-black flex items-center justify-end">
-                            {cvc}
+                 <div className="px-6 mt-4 space-y-1 z-10 flex items-center justify-between">
+                    <div className="flex-1 space-y-1">
+                        <p className={cn("text-[10px] uppercase", styles.secondaryText)}>Signature</p>
+                        <div className="h-10 bg-white/80 p-1 rounded-md flex items-center justify-end">
+                            <p className="italic font-mono text-sm pr-4 text-black">
+                                {cvc}
+                            </p>
                         </div>
+                    </div>
+                    <div className="ml-4">
+                        <HologramIcon />
                     </div>
                  </div>
 
-                <div className="px-4 py-2 md:py-4 mt-auto z-10 flex flex-col items-center">
+                <div className="px-6 py-4 mt-auto z-10 flex flex-col items-center">
                     <Barcode 
                         value={userData.uid}
                         height={40}
