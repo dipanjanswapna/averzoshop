@@ -20,19 +20,19 @@ body {
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 262 86% 51%;
+    --primary-foreground: 0 0% 98%;
     --secondary: 240 5% 96%;
     --secondary-foreground: 240 5.9% 10%;
     --muted: 240 5% 96%;
     --muted-foreground: 240 3.8% 46.1%;
-    --accent: 24.6 95% 53.1%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 240 5% 96%;
+    --accent-foreground: 240 5.9% 10%;
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
     --border: 240 5% 90%;
     --input: 240 5% 90%;
-    --ring: 221.2 83.2% 53.3%;
+    --ring: 262 86% 51%;
     --chart-1: 221 83% 53%;
     --chart-2: 120 73% 65%;
     --chart-3: 40 80% 60%;
@@ -56,19 +56,19 @@ body {
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 4%;
     --popover-foreground: 0 0% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 262 86% 61%;
+    --primary-foreground: 0 0% 98%;
     --secondary: 240 5% 12%;
     --secondary-foreground: 0 0% 98%;
     --muted: 240 5% 12%;
     --muted-foreground: 240 5% 64.9%;
-    --accent: 24.6 95% 53.1%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 72.2% 50.6%;
-    --destructive-foreground: 210 40% 98%;
+    --accent: 240 5% 12%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
     --border: 240 5% 16%;
     --input: 240 5% 16%;
-    --ring: 217.2 91.2% 59.8%;
+    --ring: 262 86% 61%;
     --sidebar-background: 240 10% 6%;
     --sidebar-foreground: 0 0% 98%;
     --sidebar-primary: 0 0% 98%;
@@ -76,7 +76,7 @@ body {
     --sidebar-accent: 240 5% 14%;
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 240 5% 14%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 262 86% 61%;
   }
 }
 
@@ -101,6 +101,22 @@ body {
     -ms-overflow-style: none;  
     scrollbar-width: none;  
   }
+  .hologram-silver {
+    background: linear-gradient(45deg, #aaa, #ddd, #aaa);
+    background-size: 200% 200%;
+    animation: hologram 3s ease infinite;
+  }
+  .hologram-gold {
+      background: linear-gradient(45deg, #f0e68c, #ffd700, #daa520);
+      background-size: 200% 200%;
+      animation: hologram 3s ease infinite;
+  }
+  .hologram-platinum {
+      background: linear-gradient(45deg, #7F7FD5, #86A8E7, #91EAE4);
+      background-size: 200% 200%;
+      animation: hologram 3s ease infinite;
+  }
+  
   @media print {
     body {
         -webkit-print-color-adjust: exact;
@@ -109,10 +125,8 @@ body {
     body * {
       visibility: hidden;
     }
-    .printable-area, .printable-area * {
-      visibility: visible;
-    }
-     .printable-card-area, .printable-card-area * {
+    .printable-area, .printable-area *,
+    .printable-card-area, .printable-card-area * {
       visibility: visible;
     }
     
@@ -129,7 +143,7 @@ body {
       position: fixed;
       left: 50%;
       top: 50%;
-      transform: translate(-50%, -50%) scale(1);
+      transform: translate(-50%, -50%) scale(1.2);
       width: 100%;
       height: 100%;
       display: flex;
@@ -148,4 +162,3 @@ body {
     100% { background-position: 0% 50%; }
   }
 }
-
