@@ -16,51 +16,52 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png').default,
 });
 
-const MapController = ({ setView, onLocationSelect }: { setView: [number, number], onLocationSelect: (lat: number, lng: number) => void }) => {
+
+// This component will contain all the logic that interacts with the map instance
+function MapEventsController({ center, onLocationSelect }: { center: [number, number], onLocationSelect: (lat: number, lng: number) => void }) {
     const map = useMap();
-
+    
+    // Update map view when center prop changes
     useEffect(() => {
-        const currentCenter = map.getCenter();
-        if (currentCenter.lat.toFixed(5) !== setView[0].toFixed(5) || currentCenter.lng.toFixed(5) !== setView[1].toFixed(5)) {
-             map.setView(setView, map.getZoom());
-        }
-    }, [setView, map]);
-
+        map.setView(center, map.getZoom());
+    }, [center, map]);
+    
+    // Handle map clicks
     useMapEvents({
         click(e) {
             onLocationSelect(e.latlng.lat, e.latlng.lng);
         },
     });
 
-    return null;
-};
+    return <Marker position={center} />;
+}
 
 
 const InteractiveMap = ({ onLocationSelect, initialPosition }: { onLocationSelect: (lat: number, lng: number) => void, initialPosition: [number, number] }) => {
-    const [markerPosition, setMarkerPosition] = useState<[number, number] | null>(initialPosition);
     const [mapCenter, setMapCenter] = useState<[number, number]>(initialPosition);
     const [searchQuery, setSearchQuery] = useState('');
-
-    const mapKey = useMemo(() => JSON.stringify(mapCenter), [mapCenter]);
-
+    
     useEffect(() => {
         onLocationSelect(mapCenter[0], mapCenter[1]);
-        setMarkerPosition(mapCenter);
     }, [mapCenter, onLocationSelect]);
 
     const handleSearch = async () => {
         if (!searchQuery) return;
-        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${searchQuery}`);
-        const data = await response.json();
-        if (data.length > 0) {
-            const { lat, lon } = data[0];
-            const newPos: [number, number] = [parseFloat(lat), parseFloat(lon)];
-            setMapCenter(newPos);
-        } else {
-            alert('Location not found');
+        try {
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`);
+            const data = await response.json();
+            if (data.length > 0) {
+                const { lat, lon } = data[0];
+                setMapCenter([parseFloat(lat), parseFloat(lon)]);
+            } else {
+                alert("Location not found");
+            }
+        } catch (error) {
+            console.error("Geocoding API error:", error);
+            alert("Failed to search for location.");
         }
     };
-
+    
     const handleCurrentLocation = () => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(position => {
@@ -79,19 +80,18 @@ const InteractiveMap = ({ onLocationSelect, initialPosition }: { onLocationSelec
                     placeholder="Search for a location..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleSearch(); } }}
                 />
                 <Button type="button" onClick={handleSearch}><Search size={18} /></Button>
-                 <Button type="button" onClick={handleCurrentLocation} variant="outline"><LocateFixed size={18} /></Button>
+                <Button type="button" onClick={handleCurrentLocation} variant="outline"><LocateFixed size={18} /></Button>
             </div>
             <div className="w-full h-full min-h-[300px] rounded-lg overflow-hidden z-0">
-                <MapContainer key={mapKey} center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }}>
+                <MapContainer center={initialPosition} zoom={13} style={{ height: '100%', width: '100%' }}>
                     <TileLayer
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     />
-                    <MapController onLocationSelect={(lat, lng) => setMapCenter([lat,lng])} setView={mapCenter} />
-                    {markerPosition && <Marker position={markerPosition} />}
+                    <MapEventsController center={mapCenter} onLocationSelect={(lat, lng) => setMapCenter([lat, lng])} />
                 </MapContainer>
             </div>
         </div>
