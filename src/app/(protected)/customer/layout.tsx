@@ -29,11 +29,14 @@ export default function CustomerDashboardLayout({
     return (
         <div className="flex h-screen items-center justify-center bg-background text-foreground">
             <div className="flex flex-col items-center justify-center gap-6">
-                <div className="relative h-16 w-16">
-                    <span className="loader"></span>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <AverzoLogo className="text-lg" />
+                <div className="relative flex h-20 w-20 items-center justify-center">
+                    <div className="lds-ring">
+                        <div />
+                        <div />
+                        <div />
+                        <div />
                     </div>
+                    <AverzoLogo className="absolute text-xl" />
                 </div>
                 <p className="text-muted-foreground animate-pulse">Loading customer dashboard...</p>
             </div>
@@ -57,11 +60,14 @@ export default function CustomerDashboardLayout({
      return (
         <div className="flex h-screen items-center justify-center bg-background text-foreground">
             <div className="flex flex-col items-center justify-center gap-6">
-                <div className="relative h-16 w-16">
-                    <span className="loader"></span>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <AverzoLogo className="text-lg" />
+                <div className="relative flex h-20 w-20 items-center justify-center">
+                    <div className="lds-ring">
+                        <div />
+                        <div />
+                        <div />
+                        <div />
                     </div>
+                    <AverzoLogo className="absolute text-xl" />
                 </div>
                 <p className="text-muted-foreground animate-pulse">Verifying customer account...</p>
             </div>

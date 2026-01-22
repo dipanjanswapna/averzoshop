@@ -4,7 +4,7 @@
 @tailwind utilities;
 
 body {
-  font-family: 'Inter', 'Poppins', 'Roboto', 'Noto Sans', sans-serif;
+  font-family: 'Inter', 'Poppins', 'Roboto', 'Noto Sans', 'sans-serif';
 }
 
 @layer base {
@@ -90,20 +90,40 @@ body {
 }
 
 @layer components {
-    .loader {
+    .lds-ring {
+        display: inline-block;
+        position: relative;
+        width: 80px;
+        height: 80px;
+    }
+    .lds-ring div {
+        box-sizing: border-box;
+        display: block;
+        position: absolute;
         width: 64px;
         height: 64px;
+        margin: 8px;
+        border: 6px solid hsl(var(--primary));
         border-radius: 50%;
-        position: relative;
-        border: 6px solid hsl(var(--muted));
-        border-top-color: hsl(var(--primary));
-        animation: rotate 1s linear infinite;
-        box-shadow: 0 0 20px hsl(var(--primary) / 0.3), 0 0 30px hsl(var(--primary) / 0.2);
+        animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+        border-color: hsl(var(--primary)) transparent transparent transparent;
     }
-    
-    @keyframes rotate {
-        0%   {transform: rotate(0deg)}
-        100% {transform: rotate(360deg)}
+    .lds-ring div:nth-child(1) {
+        animation-delay: -0.45s;
+    }
+    .lds-ring div:nth-child(2) {
+        animation-delay: -0.3s;
+    }
+    .lds-ring div:nth-child(3) {
+        animation-delay: -0.15s;
+    }
+    @keyframes lds-ring {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
     }
 }
 
