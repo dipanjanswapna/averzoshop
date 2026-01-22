@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Search, ShoppingBag, Menu, ChevronDown, X, ChevronRight, Zap, Sun, Moon } from 'lucide-react';
+import { Search, ShoppingBag, Menu, ChevronDown, X, ChevronRight, Zap, Sun, Moon, User } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -11,6 +11,8 @@ import { useCart } from '@/hooks/use-cart';
 import { useTheme } from '@/components/providers';
 import { LiveSearch } from './live-search';
 import { UserNav } from './user-nav';
+import { useAuth } from '@/hooks/use-auth';
+import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 
 
 const NestedAccordion = ({ category, onClose }: { category: any, onClose: () => void }) => {
@@ -73,7 +75,7 @@ const NestedAccordion = ({ category, onClose }: { category: any, onClose: () => 
 };
 
 
-const MobileSidebar = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+const MobileSidebar = ({ isOpen, onClose, user }: { isOpen: boolean, onClose: () => void, user: any }) => {
   return (
     <>
       <div 
@@ -93,14 +95,35 @@ const MobileSidebar = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
         <div className="h-[calc(100vh-70px)] overflow-y-auto pb-10">
           
           <div className="p-5 border-b flex items-center gap-3">
-             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">U</div>
-             <div>
-               <p className="text-xs font-bold text-foreground">Welcome, User</p>
-               <p className="text-[10px] text-muted-foreground">Login to your account</p>
-             </div>
+             {user ? (
+               <Link href="/customer" onClick={onClose} className="flex items-center gap-3 w-full">
+                 <Avatar>
+                   <AvatarImage src={user.photoURL || undefined} />
+                   <AvatarFallback>{user.displayName?.charAt(0) || 'A'}</AvatarFallback>
+                 </Avatar>
+                 <div>
+                   <p className="text-sm font-bold text-foreground">{user.displayName}</p>
+                   <p className="text-xs text-muted-foreground">{user.email}</p>
+                 </div>
+               </Link>
+             ) : (
+                <Link href="/login" onClick={onClose} className="flex items-center gap-3 w-full">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+                        <User size={20} />
+                    </div>
+                    <div>
+                        <p className="text-sm font-bold text-foreground">Welcome, Guest</p>
+                        <p className="text-xs text-muted-foreground">Login to your account</p>
+                    </div>
+                </Link>
+             )}
           </div>
 
-          <Link href="/flash-sale" onClick={onClose} className="block p-5 bg-destructive/10 text-destructive font-bold text-center uppercase tracking-widest">
+          <Link href="/track-order" onClick={onClose} className="block p-4 text-center text-sm font-bold text-primary bg-primary/10 border-b">
+            Track Your Order
+          </Link>
+
+          <Link href="/flash-sale" onClick={onClose} className="block p-4 bg-destructive/10 text-destructive font-bold text-center uppercase tracking-widest text-xs">
             ⚡ Flash Sale is Live!
           </Link>
 
@@ -123,6 +146,7 @@ export default function AverzoNavbar() {
   const { items } = useCart();
   const [isMounted, setIsMounted] = useState(false);
   const { theme, setTheme } = useTheme();
+  const { user } = useAuth();
 
   useEffect(() => {
     setIsMounted(true);
@@ -194,17 +218,6 @@ export default function AverzoNavbar() {
             
             <UserNav />
 
-            {/* The cart icon is now only on desktop, as it's in the bottom nav on mobile */}
-            <Link href="/cart" className="relative hidden lg:inline-flex">
-              <Button variant="ghost" size="icon" className="h-9 w-9">
-                  <ShoppingBag size={22} className="hover:text-primary transition-colors" />
-                  {isMounted && items.length > 0 && (
-                  <span className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
-                      {items.reduce((acc, item) => acc + item.quantity, 0)}
-                  </span>
-                  )}
-              </Button>
-            </Link>
         </div>
       </div>
       
@@ -285,6 +298,7 @@ export default function AverzoNavbar() {
        <MobileSidebar 
           isOpen={isDrawerOpen} 
           onClose={() => setIsDrawerOpen(false)} 
+          user={user}
         />
     </header>
   );
