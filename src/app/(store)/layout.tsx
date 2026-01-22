@@ -102,8 +102,8 @@ export default function StoreLayout({
                       <Image
                           src="https://securepay.sslcommerz.com/public/image/SSLCommerz-Pay-With-logo-All-Size-03.png"
                           alt="SSLCommerz Payment Gateways"
-                          width={400}
-                          height={58}
+                          width={500}
+                          height={72}
                       />
                   </a>
               </div>
