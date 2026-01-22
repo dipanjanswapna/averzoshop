@@ -17,7 +17,10 @@ export async function sendPasswordReset(auth: Auth, email: string): Promise<{ su
     };
   } catch (error: any) {
     console.error("Error sending password reset email:", error);
-    // Firebase provides user-friendly error messages
+    if (error.code === 'auth/too-many-requests') {
+      return { success: false, message: 'Too many requests have been sent from this device. Please wait a while before trying again.' };
+    }
+    // Firebase provides user-friendly error messages for other cases
     return { success: false, message: error.message };
   }
 }
@@ -43,6 +46,9 @@ export async function sendMagicLink(auth: Auth, email: string): Promise<{ succes
     };
   } catch (error: any) {
     console.error("Error sending sign-in link:", error);
+    if (error.code === 'auth/too-many-requests') {
+      return { success: false, message: 'Too many requests have been sent from this device. Please wait a while before trying again.' };
+    }
     return { success: false, message: error.message };
   }
 }
