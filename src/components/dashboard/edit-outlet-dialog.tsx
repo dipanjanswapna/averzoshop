@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -67,6 +67,14 @@ export function EditOutletDialog({ open, onOpenChange, outlet }: EditOutletDialo
       });
     }
   }, [outlet, form]);
+
+  const mapInitialPosition: [number, number] = useMemo(() => {
+    if (outlet?.location?.lat && outlet?.location?.lng) {
+      return [outlet.location.lat, outlet.location.lng];
+    }
+    // Default to Dhaka if location is incomplete
+    return [23.8103, 90.4125]; 
+  }, [outlet]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!firestore || !outlet) return;
@@ -147,7 +155,7 @@ export function EditOutletDialog({ open, onOpenChange, outlet }: EditOutletDialo
               {open && (
                   <InteractiveMap 
                     onLocationSelect={handleLocationSelect} 
-                    initialPosition={[outlet.location.lat, outlet.location.lng]}
+                    initialPosition={mapInitialPosition}
                   />
               )}
             </div>
