@@ -19,8 +19,12 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Address } from '@/types/address';
 import dynamic from 'next/dynamic';
+import { Skeleton } from '../ui/skeleton';
 
-const InteractiveMap = dynamic(() => import('@/components/ui/interactive-map'), { ssr: false });
+const InteractiveMap = dynamic(() => import('@/components/ui/interactive-map'), { 
+    ssr: false,
+    loading: () => <Skeleton className="w-full h-full min-h-[300px] rounded-lg" />
+});
 
 
 interface AddressDialogProps {
