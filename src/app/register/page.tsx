@@ -63,7 +63,7 @@ function RegisterPageContent() {
         window.localStorage.setItem('nameForSignIn', values.name);
         const result = await sendSignInLink({ email: values.email });
         if (result.success) {
-          toast({ title: 'Check your email', description: 'We\'ve sent a verification link to your email address to complete your registration.' });
+          toast({ title: 'Verification Link Generated', description: result.message });
           router.push('/login'); // Redirect to login page to inform user
         } else {
           throw new Error(result.message);

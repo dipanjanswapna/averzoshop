@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -106,13 +105,13 @@ function LoginPageContent() {
       window.localStorage.setItem('emailForSignIn', values.email);
       const result = await sendSignInLink({ email: values.email });
       if (result.success) {
-        toast({ title: 'Check your email', description: 'A sign-in link has been sent to your email address.' });
+        toast({ title: 'Link Generated', description: result.message });
         setIsPasswordless(false); // Switch back to password form
       } else {
         throw new Error(result.message);
       }
     } catch (error: any) {
-       toast({ variant: 'destructive', title: 'Failed to send link', description: error.message });
+       toast({ variant: "destructive", title: 'Failed to send link', description: error.message });
     } finally {
         setLoading(false);
     }

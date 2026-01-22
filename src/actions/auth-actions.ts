@@ -21,18 +21,17 @@ export async function sendSignInLink(values: z.infer<typeof sendSignInLinkSchema
     try {
         const link = await auth.generateSignInWithEmailLink(email, emailLinkActionCodeSettings);
         
-        // In a real app, you'd send this link via email using a service like SendGrid or Nodemailer.
-        // For this development environment, we'll log the link to the server console.
-        // This is a security measure to avoid sending real emails from a dev environment.
+        // In a real app, you'd send this link via email.
+        // For this development environment, we log the link to the server console.
         console.log("---- MAGIC LINK FOR DEVELOPMENT ----");
         console.log(`A magic link for ${email} was requested.`);
         console.log(`Link: ${link}`);
         console.log("---- COPY AND PASTE THE LINK IN YOUR BROWSER TO SIGN IN ----");
         
-        return { success: true, message: "A sign-in link has been sent to your email address (and logged to the console for development)." };
+        return { success: true, message: "Link generated! In a real app, this would be emailed. For development, check the server console for the sign-in link." };
     } catch (error: any) {
         console.error("Error generating sign-in link:", error);
-        return { success: false, message: error.message };
+        return { success: false, message: "Could not generate a sign-in link. Please check the email address and try again." };
     }
 }
 
@@ -45,22 +44,25 @@ export async function sendPasswordResetLink(values: z.infer<typeof passwordReset
     const auth = getAuth();
     const { email } = values;
 
+    const successMessage = "If an account with this email exists, a password reset link has been generated (for development, check the server console).";
+
     try {
         const link = await auth.generatePasswordResetLink(email);
         
-        // Similar to the sign-in link, we log this for development.
         console.log("---- PASSWORD RESET LINK FOR DEVELOPMENT ----");
         console.log(`A password reset link for ${email} was requested.`);
         console.log(`Link: ${link}`);
         console.log("---- COPY AND PASTE THE LINK IN YOUR BROWSER TO RESET PASSWORD ----");
-
-        return { success: true, message: "A password reset link has been sent to your email (and logged to console for development)." };
+        
+        return { success: true, message: successMessage };
     } catch (error: any) {
         console.error("Error generating password reset link:", error);
-        // Don't leak if an email exists or not
+        // To prevent email enumeration attacks, we still return a success response for "user-not-found" errors.
         if (error.code === 'auth/user-not-found') {
-            return { success: true, message: "If an account with this email exists, a password reset link has been sent." };
+            console.log(`Password reset for non-existent user ${email} requested. No link generated or sent.`);
+            return { success: true, message: successMessage };
         }
-        return { success: false, message: "Could not send password reset link." };
+        // For other errors, we return a failure.
+        return { success: false, message: "Could not process password reset request. Please try again later." };
     }
 }

@@ -37,8 +37,8 @@ function ForgotPasswordPageContent() {
       const result = await sendPasswordResetLink({ email: values.email });
       if (result.success) {
         toast({
-          title: 'Check Your Email',
-          description: 'If an account exists, a password reset link has been sent to your email address.',
+          title: 'Check Your Console',
+          description: result.message,
         });
         form.reset();
       } else {
