@@ -1,4 +1,3 @@
-
 'use client';
 import './globals.css';
 import { cn } from '@/lib/utils';
@@ -17,7 +16,6 @@ export default function RootLayout({
       <head>
         <title>Averzo</title>
         <meta name="description" content="The future of fashion and retail." />
-        <link rel="manifest" href="/manifest.json" crossOrigin="use-credentials" />
         <meta name="theme-color" content="#8b5cf6" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
