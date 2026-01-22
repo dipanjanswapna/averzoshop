@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import { useState, useEffect, useMemo } from 'react';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { Input } from './input';
@@ -16,28 +16,32 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png').default,
 });
 
-const MapEvents = ({ onLocationSelect, setView, markerPosition }: { onLocationSelect: any, setView: any, markerPosition: any }) => {
+const MapController = ({ setView, onLocationSelect }: { setView: [number, number], onLocationSelect: (lat: number, lng: number) => void }) => {
     const map = useMap();
-    
+
     useEffect(() => {
-        map.setView(setView, 13);
-        if(markerPosition) {
-            L.marker(markerPosition).addTo(map);
+        const currentCenter = map.getCenter();
+        if (currentCenter.lat.toFixed(5) !== setView[0].toFixed(5) || currentCenter.lng.toFixed(5) !== setView[1].toFixed(5)) {
+             map.setView(setView, map.getZoom());
         }
-    }, [setView, map, markerPosition]);
-    
-    map.on('click', function (e) {
-      const { lat, lng } = e.latlng;
-      onLocationSelect(lat, lng);
+    }, [setView, map]);
+
+    useMapEvents({
+        click(e) {
+            onLocationSelect(e.latlng.lat, e.latlng.lng);
+        },
     });
 
     return null;
-}
+};
+
 
 const InteractiveMap = ({ onLocationSelect, initialPosition }: { onLocationSelect: (lat: number, lng: number) => void, initialPosition: [number, number] }) => {
     const [markerPosition, setMarkerPosition] = useState<[number, number] | null>(initialPosition);
     const [mapCenter, setMapCenter] = useState<[number, number]>(initialPosition);
     const [searchQuery, setSearchQuery] = useState('');
+
+    const mapKey = useMemo(() => JSON.stringify(mapCenter), [mapCenter]);
 
     useEffect(() => {
         onLocationSelect(mapCenter[0], mapCenter[1]);
@@ -80,13 +84,13 @@ const InteractiveMap = ({ onLocationSelect, initialPosition }: { onLocationSelec
                 <Button type="button" onClick={handleSearch}><Search size={18} /></Button>
                  <Button type="button" onClick={handleCurrentLocation} variant="outline"><LocateFixed size={18} /></Button>
             </div>
-            <div id="map" className="w-full h-full min-h-[300px] rounded-lg overflow-hidden z-0">
-                <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }}>
+            <div className="w-full h-full min-h-[300px] rounded-lg overflow-hidden z-0">
+                <MapContainer key={mapKey} center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }}>
                     <TileLayer
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     />
-                    <MapEvents onLocationSelect={(lat, lng) => setMapCenter([lat,lng])} setView={mapCenter} markerPosition={markerPosition}/>
+                    <MapController onLocationSelect={(lat, lng) => setMapCenter([lat,lng])} setView={mapCenter} />
                     {markerPosition && <Marker position={markerPosition} />}
                 </MapContainer>
             </div>
