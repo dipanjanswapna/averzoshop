@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Dispatch, SetStateAction, useMemo, useState } from 'react';
+import { Dispatch, SetStateAction, useMemo, useState, useEffect } from 'react';
 import type { Product, ProductVariant } from '@/types/product';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -235,3 +235,5 @@ export function ProductDetails({
     </div>
   );
 }
+
+    

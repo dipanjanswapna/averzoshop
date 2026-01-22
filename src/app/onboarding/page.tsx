@@ -1,129 +1,212 @@
+
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Truck, Gift, ArrowRight } from 'lucide-react';
-import Image from 'next/image';
-import { cn } from '@/lib/utils';
+import { MapPin, Bell, CheckCircle, Search, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import AverzoLogo from '@/components/averzo-logo';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/use-auth';
+import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 
-const onboardingSlides = [
-  {
-    key: 'discover',
-    title: 'Discover Your Style',
-    description: 'Explore thousands of products from top brands to find what truly fits you. Your next favorite outfit is just a tap away.',
-    image: 'https://i.postimg.cc/Y9YRw12z/freestocks_3Q3ts_J01nc_unsplash.jpg',
-    bgColor: 'bg-pink-100/50',
-    textColor: 'text-pink-800',
-    icon: Heart,
-  },
-  {
-    key: 'delivery',
-    title: 'Fast & Reliable Delivery',
-    description: 'Get your orders delivered to your doorstep with our lightning-fast shipping. Track your package in real-time.',
-    image: 'https://i.postimg.cc/GpZKNMRz/jon_ly_Xn7Gvim_Qrk8_unsplash.jpg',
-    bgColor: 'bg-blue-100/50',
-    textColor: 'text-blue-800',
-    icon: Truck,
-  },
-  {
-    key: 'offers',
-    title: 'Exclusive Offers & Deals',
-    description: 'Unlock special discounts, flash sales, and member-only perks. Save more on your favorite brands.',
-    image: 'https://i.postimg.cc/MKDsTb0J/mike_petrucci_c9FQyq_IECds_unsplash.jpg',
-    bgColor: 'bg-purple-100/50',
-    textColor: 'text-purple-800',
-    icon: Gift,
-  },
-];
+type Step = 'location' | 'manualLocation' | 'notification' | 'success';
 
-export default function OnboardingPage() {
-  const [current, setCurrent] = useState(0);
+const stepVariants = {
+  hidden: { opacity: 0, y: 50 },
+  visible: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -50 },
+};
+
+const StepContent = ({ icon: Icon, title, description, children }: { icon: React.ElementType, title: string, description: string, children: React.ReactNode }) => (
+    <motion.div
+        variants={stepVariants}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md"
+    >
+        <Card className="shadow-lg">
+            <CardHeader className="text-center">
+                <div className="mx-auto bg-primary/10 text-primary p-4 rounded-full w-fit">
+                    <Icon size={40} />
+                </div>
+                <CardTitle className="mt-4 font-headline">{title}</CardTitle>
+                <CardDescription>{description}</CardDescription>
+            </CardHeader>
+            <CardContent>
+                {children}
+            </CardContent>
+        </Card>
+    </motion.div>
+);
+
+export default function PermissionsPage() {
+  const [step, setStep] = useState<Step>('location');
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { toast } = useToast();
+  const { user, firestore } = useAuth();
 
-  const nextSlide = () => {
-    if (current < onboardingSlides.length - 1) {
-      setCurrent(current + 1);
-    } else {
-      router.push('/register');
+  const handleLocationRequest = () => {
+    setIsLoading(true);
+    if (!navigator.geolocation) {
+      toast({ variant: 'destructive', title: 'Geolocation is not supported by your browser.' });
+      setStep('manualLocation');
+      setIsLoading(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        if (user && firestore) {
+            // Here you would typically save the coordinates to the user's profile.
+            // For now, we'll just log it and proceed.
+            console.log("Location obtained:", { latitude, longitude });
+        }
+        toast({ title: "Location access granted!" });
+        setIsLoading(false);
+        setStep('notification');
+      },
+      (error) => {
+        console.warn(`Geolocation error: ${error.message}`);
+        toast({ variant: 'destructive', title: 'Location Access Denied', description: 'Please enter your location manually.' });
+        setIsLoading(false);
+        setStep('manualLocation');
+      }
+    );
+  };
+  
+   const handleManualLocationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const formData = new FormData(e.target as HTMLFormElement);
+    const location = formData.get('location') as string;
+
+    if (!location.trim()) {
+        toast({ variant: 'destructive', title: 'Please enter a location.' });
+        return;
+    }
+    
+     if (user && firestore) {
+        // A simplified address object is created.
+        const address = {
+            id: Date.now().toString(),
+            label: 'Primary',
+            name: user.displayName || 'Default User',
+            phone: user.phoneNumber || '',
+            streetAddress: location,
+            area: location,
+            district: 'N/A',
+        };
+        try {
+            await updateDoc(doc(firestore, 'users', user.uid), {
+                addresses: arrayUnion(address)
+            });
+        } catch (error) {
+            console.error("Error saving manual address:", error);
+        }
+    }
+    
+    toast({ title: `Location set to ${location}` });
+    setStep('notification');
+  };
+
+  const handleNotificationRequest = async () => {
+    setIsLoading(true);
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        toast({ title: "Notifications enabled!" });
+      } else {
+        toast({ variant: 'destructive', title: 'Notifications were not enabled.' });
+      }
+    } catch (error) {
+      console.error('Notification permission error:', error);
+      toast({ variant: 'destructive', title: 'Could not request notification permission.' });
+    } finally {
+      setIsLoading(false);
+      setStep('success');
     }
   };
 
-  const currentSlideData = onboardingSlides[current];
-  const Icon = currentSlideData.icon;
+  const finishOnboarding = () => {
+    // This assumes the user has a role and redirects them appropriately.
+    router.replace('/'); 
+  };
+
 
   return (
-    <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2 font-body">
-      {/* Left side - Content */}
-      <div className="flex flex-col justify-between p-8 md:p-12 order-2 lg:order-1">
-        <div className="flex items-center justify-between">
-            <AverzoLogo />
-            <Button variant="ghost" onClick={() => router.push('/login')}>Skip</Button>
-        </div>
-
-        <motion.div
-            key={current}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="flex flex-col items-center justify-center text-center lg:items-start lg:text-left my-10 lg:my-0"
-        >
-            <div className={cn("p-4 rounded-full mb-6", currentSlideData?.bgColor)}>
-                <Icon size={48} className={currentSlideData?.textColor}/>
-            </div>
-            <h1 className="text-4xl font-extrabold font-headline text-foreground">{currentSlideData?.title}</h1>
-            <p className="mt-4 text-lg max-w-md text-muted-foreground">{currentSlideData?.description}</p>
-        </motion.div>
-        
-        <div className="flex flex-col items-center gap-6 lg:flex-row lg:justify-between">
-            <div className="flex gap-2">
-                {onboardingSlides.map((_, i) => (
-                    <motion.div
-                        key={i}
-                        className={cn(
-                            "h-2 rounded-full transition-all duration-300",
-                            current === i ? "bg-primary" : "bg-muted"
-                        )}
-                        animate={{ width: current === i ? 32 : 8 }}
-                    />
-                ))}
-            </div>
-            <Button 
-                size="lg" 
-                className="w-full lg:w-auto h-14 rounded-full group"
-                onClick={nextSlide}
-            >
-                {current === onboardingSlides.length - 1 ? 'Get Started' : 'Next'}
-                <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+    <div className="flex min-h-screen flex-col items-center justify-center bg-secondary p-4">
+      <AnimatePresence mode="wait">
+        {step === 'location' && (
+          <StepContent 
+            key="location"
+            icon={MapPin} 
+            title="Enable Location Access" 
+            description="To provide you with better service and faster delivery, we need to know your location."
+          >
+            <Button onClick={handleLocationRequest} className="w-full h-12" disabled={isLoading}>
+                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Allow Location Access
             </Button>
-        </div>
-      </div>
-      
-      {/* Right side - Image Carousel */}
-      <div className="relative min-h-[300px] lg:min-h-screen order-1 lg:order-2">
-        <AnimatePresence initial={false}>
-            <motion.div
-                key={current}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.6, ease: "easeInOut" }}
-                className="absolute inset-0"
+            <Button variant="link" className="w-full mt-2" onClick={() => setStep('manualLocation')}>
+                Enter Manually
+            </Button>
+          </StepContent>
+        )}
+        
+         {step === 'manualLocation' && (
+          <StepContent 
+            key="manual"
+            icon={MapPin} 
+            title="Enter Your Location" 
+            description="Since we couldn't get your location automatically, please enter your city or area."
+          >
+            <form onSubmit={handleManualLocationSubmit} className="space-y-4">
+                <Input name="location" placeholder="e.g., Dhaka, Bangladesh" required />
+                <Button type="submit" className="w-full h-12">
+                    Continue
+                </Button>
+            </form>
+          </StepContent>
+        )}
+
+        {step === 'notification' && (
+           <StepContent 
+            key="notification"
+            icon={Bell} 
+            title="Enable Notifications" 
+            description="Stay updated with your order status and get notified about exclusive offers and deals."
+          >
+            <Button onClick={handleNotificationRequest} className="w-full h-12" disabled={isLoading}>
+                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Enable Notifications
+            </Button>
+             <Button variant="link" className="w-full mt-2" onClick={() => setStep('success')}>
+                Skip for now
+            </Button>
+          </StepContent>
+        )}
+
+        {step === 'success' && (
+            <StepContent 
+                key="success"
+                icon={CheckCircle} 
+                title="Setup Complete!" 
+                description="You're all set. Enjoy a personalized and seamless shopping experience with Averzo."
             >
-                <Image
-                    src={currentSlideData.image}
-                    alt={currentSlideData.title}
-                    fill
-                    className="object-cover"
-                    priority
-                />
-                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent lg:bg-none"></div>
-            </motion.div>
-        </AnimatePresence>
-      </div>
+                <Button onClick={finishOnboarding} className="w-full h-12">
+                    Start Shopping
+                </Button>
+            </StepContent>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
+
+    

@@ -130,7 +130,7 @@ export default function OrderDetailsPage() {
                     <CardContent className="text-sm text-muted-foreground">
                         <p className="font-bold text-foreground">{order.shippingAddress.name}</p>
                         <p>{order.shippingAddress.streetAddress}, {order.shippingAddress.area}</p>
-                        <p>{order.shippingAddress.upazila}, {order.shippingAddress.district}</p>
+                        <p>{order.shippingAddress.district}</p>
                         <p>{order.shippingAddress.phone}</p>
                     </CardContent>
                 </Card>
@@ -154,3 +154,5 @@ export default function OrderDetailsPage() {
     </div>
   );
 }
+
+    
