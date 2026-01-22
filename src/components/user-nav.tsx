@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -47,7 +46,9 @@ export function UserNav() {
   if (!user) {
     return (
       <Link href="/login">
-        <Button>Login</Button>
+        <Button className="font-bold bg-gradient-to-r from-primary to-destructive text-primary-foreground hover:opacity-90 transition-all duration-300 transform hover:-translate-y-px shadow-lg hover:shadow-primary/40 rounded-full">
+          Login
+        </Button>
       </Link>
     );
   }
