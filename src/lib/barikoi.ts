@@ -1,57 +1,51 @@
 
-"use client";
-
 const apiKey = process.env.NEXT_PUBLIC_BARIKOI_API_KEY;
 
-export async function barikoiAutocomplete(query: string) {
-  if (!apiKey) {
-    console.error("Barikoi API key is not set.");
-    // Returning a structure that matches the expected success response but is empty.
-    return { status: 400, places: [] };
-  }
-  try {
-    const res = await fetch(
-      `https://barikoi.xyz/v2/api/search/autocomplete/place?api_key=${apiKey}&q=${query}`
-    );
-    if (!res.ok) {
-        console.error("Barikoi autocomplete API failed with status:", res.status);
-        return { status: res.status, places: [] };
-    }
-    return res.json();
-  } catch (error) {
-    console.error("barikoiAutocomplete fetch error:", error);
-    return { status: 500, places: [] };
-  }
+if (!apiKey) {
+    console.error("Barikoi API key is missing. Please add NEXT_PUBLIC_BARIKOI_API_KEY to your .env file.");
 }
 
-export async function barikoiReverseGeocode(lat: number, lng: number) {
-    if (!apiKey) {
-        console.error("Barikoi API key is not set.");
-        return { status: 400, place: null };
-    }
+/**
+ * Searches for a location using Barikoi's Autocomplete API.
+ * @param query The search query string.
+ * @returns A promise that resolves to the API response.
+ */
+export async function barikoiAutocomplete(query: string) {
+    if (!apiKey) throw new Error("Barikoi API key not configured.");
+    
+    const url = `https://barikoi.xyz/v2/api/search/autocomplete/place?api_key=${apiKey}&q=${query}`;
+    
     try {
-        const queryParams = new URLSearchParams({
-            api_key: apiKey,
-            longitude: String(lng),
-            latitude: String(lat),
-            district: 'true',
-            post_code: 'true',
-            sub_district: 'true',
-            division: 'true',
-            address: 'true',
-            area: 'true',
-        });
-
-        const res = await fetch(
-            `https://barikoi.xyz/v2/api/search/reverse/geocode?${queryParams.toString()}`
-        );
-        if (!res.ok) {
-            console.error("Barikoi reverse geocode API failed with status:", res.status);
-            return { status: res.status, place: null };
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Barikoi Autocomplete API failed with status: ${response.status}`);
         }
-        return res.json();
+        return await response.json();
     } catch (error) {
-        console.error("barikoiReverseGeocode fetch error:", error);
-        return { status: 500, place: null };
+        console.error("Error fetching from Barikoi Autocomplete API:", error);
+        throw error;
+    }
+}
+
+/**
+ * Performs reverse geocoding to get an address from coordinates.
+ * @param lat The latitude.
+ * @param lng The longitude.
+ * @returns A promise that resolves to the API response.
+ */
+export async function barikoiReverseGeocode(lat: number, lng: number) {
+    if (!apiKey) throw new Error("Barikoi API key not configured.");
+
+    const url = `https://barikoi.xyz/v2/api/search/reverse/geocode?api_key=${apiKey}&longitude=${lng}&latitude=${lat}&district=true&post_code=true&country=true&sub_district=true&division=true&area=true&address=true&thana=true`;
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Barikoi Reverse Geocode API failed with status: ${response.status}`);
+        }
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching from Barikoi Reverse Geocode API:", error);
+        throw error;
     }
 }

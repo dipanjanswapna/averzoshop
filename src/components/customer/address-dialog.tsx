@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import {
@@ -81,15 +81,14 @@ export function AddressDialog({ open, onOpenChange, onSave, addressToEdit, isLoa
         upazila: '', area: '', streetAddress: '', coordinates: { lat: 23.8103, lng: 90.4125 },
       });
     }
-  }, [addressToEdit, form]);
+  }, [addressToEdit, form, open]); // Added `open` dependency to reset form when dialog opens
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
     onSave(values, addressToEdit?.id);
   };
   
   const handleLocationSelect = (details: { lat: number; lng: number; division: string; district: string; upazila: string; area: string; streetAddress: string; }) => {
-    form.setValue('coordinates.lat', details.lat);
-    form.setValue('coordinates.lng', details.lng);
+    form.setValue('coordinates', {lat: details.lat, lng: details.lng}, { shouldValidate: true });
     form.setValue('division', details.division, { shouldValidate: true });
     form.setValue('district', details.district, { shouldValidate: true });
     form.setValue('upazila', details.upazila, { shouldValidate: true });
@@ -163,10 +162,12 @@ export function AddressDialog({ open, onOpenChange, onSave, addressToEdit, isLoa
             </div>
 
             <div className="flex flex-col">
-              <InteractiveMap 
-                onLocationSelect={handleLocationSelect} 
-                initialPosition={[form.getValues('coordinates.lat') || 23.8103, form.getValues('coordinates.lng') || 90.4125]} 
-              />
+              {open && (
+                  <InteractiveMap 
+                    onLocationSelect={handleLocationSelect} 
+                    initialPosition={[form.getValues('coordinates.lat') || 23.8103, form.getValues('coordinates.lng') || 90.4125]} 
+                  />
+              )}
             </div>
              <div className="md:col-span-2">
                 <DialogFooter className="pt-4">
