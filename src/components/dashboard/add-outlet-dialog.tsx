@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -20,6 +20,13 @@ import { useToast } from "@/hooks/use-toast";
 import { useFirebase } from '@/firebase';
 import { collection, addDoc, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
+import dynamic from 'next/dynamic';
+import { Skeleton } from '../ui/skeleton';
+
+const InteractiveMap = dynamic(() => import('@/components/ui/interactive-map'), { 
+    ssr: false,
+    loading: () => <Skeleton className="w-full h-full min-h-[300px] rounded-lg" />
+});
 
 interface AddOutletDialogProps {
   open: boolean;
@@ -47,14 +54,20 @@ export function AddOutletDialog({ open, onOpenChange }: AddOutletDialogProps) {
     defaultValues: {
       outletName: '',
       address: '',
-      latitude: 0,
-      longitude: 0,
+      latitude: 23.8103, // Default to Dhaka
+      longitude: 90.4125,
       managerName: '',
       managerEmail: '',
       managerPhone: '',
       managerPassword: '',
     },
   });
+
+  useEffect(() => {
+    if (!open) {
+      form.reset();
+    }
+  }, [open, form]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!firestore || !auth) {
@@ -64,7 +77,6 @@ export function AddOutletDialog({ open, onOpenChange }: AddOutletDialogProps) {
     setIsLoading(true);
 
     try {
-        // 1. Create the outlet document to get an ID
         const outletRef = await addDoc(collection(firestore, 'outlets'), {
             name: values.outletName,
             location: {
@@ -77,11 +89,9 @@ export function AddOutletDialog({ open, onOpenChange }: AddOutletDialogProps) {
         });
         const outletId = outletRef.id;
 
-        // 2. Create the Firebase Auth user for the manager
         const userCredential = await createUserWithEmailAndPassword(auth, values.managerEmail, values.managerPassword);
         const user = userCredential.user;
 
-        // 3. Create the user document in Firestore
         await setDoc(doc(firestore, "users", user.uid), {
             uid: user.uid,
             email: values.managerEmail,
@@ -89,11 +99,10 @@ export function AddOutletDialog({ open, onOpenChange }: AddOutletDialogProps) {
             phone: values.managerPhone,
             role: 'outlet',
             status: 'approved',
-            outletId: outletId, // Link user to the outlet
+            outletId: outletId,
             createdAt: serverTimestamp()
         });
         
-        // 4. Update the outlet with the manager's UID
         await setDoc(outletRef, { managerId: user.uid }, { merge: true });
 
 
@@ -119,93 +128,95 @@ export function AddOutletDialog({ open, onOpenChange }: AddOutletDialogProps) {
       setIsLoading(false);
     }
   };
+  
+  const handleLocationSelect = (details: { lat: number; lng: number; district: string; area: string; streetAddress: string; }) => {
+    form.setValue('latitude', details.lat, { shouldValidate: true });
+    form.setValue('longitude', details.lng, { shouldValidate: true });
+    
+    const fullAddress = [details.streetAddress, details.area, details.district].filter(Boolean).join(', ');
+    form.setValue('address', fullAddress, { shouldValidate: true });
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>Add New Outlet</DialogTitle>
           <DialogDescription>
-            Create a new physical store and its manager's account.
+            Create a new physical store and its manager's account. Use the map to pinpoint the location.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4 max-h-[70vh] overflow-y-auto px-1">
-             <h4 className="text-sm font-bold text-muted-foreground">Outlet Details</h4>
-            <FormField control={form.control} name="outletName" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Outlet Name</FormLabel>
-                  <FormControl><Input placeholder="e.g., Averzo Banani" {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
-            )} />
-            <FormField control={form.control} name="address" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Full Address</FormLabel>
-                  <FormControl><Input placeholder="e.g., House 12, Road 5, Banani, Dhaka" {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
-            )} />
-            <div className="grid grid-cols-2 gap-4">
-                <FormField control={form.control} name="latitude" render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Latitude</FormLabel>
-                    <FormControl><Input type="number" step="any" placeholder="23.7937" {...field} /></FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )} />
-                 <FormField control={form.control} name="longitude" render={({ field }) => (
-                    <FormItem>
-                    <FormLabel>Longitude</FormLabel>
-                    <FormControl><Input type="number" step="any" placeholder="90.4066" {...field} /></FormControl>
-                    <FormMessage />
-                    </FormItem>
-                )} />
-            </div>
-
-            <h4 className="text-sm font-bold text-muted-foreground pt-4 border-t">Manager Account Details</h4>
-             <FormField control={form.control} name="managerName" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Manager&apos;s Full Name</FormLabel>
-                  <FormControl><Input placeholder="e.g., John Doe" {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
-            )} />
-            <div className="grid grid-cols-2 gap-4">
-              <FormField control={form.control} name="managerEmail" render={({ field }) => (
+          <form onSubmit={form.handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4 max-h-[70vh] overflow-y-auto px-1">
+            <div className="space-y-4">
+              <h4 className="text-sm font-bold text-muted-foreground">Outlet Details</h4>
+              <FormField control={form.control} name="outletName" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Manager&apos;s Email</FormLabel>
-                    <FormControl><Input type="email" placeholder="manager@example.com" {...field} /></FormControl>
+                    <FormLabel>Outlet Name</FormLabel>
+                    <FormControl><Input placeholder="e.g., Averzo Banani" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
               )} />
-              <FormField control={form.control} name="managerPhone" render={({ field }) => (
+              <FormField control={form.control} name="address" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Manager&apos;s Phone</FormLabel>
-                    <FormControl><Input type="tel" placeholder="01XXXXXXXXX" {...field} /></FormControl>
+                    <FormLabel>Full Address (auto-filled from map)</FormLabel>
+                    <FormControl><Input placeholder="e.g., House 12, Road 5, Banani, Dhaka" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+              )} />
+              
+              <h4 className="text-sm font-bold text-muted-foreground pt-4 border-t">Manager Account Details</h4>
+              <FormField control={form.control} name="managerName" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Manager&apos;s Full Name</FormLabel>
+                    <FormControl><Input placeholder="e.g., John Doe" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+              )} />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField control={form.control} name="managerEmail" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Manager&apos;s Email</FormLabel>
+                      <FormControl><Input type="email" placeholder="manager@example.com" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                )} />
+                <FormField control={form.control} name="managerPhone" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Manager&apos;s Phone</FormLabel>
+                      <FormControl><Input type="tel" placeholder="01XXXXXXXXX" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                )} />
+              </div>
+              <FormField control={form.control} name="managerPassword" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Set Temporary Password</FormLabel>
+                    <FormControl><Input type="password" placeholder="••••••••" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
               )} />
             </div>
-             <FormField control={form.control} name="managerPassword" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Set Temporary Password</FormLabel>
-                  <FormControl><Input type="password" placeholder="••••••••" {...field} /></FormControl>
-                  <FormMessage />
-                </FormItem>
-            )} />
 
+            <div className="flex flex-col">
+              {open && (
+                  <InteractiveMap 
+                    onLocationSelect={handleLocationSelect} 
+                    initialPosition={[form.getValues('latitude'), form.getValues('longitude')]}
+                  />
+              )}
+            </div>
 
-            <DialogFooter className="pt-4">
-              <DialogClose asChild>
-                <Button type="button" variant="secondary">
-                  Cancel
+            <div className="md:col-span-2">
+              <DialogFooter className="pt-4">
+                <DialogClose asChild>
+                  <Button type="button" variant="secondary" disabled={isLoading}>Cancel</Button>
+                </DialogClose>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? 'Creating...' : 'Create Outlet & Account'}
                 </Button>
-              </DialogClose>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading ? 'Creating...' : 'Create Outlet & Account'}
-              </Button>
-            </DialogFooter>
+              </DialogFooter>
+            </div>
           </form>
         </Form>
       </DialogContent>
