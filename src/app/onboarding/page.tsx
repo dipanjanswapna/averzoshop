@@ -71,7 +71,7 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen lg:grid lg:grid-cols-2 min-h-screen bg-background font-body">
+    <div className="flex flex-col h-screen lg:grid lg:grid-cols-2 bg-background font-body">
         {/* Content Panel (Left on Desktop, Bottom on Mobile) */}
         <div className="lg:order-1 flex flex-col p-8 flex-1">
             <div className="w-full max-w-md mx-auto flex flex-col justify-center flex-1">
@@ -160,26 +160,27 @@ export default function OnboardingPage() {
         </div>
         
         {/* Visuals Panel (Right on Desktop, Top on Mobile) */}
-        <div className="lg:order-2 h-1/3 lg:h-screen w-full relative">
-            <Carousel setApi={setApi} className="w-full h-full">
-                <CarouselContent className="h-full">
-                    {onboardingSlides.map((slide, index) => (
-                    <CarouselItem key={index} className="h-full">
-                        <div className="relative w-full h-full">
-                            <Image 
-                                src={slide.image} 
-                                alt={slide.title}
-                                fill
-                                className="object-cover"
-                                data-ai-hint={slide.imageHint}
-                                priority={index === 0}
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent lg:hidden" />
-                        </div>
-                    </CarouselItem>
-                    ))}
-                </CarouselContent>
-            </Carousel>
+        <div className="lg:order-2 w-full aspect-square lg:aspect-auto lg:h-screen flex items-center justify-center bg-secondary p-0 lg:p-8">
+            <div className="relative w-full h-full lg:max-w-lg lg:aspect-square lg:rounded-2xl lg:shadow-2xl overflow-hidden">
+                <Carousel setApi={setApi} className="w-full h-full">
+                    <CarouselContent className="h-full">
+                        {onboardingSlides.map((slide, index) => (
+                        <CarouselItem key={index} className="h-full">
+                            <div className="relative w-full h-full">
+                                <Image 
+                                    src={slide.image} 
+                                    alt={slide.title}
+                                    fill
+                                    className="object-cover"
+                                    data-ai-hint={slide.imageHint}
+                                    priority={index === 0}
+                                />
+                            </div>
+                        </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                </Carousel>
+            </div>
         </div>
     </div>
   );
