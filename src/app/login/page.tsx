@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -118,9 +119,14 @@ function LoginPageContent() {
   if (authLoading || (user && userData)) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <span className="loader"></span>
-          <p className="text-muted-foreground">Redirecting to your dashboard...</p>
+        <div className="flex flex-col items-center justify-center gap-6">
+            <div className="relative h-16 w-16">
+                <span className="loader"></span>
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <AverzoLogo className="text-lg" />
+                </div>
+            </div>
+            <p className="text-muted-foreground animate-pulse">Redirecting to your dashboard...</p>
         </div>
       </div>
     );
