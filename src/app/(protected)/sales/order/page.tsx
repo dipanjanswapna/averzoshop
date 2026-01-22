@@ -57,6 +57,7 @@ export default function SalesOrderPage() {
     const [pointsToUse, setPointsToUse] = useState<string>('');
     const [pointsApplied, setPointsApplied] = useState(0);
     const [pointsDiscount, setPointsDiscount] = useState(0);
+    const [potentialPointsDiscount, setPotentialPointsDiscount] = useState(0);
 
     const [cardPromoDiscount, setCardPromoDiscount] = useState(0);
     const [cardPromoDiscountAmount, setCardPromoDiscountAmount] = useState(0);
@@ -140,16 +141,16 @@ export default function SalesOrderPage() {
             const eligibleItems = cart.filter(item => {
                 if (item.product.preOrder?.enabled) return false;
                 
-                if (coupon.creatorType === 'admin') {
-                    if (!coupon.applicableProducts || coupon.applicableProducts.length === 0) return true;
-                    return coupon.applicableProducts.includes(item.product.id);
+                if (appliedCoupon.creatorType === 'admin') {
+                    if (!appliedCoupon.applicableProducts || appliedCoupon.applicableProducts.length === 0) return true;
+                    return appliedCoupon.applicableProducts.includes(item.product.id);
                 }
-                if (coupon.creatorType === 'vendor') {
-                    if (item.product.vendorId !== coupon.creatorId) {
+                if (appliedCoupon.creatorType === 'vendor') {
+                    if (item.product.vendorId !== appliedCoupon.creatorId) {
                         return false; 
                     }
-                    if (!coupon.applicableProducts || coupon.applicableProducts.length === 0) return true;
-                    return coupon.applicableProducts.includes(item.product.id);
+                    if (!appliedCoupon.applicableProducts || appliedCoupon.applicableProducts.length === 0) return true;
+                    return appliedCoupon.applicableProducts.includes(item.product.id);
                 }
                 return false;
             });
@@ -181,6 +182,34 @@ export default function SalesOrderPage() {
         const finalTotal = maxPayableBeforePoints - applicablePointsDiscount;
         setGrandTotal(finalTotal < 0 ? 0 : finalTotal);
     }, [regularItemsSubtotal, preOrderDepositPayable, cardPromoDiscount, appliedCoupon, pointsDiscount, cart]);
+
+    const { maxPointsForSale, maxDiscountFromPoints } = useMemo(() => {
+        if (!selectedCustomer) return { maxPointsForSale: 0, maxDiscountFromPoints: 0 };
+    
+        const regularSubtotalAfterDiscounts = regularItemsSubtotal - cardPromoDiscountAmount - promoDiscount;
+        const payableBeforePoints = (regularSubtotalAfterDiscounts > 0 ? regularSubtotalAfterDiscounts : 0) + preOrderDepositPayable;
+        const maxDiscount = Math.max(0, payableBeforePoints);
+        const maxPoints = Math.floor(maxDiscount / pointValue);
+        
+        const usablePoints = Math.min(maxPoints, selectedCustomer.loyaltyPoints || 0);
+        const discount = usablePoints * pointValue;
+    
+        return { maxPointsForSale: usablePoints, maxDiscountFromPoints: discount };
+    }, [regularItemsSubtotal, preOrderDepositPayable, promoDiscount, cardPromoDiscountAmount, selectedCustomer, pointValue]);
+    
+    useEffect(() => {
+        const pointsNum = parseInt(pointsToUse, 10);
+        if (!isNaN(pointsNum) && pointsNum > 0) {
+            const discountValue = Math.min(pointsNum, maxPointsForSale) * pointValue;
+            setPotentialPointsDiscount(discountValue);
+        } else {
+            setPotentialPointsDiscount(0);
+        }
+    }, [pointsToUse, maxPointsForSale, pointValue]);
+
+    const handleApplyMaxPoints = () => {
+        setPointsToUse(String(maxPointsForSale));
+    };
 
 
     const filteredCustomers = useMemo(() => {
@@ -652,7 +681,36 @@ export default function SalesOrderPage() {
                                 )}
                             </div>
                             {selectedCustomer && (selectedCustomer.loyaltyPoints || 0) > 0 && (
-                                <div className="space-y-2 pt-2"><Label className="font-bold flex items-center gap-2 text-sm"><Award size={16} /> Use Loyalty Points</Label><div className="p-3 bg-primary/5 border border-primary/10 rounded-lg space-y-2"><p className="text-xs text-muted-foreground">Available: <span className="font-bold text-primary">{selectedCustomer.loyaltyPoints}</span> points</p>{pointsApplied > 0 ? (<div className="flex justify-between items-center bg-green-100/50 p-2 rounded-md"><div className="text-green-700"><p className="text-sm font-bold">Applied: {pointsApplied} points</p><p className="text-xs">-৳{pointsDiscount.toFixed(2)}</p></div><Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={removePoints}><XCircle className="h-4 w-4" /></Button></div>) : (<div className="flex items-end gap-2"><Input placeholder="Points to use" type="number" value={pointsToUse} onChange={(e) => setPointsToUse(e.target.value)} /><Button onClick={handleApplyPoints}>Apply</Button></div>)}</div></div>
+                                <div className="space-y-3 pt-2">
+                                    <Label className="font-bold flex items-center gap-2 text-sm"><Award size={16} /> Use Loyalty Points</Label>
+                                    <div className="p-3 bg-primary/5 border border-primary/10 rounded-lg space-y-2">
+                                    <p className="text-xs text-muted-foreground">Available: <span className="font-bold text-primary">{selectedCustomer.loyaltyPoints}</span> points</p>
+                                    {pointsApplied > 0 ? (
+                                        <div className="flex justify-between items-center bg-green-100/50 p-2 rounded-md">
+                                            <div className="text-green-700">
+                                                <p className="text-sm font-bold">Applied: {pointsApplied} points</p>
+                                                <p className="text-xs">-৳{pointsDiscount.toFixed(2)}</p>
+                                            </div>
+                                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={removePoints}><XCircle className="h-4 w-4" /></Button>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-2">
+                                            <div className="flex items-end gap-2">
+                                                <Input placeholder="Points to use" type="number" value={pointsToUse} onChange={(e) => setPointsToUse(e.target.value)} />
+                                                <Button onClick={handleApplyPoints}>Apply</Button>
+                                            </div>
+                                            {potentialPointsDiscount > 0 && (
+                                                <p className="text-xs text-center text-muted-foreground">Will apply a discount of ~৳{potentialPointsDiscount.toFixed(2)}</p>
+                                            )}
+                                            {maxPointsForSale > 0 && (
+                                                <Button type="button" variant="link" size="sm" className="h-auto p-0 text-xs w-full" onClick={handleApplyMaxPoints}>
+                                                    Use maximum ({maxPointsForSale} pts for ৳{maxDiscountFromPoints.toFixed(2)})
+                                                </Button>
+                                            )}
+                                        </div>
+                                    )}
+                                    </div>
+                                </div>
                             )}
                             <Separator />
                             <Button size="lg" disabled={cart.length === 0 || isProcessing} onClick={handlePlaceOrder} className="h-14 text-lg">
