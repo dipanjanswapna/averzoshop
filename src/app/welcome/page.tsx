@@ -1,3 +1,4 @@
+
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -12,7 +13,7 @@ export default function WelcomePage() {
   const redirect = searchParams.get('redirect');
 
   const loginHref = redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : '/login';
-  const registerHref = '/onboarding';
+  const registerHref = '/register';
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen font-body">
