@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
 import { Search as SearchIcon, LocateFixed } from 'lucide-react';
 import { useDebounce } from '@/hooks/use-debounce';
 import { barikoiReverseGeocode, barikoiAutocomplete } from '@/lib/barikoi';
+import { useToast } from '@/hooks/use-toast';
 
 // Fix for default icon issue with webpack
 // @ts-ignore
@@ -33,6 +34,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
   const markerRef = useRef<L.Marker | null>(null);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
+  const { toast } = useToast();
 
   // Initialize and clean up the map
   useEffect(() => {
@@ -132,6 +134,14 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
   };
 
   const handleCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast({
+        variant: 'destructive',
+        title: 'Geolocation Not Supported',
+        description: 'Your browser does not support geolocation.',
+      });
+      return;
+    }
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
@@ -150,7 +160,22 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
           console.error('Reverse geocode failed:', error);
         }
       },
-      (error) => console.error("Geolocation error:", error),
+      (error) => {
+        let description = 'Please ensure location services are enabled for your browser and this site.';
+        if (error.code === 1) { // PERMISSION_DENIED
+            description = 'You have denied location access. Please enable it in your browser settings to use this feature.';
+        } else if (error.code === 2) { // POSITION_UNAVAILABLE
+            description = 'Your location is currently unavailable. Please check your network connection.';
+        } else if (error.code === 3) { // TIMEOUT
+            description = 'Getting your location took too long. Please try again.';
+        }
+        
+        toast({
+          variant: 'destructive',
+          title: 'Could Not Get Location',
+          description: description,
+        });
+      },
       { enableHighAccuracy: true }
     );
   };
