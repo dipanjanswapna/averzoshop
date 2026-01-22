@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { isSignInWithEmailLink, signInWithEmailLink } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
-import { useAuth, useFirebase } from '@/hooks/use-auth';
+import { useFirebase, FirebaseClientProvider } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import AverzoLogo from '@/components/averzo-logo';
 import { Button } from '@/components/ui/button';
@@ -106,8 +106,10 @@ function VerifyEmailContent() {
 
 export default function VerifyEmailPage() {
     return (
+      <FirebaseClientProvider>
         <Suspense fallback={<div>Loading...</div>}>
             <VerifyEmailContent />
         </Suspense>
+      </FirebaseClientProvider>
     )
 }
