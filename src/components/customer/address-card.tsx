@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Address } from '@/types/address';
@@ -32,10 +31,7 @@ export function AddressCard({ address, onEdit, onDelete }: AddressCardProps) {
             </div>
             <p className="font-semibold mt-1 text-foreground">{address.name}, {address.phone}</p>
             <p className="text-sm text-muted-foreground">
-                {address.streetAddress}, {address.area}
-            </p>
-            <p className="text-sm text-muted-foreground">
-                {address.upazila}, {address.district}, {address.division}
+                {address.streetAddress}, {address.area}, {address.district}
             </p>
         </div>
       </div>
@@ -53,5 +49,3 @@ export function AddressCard({ address, onEdit, onDelete }: AddressCardProps) {
     </div>
   );
 }
-
-    

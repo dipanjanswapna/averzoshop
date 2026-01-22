@@ -12,9 +12,7 @@ export interface OrderItem {
 export interface ShippingAddress {
     name: string;
     phone: string;
-    division: string;
     district: string;
-    upazila: string;
     area: string;
     streetAddress: string;
 }
@@ -47,5 +45,3 @@ export interface Order {
     gatewayTransactionId?: string;
     updatedAt?: any;
 }
-
-    

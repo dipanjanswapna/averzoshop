@@ -57,10 +57,10 @@ export function ShippingForm() {
         fullOrderTotal: state.fullOrderTotal,
         promoCode: state.promoCode,
         discount: state.discount,
-        pointsApplied: state.pointsApplied,
-        pointsDiscount: state.pointsDiscount,
         setShippingInfo: state.setShippingInfo,
         shippingInfo: state.shippingInfo,
+        pointsApplied: state.pointsApplied,
+        pointsDiscount: state.pointsDiscount,
         orderMode: state.orderMode,
         setOrderMode: state.setOrderMode,
         pickupOutletId: state.pickupOutletId,
@@ -219,8 +219,8 @@ export function ShippingForm() {
     }
 
     const finalShippingAddress: ShippingAddress | undefined = orderMode === 'delivery' ? {
-        name: selectedAddress!.name, phone: selectedAddress!.phone, division: selectedAddress!.division, district: selectedAddress!.district,
-        upazila: selectedAddress!.upazila, area: selectedAddress!.area, streetAddress: selectedAddress!.streetAddress,
+        name: selectedAddress!.name, phone: selectedAddress!.phone, district: selectedAddress!.district,
+        area: selectedAddress!.area, streetAddress: selectedAddress!.streetAddress,
     } : undefined;
 
     const orderId = doc(collection(firestore, 'orders')).id;

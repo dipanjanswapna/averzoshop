@@ -8,14 +8,12 @@ import { barikoiReverseGeocode, barikoiAutocomplete } from '@/lib/barikoi';
 import { useToast } from '@/hooks/use-toast';
 
 // Fix for default icon issue with webpack
-if (typeof window !== 'undefined') {
-    delete (L.Icon.Default.prototype as any)._getIconUrl;
-    L.Icon.Default.mergeOptions({
-        iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
-        iconUrl: require('leaflet/dist/images/marker-icon.png'),
-        shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
-    });
-}
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+    iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+    iconUrl: require('leaflet/dist/images/marker-icon.png'),
+    shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+});
 
 
 interface InteractiveMapProps {
@@ -94,8 +92,8 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
           const area = data.place.area ? `${data.place.area}${data.place.postCode ? ` - ${data.place.postCode}` : ''}` : (data.place.postCode || '');
           onLocationSelect({
             lat, lng,
-            division: data.place.division || '', district: data.place.district || '',
-            upazila: data.place.thana || data.place.sub_district || '', area: area,
+            district: data.place.district || '',
+            area: area,
             streetAddress: data.place.address || ''
           });
         }
@@ -139,8 +137,8 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
     onLocationSelect({
         lat, lng,
-        division: place.division || '', district: place.district || '',
-        upazila: place.thana || place.sub_district || '', area: area,
+        district: place.district || '', 
+        area: area,
         streetAddress: place.address || ''
     });
   };
@@ -164,8 +162,8 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
             const area = data.place.area ? `${data.place.area}${data.place.postCode ? ` - ${data.place.postCode}` : ''}` : (data.place.postCode || '');
             onLocationSelect({
                 lat: latitude, lng: longitude,
-                division: data.place.division || '', district: data.place.district || '',
-                upazila: data.place.thana || data.place.sub_district || '', area: area,
+                district: data.place.district || '',
+                area: area,
                 streetAddress: data.place.address || ''
             });
           }

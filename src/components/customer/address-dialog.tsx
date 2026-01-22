@@ -39,9 +39,7 @@ const formSchema = z.object({
   label: z.enum(['Home', 'Office', 'Other'], { required_error: 'Please select a label.' }),
   name: z.string().min(2, 'Name is required.'),
   phone: z.string().min(11, 'A valid phone number is required.'),
-  division: z.string().min(1, 'Division is required.'),
   district: z.string().min(1, 'District is required.'),
-  upazila: z.string().min(1, 'Upazila/Thana is required.'),
   area: z.string().min(1, 'Area/Post Office is required.'),
   streetAddress: z.string().min(1, 'Street address is required.'),
   coordinates: z.object({
@@ -57,9 +55,7 @@ export function AddressDialog({ open, onOpenChange, onSave, addressToEdit, isLoa
       label: 'Home',
       name: '',
       phone: '',
-      division: 'Dhaka',
       district: 'Dhaka',
-      upazila: '',
       area: '',
       streetAddress: '',
       coordinates: { lat: 23.8103, lng: 90.4125 },
@@ -77,8 +73,8 @@ export function AddressDialog({ open, onOpenChange, onSave, addressToEdit, isLoa
       });
     } else {
       form.reset({
-        label: 'Home', name: '', phone: '', division: 'Dhaka', district: 'Dhaka',
-        upazila: '', area: '', streetAddress: '', coordinates: { lat: 23.8103, lng: 90.4125 },
+        label: 'Home', name: '', phone: '', district: 'Dhaka',
+        area: '', streetAddress: '', coordinates: { lat: 23.8103, lng: 90.4125 },
       });
     }
   }, [addressToEdit, form, open]); // Added `open` dependency to reset form when dialog opens
@@ -87,11 +83,9 @@ export function AddressDialog({ open, onOpenChange, onSave, addressToEdit, isLoa
     onSave(values, addressToEdit?.id);
   };
   
-  const handleLocationSelect = (details: { lat: number; lng: number; division: string; district: string; upazila: string; area: string; streetAddress: string; }) => {
+  const handleLocationSelect = (details: { lat: number; lng: number; district: string; area: string; streetAddress: string; }) => {
     form.setValue('coordinates', {lat: details.lat, lng: details.lng}, { shouldValidate: true });
-    form.setValue('division', details.division, { shouldValidate: true });
     form.setValue('district', details.district, { shouldValidate: true });
-    form.setValue('upazila', details.upazila, { shouldValidate: true });
     form.setValue('area', details.area, { shouldValidate: true });
     form.setValue('streetAddress', details.streetAddress, { shouldValidate: true });
   }
@@ -124,18 +118,10 @@ export function AddressDialog({ open, onOpenChange, onSave, addressToEdit, isLoa
                         </Select><FormMessage /></FormItem>
                   )} />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                     <FormField control={form.control} name="division" render={({ field }) => (
-                        <FormItem><FormLabel>Division</FormLabel><FormControl><Input placeholder="e.g., Dhaka" {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
                      <FormField control={form.control} name="district" render={({ field }) => (
                         <FormItem><FormLabel>District</FormLabel><FormControl><Input placeholder="e.g., Dhaka" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
-                </div>
-                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                     <FormField control={form.control} name="upazila" render={({ field }) => (
-                        <FormItem><FormLabel>Upazila / Thana</FormLabel><FormControl><Input placeholder="e.g., Gulshan" {...field} /></FormControl><FormMessage /></FormItem>
-                    )} />
-                     <FormField control={form.control} name="area" render={({ field }) => (
+                    <FormField control={form.control} name="area" render={({ field }) => (
                         <FormItem><FormLabel>Area / Post Office</FormLabel><FormControl><Input placeholder="e.g., Banani" {...field} /></FormControl><FormMessage /></FormItem>
                     )} />
                 </div>

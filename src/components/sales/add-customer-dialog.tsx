@@ -33,7 +33,6 @@ const formSchema = z.object({
   streetAddress: z.string().min(1, 'Street address is required.'),
   area: z.string().min(1, 'Area/Post Office is required.'),
   district: z.string().min(1, 'District is required.'),
-  division: z.string().min(1, 'Division is required.'),
 });
 
 export function AddCustomerDialog({ open, onOpenChange }: AddCustomerDialogProps) {
@@ -51,7 +50,6 @@ export function AddCustomerDialog({ open, onOpenChange }: AddCustomerDialogProps
       streetAddress: '',
       area: '',
       district: '',
-      division: 'Dhaka',
     },
   });
 
@@ -77,8 +75,6 @@ export function AddCustomerDialog({ open, onOpenChange }: AddCustomerDialogProps
             streetAddress: values.streetAddress,
             area: values.area,
             district: values.district,
-            division: values.division,
-            upazila: '', // Not collected in this simplified form
         }],
         role: 'customer',
         status: 'approved',
@@ -111,10 +107,9 @@ export function AddCustomerDialog({ open, onOpenChange }: AddCustomerDialogProps
             </div>
              <FormField control={form.control} name="email" render={({ field }) => (<FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder="customer@example.com" {...field} /></FormControl><FormMessage /></FormItem>)} />
               <FormField control={form.control} name="streetAddress" render={({ field }) => (<FormItem><FormLabel>Street Address</FormLabel><FormControl><Input placeholder="House/Apt No., Street" {...field} /></FormControl><FormMessage /></FormItem>)} />
-             <div className="grid grid-cols-3 gap-4">
+             <div className="grid grid-cols-2 gap-4">
               <FormField control={form.control} name="area" render={({ field }) => (<FormItem><FormLabel>Area</FormLabel><FormControl><Input placeholder="e.g., Banani" {...field} /></FormControl><FormMessage /></FormItem>)} />
               <FormField control={form.control} name="district" render={({ field }) => (<FormItem><FormLabel>District</FormLabel><FormControl><Input placeholder="e.g., Dhaka" {...field} /></FormControl><FormMessage /></FormItem>)} />
-              <FormField control={form.control} name="division" render={({ field }) => (<FormItem><FormLabel>Division</FormLabel><FormControl><Input placeholder="e.g., Dhaka" {...field} /></FormControl><FormMessage /></FormItem>)} />
             </div>
 
             <DialogFooter className="pt-4">

@@ -32,7 +32,7 @@ export async function barikoiAutocomplete(query: string) {
 export async function barikoiReverseGeocode(lat: number, lng: number) {
     if (!apiKey) throw new Error("Barikoi API key not configured.");
 
-    const url = `https://barikoi.xyz/v2/api/search/reverse/geocode?api_key=${apiKey}&longitude=${lng}&latitude=${lat}&district=true&post_code=true&country=true&sub_district=true&division=true&address=true&area=true&thana=true`;
+    const url = `https://barikoi.xyz/v2/api/search/reverse/geocode?api_key=${apiKey}&longitude=${lng}&latitude=${lat}&district=true&post_code=true&country=true&address=true&area=true`;
 
     try {
         const response = await fetch(url);

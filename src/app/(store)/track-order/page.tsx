@@ -82,10 +82,10 @@ export default function TrackOrderPage() {
               <div>
                 <h3 className="font-bold mb-2">Shipping Address</h3>
                 <div className="text-sm text-muted-foreground">
-                  <p>{order.shippingAddress.name}</p>
-                  <p>{order.shippingAddress.streetAddress}, {order.shippingAddress.area}</p>
-                  <p>{order.shippingAddress.upazila}, {order.shippingAddress.district}</p>
-                  <p>{order.shippingAddress.phone}</p>
+                  <p>{order.shippingAddress?.name}</p>
+                  <p>{order.shippingAddress?.streetAddress}, {order.shippingAddress?.area}</p>
+                  <p>{order.shippingAddress?.district}</p>
+                  <p>{order.shippingAddress?.phone}</p>
                 </div>
               </div>
                <div>
