@@ -1,4 +1,4 @@
-import * as barikoiapis from 'barikoiapis';
+import { createBarikoiClient } from 'barikoiapis';
 
 const apiKey = process.env.NEXT_PUBLIC_BARIKOI_API_KEY;
 
@@ -10,6 +10,6 @@ if (!apiKey) {
 }
 
 // Create a singleton client instance
-export const barikoi = barikoiapis.createBarikoiClient({
+export const barikoi = createBarikoiClient({
   apiKey: apiKey || '', // Pass an empty string if undefined to avoid crashing the client
 });
