@@ -1,7 +1,7 @@
 
 export interface Address {
   id: string;
-  label: 'Home' | 'Office' | 'Other';
+  label: 'Home' | 'Office' | 'Other' | 'Warehouse';
   name: string;
   phone: string;
   district: string;
@@ -12,5 +12,3 @@ export interface Address {
     lng: number;
   };
 }
-
-    

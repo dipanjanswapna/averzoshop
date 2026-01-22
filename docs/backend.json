@@ -45,7 +45,7 @@
       "type": "object",
       "properties": {
         "id": { "type": "string" },
-        "label": { "type": "string", "enum": ["Home", "Office", "Other"] },
+        "label": { "type": "string", "enum": ["Home", "Office", "Other", "Warehouse"] },
         "name": { "type": "string" },
         "phone": { "type": "string" },
         "district": { "type": "string" },
@@ -503,5 +503,3 @@
     "/settings/loyalty": { "schema": { "$ref": "#/entities/loyalty_settings" }, "description": "Stores the global settings for the loyalty program." }
   }
 }
-
-    

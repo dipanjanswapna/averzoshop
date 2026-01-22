@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { useTheme } from '@/components/providers';
 import { Moon, Sun } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { AddressManager } from '@/components/vendor/address-manager';
 
 export default function VendorSettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -14,6 +15,8 @@ export default function VendorSettingsPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold font-headline">Vendor Settings</h1>
+
+      <AddressManager />
 
       <Card>
         <CardHeader>
