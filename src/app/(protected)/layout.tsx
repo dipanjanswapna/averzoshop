@@ -1,3 +1,4 @@
+
 'use client';
 import { FirebaseClientProvider } from '@/firebase';
 import { useAuth } from '@/hooks/use-auth';
@@ -28,12 +29,7 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
         return;
       }
       
-      // New user onboarding for permissions if they have no address
-      if ((!userData.addresses || userData.addresses.length === 0) && pathname !== '/permissions') {
-        router.replace('/permissions');
-        return;
-      }
-
+      // The logic to redirect to /permissions is now centralized in login/page.tsx and verify-email/page.tsx
 
       const isCustomer = userData.role === 'customer';
       const isOutlet = userData.role === 'outlet';

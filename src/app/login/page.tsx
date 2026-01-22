@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -53,22 +54,30 @@ function LoginPageContent() {
 
   useEffect(() => {
     if (!authLoading && user && userData) {
+      // For customers, check if permissions need to be set
+      if (userData.role === 'customer' && (!userData.addresses || userData.addresses.length === 0)) {
+        router.replace('/permissions');
+        return;
+      }
+
+      // Handle specific redirects (e.g., from trying to access a protected page)
       const redirectUrl = searchParams.get('redirect');
       if (redirectUrl) {
           router.replace(redirectUrl);
           return;
       }
       
-      const dashboardPaths = {
+      // Default role-based redirection
+      const roleRedirects = {
         admin: '/dashboard',
-        customer: '/customer',
+        customer: '/', // Customers go to the homepage
         vendor: '/vendor/dashboard',
         outlet: '/outlet/dashboard',
         rider: '/rider/dashboard',
         sales: '/sales/dashboard',
       };
       
-      router.replace(dashboardPaths[userData.role] || '/');
+      router.replace(roleRedirects[userData.role] || '/');
     }
   }, [user, userData, authLoading, router, searchParams]);
 
@@ -82,7 +91,7 @@ function LoginPageContent() {
     }
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
-      toast({ title: 'Login Successful', description: 'Redirecting to your dashboard...' });
+      toast({ title: 'Login Successful', description: 'Redirecting...' });
       // The useEffect will handle the redirection.
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Login Failed', description: error.message });
