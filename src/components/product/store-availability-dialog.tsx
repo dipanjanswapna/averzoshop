@@ -26,13 +26,15 @@ import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import type { Outlet } from '@/types/outlet';
 import type { Product, ProductVariant } from '@/types/product';
 import { Skeleton } from '../ui/skeleton';
-import { MapPin } from 'lucide-react';
+import { MapPin, Warehouse } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
 import { useFirebase } from '@/firebase';
 import { collection, query } from 'firebase/firestore';
 import { useAuth } from '@/hooks/use-auth';
 import { calculateDistance } from '@/lib/distance';
+import { Card } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 
 interface StoreAvailabilityDialogProps {
@@ -121,55 +123,65 @@ export function StoreAvailabilityDialog({ open, onOpenChange, product }: StoreAv
                 <Skeleton className="h-20 w-full" />
               </div>
             ) : outletsWithStock.length > 0 ? (
-              <Accordion type="single" collapsible className="w-full">
+              <Accordion type="single" collapsible className="w-full space-y-2">
                 {outletsWithStock.map(outlet => (
-                  <AccordionItem value={outlet.id} key={outlet.id}>
-                    <AccordionTrigger>
-                      <div className="flex-1 text-left">
-                        <p className="font-bold">{outlet.name}</p>
-                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
-                          <MapPin size={12} />
-                          <span>{outlet.location.address}</span>
-                          {outlet.distance !== null && (
-                            <span className="font-semibold text-primary ml-2">(~{outlet.distance.toFixed(1)} km away)</span>
-                          )}
+                  <AccordionItem value={outlet.id} key={outlet.id} className="border-b-0">
+                    <Card>
+                      <AccordionTrigger className="p-4 hover:no-underline">
+                        <div className="flex w-full items-center justify-between gap-4">
+                          <div className="flex-1 text-left">
+                            <p className="font-bold text-foreground text-base">{outlet.name}</p>
+                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
+                              <MapPin size={12} />
+                              <span className="truncate">{outlet.location.address}</span>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                            {outlet.distance !== null && (
+                              <Badge variant="outline" className="text-xs font-mono">
+                                ~{outlet.distance.toFixed(1)} km
+                              </Badge>
+                            )}
+                            <Badge variant={outlet.totalStock > 10 ? 'default' : 'secondary'} className={cn('text-xs', outlet.totalStock > 10 ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800')}>
+                              {outlet.totalStock} units
+                            </Badge>
+                          </div>
                         </div>
-                      </div>
-                      <Badge variant={outlet.totalStock > 10 ? 'default' : 'secondary'} className={`ml-4 ${outlet.totalStock > 10 ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>
-                        {outlet.totalStock} units
-                      </Badge>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Variant</TableHead>
-                            <TableHead>SKU</TableHead>
-                            <TableHead className="text-right">Stock</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {outlet.variants.map((variant) => (
-                            <TableRow key={variant.sku}>
-                              <TableCell className="font-medium">
-                                {variant.color || ''} {variant.size ? `(${variant.size})` : ''}
-                                {!variant.color && !variant.size && "Standard"}
-                              </TableCell>
-                              <TableCell className="font-mono text-xs">{variant.sku}</TableCell>
-                              <TableCell className="text-right font-bold">
-                                {variant.stockInOutlet}
-                              </TableCell>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 pb-4">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Variant</TableHead>
+                              <TableHead>SKU</TableHead>
+                              <TableHead className="text-right">Stock</TableHead>
                             </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </AccordionContent>
+                          </TableHeader>
+                          <TableBody>
+                            {outlet.variants.map((variant) => (
+                              <TableRow key={variant.sku}>
+                                <TableCell className="font-medium">
+                                  {variant.color || ''} {variant.size ? `(${variant.size})` : ''}
+                                  {!variant.color && !variant.size && "Standard"}
+                                </TableCell>
+                                <TableCell className="font-mono text-xs">{variant.sku}</TableCell>
+                                <TableCell className="text-right font-bold">
+                                  {variant.stockInOutlet}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </AccordionContent>
+                    </Card>
                   </AccordionItem>
                 ))}
               </Accordion>
             ) : (
-              <div className="text-center py-10 text-muted-foreground">
-                <p>This product is currently not available in any of our physical stores.</p>
+              <div className="flex flex-col items-center justify-center h-48 text-center text-muted-foreground border-2 border-dashed rounded-lg p-4">
+                  <Warehouse className="w-12 h-12 mb-4" />
+                  <h3 className="font-semibold text-lg text-foreground">Out of Stock in Stores</h3>
+                  <p className="text-sm">This product is currently not available in any of our physical stores.</p>
               </div>
             )}
           </div>
