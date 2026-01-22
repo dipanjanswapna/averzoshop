@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import L from 'leaflet';
 import { Search as SearchIcon, LocateFixed } from 'lucide-react';
 import { useDebounce } from '@/hooks/use-debounce';
@@ -8,8 +8,7 @@ import { barikoiReverseGeocode, barikoiAutocomplete } from '@/lib/barikoi';
 import { useToast } from '@/hooks/use-toast';
 
 // Fix for default icon issue with webpack
-// @ts-ignore
-delete L.Icon.Default.prototype._getIconUrl;
+delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
   iconUrl: require('leaflet/dist/images/marker-icon.png'),
@@ -54,22 +53,27 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
     // Cleanup on unmount
     return () => {
       if (mapRef.current) {
+        if (markerRef.current) {
+            markerRef.current.remove();
+            markerRef.current = null;
+        }
         mapRef.current.remove();
         mapRef.current = null;
       }
     };
   }, [initialPosition]);
 
-  const updateMapAndView = (lat: number, lng: number, zoom: number = 15) => {
+  const updateMapAndView = useCallback((lat: number, lng: number, zoom: number = 15) => {
     if (mapRef.current) {
         mapRef.current.setView([lat, lng], zoom);
         if (markerRef.current) {
             markerRef.current.setLatLng([lat, lng]);
         } else {
+            // This case handles if the marker was somehow removed
             markerRef.current = L.marker([lat, lng]).addTo(mapRef.current);
         }
     }
-  }
+  }, []);
 
   // Handle map click events
   useEffect(() => {
@@ -97,7 +101,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
     
     map.on('click', handleClick);
     return () => { map.off('click', handleClick); };
-  }, [onLocationSelect]);
+  }, [onLocationSelect, updateMapAndView]);
 
   // Handle autocomplete search
   useEffect(() => {
