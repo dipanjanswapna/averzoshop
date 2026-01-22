@@ -185,14 +185,22 @@ export default function AverzoNavbar() {
         </div>
         
         {/* Center Part (Desktop) */}
-        <div className="hidden lg:flex flex-1 items-center justify-center gap-6">
-             <nav className="flex items-center gap-2">
-                 <Link href="/shop"><Button variant="ghost" className="font-bold">Shop</Button></Link>
-                <Link href="/track-order"><Button variant="ghost" className="font-bold">Track Order</Button></Link>
-            </nav>
+        <div className="hidden lg:flex flex-1 items-center justify-start gap-8">
             <div className="w-full max-w-sm">
                 <LiveSearch />
             </div>
+            <nav className="flex items-center gap-2">
+                <Link href="/shop">
+                    <Button variant="ghost" className="font-bold text-sm uppercase tracking-wider hover:bg-primary/10 hover:text-primary">
+                        Shop
+                    </Button>
+                </Link>
+                <Link href="/track-order">
+                    <Button variant="ghost" className="font-bold text-sm uppercase tracking-wider hover:bg-primary/10 hover:text-primary">
+                        Track Order
+                    </Button>
+                </Link>
+            </nav>
         </div>
 
         {/* Right Part */}
