@@ -31,22 +31,23 @@ interface InteractiveMapProps {
   initialPosition: [number, number];
 }
 
-function MapController({ center, onMapClick, markerPosition }: { center: [number, number], onMapClick: (lat: number, lng: number) => void, markerPosition: [number, number] }) {
-    const map = useMap();
-    
-    useEffect(() => {
-        if (map) {
-            map.setView(center, 15);
-        }
-    }, [center, map]);
-    
-    useMapEvents({
-        click(e) {
-             onMapClick(e.latlng.lat, e.latlng.lng);
-        },
-    });
+// Child component to handle map events and imperative updates
+function MapController({ center, markerPosition, onMapClick }: { center: [number, number], markerPosition: [number, number], onMapClick: (lat: number, lng: number) => void }) {
+  const map = useMap();
 
-    return <Marker position={markerPosition} />;
+  useEffect(() => {
+    if (center[0] !== map.getCenter().lat || center[1] !== map.getCenter().lng) {
+      map.setView(center, 15);
+    }
+  }, [center, map]);
+  
+  useMapEvents({
+    click(e) {
+      onMapClick(e.latlng.lat, e.latlng.lng);
+    },
+  });
+
+  return <Marker position={markerPosition} />;
 }
 
 
@@ -54,14 +55,13 @@ const InteractiveMap = ({ onLocationSelect, initialPosition }: InteractiveMapPro
     const [searchQuery, setSearchQuery] = useState('');
     const debouncedSearchQuery = useDebounce(searchQuery, 500);
     const [suggestions, setSuggestions] = useState<any[]>([]);
-    const [mapCenter, setMapCenter] = useState<[number, number]>(initialPosition);
-    const [markerPosition, setMarkerPosition] = useState<[number, number]>(initialPosition);
-    const [mapKey, setMapKey] = useState(Date.now());
+    
+    // This state now controls both map center and marker position
+    const [position, setPosition] = useState<[number, number]>(initialPosition);
     
     useEffect(() => {
-        setMapCenter(initialPosition);
-        setMarkerPosition(initialPosition);
-        setMapKey(Date.now()); // Force re-mount of MapContainer
+        // When the dialog re-opens with a new initial position, update our state
+        setPosition(initialPosition);
     }, [initialPosition]);
 
     const fetchAddressFromCoords = useCallback(async (lat: number, lng: number) => {
@@ -84,7 +84,7 @@ const InteractiveMap = ({ onLocationSelect, initialPosition }: InteractiveMapPro
     }, [onLocationSelect]);
     
     const handleMapClick = useCallback((lat: number, lng: number) => {
-        setMarkerPosition([lat, lng]);
+        setPosition([lat, lng]);
         fetchAddressFromCoords(lat, lng);
     }, [fetchAddressFromCoords]);
 
@@ -116,16 +116,16 @@ const InteractiveMap = ({ onLocationSelect, initialPosition }: InteractiveMapPro
         setSuggestions([]);
         const lat = parseFloat(place.latitude);
         const lng = parseFloat(place.longitude);
-        setMapCenter([lat, lng]);
-        handleMapClick(lat, lng);
+        setPosition([lat, lng]);
+        fetchAddressFromCoords(lat, lng);
     };
 
     const handleCurrentLocation = () => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(position => {
                 const { latitude, longitude } = position.coords;
-                setMapCenter([latitude, longitude]);
-                handleMapClick(latitude, longitude);
+                setPosition([latitude, longitude]);
+                fetchAddressFromCoords(latitude, longitude);
             });
         }
     };
@@ -157,12 +157,13 @@ const InteractiveMap = ({ onLocationSelect, initialPosition }: InteractiveMapPro
                 )}
             </div>
             <div className="w-full h-full min-h-[300px] rounded-lg overflow-hidden z-0">
-                <MapContainer key={mapKey} center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }}>
+                {/* The MapContainer is now more stable. Updates happen inside MapController. */}
+                <MapContainer center={initialPosition} zoom={13} style={{ height: '100%', width: '100%' }}>
                     <TileLayer
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     />
-                    <MapController center={mapCenter} onMapClick={handleMapClick} markerPosition={markerPosition} />
+                    <MapController center={position} onMapClick={handleMapClick} markerPosition={position} />
                 </MapContainer>
             </div>
         </div>
