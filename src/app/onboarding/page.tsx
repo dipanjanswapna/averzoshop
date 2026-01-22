@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -75,7 +76,7 @@ export default function OnboardingPage() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen">
         {/* Left Panel (Desktop) */}
-        <div className="relative hidden lg:flex flex-col items-center justify-center p-12 transition-colors duration-700" style={{backgroundColor: currentSlide?.bgColor}}>
+        <div className={cn("relative hidden lg:flex flex-col items-center justify-center p-12 transition-colors duration-700", currentSlide?.bgColor)}>
              <motion.div 
                 key={current} 
                 className="flex flex-col items-center text-center"
