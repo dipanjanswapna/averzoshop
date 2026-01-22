@@ -31,6 +31,9 @@ import { Badge } from '../ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
 import { useFirebase } from '@/firebase';
 import { collection, query } from 'firebase/firestore';
+import { useAuth } from '@/hooks/use-auth';
+import { calculateDistance } from '@/lib/distance';
+
 
 interface StoreAvailabilityDialogProps {
   open: boolean;
@@ -52,6 +55,7 @@ const getVariantsAsArray = (variants: any): ProductVariant[] => {
 
 export function StoreAvailabilityDialog({ open, onOpenChange, product }: StoreAvailabilityDialogProps) {
   const { firestore } = useFirebase();
+  const { userData } = useAuth();
 
   const outletsQuery = useMemo(() => {
     if (!firestore) return null;
@@ -64,6 +68,7 @@ export function StoreAvailabilityDialog({ open, onOpenChange, product }: StoreAv
     if (!allOutlets || !product) return [];
 
     const variants = getVariantsAsArray(product.variants);
+    const customerCoords = userData?.addresses?.[0]?.coordinates;
 
     return allOutlets
       .map(outlet => {
@@ -76,15 +81,27 @@ export function StoreAvailabilityDialog({ open, onOpenChange, product }: StoreAv
         
         const totalStockInOutlet = variantsInStock.reduce((sum, variant) => sum + variant.stockInOutlet, 0);
 
+        let distance: number | null = null;
+        if (customerCoords?.lat && customerCoords?.lng && outlet.location.lat && outlet.location.lng) {
+          distance = calculateDistance(customerCoords.lat, customerCoords.lng, outlet.location.lat, outlet.location.lng);
+        }
+
         return {
           ...outlet,
           totalStock: totalStockInOutlet,
           variants: variantsInStock,
+          distance,
         };
       })
-      .filter(outlet => outlet.totalStock > 0);
+      .filter(outlet => outlet.totalStock > 0)
+      .sort((a, b) => {
+        if (a.distance === null && b.distance === null) return 0;
+        if (a.distance === null) return 1;
+        if (b.distance === null) return -1;
+        return a.distance - b.distance;
+      });
 
-  }, [allOutlets, product]);
+  }, [allOutlets, product, userData]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -113,6 +130,9 @@ export function StoreAvailabilityDialog({ open, onOpenChange, product }: StoreAv
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
                           <MapPin size={12} />
                           <span>{outlet.location.address}</span>
+                          {outlet.distance !== null && (
+                            <span className="font-semibold text-primary ml-2">(~{outlet.distance.toFixed(1)} km away)</span>
+                          )}
                         </div>
                       </div>
                       <Badge variant={outlet.totalStock > 10 ? 'default' : 'secondary'} className={`ml-4 ${outlet.totalStock > 10 ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'}`}>
