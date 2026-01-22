@@ -28,6 +28,13 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
         }
         return;
       }
+      
+      // New user onboarding for permissions if they have no address
+      if ((!userData.addresses || userData.addresses.length === 0) && pathname !== '/permissions') {
+        router.replace('/permissions');
+        return;
+      }
+
 
       const isCustomer = userData.role === 'customer';
       const isOutlet = userData.role === 'outlet';
@@ -42,7 +49,11 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
       const onVendorRoute = pathname.startsWith('/vendor');
       const onRiderRoute = pathname.startsWith('/rider');
       const onSalesRoute = pathname.startsWith('/sales');
+      const onPermissionsRoute = pathname === '/permissions';
 
+      if (onPermissionsRoute) {
+          return; // Allow user to stay on permissions page
+      }
 
       if (isCustomer && !onCustomerRoute) {
         router.replace('/customer');
