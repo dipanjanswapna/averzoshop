@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui/toaster';
 import { Providers } from '@/components/providers';
 import { ToastProvider } from '@/components/ui/toast';
+import 'leaflet/dist/leaflet.css';
 
 export default function RootLayout({
   children,
