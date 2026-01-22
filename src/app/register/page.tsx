@@ -110,7 +110,45 @@ function RegisterPageContent() {
   };
 
   const handleGoogleSignIn = async () => {
-    // Logic for Google Sign-In remains the same
+    if (!auth || !firestore) {
+      toast({ variant: 'destructive', title: 'Auth service not available.' });
+      return;
+    }
+    const provider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (!userDoc.exists()) {
+        await setDoc(userDocRef, {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          role: 'customer',
+          status: 'approved',
+          createdAt: serverTimestamp(),
+          loyaltyPoints: 100,
+          totalSpent: 0,
+          membershipTier: 'silver',
+        });
+        toast({ title: 'Welcome!', description: "Your account is created and you've received 100 bonus points!" });
+        router.push('/permissions');
+      } else {
+        await setDoc(userDocRef, {
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+        }, { merge: true });
+        toast({ title: 'Google Sign-In Successful', description: 'Welcome back!' });
+        router.push('/');
+      }
+
+    } catch (error: any) {
+      toast({ variant: 'destructive', title: 'Google Sign-In Failed', description: error.message });
+    }
   };
   
   return (
