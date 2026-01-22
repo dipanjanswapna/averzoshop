@@ -19,7 +19,7 @@ import { CardHeader, CardTitle } from '../ui/card';
 import { useCart } from '@/hooks/use-cart';
 import { useFirebase } from '@/firebase';
 import { useAuth } from '@/hooks/use-auth';
-import { collection, doc, updateDoc, arrayUnion, runTransaction, increment, DocumentReference, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, setDoc, updateDoc, arrayUnion, runTransaction, increment, DocumentReference, serverTimestamp } from 'firebase/firestore';
 import { calculateDistance } from '@/lib/distance';
 import type { Outlet } from '@/types/outlet';
 import type { Product, ProductVariant } from '@/types/product';
