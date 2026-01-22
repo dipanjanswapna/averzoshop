@@ -1,7 +1,6 @@
-
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Search, ShoppingBag, User, Menu, ChevronDown, X, ChevronRight, Zap, Sun, Moon } from 'lucide-react';
+import { Search, ShoppingBag, Menu, ChevronDown, X, ChevronRight, Zap, Sun, Moon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -9,9 +8,9 @@ import { Button } from '@/components/ui/button';
 import { categoriesData } from '@/lib/categories';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '@/hooks/use-cart';
-import { NotificationBell } from '@/components/ui/notification-bell';
 import { useTheme } from '@/components/providers';
 import { LiveSearch } from './live-search';
+import { UserNav } from './user-nav';
 
 
 const NestedAccordion = ({ category, onClose }: { category: any, onClose: () => void }) => {
@@ -192,22 +191,20 @@ export default function AverzoNavbar() {
               <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
               <span className="sr-only">Toggle theme</span>
             </Button>
-          <NotificationBell />
-          <Link href="/login">
-             <Button variant="ghost" size="icon" className="h-9 w-9">
-                <User size={22} className="hover:text-primary transition-colors" />
-             </Button>
-          </Link>
-          <Link href="/cart" className="relative">
-            <Button variant="ghost" size="icon" className="h-9 w-9">
-                <ShoppingBag size={22} className="hover:text-primary transition-colors" />
-                {isMounted && items.length > 0 && (
-                <span className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
-                    {items.reduce((acc, item) => acc + item.quantity, 0)}
-                </span>
-                )}
-            </Button>
-          </Link>
+            
+            <UserNav />
+
+            {/* The cart icon is now only on desktop, as it's in the bottom nav on mobile */}
+            <Link href="/cart" className="relative hidden lg:inline-flex">
+              <Button variant="ghost" size="icon" className="h-9 w-9">
+                  <ShoppingBag size={22} className="hover:text-primary transition-colors" />
+                  {isMounted && items.length > 0 && (
+                  <span className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
+                      {items.reduce((acc, item) => acc + item.quantity, 0)}
+                  </span>
+                  )}
+              </Button>
+            </Link>
         </div>
       </div>
       
