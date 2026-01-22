@@ -14,6 +14,7 @@ import { LiveSearch } from './live-search';
 import { UserNav } from './user-nav';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
 import { useAuth } from '@/hooks/use-auth';
+import AverzoLogo from './averzo-logo';
 
 
 const NestedAccordion = ({ category, onClose }: { category: any, onClose: () => void }) => {
@@ -87,7 +88,7 @@ const MobileSidebar = ({ isOpen, onClose, user }: { isOpen: boolean, onClose: ()
       <div className={`fixed top-0 left-0 h-full w-[80%] max-w-[300px] bg-white z-[160] shadow-2xl transform transition-transform duration-300 ease-in-out lg:hidden ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
         
         <div className="flex items-center justify-between p-5 border-b bg-foreground text-background">
-          <span className="text-xl font-black font-saira uppercase">Averzo.</span>
+          <AverzoLogo />
           <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-full">
             <X size={24} />
           </button>
@@ -180,16 +181,20 @@ export default function AverzoNavbar() {
             >
                 <Menu size={24} />
             </button>
-            <Link href="/" className="text-2xl font-black font-saira tracking-tighter text-foreground">
-                AVERZO<span className="text-primary">.</span>
-            </Link>
+            <AverzoLogo />
         </div>
         
         {/* Center Part (Desktop) */}
-        <div className="hidden lg:flex flex-1 items-center justify-center">
+        <div className="hidden lg:flex flex-1 items-center justify-center gap-4">
             <div className="w-full max-w-lg">
                 <LiveSearch />
             </div>
+             <Button variant="ghost" className="h-9 font-bold text-sm">
+                 <Store size={20} className="mr-2"/> Shop
+            </Button>
+            <Button variant="ghost" className="h-9 font-bold text-sm">
+                  <Truck size={20} className="mr-2"/> Track Order
+            </Button>
         </div>
 
         {/* Right Part */}
@@ -202,17 +207,6 @@ export default function AverzoNavbar() {
                 />
             </div>
           
-            <Link href="/shop" className="hidden lg:block">
-              <Button variant="ghost" size="icon" className="h-9 w-9">
-                 <Store size={22} />
-              </Button>
-            </Link>
-            <Link href="/track-order" className="hidden lg:block">
-              <Button variant="ghost" size="icon" className="h-9 w-9">
-                  <Truck size={22} />
-              </Button>
-            </Link>
-
             <Button
               variant="ghost"
               size="icon"

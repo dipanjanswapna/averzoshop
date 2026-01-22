@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
 import { LiveSearch } from '@/components/live-search';
+import AverzoLogo from '@/components/averzo-logo';
 
 export default function StoreLayout({
   children,
@@ -44,9 +45,7 @@ export default function StoreLayout({
 
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 py-12">
             <div className="col-span-2">
-              <div className="text-3xl font-black font-saira tracking-tighter text-foreground">
-                AVERZO<span className="text-primary">.</span>
-              </div>
+              <AverzoLogo />
               <p className="mt-4 text-sm text-muted-foreground max-w-xs">
                 Averzo is your one-stop destination for fashion, electronics, and lifestyle products, offering a seamless B2B2D2C experience.
               </p>
