@@ -851,7 +851,7 @@ export default function POSPage() {
                 subtotal: cartSubtotal,
                 cardPromoDiscountAmount: cardPromoDiscountAmount,
                 discountAmount: promoDiscount,
-                promoCode: appliedCoupon ? appliedCoupon.code : undefined,
+                promoCode: appliedCoupon ? appliedCoupon.code : null,
                 loyaltyPointsUsed: pointsApplied,
                 loyaltyDiscount: pointsDiscount,
                 totalAmount: grandTotal,
@@ -1011,5 +1011,3 @@ export default function POSPage() {
         </>
     );
 }
-
-    

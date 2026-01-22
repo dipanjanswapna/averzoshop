@@ -139,12 +139,13 @@ export default function SalesOrderPage() {
         if (appliedCoupon) {
             const eligibleItems = cart.filter(item => {
                 if (item.product.preOrder?.enabled) return false;
-                if (appliedCoupon.creatorType === 'admin') {
+                
+                if (coupon.creatorType === 'admin') {
                     if (!coupon.applicableProducts || coupon.applicableProducts.length === 0) return true;
                     return coupon.applicableProducts.includes(item.product.id);
                 }
-                if (appliedCoupon.creatorType === 'vendor') {
-                    if (item.product.vendorId !== appliedCoupon.creatorId) {
+                if (coupon.creatorType === 'vendor') {
+                    if (item.product.vendorId !== coupon.creatorId) {
                         return false; 
                     }
                     if (!coupon.applicableProducts || coupon.applicableProducts.length === 0) return true;
@@ -403,8 +404,8 @@ export default function SalesOrderPage() {
                 const orderRef = doc(firestore, 'orders', orderId);
 
                 const finalShippingAddress: ShippingAddress = {
-                    name: primaryAddress.name, phone: primaryAddress.phone, division: primaryAddress.division, district: primaryAddress.district,
-                    upazila: primaryAddress.upazila, area: primaryAddress.area, streetAddress: primaryAddress.streetAddress,
+                    name: primaryAddress.name, phone: primaryAddress.phone, district: primaryAddress.district,
+                    area: primaryAddress.area, streetAddress: primaryAddress.streetAddress,
                 };
                 
                 const orderData: Order = {
@@ -416,12 +417,12 @@ export default function SalesOrderPage() {
                     subtotal: cartSubtotal,
                     cardPromoDiscountAmount,
                     discountAmount: promoDiscount,
-                    promoCode: appliedCoupon?.code,
+                    promoCode: appliedCoupon?.code || null,
                     loyaltyPointsUsed: pointsApplied,
                     loyaltyDiscount,
                     totalAmount: grandTotal,
                     fullOrderValue: cartSubtotal,
-                    assignedOutletId: assignedOutletId || undefined,
+                    assignedOutletId: assignedOutletId || null,
                     status: 'new',
                     paymentStatus: 'Unpaid',
                     orderType: cart.some(i => i.product.preOrder?.enabled) ? 'pre-order' : 'regular',
@@ -664,5 +665,3 @@ export default function SalesOrderPage() {
         </div>
     );
 }
-
-    

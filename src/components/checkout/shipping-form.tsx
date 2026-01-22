@@ -231,9 +231,9 @@ export function ShippingForm() {
 
     const baseOrderData: Omit<Order, 'status' | 'createdAt' | 'paymentStatus'> = {
         id: orderId, customerId: user.uid, items: cartItems.map(item => ({ productId: item.product.id, productName: item.product.name, variantSku: item.variant.sku, quantity: item.quantity, price: item.variant.price })),
-        subtotal: subtotal, cardPromoDiscountAmount: cardPromoDiscountAmount, discountAmount: discount, promoCode: promoCode ? promoCode.code : undefined, loyaltyPointsUsed: pointsApplied, loyaltyDiscount: pointsDiscount,
+        subtotal: subtotal, cardPromoDiscountAmount: cardPromoDiscountAmount, discountAmount: discount, promoCode: promoCode ? promoCode.code : null, loyaltyPointsUsed: pointsApplied, loyaltyDiscount: pointsDiscount,
         totalAmount: totalPayable, fullOrderValue: fullOrderTotal, orderType: isPreOrderInCart ? 'pre-order' as const : 'regular' as const,
-        orderMode: orderMode, pickupOutletId: orderMode === 'pickup' ? pickupOutletId : undefined,
+        orderMode: orderMode, pickupOutletId: orderMode === 'pickup' ? pickupOutletId : null,
         assignedOutletId: assignedOutletId, pickupCode: pickupCode, shippingAddress: finalShippingAddress
     };
 
@@ -252,7 +252,7 @@ export function ShippingForm() {
                         const productDoc = productDocs[i];
                         if (!productDoc.exists()) throw new Error(`Product ${item.product.name} not found.`);
                         const productData = productDoc.data() as Product;
-                        const variantsArray = Array.isArray(productData.variants) ? JSON.parse(JSON.stringify(productData.variants)) : JSON.parse(JSON.stringify(Object.values(productData.variants)));
+                        const variantsArray = Array.isArray(productData.variants) ? JSON.parse(JSON.stringify(productData.variants)) : JSON.parse(JSON.stringify(Object.values(productData.variants || {})));
                         const variantIndex = variantsArray.findIndex((v: ProductVariant) => v.sku === item.variant.sku);
                         if (variantIndex === -1) throw new Error(`Variant ${item.variant.sku} not found.`);
                         const variant = variantsArray[variantIndex];
@@ -309,6 +309,7 @@ export function ShippingForm() {
               render={() => (
                 <FormItem>
                   <FormLabel>Delivery Method</FormLabel>
+                  <FormControl>
                   <RadioGroup onValueChange={(value: 'delivery' | 'pickup') => setOrderMode(value)} value={orderMode} className="grid grid-cols-2 gap-4">
                     <FormItem><FormControl>
                       <Label className="flex items-center gap-2 p-4 border rounded-lg cursor-pointer has-[:checked]:bg-primary/10 has-[:checked]:border-primary">
@@ -321,6 +322,7 @@ export function ShippingForm() {
                       </Label>
                     </FormControl></FormItem>
                   </RadioGroup>
+                  </FormControl>
                 </FormItem>
               )}
             />
