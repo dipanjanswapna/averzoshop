@@ -1,4 +1,4 @@
-
+'use client';
 
 import {
   Card,
@@ -8,12 +8,46 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { LoyaltySettings } from '@/components/dashboard/admin/LoyaltySettings';
+import { Button } from '@/components/ui/button';
+import { useTheme } from '@/components/providers';
+import { Moon, Sun } from 'lucide-react';
+import { Label } from '@/components/ui/label';
 
 export default function SettingsPage() {
+  const { theme, setTheme } = useTheme();
+
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-3xl font-bold font-headline">Settings</h1>
       
+       <Card>
+        <CardHeader>
+          <CardTitle>Appearance</CardTitle>
+          <CardDescription>Customize the look and feel of your dashboard.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <Label>Theme</Label>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant={theme === 'light' ? 'default' : 'outline'}
+                onClick={() => setTheme('light')}
+                className="gap-2"
+              >
+                <Sun size={16} /> Light
+              </Button>
+              <Button
+                variant={theme === 'dark' ? 'default' : 'outline'}
+                onClick={() => setTheme('dark')}
+                className="gap-2"
+              >
+                <Moon size={16} /> Dark
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       <LoyaltySettings />
       
       <Card>
@@ -30,5 +64,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
-    
