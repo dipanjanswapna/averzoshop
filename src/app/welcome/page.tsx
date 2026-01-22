@@ -12,7 +12,7 @@ export default function WelcomePage() {
   const redirect = searchParams.get('redirect');
 
   const loginHref = redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : '/login';
-  const onboardingHref = redirect ? `/onboarding?redirect=${encodeURIComponent(redirect)}` : '/onboarding';
+  const registerHref = redirect ? `/register?redirect=${encodeURIComponent(redirect)}` : '/register';
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen font-body">
@@ -69,7 +69,7 @@ export default function WelcomePage() {
                         Sign In
                     </Button>
                 </Link>
-                <Link href={onboardingHref}>
+                <Link href={registerHref}>
                     <Button size="lg" variant="outline" className="w-full h-14 text-base font-bold group">
                          <UserPlus className="mr-2 h-5 w-5"/>
                         Create an Account
