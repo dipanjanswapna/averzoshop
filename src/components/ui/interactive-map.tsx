@@ -1,14 +1,14 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import { useState, useEffect, useCallback } from 'react';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { Input } from './input';
 import { Button } from './button';
 import { LocateFixed } from 'lucide-react';
 import { useDebounce } from '@/hooks/use-debounce';
-import { barikoi } from '@/lib/barikoi';
+import { barikoiReverseGeocode, barikoiAutocomplete } from '@/lib/barikoi';
 
 // Fix for default icon issue with webpack
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -17,7 +17,6 @@ L.Icon.Default.mergeOptions({
   iconUrl: require('leaflet/dist/images/marker-icon.png').default,
   shadowUrl: require('leaflet/dist/images/marker-shadow.png').default,
 });
-
 
 interface InteractiveMapProps {
   onLocationSelect: (details: {
@@ -32,7 +31,7 @@ interface InteractiveMapProps {
   initialPosition: [number, number];
 }
 
-function MapController({ center, onLocationSelect }: { center: [number, number], onLocationSelect: (lat: number, lng: number) => void }) {
+function MapController({ center, onMapClick, markerPosition }: { center: [number, number], onMapClick: (lat: number, lng: number) => void, markerPosition: [number, number] }) {
     const map = useMap();
     
     useEffect(() => {
@@ -41,13 +40,13 @@ function MapController({ center, onLocationSelect }: { center: [number, number],
         }
     }, [center, map]);
     
-    const mapEvents = useMap({
+    useMapEvents({
         click(e) {
-             onLocationSelect(e.latlng.lat, e.latlng.lng);
+             onMapClick(e.latlng.lat, e.latlng.lng);
         },
     });
 
-    return <Marker position={center} />;
+    return <Marker position={markerPosition} />;
 }
 
 
@@ -56,12 +55,39 @@ const InteractiveMap = ({ onLocationSelect, initialPosition }: InteractiveMapPro
     const debouncedSearchQuery = useDebounce(searchQuery, 500);
     const [suggestions, setSuggestions] = useState<any[]>([]);
     const [mapCenter, setMapCenter] = useState<[number, number]>(initialPosition);
-
+    const [markerPosition, setMarkerPosition] = useState<[number, number]>(initialPosition);
+    const [mapKey, setMapKey] = useState(Date.now());
+    
     useEffect(() => {
         setMapCenter(initialPosition);
+        setMarkerPosition(initialPosition);
+        setMapKey(Date.now()); // Force re-mount of MapContainer
     }, [initialPosition]);
 
-    // Fetch autocomplete suggestions using the new SDK
+    const fetchAddressFromCoords = useCallback(async (lat: number, lng: number) => {
+        try {
+            const result = await barikoiReverseGeocode(lat, lng);
+            if (result.status === 200 && result.place) {
+                onLocationSelect({
+                    lat,
+                    lng,
+                    division: result.place.division || '',
+                    district: result.place.district || '',
+                    upazila: result.place.sub_district || '',
+                    area: result.place.area || '',
+                    streetAddress: result.place.address || ''
+                });
+            }
+        } catch (error) {
+            console.error("Barikoi reverse geocode error:", error);
+        }
+    }, [onLocationSelect]);
+    
+    const handleMapClick = useCallback((lat: number, lng: number) => {
+        setMarkerPosition([lat, lng]);
+        fetchAddressFromCoords(lat, lng);
+    }, [fetchAddressFromCoords]);
+
     useEffect(() => {
         if (debouncedSearchQuery.length < 3) {
             setSuggestions([]);
@@ -70,9 +96,9 @@ const InteractiveMap = ({ onLocationSelect, initialPosition }: InteractiveMapPro
 
         const fetchSuggestions = async () => {
             try {
-                const result = await barikoi.autocomplete({ q: debouncedSearchQuery });
-                if (result.data && result.data.status === 200 && result.data.places) {
-                    setSuggestions(result.data.places);
+                const result = await barikoiAutocomplete(debouncedSearchQuery);
+                if (result.status === 200 && result.places) {
+                    setSuggestions(result.places);
                 } else {
                     setSuggestions([]);
                 }
@@ -85,54 +111,20 @@ const InteractiveMap = ({ onLocationSelect, initialPosition }: InteractiveMapPro
         fetchSuggestions();
     }, [debouncedSearchQuery]);
 
-    // Fetch address from coordinates using the new SDK
-    const fetchAddressFromCoords = async (lat: number, lng: number) => {
-        try {
-            const result = await barikoi.reverseGeocode({
-                longitude: lng,
-                latitude: lat,
-                district: true,
-                post_code: true,
-                sub_district: true,
-                division: true,
-                address: true,
-                area: true,
-            });
-
-            if (result.data && result.data.status === 200 && result.data.place) {
-                onLocationSelect({
-                    lat,
-                    lng,
-                    division: result.data.place.division || '',
-                    district: result.data.place.district || '',
-                    upazila: result.data.place.sub_district || '',
-                    area: result.data.place.area || '',
-                    streetAddress: result.data.place.address || ''
-                });
-            }
-        } catch (error) {
-            console.error("Barikoi reverse geocode error:", error);
-        }
-    };
-    
-    const handleMapClick = (lat: number, lng: number) => {
-        setMapCenter([lat, lng]);
-        fetchAddressFromCoords(lat, lng);
-    };
-
     const handleSuggestionClick = (place: any) => {
         setSearchQuery('');
         setSuggestions([]);
         const lat = parseFloat(place.latitude);
         const lng = parseFloat(place.longitude);
         setMapCenter([lat, lng]);
-        fetchAddressFromCoords(lat, lng);
+        handleMapClick(lat, lng);
     };
 
     const handleCurrentLocation = () => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(position => {
                 const { latitude, longitude } = position.coords;
+                setMapCenter([latitude, longitude]);
                 handleMapClick(latitude, longitude);
             });
         }
@@ -165,12 +157,12 @@ const InteractiveMap = ({ onLocationSelect, initialPosition }: InteractiveMapPro
                 )}
             </div>
             <div className="w-full h-full min-h-[300px] rounded-lg overflow-hidden z-0">
-                <MapContainer center={initialPosition} zoom={13} style={{ height: '100%', width: '100%' }}>
+                <MapContainer key={mapKey} center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }}>
                     <TileLayer
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     />
-                    <MapController center={mapCenter} onLocationSelect={handleMapClick} />
+                    <MapController center={mapCenter} onMapClick={handleMapClick} markerPosition={markerPosition} />
                 </MapContainer>
             </div>
         </div>
