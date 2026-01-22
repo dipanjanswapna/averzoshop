@@ -20,7 +20,7 @@ body {
     --card-foreground: 0 0% 14.1%; /* Deep Charcoal */
     --popover: 0 0% 100%; /* White */
     --popover-foreground: 0 0% 14.1%; /* Deep Charcoal */
-    --primary: 0 100% 63.9%; /* Vibrant Coral */
+    --primary: 343 91% 56%; /* Vibrant Coral */
     --primary-foreground: 0 0% 98%; /* White-ish */
     --secondary: 0 0% 93%; /* Lighter Grey for contrast */
     --secondary-foreground: 0 0% 14.1%; /* Deep Charcoal */
@@ -32,7 +32,7 @@ body {
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 90%; /* Light Grey */
     --input: 0 0% 90%;
-    --ring: 0 100% 63.9%; /* Vibrant Coral */
+    --ring: 343 91% 56%; /* Vibrant Coral */
     --chart-1: 221 83% 53%;
     --chart-2: 120 73% 65%;
     --chart-3: 40 80% 60%;
@@ -46,7 +46,7 @@ body {
     --sidebar-accent: 0 0% 22%; /* Lighter Charcoal */
     --sidebar-accent-foreground: 0 0% 96.5%; /* Off-White */
     --sidebar-border: 0 0% 22%;
-    --sidebar-ring: 0 100% 63.9%; /* Vibrant Coral */
+    --sidebar-ring: 343 91% 56%; /* Vibrant Coral */
   }
 
   .dark {
@@ -56,7 +56,7 @@ body {
     --card-foreground: 0 0% 96.5%; /* Off-White */
     --popover: 0 0% 10%; /* Even darker charcoal for popovers */
     --popover-foreground: 0 0% 96.5%; /* Off-White */
-    --primary: 0 100% 63.9%; /* Vibrant Coral */
+    --primary: 343 91% 56%; /* Vibrant Coral */
     --primary-foreground: 0 0% 98%;
     --secondary: 0 0% 18%; /* Darker Grey */
     --secondary-foreground: 0 0% 96.5%; /* Off-White */
@@ -68,7 +68,7 @@ body {
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 22%; /* Lighter Charcoal */
     --input: 0 0% 22%;
-    --ring: 0 100% 63.9%; /* Vibrant Coral */
+    --ring: 343 91% 56%; /* Vibrant Coral */
     --sidebar-background: 0 0% 10%; /* Even Darker Charcoal */
     --sidebar-foreground: 0 0% 96.5%; /* Off-White */
     --sidebar-primary: 0 0% 96.5%; /* Off-White for active item background */
@@ -76,7 +76,7 @@ body {
     --sidebar-accent: 0 0% 18%; /* Darker Grey */
     --sidebar-accent-foreground: 0 0% 96.5%; /* Off-White */
     --sidebar-border: 0 0% 18%;
-    --sidebar-ring: 0 100% 63.9%; /* Vibrant Coral */
+    --sidebar-ring: 343 91% 56%; /* Vibrant Coral */
   }
 }
 
@@ -95,34 +95,15 @@ body {
         height: 64px;
         border-radius: 50%;
         position: relative;
-        animation: rotate 1s linear infinite
+        border: 6px solid hsl(var(--muted));
+        border-top-color: hsl(var(--primary));
+        animation: rotate 1s linear infinite;
+        box-shadow: 0 0 20px hsl(var(--primary) / 0.3), 0 0 30px hsl(var(--primary) / 0.2);
     }
-    .loader::before , .loader::after {
-        content: "";
-        box-sizing: border-box;
-        position: absolute;
-        inset: 0px;
-        border-radius: 50%;
-        border: 6px solid hsl(var(--primary));
-        animation: prixClipFix 2s linear infinite ;
-    }
-    .loader::after{
-        border-color: hsl(var(--destructive));
-        animation: prixClipFix 2s linear infinite , rotate 0.5s linear infinite reverse;
-        inset: 8px;
-    }
-
+    
     @keyframes rotate {
         0%   {transform: rotate(0deg)}
-        100%   {transform: rotate(360deg)}
-    }
-
-    @keyframes prixClipFix {
-        0%   {clip-path:polygon(50% 50%,0 0,0 0,0 0,0 0,0 0)}
-        25%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 0,100% 0,100% 0)}
-        50%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,100% 100%,100% 100%)}
-        75%  {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 100%)}
-        100% {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 0)}
+        100% {transform: rotate(360deg)}
     }
 }
 

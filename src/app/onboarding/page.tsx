@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useEffect, useState } from 'react';
 import { ArrowRight } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const onboardingSlides = [
   {
@@ -63,7 +64,7 @@ export default function OnboardingPage() {
           <CarouselContent>
             {onboardingSlides.map((slide, index) => (
               <CarouselItem key={index}>
-                <Card className="overflow-hidden border-none shadow-2xl">
+                <Card className="overflow-hidden border-none shadow-2xl rounded-2xl">
                   <CardContent className="flex aspect-square items-center justify-center p-0 flex-col text-center">
                      <div className="relative w-full h-2/3">
                         <Image 
@@ -83,28 +84,32 @@ export default function OnboardingPage() {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="hidden sm:flex" />
-          <CarouselNext className="hidden sm:flex" />
+          <div className="hidden sm:block">
+            <CarouselPrevious className="absolute left-0" />
+            <CarouselNext className="absolute right-0" />
+          </div>
         </Carousel>
         
-        <div className="py-4 text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
+        <div className="py-6 text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
             {Array.from({ length: count }).map((_, index) => (
-                <div 
+                <motion.div
                     key={index}
-                    className={`h-2 w-2 rounded-full transition-all ${current === index ? 'w-4 bg-primary' : 'bg-muted-foreground/30'}`}
+                    className={`h-2 rounded-full transition-all`}
+                    animate={{ width: current === index ? 24 : 8, backgroundColor: current === index ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground) / 0.3)' }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                 />
             ))}
         </div>
 
         {isLastSlide ? (
             <Link href="/shop" className="w-full">
-                <Button size="lg" className="w-full h-12 text-base">
-                    Let's Go Shopping <ArrowRight className="ml-2 h-5 w-5" />
+                <Button size="lg" className="w-full h-12 text-base font-bold group bg-gradient-to-r from-primary to-destructive text-primary-foreground hover:opacity-90 transition-all duration-300 transform hover:-translate-y-px shadow-lg hover:shadow-primary/40">
+                    Let's Go Shopping <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
                 </Button>
             </Link>
         ) : (
-             <Button size="lg" className="w-full h-12 text-base" onClick={() => api?.scrollNext()}>
-                Next <ArrowRight className="ml-2 h-5 w-5" />
+             <Button size="lg" className="w-full h-12 text-base font-bold group" onClick={() => api?.scrollNext()}>
+                Next <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Button>
         )}
       </div>
