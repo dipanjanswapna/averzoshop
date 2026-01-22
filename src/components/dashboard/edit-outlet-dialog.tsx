@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -52,18 +53,27 @@ export function EditOutletDialog({ open, onOpenChange, outlet }: EditOutletDialo
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+        name: '',
+        location: {
+            address: '',
+            lat: 23.8103,
+            lng: 90.4125
+        },
+        status: 'Active'
+    }
   });
 
   useEffect(() => {
     if (outlet) {
       form.reset({
-        name: outlet.name,
+        name: outlet.name ?? '',
         location: {
-            address: outlet.location.address,
-            lat: outlet.location.lat,
-            lng: outlet.location.lng,
+            address: outlet.location.address ?? '',
+            lat: outlet.location.lat ?? 23.8103,
+            lng: outlet.location.lng ?? 90.4125,
         },
-        status: outlet.status,
+        status: outlet.status ?? 'Active',
       });
     }
   }, [outlet, form]);
