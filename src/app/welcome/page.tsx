@@ -18,11 +18,11 @@ export default function WelcomePage() {
     <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen font-body">
       <div className="relative hidden lg:block">
          <Image 
-          src="https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?q=80&w=800&auto=format&fit=crop"
-          alt="Welcome to Averzo"
+          src="/hc-digital-7qCeFo19r24-unsplash.jpg"
+          alt="Stylish person with shopping bags"
           fill
           className="object-cover"
-          data-ai-hint="fashion lifestyle abstract"
+          data-ai-hint="fashion shopping"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent"></div>
         <div className="relative z-10 flex flex-col justify-end h-full p-12 text-white">
