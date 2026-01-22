@@ -18,7 +18,7 @@ L.Icon.Default.mergeOptions({
 
 
 // This component will contain all the logic that interacts with the map instance
-function MapEventsController({ center, onLocationSelect }: { center: [number, number], onLocationSelect: (lat: number, lng: number) => void }) {
+function MapController({ center, onLocationSelect }: { center: [number, number], onLocationSelect: (lat: number, lng: number) => void }) {
     const map = useMap();
     
     // Update map view when center prop changes
@@ -38,12 +38,14 @@ function MapEventsController({ center, onLocationSelect }: { center: [number, nu
 
 
 const InteractiveMap = ({ onLocationSelect, initialPosition }: { onLocationSelect: (lat: number, lng: number) => void, initialPosition: [number, number] }) => {
-    const [mapCenter, setMapCenter] = useState<[number, number]>(initialPosition);
     const [searchQuery, setSearchQuery] = useState('');
+    // The map's center state will be managed here and passed down.
+    const [mapCenter, setMapCenter] = useState<[number, number]>(initialPosition);
     
     useEffect(() => {
-        onLocationSelect(mapCenter[0], mapCenter[1]);
-    }, [mapCenter, onLocationSelect]);
+        // When the initial position changes (e.g. dialog re-opens with different data), update the map center.
+        setMapCenter(initialPosition);
+    }, [initialPosition]);
 
     const handleSearch = async () => {
         if (!searchQuery) return;
@@ -52,7 +54,9 @@ const InteractiveMap = ({ onLocationSelect, initialPosition }: { onLocationSelec
             const data = await response.json();
             if (data.length > 0) {
                 const { lat, lon } = data[0];
-                setMapCenter([parseFloat(lat), parseFloat(lon)]);
+                const newPos: [number, number] = [parseFloat(lat), parseFloat(lon)];
+                setMapCenter(newPos);
+                onLocationSelect(newPos[0], newPos[1]);
             } else {
                 alert("Location not found");
             }
@@ -66,11 +70,20 @@ const InteractiveMap = ({ onLocationSelect, initialPosition }: { onLocationSelec
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(position => {
                 const { latitude, longitude } = position.coords;
-                setMapCenter([latitude, longitude]);
+                const newPos: [number, number] = [latitude, longitude];
+                setMapCenter(newPos);
+                onLocationSelect(newPos[0], newPos[1]);
             });
         } else {
             alert('Geolocation is not supported by this browser.');
         }
+    };
+
+    // This handler will be called by the MapController when the map is clicked
+    const handleMapClick = (lat: number, lng: number) => {
+        const newPos: [number, number] = [lat, lng];
+        setMapCenter(newPos);
+        onLocationSelect(newPos[0], newPos[1]);
     };
     
     return (
@@ -86,12 +99,12 @@ const InteractiveMap = ({ onLocationSelect, initialPosition }: { onLocationSelec
                 <Button type="button" onClick={handleCurrentLocation} variant="outline"><LocateFixed size={18} /></Button>
             </div>
             <div className="w-full h-full min-h-[300px] rounded-lg overflow-hidden z-0">
-                <MapContainer center={initialPosition} zoom={13} style={{ height: '100%', width: '100%' }}>
+                <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }}>
                     <TileLayer
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                     />
-                    <MapEventsController center={mapCenter} onLocationSelect={(lat, lng) => setMapCenter([lat, lng])} />
+                    <MapController center={mapCenter} onLocationSelect={handleMapClick} />
                 </MapContainer>
             </div>
         </div>
