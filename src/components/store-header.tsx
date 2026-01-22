@@ -1,4 +1,3 @@
-
 "use client";
 import React, { useState, useEffect } from 'react';
 import { Search, ShoppingBag, Menu, ChevronDown, X, ChevronRight, Zap, Sun, Moon, User, Store, Truck } from 'lucide-react';
@@ -218,6 +217,17 @@ export default function AverzoNavbar() {
               <span className="sr-only">Toggle theme</span>
             </Button>
             
+            <Link href="/cart" className="hidden lg:block">
+              <Button variant="ghost" size="icon" className="relative h-9 w-9">
+                <ShoppingBag size={22} />
+                {isMounted && items.length > 0 && (
+                   <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                    {items.reduce((acc, cartItem) => acc + cartItem.quantity, 0)}
+                  </span>
+                )}
+              </Button>
+            </Link>
+
             <UserNav />
 
         </div>
