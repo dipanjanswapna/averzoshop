@@ -140,7 +140,7 @@ function VerifyEmailPageContent() {
             window.localStorage.removeItem('registrationDetails');
             
             setStatus('All set! Redirecting...');
-            router.push(redirect || '/customer');
+            router.push('/permissions');
 
         } catch (error: any) {
             console.error(error);
