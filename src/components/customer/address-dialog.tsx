@@ -87,9 +87,14 @@ export function AddressDialog({ open, onOpenChange, onSave, addressToEdit, isLoa
     onSave(values, addressToEdit?.id);
   };
   
-  const handleLocationSelect = (lat: number, lng: number) => {
-    form.setValue('coordinates.lat', lat);
-    form.setValue('coordinates.lng', lng);
+  const handleLocationSelect = (details: { lat: number; lng: number; division: string; district: string; upazila: string; area: string; streetAddress: string; }) => {
+    form.setValue('coordinates.lat', details.lat);
+    form.setValue('coordinates.lng', details.lng);
+    form.setValue('division', details.division, { shouldValidate: true });
+    form.setValue('district', details.district, { shouldValidate: true });
+    form.setValue('upazila', details.upazila, { shouldValidate: true });
+    form.setValue('area', details.area, { shouldValidate: true });
+    form.setValue('streetAddress', details.streetAddress, { shouldValidate: true });
   }
 
   return (

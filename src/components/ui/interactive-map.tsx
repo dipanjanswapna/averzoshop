@@ -1,12 +1,13 @@
 "use client"
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { Input } from './input';
 import { Button } from './button';
 import { Search, LocateFixed } from 'lucide-react';
+import { useDebounce } from '@/hooks/use-debounce';
 
 // Fix for default icon issue with webpack
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -17,16 +18,26 @@ L.Icon.Default.mergeOptions({
 });
 
 
-// This component will contain all the logic that interacts with the map instance
+interface InteractiveMapProps {
+  onLocationSelect: (details: {
+    lat: number;
+    lng: number;
+    division: string;
+    district: string;
+    upazila: string;
+    area: string;
+    streetAddress: string;
+  }) => void;
+  initialPosition: [number, number];
+}
+
 function MapController({ center, onLocationSelect }: { center: [number, number], onLocationSelect: (lat: number, lng: number) => void }) {
     const map = useMap();
     
-    // Update map view when center prop changes
     useEffect(() => {
-        map.setView(center, map.getZoom());
+        map.setView(center, 15);
     }, [center, map]);
     
-    // Handle map clicks
     useMapEvents({
         click(e) {
             onLocationSelect(e.latlng.lat, e.latlng.lng);
@@ -37,66 +48,113 @@ function MapController({ center, onLocationSelect }: { center: [number, number],
 }
 
 
-const InteractiveMap = ({ onLocationSelect, initialPosition }: { onLocationSelect: (lat: number, lng: number) => void, initialPosition: [number, number] }) => {
+const InteractiveMap = ({ onLocationSelect, initialPosition }: InteractiveMapProps) => {
     const [searchQuery, setSearchQuery] = useState('');
-    // The map's center state will be managed here and passed down.
+    const debouncedSearchQuery = useDebounce(searchQuery, 500);
+    const [suggestions, setSuggestions] = useState<any[]>([]);
     const [mapCenter, setMapCenter] = useState<[number, number]>(initialPosition);
-    
+    const apiKey = process.env.NEXT_PUBLIC_BARIKOI_API_KEY;
+
     useEffect(() => {
-        // When the initial position changes (e.g. dialog re-opens with different data), update the map center.
         setMapCenter(initialPosition);
     }, [initialPosition]);
 
-    const handleSearch = async () => {
-        if (!searchQuery) return;
+    // Fetch autocomplete suggestions
+    useEffect(() => {
+        if (debouncedSearchQuery.length < 3 || !apiKey) {
+            setSuggestions([]);
+            return;
+        }
+
+        const fetchSuggestions = async () => {
+            const url = `https://barikoi.xyz/v2/api/search/autocomplete/place?api_key=${apiKey}&q=${encodeURIComponent(debouncedSearchQuery)}`;
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data.status === 200 && data.places) {
+                    setSuggestions(data.places);
+                } else {
+                    setSuggestions([]);
+                }
+            } catch (error) {
+                console.error("Barikoi autocomplete error:", error);
+                setSuggestions([]);
+            }
+        };
+
+        fetchSuggestions();
+    }, [debouncedSearchQuery, apiKey]);
+
+    const fetchAddressFromCoords = async (lat: number, lng: number) => {
+        if (!apiKey) return;
+        const url = `https://barikoi.xyz/v2/api/search/reverse/geocode?api_key=${apiKey}&longitude=${lng}&latitude=${lat}&district=true&post_code=true&sub_district=true&division=true&address=true&area=true`;
         try {
-            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`);
+            const response = await fetch(url);
             const data = await response.json();
-            if (data.length > 0) {
-                const { lat, lon } = data[0];
-                const newPos: [number, number] = [parseFloat(lat), parseFloat(lon)];
-                setMapCenter(newPos);
-                onLocationSelect(newPos[0], newPos[1]);
-            } else {
-                alert("Location not found");
+            if (data.status === 200 && data.place) {
+                onLocationSelect({
+                    lat,
+                    lng,
+                    division: data.place.division || '',
+                    district: data.place.district || '',
+                    upazila: data.place.sub_district || '',
+                    area: data.place.area || '',
+                    streetAddress: data.place.address || ''
+                });
             }
         } catch (error) {
-            console.error("Geocoding API error:", error);
-            alert("Failed to search for location.");
+            console.error("Barikoi reverse geocode error:", error);
         }
     };
     
+    const handleMapClick = (lat: number, lng: number) => {
+        setMapCenter([lat, lng]);
+        fetchAddressFromCoords(lat, lng);
+    };
+
+    const handleSuggestionClick = (place: any) => {
+        setSearchQuery('');
+        setSuggestions([]);
+        const lat = parseFloat(place.latitude);
+        const lng = parseFloat(place.longitude);
+        setMapCenter([lat, lng]);
+        fetchAddressFromCoords(lat, lng);
+    };
+
     const handleCurrentLocation = () => {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(position => {
                 const { latitude, longitude } = position.coords;
-                const newPos: [number, number] = [latitude, longitude];
-                setMapCenter(newPos);
-                onLocationSelect(newPos[0], newPos[1]);
+                handleMapClick(latitude, longitude);
             });
-        } else {
-            alert('Geolocation is not supported by this browser.');
         }
     };
 
-    // This handler will be called by the MapController when the map is clicked
-    const handleMapClick = (lat: number, lng: number) => {
-        const newPos: [number, number] = [lat, lng];
-        setMapCenter(newPos);
-        onLocationSelect(newPos[0], newPos[1]);
-    };
-    
     return (
         <div className="flex flex-col gap-4 h-full">
-            <div className="flex gap-2">
-                <Input
-                    placeholder="Search for a location..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleSearch(); } }}
-                />
-                <Button type="button" onClick={handleSearch}><Search size={18} /></Button>
-                <Button type="button" onClick={handleCurrentLocation} variant="outline"><LocateFixed size={18} /></Button>
+            <div className="relative">
+                <div className="flex gap-2">
+                    <Input
+                        placeholder="Search for a location..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    <Button type="button" onClick={handleCurrentLocation} variant="outline" size="icon"><LocateFixed size={18} /></Button>
+                </div>
+                {suggestions.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 bg-background border rounded-md shadow-lg z-[9999] max-h-60 overflow-y-auto mt-1">
+                        {suggestions.map((place) => (
+                            <div
+                                key={place.id}
+                                className="p-3 hover:bg-muted cursor-pointer"
+                                onClick={() => handleSuggestionClick(place)}
+                            >
+                                <p className="font-semibold text-sm">{place.address}</p>
+                                <p className="text-xs text-muted-foreground">{place.area}, {place.city}</p>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
             <div className="w-full h-full min-h-[300px] rounded-lg overflow-hidden z-0">
                 <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }}>
