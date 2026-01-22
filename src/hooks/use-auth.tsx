@@ -6,6 +6,7 @@ import React, {
   useEffect,
   useState,
   ReactNode,
+  useMemo,
 } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { doc, onSnapshot, getFirestore, DocumentData } from 'firebase/firestore';
@@ -76,8 +77,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => unsubscribe();
   }, [auth, firestore]);
 
+  const value = useMemo(() => ({ user, userData, loading, firestore, auth }), [user, userData, loading, firestore, auth]);
+
   return (
-    <AuthContext.Provider value={{ user, userData, loading, firestore, auth }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
