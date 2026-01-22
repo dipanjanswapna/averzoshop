@@ -23,7 +23,7 @@ const onboardingSlides = [
     textColor: "text-purple-800",
     title: "Discover Your Style",
     description: "Explore thousands of products from top brands and find what truly fits you.",
-    image: "https://picsum.photos/seed/onboard1/800/1200",
+    image: "/jon-ly-Xn7GvimQrk8-unsplash.jpg",
     imageHint: "online shopping fashion",
   },
   {
@@ -32,7 +32,7 @@ const onboardingSlides = [
     textColor: "text-blue-800",
     title: "Fast & Reliable Delivery",
     description: "Get your favorite items delivered to your doorstep faster than you can imagine.",
-    image: "https://picsum.photos/seed/onboard2/800/1200",
+    image: "/boxed-water-is-better-7H1hDt694s8-unsplash.jpg",
     imageHint: "delivery package shipping",
   },
   {
@@ -41,7 +41,7 @@ const onboardingSlides = [
     textColor: "text-pink-800",
     title: "Exclusive Offers & Deals",
     description: "Unlock special discounts, loyalty points, and deals exclusively for our members.",
-    image: "https://picsum.photos/seed/onboard3/800/1200",
+    image: "/hc-digital-7qCeFo19r24-unsplash.jpg",
     imageHint: "exclusive offer sale",
   },
 ];
