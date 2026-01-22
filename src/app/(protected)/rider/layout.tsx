@@ -27,15 +27,13 @@ export default function RiderLayout({
     return (
       <div className="flex h-screen items-center justify-center bg-background text-foreground">
           <div className="flex flex-col items-center justify-center gap-6">
-              <div className="relative flex h-20 w-20 items-center justify-center">
-                    <div className="lds-ring">
-                        <div />
-                        <div />
-                        <div />
-                        <div />
-                    </div>
-                    <AverzoLogo className="absolute text-xl" />
-                </div>
+              <div className="lds-ring">
+                  <div />
+                  <div />
+                  <div />
+                  <div />
+              </div>
+              <AverzoLogo className="text-xl" />
               <p className="text-muted-foreground animate-pulse">Loading rider dashboard...</p>
           </div>
       </div>
@@ -54,15 +52,13 @@ export default function RiderLayout({
      return (
         <div className="flex h-screen items-center justify-center bg-background text-foreground">
             <div className="flex flex-col items-center justify-center gap-6">
-                <div className="relative flex h-20 w-20 items-center justify-center">
-                    <div className="lds-ring">
-                        <div />
-                        <div />
-                        <div />
-                        <div />
-                    </div>
-                    <AverzoLogo className="absolute text-xl" />
+                <div className="lds-ring">
+                    <div />
+                    <div />
+                    <div />
+                    <div />
                 </div>
+                <AverzoLogo className="text-xl" />
                 <p className="text-muted-foreground animate-pulse">Verifying rider account...</p>
             </div>
         </div>

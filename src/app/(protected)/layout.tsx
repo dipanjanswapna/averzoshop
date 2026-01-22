@@ -65,15 +65,13 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background text-foreground">
         <div className="flex flex-col items-center justify-center gap-6">
-          <div className="relative flex h-20 w-20 items-center justify-center">
-            <div className="lds-ring">
-              <div />
-              <div />
-              <div />
-              <div />
-            </div>
-            <AverzoLogo className="absolute text-xl" />
+          <div className="lds-ring">
+            <div />
+            <div />
+            <div />
+            <div />
           </div>
+          <AverzoLogo className="text-xl" />
           <p className="text-muted-foreground animate-pulse">Loading user data...</p>
         </div>
       </div>
@@ -86,15 +84,13 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
     return (
         <div className="flex h-screen w-full items-center justify-center bg-background text-foreground">
           <div className="flex flex-col items-center justify-center gap-6">
-            <div className="relative flex h-20 w-20 items-center justify-center">
-                <div className="lds-ring">
-                    <div />
-                    <div />
-                    <div />
-                    <div />
-                </div>
-                <AverzoLogo className="absolute text-xl" />
+            <div className="lds-ring">
+                <div />
+                <div />
+                <div />
+                <div />
             </div>
+            <AverzoLogo className="text-xl" />
             <p className="text-muted-foreground animate-pulse">Verifying account status...</p>
           </div>
         </div>
