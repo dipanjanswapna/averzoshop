@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -54,7 +55,7 @@ function LoginPageContent() {
         outlet: '/outlet/dashboard',
         rider: '/rider/dashboard',
         sales: '/sales/dashboard',
-        customer: '/', // Default to home for customers
+        customer: '/customer', // Redirect to customer dashboard
       };
       
       // Let the protected layout handle routing after this initial redirect.
