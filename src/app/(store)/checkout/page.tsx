@@ -1,10 +1,9 @@
-
 'use client';
 
 import { useCart } from '@/hooks/use-cart';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag, Loader2 } from 'lucide-react';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -16,20 +15,33 @@ import {
 import { ShippingForm } from '@/components/checkout/shipping-form';
 import { CheckoutOrderSummary } from '@/components/checkout/order-summary';
 import { useEffect, useState } from 'react';
+import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
 
 export default function CheckoutPage() {
   const { items } = useCart();
   const [isMounted, setIsMounted] = useState(false);
+  const { user, loading: authLoading } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  if (!isMounted) {
+  useEffect(() => {
+    if (isMounted && !authLoading && !user) {
+      router.replace('/login?redirect=/checkout');
+    }
+  }, [isMounted, authLoading, user, router]);
+
+  if (!isMounted || authLoading || !user) {
     return (
-        <div className="container mx-auto px-4 py-16 text-center">
-            <p>Loading checkout...</p>
+      <div className="container mx-auto flex min-h-[60vh] flex-col items-center justify-center text-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          <p className="text-muted-foreground">Verifying authentication...</p>
         </div>
+      </div>
     );
   }
 

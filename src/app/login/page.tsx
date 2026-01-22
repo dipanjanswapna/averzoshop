@@ -1,9 +1,8 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -28,6 +27,7 @@ function LoginPageContent() {
   const [loading, setLoading] = useState(false);
   const { auth, firestore, user, userData, loading: authLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -40,13 +40,19 @@ function LoginPageContent() {
 
   useEffect(() => {
     if (!authLoading && user && userData) {
+      const redirectUrl = searchParams.get('redirect');
+      if (redirectUrl) {
+          router.replace(redirectUrl);
+          return;
+      }
+      
       if (userData.role === 'customer') {
         router.replace('/customer');
       } else {
         router.replace('/dashboard');
       }
     }
-  }, [user, userData, authLoading, router]);
+  }, [user, userData, authLoading, router, searchParams]);
 
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
