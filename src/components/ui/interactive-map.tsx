@@ -8,12 +8,14 @@ import { barikoiReverseGeocode, barikoiAutocomplete } from '@/lib/barikoi';
 import { useToast } from '@/hooks/use-toast';
 
 // Fix for default icon issue with webpack
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
-  iconUrl: require('leaflet/dist/images/marker-icon.png'),
-  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
-});
+if (typeof window !== 'undefined') {
+    delete (L.Icon.Default.prototype as any)._getIconUrl;
+    L.Icon.Default.mergeOptions({
+        iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+        iconUrl: require('leaflet/dist/images/marker-icon.png'),
+        shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
+    });
+}
 
 
 interface InteractiveMapProps {
@@ -35,6 +37,17 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const { toast } = useToast();
 
+  const updateMapAndView = useCallback((lat: number, lng: number, zoom: number = 15) => {
+    if (mapRef.current) {
+        mapRef.current.setView([lat, lng], zoom);
+        if (markerRef.current) {
+            markerRef.current.setLatLng([lat, lng]);
+        } else {
+            markerRef.current = L.marker([lat, lng]).addTo(mapRef.current);
+        }
+    }
+  }, []);
+
   // Initialize and clean up the map
   useEffect(() => {
     if (mapContainerRef.current && !mapRef.current) {
@@ -47,6 +60,9 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
       mapRef.current = map;
       
       // Add initial marker
+      if(markerRef.current){
+        markerRef.current.remove();
+      }
       markerRef.current = L.marker(initialPosition).addTo(map);
     }
     
@@ -63,18 +79,6 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
     };
   }, [initialPosition]);
 
-  const updateMapAndView = useCallback((lat: number, lng: number, zoom: number = 15) => {
-    if (mapRef.current) {
-        mapRef.current.setView([lat, lng], zoom);
-        if (markerRef.current) {
-            markerRef.current.setLatLng([lat, lng]);
-        } else {
-            // This case handles if the marker was somehow removed
-            markerRef.current = L.marker([lat, lng]).addTo(mapRef.current);
-        }
-    }
-  }, []);
-
   // Handle map click events
   useEffect(() => {
     const map = mapRef.current;
@@ -87,10 +91,11 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
       try {
         const data = await barikoiReverseGeocode(lat, lng);
         if (data && data.place) {
+          const area = data.place.area ? `${data.place.area}${data.place.postCode ? ` - ${data.place.postCode}` : ''}` : (data.place.postCode || '');
           onLocationSelect({
             lat, lng,
             division: data.place.division || '', district: data.place.district || '',
-            upazila: data.place.thana || data.place.sub_district || '', area: data.place.area || '',
+            upazila: data.place.thana || data.place.sub_district || '', area: area,
             streetAddress: data.place.address || ''
           });
         }
@@ -129,10 +134,13 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
 
     setSearchTerm('');
     setSuggestions([]);
+    
+    const area = place.area ? `${place.area}${place.postCode ? ` - ${place.postCode}` : ''}` : (place.postCode || '');
+
     onLocationSelect({
         lat, lng,
         division: place.division || '', district: place.district || '',
-        upazila: place.thana || place.sub_district || '', area: place.area || '',
+        upazila: place.thana || place.sub_district || '', area: area,
         streetAddress: place.address || ''
     });
   };
@@ -153,10 +161,11 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
         try {
           const data = await barikoiReverseGeocode(latitude, longitude);
           if (data && data.place) {
+            const area = data.place.area ? `${data.place.area}${data.place.postCode ? ` - ${data.place.postCode}` : ''}` : (data.place.postCode || '');
             onLocationSelect({
                 lat: latitude, lng: longitude,
                 division: data.place.division || '', district: data.place.district || '',
-                upazila: data.place.thana || data.place.sub_district || '', area: data.place.area || '',
+                upazila: data.place.thana || data.place.sub_district || '', area: area,
                 streetAddress: data.place.address || ''
             });
           }
