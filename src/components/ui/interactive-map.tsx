@@ -1,7 +1,7 @@
+
 "use client";
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { Search as SearchIcon, LocateFixed } from 'lucide-react';
 import { useDebounce } from '@/hooks/use-debounce';
@@ -16,54 +16,6 @@ L.Icon.Default.mergeOptions({
 });
 
 
-interface MapEventsControllerProps {
-  onLocationSelect: (details: any) => void;
-  initialPosition: [number, number];
-}
-
-const MapController = ({ onLocationSelect, initialPosition }: MapEventsControllerProps) => {
-    const map = useMap();
-    const [markerPos, setMarkerPos] = useState<[number, number] | null>(initialPosition);
-
-    useEffect(() => {
-        setMarkerPos(initialPosition);
-        map.setView(initialPosition, 13);
-    }, [initialPosition, map]);
-
-    useEffect(() => {
-        const handleClick = async (e: L.LeafletMouseEvent) => {
-            const { lat, lng } = e.latlng;
-            setMarkerPos([lat, lng]);
-            try {
-                const data = await barikoiReverseGeocode(lat, lng);
-                if (data && data.place) {
-                    onLocationSelect({
-                        lat, lng,
-                        division: data.place.division || '',
-                        district: data.place.district || '',
-                        upazila: data.place.thana || data.place.sub_district || '',
-                        area: data.place.area || '',
-                        streetAddress: data.place.address || ''
-                    });
-                }
-            } catch (error) {
-                console.error('Reverse geocode failed:', error);
-            }
-        };
-
-        map.on('click', handleClick);
-        return () => {
-            map.off('click', handleClick);
-        };
-    }, [map, onLocationSelect]);
-
-    return markerPos ? (
-        <Marker position={markerPos}>
-            <Popup>You selected this location.</Popup>
-        </Marker>
-    ) : null;
-}
-
 interface InteractiveMapProps {
   onLocationSelect: (details: any) => void;
   initialPosition?: [number, number];
@@ -75,10 +27,77 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [suggestions, setSuggestions] = useState<any[]>([]);
-  const [mapCenter, setMapCenter] = useState<[number, number]>(initialPosition);
+  
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
 
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
+  // Initialize and clean up the map
+  useEffect(() => {
+    if (mapContainerRef.current && !mapRef.current) {
+      const map = L.map(mapContainerRef.current).setView(initialPosition, 13);
+      
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+
+      mapRef.current = map;
+      
+      // Add initial marker
+      markerRef.current = L.marker(initialPosition).addTo(map);
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
+  }, []);
+
+  const updateMapAndView = (lat: number, lng: number, zoom: number = 15) => {
+    if (mapRef.current) {
+        mapRef.current.setView([lat, lng], zoom);
+        if (markerRef.current) {
+            markerRef.current.setLatLng([lat, lng]);
+        } else {
+            markerRef.current = L.marker([lat, lng]).addTo(mapRef.current);
+        }
+    }
+  }
+
+  // Handle map click events
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const handleClick = async (e: L.LeafletMouseEvent) => {
+      const { lat, lng } = e.latlng;
+      updateMapAndView(lat, lng);
+      
+      try {
+        const data = await barikoiReverseGeocode(lat, lng);
+        if (data && data.place) {
+          onLocationSelect({
+            lat, lng,
+            division: data.place.division || '', district: data.place.district || '',
+            upazila: data.place.thana || data.place.sub_district || '', area: data.place.area || '',
+            streetAddress: data.place.address || ''
+          });
+        }
+      } catch (error) {
+        console.error('Reverse geocode failed:', error);
+      }
+    };
+    
+    map.on('click', handleClick);
+    return () => { map.off('click', handleClick); };
+  }, [onLocationSelect]);
+
+  // Handle autocomplete search
   useEffect(() => {
     if (debouncedSearchTerm) {
       const fetchSuggestions = async () => {
@@ -97,34 +116,38 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
   }, [debouncedSearchTerm]);
 
   const handleSuggestionClick = (place: any) => {
-    const { latitude, longitude, ...rest } = place;
-    const lat = parseFloat(latitude);
-    const lng = parseFloat(longitude);
-    setMapCenter([lat, lng]);
+    const lat = parseFloat(place.latitude);
+    const lng = parseFloat(place.longitude);
+    
+    updateMapAndView(lat, lng);
+
     setSearchTerm('');
     setSuggestions([]);
-    onLocationSelect({ lat, lng, ...rest });
+    onLocationSelect({
+        lat, lng,
+        division: place.division || '', district: place.district || '',
+        upazila: place.thana || place.sub_district || '', area: place.area || '',
+        streetAddress: place.address || ''
+    });
   };
-  
+
   const handleCurrentLocation = () => {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
-        setMapCenter([latitude, longitude]);
-         try {
-            const data = await barikoiReverseGeocode(latitude, longitude);
-            if (data && data.place) {
-                onLocationSelect({
-                    lat: latitude, lng: longitude,
-                    division: data.place.division || '',
-                    district: data.place.district || '',
-                    upazila: data.place.thana || data.place.sub_district || '',
-                    area: data.place.area || '',
-                    streetAddress: data.place.address || ''
-                });
-            }
+        updateMapAndView(latitude, longitude);
+        try {
+          const data = await barikoiReverseGeocode(latitude, longitude);
+          if (data && data.place) {
+            onLocationSelect({
+                lat: latitude, lng: longitude,
+                division: data.place.division || '', district: data.place.district || '',
+                upazila: data.place.thana || data.place.sub_district || '', area: data.place.area || '',
+                streetAddress: data.place.address || ''
+            });
+          }
         } catch (error) {
-            console.error('Reverse geocode failed:', error);
+          console.error('Reverse geocode failed:', error);
         }
       },
       (error) => console.error("Geolocation error:", error),
@@ -144,12 +167,12 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
           className="w-full pl-10 pr-4 py-2 border rounded-lg"
         />
         {suggestions.length > 0 && (
-          <ul className="absolute z-10 w-full bg-white border mt-1 rounded-lg max-h-48 overflow-y-auto">
+          <ul className="absolute z-50 w-full bg-background border mt-1 rounded-lg max-h-48 overflow-y-auto shadow-lg">
             {suggestions.map((place) => (
               <li
                 key={place.id}
                 onClick={() => handleSuggestionClick(place)}
-                className="p-2 cursor-pointer hover:bg-gray-100"
+                className="p-2 cursor-pointer hover:bg-muted"
               >
                 {place.address}
               </li>
@@ -160,15 +183,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
        <button type="button" onClick={handleCurrentLocation} className="flex items-center justify-center gap-2 p-2 text-sm text-blue-600 bg-blue-100 rounded-lg hover:bg-blue-200">
         <LocateFixed size={16} /> Use Current Location
       </button>
-      <div className="w-full h-full min-h-[300px] rounded-lg overflow-hidden z-0">
-          <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }}>
-              <TileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              />
-              <MapController onLocationSelect={onLocationSelect} initialPosition={mapCenter} />
-          </MapContainer>
-      </div>
+      <div id="map-container" ref={mapContainerRef} className="w-full h-full min-h-[300px] rounded-lg overflow-hidden z-0" />
     </div>
   );
 };
