@@ -16,8 +16,8 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import AverzoLogo from '@/components/averzo-logo';
 import { useAuth } from '@/hooks/use-auth';
-import { FirebaseClientProvider } from '@/firebase';
-import { sendSignInLink } from '@/actions/auth-actions';
+import { FirebaseClientProvider, useFirebase } from '@/firebase';
+import { sendMagicLink } from '@/actions/auth-actions';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
@@ -53,8 +53,9 @@ function LoginPageContent() {
 
   useEffect(() => {
     if (!authLoading && user && userData) {
-      // For customers, check if permissions need to be set
-      if (userData.role === 'customer' && (!userData.addresses || userData.addresses.length === 0)) {
+      // Check if user needs to go through permissions setup.
+      const hasAddress = userData.addresses && userData.addresses.length > 0;
+      if (userData.role === 'customer' && !hasAddress) {
         router.replace('/permissions');
         return;
       }
@@ -67,13 +68,13 @@ function LoginPageContent() {
       }
       
       // Default role-based redirection
-      const roleRedirects = {
+      const roleRedirects: { [key: string]: string } = {
         admin: '/dashboard',
-        customer: '/', // Customers go to the homepage
         vendor: '/vendor/dashboard',
         outlet: '/outlet/dashboard',
         rider: '/rider/dashboard',
         sales: '/sales/dashboard',
+        customer: '/', // Customers go to the homepage after login
       };
       
       router.replace(roleRedirects[userData.role] || '/');
@@ -100,12 +101,15 @@ function LoginPageContent() {
   };
 
   const handlePasswordlessSubmit = async (values: z.infer<typeof passwordlessSchema>) => {
+    if (!auth) {
+        toast({ variant: 'destructive', title: 'Auth service not available.' });
+        return;
+    }
     setLoading(true);
     try {
-      window.localStorage.setItem('emailForSignIn', values.email);
-      const result = await sendSignInLink({ email: values.email });
+      const result = await sendMagicLink(auth, values.email);
       if (result.success) {
-        toast({ title: 'Link Generated', description: result.message });
+        toast({ title: 'Link Sent!', description: result.message });
         setIsPasswordless(false); // Switch back to password form
       } else {
         throw new Error(result.message);

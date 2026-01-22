@@ -12,8 +12,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import AverzoLogo from '@/components/averzo-logo';
-import { FirebaseClientProvider } from '@/firebase';
-import { sendPasswordResetLink } from '@/actions/auth-actions';
+import { FirebaseClientProvider, useFirebase } from '@/firebase';
+import { sendPasswordReset } from '@/actions/auth-actions';
 import { ArrowLeft } from 'lucide-react';
 
 const formSchema = z.object({
@@ -23,6 +23,7 @@ const formSchema = z.object({
 function ForgotPasswordPageContent() {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { auth } = useFirebase();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -32,12 +33,16 @@ function ForgotPasswordPageContent() {
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!auth) {
+        toast({ variant: 'destructive', title: 'Authentication service not available.' });
+        return;
+    }
     setLoading(true);
     try {
-      const result = await sendPasswordResetLink({ email: values.email });
+      const result = await sendPasswordReset(auth, values.email);
       if (result.success) {
         toast({
-          title: 'Check Your Console',
+          title: 'Email Sent!',
           description: result.message,
         });
         form.reset();

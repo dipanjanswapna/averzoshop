@@ -17,7 +17,7 @@ import AverzoLogo from '@/components/averzo-logo';
 import { FirebaseClientProvider, useFirebase } from '@/firebase';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useRouter } from 'next/navigation';
-import { sendSignInLink } from '@/actions/auth-actions';
+import { sendMagicLink } from '@/actions/auth-actions';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -59,11 +59,10 @@ function RegisterPageContent() {
     // Customer registration with magic link
     if (values.role === 'customer') {
       try {
-        window.localStorage.setItem('emailForSignIn', values.email);
-        window.localStorage.setItem('nameForSignIn', values.name);
-        const result = await sendSignInLink({ email: values.email });
+        window.localStorage.setItem('nameForSignIn', values.name); // Store name for account creation
+        const result = await sendMagicLink(auth, values.email);
         if (result.success) {
-          toast({ title: 'Verification Link Generated', description: result.message });
+          toast({ title: 'Verification Link Sent', description: result.message });
           router.push('/login'); // Redirect to login page to inform user
         } else {
           throw new Error(result.message);
@@ -83,7 +82,7 @@ function RegisterPageContent() {
 
       await updateProfile(user, { displayName: values.name });
 
-      await setDoc(doc(firestore, 'users', user.uid), {
+      await setDoc(doc(firestore, "users", user.uid), {
         uid: user.uid,
         email: user.email,
         displayName: values.name,

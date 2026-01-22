@@ -4,13 +4,13 @@ import { useEffect, useState, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { isSignInWithEmailLink, signInWithEmailLink } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth, useFirebase } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import AverzoLogo from '@/components/averzo-logo';
 import { Button } from '@/components/ui/button';
 
 function VerifyEmailContent() {
-    const { auth, firestore } = useAuth();
+    const { auth, firestore } = useFirebase();
     const router = useRouter();
     const { toast } = useToast();
     const [status, setStatus] = useState('Verifying your email link...');
@@ -31,15 +31,11 @@ function VerifyEmailContent() {
                     setError('Could not find email for sign-in. Please try the registration process again.');
                     return;
                 }
-                
-                if (!name) {
-                    name = 'New Customer';
-                }
 
                 try {
                     const result = await signInWithEmailLink(auth, email, window.location.href);
                     window.localStorage.removeItem('emailForSignIn');
-                    window.localStorage.removeItem('nameForSignIn');
+                    if (name) window.localStorage.removeItem('nameForSignIn');
                     
                     const user = result.user;
                     setStatus('Sign-in successful. Setting up your account...');
@@ -51,7 +47,7 @@ function VerifyEmailContent() {
                         await setDoc(userDocRef, {
                             uid: user.uid,
                             email: user.email,
-                            displayName: name,
+                            displayName: name || user.displayName || 'New User',
                             photoURL: user.photoURL,
                             role: 'customer',
                             status: 'approved',
