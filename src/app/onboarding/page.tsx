@@ -21,21 +21,21 @@ const onboardingSlides = [
     icon: Sparkles,
     title: "Discover Your Unique Style",
     description: "Explore thousands of products from top brands and find what truly fits you.",
-    image: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=800&auto=format&fit=crop",
+    image: "https://picsum.photos/seed/style/800/800",
     imageHint: "online shopping fashion",
   },
   {
     icon: Truck,
     title: "Fast & Reliable Delivery",
     description: "Get your favorite items delivered to your doorstep faster than you can imagine.",
-    image: "https://images.unsplash.com/photo-1590524452096-36d105435b54?q=80&w=800&auto=format&fit=crop",
+    image: "https://picsum.photos/seed/delivery/800/800",
     imageHint: "delivery package shipping",
   },
   {
     icon: Gift,
     title: "Exclusive Offers & Deals",
     description: "Unlock special discounts, loyalty points, and deals exclusively for our members.",
-    image: "https://images.unsplash.com/photo-1549465220-1a7bcf2f195c?q=80&w=800&auto=format&fit=crop",
+    image: "https://picsum.photos/seed/offer/800/800",
     imageHint: "exclusive offer sale",
   },
 ];
@@ -70,6 +70,8 @@ export default function OnboardingPage() {
     exit: { opacity: 0, y: -20, transition: { duration: 0.3, ease: 'easeIn' } },
   };
 
+  const Icon = onboardingSlides[current].icon;
+
   return (
     <div className="flex flex-col h-screen lg:grid lg:grid-cols-2 bg-background font-body">
         {/* Content Panel (Left on Desktop, Bottom on Mobile) */}
@@ -87,7 +89,7 @@ export default function OnboardingPage() {
                     >
                         <div className="flex items-center gap-4">
                            <div className="bg-primary/10 text-primary p-3 rounded-xl">
-                              {React.createElement(onboardingSlides[current].icon, { size: 28 })}
+                              <Icon size={28} />
                            </div>
                            <div>
                                 <p className="text-xs font-bold text-primary uppercase tracking-widest">

@@ -18,7 +18,7 @@ export default function WelcomePage() {
     <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen font-body">
       <div className="relative hidden lg:block">
          <Image 
-          src="/hc-digital-7qCeFo19r24-unsplash.jpg"
+          src="https://picsum.photos/seed/welcome-bg/1200/1800"
           alt="Stylish person with shopping bags"
           fill
           className="object-cover"
