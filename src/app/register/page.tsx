@@ -82,7 +82,7 @@ function RegisterPageContent() {
             title: "Welcome!",
             description: "Your account is created and you've received 100 bonus points!"
           });
-          router.push('/permissions'); // Go to permissions setup
+          router.push('/onboarding'); // Go to onboarding setup
       } else {
          toast({
             title: "Registration Submitted!",
@@ -129,14 +129,14 @@ function RegisterPageContent() {
           membershipTier: 'silver',
         });
         toast({ title: 'Welcome!', description: "Your account is created and you've received 100 bonus points!" });
-        router.push('/permissions');
+        router.push('/onboarding');
       } else {
         await setDoc(userDocRef, {
           displayName: user.displayName,
           photoURL: user.photoURL,
         }, { merge: true });
         toast({ title: 'Google Sign-In Successful', description: 'Welcome back!' });
-        router.push('/');
+        router.push('/customer');
       }
 
     } catch (error: any) {

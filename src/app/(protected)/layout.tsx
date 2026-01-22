@@ -29,23 +29,23 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
         return;
       }
       
-      const onPermissionsRoute = pathname === '/permissions';
+      const onOnboardingRoute = pathname === '/onboarding';
       const hasAddress = userData.addresses && userData.addresses.length > 0;
 
       // For customers, handle onboarding/permissions flow
       if (userData.role === 'customer') {
-        if (!hasAddress && !onPermissionsRoute) {
-          // If customer has no address and is not on permissions page, redirect there.
-          router.replace('/permissions');
+        if (!hasAddress && !onOnboardingRoute) {
+          // If customer has no address and is not on onboarding page, redirect there.
+          router.replace('/onboarding');
           return;
         }
-        if (hasAddress && onPermissionsRoute) {
-          // If customer has address and tries to go to permissions page, redirect away.
+        if (hasAddress && onOnboardingRoute) {
+          // If customer has address and tries to go to onboarding page, redirect away.
           router.replace('/customer');
           return;
         }
-      } else if (onPermissionsRoute) {
-        // If a non-customer lands on permissions page, redirect them.
+      } else if (onOnboardingRoute) {
+        // If a non-customer lands on onboarding page, redirect them.
         router.replace('/');
         return;
       }
@@ -66,7 +66,7 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
       const onSalesRoute = pathname.startsWith('/sales');
       
 
-      if (isCustomer && !onCustomerRoute && !onPermissionsRoute) {
+      if (isCustomer && !onCustomerRoute && !onOnboardingRoute) {
         router.replace('/customer');
       } else if (isOutlet && !onOutletRoute) {
         router.replace('/outlet/dashboard');
