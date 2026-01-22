@@ -1,6 +1,7 @@
+
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Search, ShoppingBag, Menu, ChevronDown, X, ChevronRight, Zap, Sun, Moon, User } from 'lucide-react';
+import { Search, ShoppingBag, Menu, ChevronDown, X, ChevronRight, Zap, Sun, Moon, User, Store, Truck } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -11,8 +12,8 @@ import { useCart } from '@/hooks/use-cart';
 import { useTheme } from '@/components/providers';
 import { LiveSearch } from './live-search';
 import { UserNav } from './user-nav';
-import { useAuth } from '@/hooks/use-auth';
 import { Avatar, AvatarImage, AvatarFallback } from './ui/avatar';
+import { useAuth } from '@/hooks/use-auth';
 
 
 const NestedAccordion = ({ category, onClose }: { category: any, onClose: () => void }) => {
@@ -172,7 +173,7 @@ export default function AverzoNavbar() {
       
       <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4 h-[68px]">
         {/* Left Part */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
              <button 
                 onClick={() => setIsDrawerOpen(true)}
                 className="p-2 lg:hidden hover:bg-muted rounded-md transition-colors"
@@ -185,22 +186,10 @@ export default function AverzoNavbar() {
         </div>
         
         {/* Center Part (Desktop) */}
-        <div className="hidden lg:flex flex-1 items-center justify-start gap-8">
-            <div className="w-full max-w-sm">
+        <div className="hidden lg:flex flex-1 items-center justify-center">
+            <div className="w-full max-w-lg">
                 <LiveSearch />
             </div>
-            <nav className="flex items-center gap-2">
-                <Link href="/shop">
-                    <Button variant="ghost" className="font-bold text-sm uppercase tracking-wider hover:bg-primary/10 hover:text-primary">
-                        Shop
-                    </Button>
-                </Link>
-                <Link href="/track-order">
-                    <Button variant="ghost" className="font-bold text-sm uppercase tracking-wider hover:bg-primary/10 hover:text-primary">
-                        Track Order
-                    </Button>
-                </Link>
-            </nav>
         </div>
 
         {/* Right Part */}
@@ -213,6 +202,17 @@ export default function AverzoNavbar() {
                 />
             </div>
           
+            <Link href="/shop" className="hidden lg:block">
+              <Button variant="ghost" size="icon" className="h-9 w-9">
+                 <Store size={22} />
+              </Button>
+            </Link>
+            <Link href="/track-order" className="hidden lg:block">
+              <Button variant="ghost" size="icon" className="h-9 w-9">
+                  <Truck size={22} />
+              </Button>
+            </Link>
+
             <Button
               variant="ghost"
               size="icon"
