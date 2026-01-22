@@ -1,7 +1,9 @@
+
 'use client';
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Carousel,
   CarouselContent,
@@ -37,10 +39,11 @@ const onboardingSlides = [
   },
 ];
 
-export default function OnboardingPage() {
+export default function OnboardingPage({ onComplete }: { onComplete?: () => void }) {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   const [count, setCount] = useState(0);
+  const router = useRouter();
 
   useEffect(() => {
     if (!api) {
@@ -56,6 +59,14 @@ export default function OnboardingPage() {
   }, [api]);
   
   const isLastSlide = current === count - 1;
+
+  const handleGetStarted = () => {
+    if (onComplete) {
+      onComplete();
+    } else {
+      router.push('/welcome');
+    }
+  };
 
   return (
     <div className="flex h-screen w-full flex-col items-center justify-center bg-secondary p-4">
@@ -102,11 +113,9 @@ export default function OnboardingPage() {
         </div>
 
         {isLastSlide ? (
-            <Link href="/shop" className="w-full">
-                <Button size="lg" className="w-full h-12 text-base font-bold group bg-gradient-to-r from-primary to-destructive text-primary-foreground hover:opacity-90 transition-all duration-300 transform hover:-translate-y-px shadow-lg hover:shadow-primary/40">
-                    Let's Go Shopping <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-                </Button>
-            </Link>
+            <Button size="lg" onClick={handleGetStarted} className="w-full h-12 text-base font-bold group bg-gradient-to-r from-primary to-destructive text-primary-foreground hover:opacity-90 transition-all duration-300 transform hover:-translate-y-px shadow-lg hover:shadow-primary/40">
+                Let's Go Shopping <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+            </Button>
         ) : (
              <Button size="lg" className="w-full h-12 text-base font-bold group" onClick={() => api?.scrollNext()}>
                 Next <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />

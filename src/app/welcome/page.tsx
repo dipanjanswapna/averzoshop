@@ -1,3 +1,4 @@
+
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -54,9 +55,9 @@ export default function WelcomePage() {
         transition={{ duration: 0.5, delay: 0.6 }}
         className="mt-10 flex flex-col gap-4 w-full max-w-xs"
       >
-         <Link href="/onboarding">
+         <Link href="/shop">
             <Button size="lg" className="w-full h-12 text-base font-bold group bg-gradient-to-r from-primary to-destructive text-primary-foreground hover:opacity-90 transition-all duration-300 transform hover:-translate-y-px shadow-lg hover:shadow-primary/40">
-                Get Started 
+                Explore Shop
                 <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Button>
         </Link>
