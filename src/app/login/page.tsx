@@ -31,6 +31,7 @@ const passwordlessSchema = z.object({
 function LoginPageContent() {
   const [loading, setLoading] = useState(false);
   const [isPasswordless, setIsPasswordless] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
   const { auth, firestore, user, userData, loading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -50,6 +51,13 @@ function LoginPageContent() {
       email: '',
     },
   });
+  
+  useEffect(() => {
+    if (cooldown > 0) {
+      const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [cooldown]);
 
   useEffect(() => {
     if (!authLoading && user && userData) {
@@ -110,12 +118,15 @@ function LoginPageContent() {
       const result = await sendMagicLink(auth, values.email);
       if (result.success) {
         toast({ title: 'Link Sent!', description: result.message });
-        setIsPasswordless(false); // Switch back to password form
+        setCooldown(30);
       } else {
         throw new Error(result.message);
       }
     } catch (error: any) {
        toast({ variant: "destructive", title: 'Failed to send link', description: error.message });
+       if (error.message.includes('Too many requests')) {
+          setCooldown(60);
+       }
     } finally {
         setLoading(false);
     }
@@ -198,8 +209,12 @@ function LoginPageContent() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? 'Sending...' : 'Send Sign-in Link'}
+                <Button type="submit" className="w-full" disabled={loading || cooldown > 0}>
+                  {loading
+                  ? 'Sending...'
+                  : cooldown > 0
+                  ? `Try again in ${cooldown}s`
+                  : 'Send Sign-in Link'}
                 </Button>
               </form>
             </Form>

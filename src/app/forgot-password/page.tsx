@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,6 +22,7 @@ const formSchema = z.object({
 
 function ForgotPasswordPageContent() {
   const [loading, setLoading] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
   const { toast } = useToast();
   const { auth } = useFirebase();
 
@@ -31,6 +32,13 @@ function ForgotPasswordPageContent() {
       email: '',
     },
   });
+
+  useEffect(() => {
+    if (cooldown > 0) {
+      const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [cooldown]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (!auth) {
@@ -46,6 +54,7 @@ function ForgotPasswordPageContent() {
           description: result.message,
         });
         form.reset();
+        setCooldown(30);
       } else {
         throw new Error(result.message);
       }
@@ -55,6 +64,9 @@ function ForgotPasswordPageContent() {
         title: 'Error Sending Link',
         description: error.message,
       });
+      if (error.message.includes('Too many requests')) {
+        setCooldown(60);
+      }
     } finally {
       setLoading(false);
     }
@@ -86,8 +98,12 @@ function ForgotPasswordPageContent() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Sending...' : 'Send Reset Link'}
+              <Button type="submit" className="w-full" disabled={loading || cooldown > 0}>
+                 {loading
+                  ? 'Sending...'
+                  : cooldown > 0
+                  ? `Try again in ${cooldown}s`
+                  : 'Send Reset Link'}
               </Button>
             </form>
           </Form>
