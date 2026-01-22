@@ -12,7 +12,7 @@ export default function WelcomePage() {
   const redirect = searchParams.get('redirect');
 
   const loginHref = redirect ? `/login?redirect=${encodeURIComponent(redirect)}` : '/login';
-  const registerHref = redirect ? `/register?redirect=${encodeURIComponent(redirect)}` : '/register';
+  const registerHref = '/onboarding';
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen font-body">
