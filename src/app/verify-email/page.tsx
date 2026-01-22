@@ -1,262 +1,205 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { isSignInWithEmailLink, signInWithEmailLink, updatePassword, updateProfile, type UserCredential } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
-import { useFirebase, FirebaseClientProvider } from '@/firebase';
-import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
-import AverzoLogo from '@/components/averzo-logo';
+
+import { useState } from 'react';
+import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
+
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import AverzoLogo from '@/components/averzo-logo';
+import { FirebaseClientProvider, useFirebase } from '@/firebase';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useRouter } from 'next/navigation';
 
-// Zod schema for the password form
-const passwordSchema = z.object({
+const formSchema = z.object({
+  name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
+  email: z.string().email({ message: 'Invalid email address.' }),
+  role: z.enum(['customer', 'vendor', 'rider', 'sales'], { required_error: 'Please select a role.' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
 });
 
-function VerifyEmailPageContent() {
-    const { auth, firestore } = useFirebase();
-    const router = useRouter();
-    const searchParams = useSearchParams();
-    const redirect = searchParams.get('redirect');
-    const { toast } = useToast();
-    const [status, setStatus] = useState('Verifying your email...');
-    const [step, setStep] = useState<'verifying' | 'setPassword' | 'error' | 'promptEmail'>('verifying');
-    const [userCredential, setUserCredential] = useState<UserCredential | null>(null);
-    const [emailForVerification, setEmailForVerification] = useState('');
 
-    const form = useForm<z.infer<typeof passwordSchema>>({
-        resolver: zodResolver(passwordSchema),
-        defaultValues: { password: '', confirmPassword: '' },
-    });
-    
-    const processSignIn = async (email: string) => {
-        if (!auth) return;
-        try {
-            const result = await signInWithEmailLink(auth, email, window.location.href);
-            setUserCredential(result);
-            setStatus('Email verified. Please set your password.');
-            setStep('setPassword');
-             window.localStorage.removeItem('emailForSignIn');
-        } catch (error: any) {
-            console.error("Verification Error:", error);
-            setStatus(`Verification Failed: The link may be expired or invalid.`);
-            setStep('error');
-            toast({ variant: 'destructive', title: 'Verification Failed', description: 'The link may be expired or invalid. Please try again.' });
-        }
-    };
+function RegisterPageContent() {
+  const [isLoading, setIsLoading] = useState(false);
+  const { auth, firestore } = useFirebase();
+  const router = useRouter();
+  const { toast } = useToast();
 
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      role: 'customer',
+      password: '',
+    },
+  });
 
-    useEffect(() => {
-        const completeSignIn = async () => {
-            if (!auth || !firestore) {
-                return;
-            }
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    setIsLoading(true);
+    if (!auth || !firestore) {
+      toast({ variant: 'destructive', title: 'Auth service not available.' });
+      setIsLoading(false);
+      return;
+    }
 
-            if (isSignInWithEmailLink(auth, window.location.href)) {
-                let email = window.localStorage.getItem('emailForSignIn');
-                
-                if (!email) {
-                    setStep('promptEmail');
-                } else {
-                    await processSignIn(email);
-                }
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+      const user = userCredential.user;
 
-            } else {
-                setStatus('Invalid verification link. Please try registering again.');
-                setStep('error');
-            }
-        };
+      await updateProfile(user, { displayName: values.name });
 
-        if(auth && firestore) {
-          completeSignIn();
-        }
-    }, [auth, firestore]);
+      const isCustomer = values.role === 'customer';
+      const status = isCustomer ? 'approved' : 'pending';
 
-    const handleEmailPromptSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (emailForVerification) {
-            setStep('verifying');
-            await processSignIn(emailForVerification);
-        } else {
-            toast({ variant: 'destructive', title: 'Email required', description: 'Please enter your email address.' });
-        }
-    };
+      await setDoc(doc(firestore, 'users', user.uid), {
+        uid: user.uid,
+        email: user.email,
+        displayName: values.name,
+        photoURL: user.photoURL,
+        role: values.role,
+        status: status,
+        createdAt: serverTimestamp(),
+        loyaltyPoints: isCustomer ? 100 : 0, // Welcome bonus for customers
+        totalSpent: 0,
+        membershipTier: 'silver',
+      });
+      
+      if (isCustomer) {
+        toast({
+            title: "Account Created!",
+            description: "Welcome! You've received 100 bonus points. Please log in."
+        });
+      } else {
+        toast({
+          title: "Registration Submitted!",
+          description: "Your account is pending approval. We'll notify you soon."
+        });
+      }
+      router.push('/login');
 
-    const onPasswordSubmit = async (values: z.infer<typeof passwordSchema>) => {
-        if (!userCredential || !firestore) {
-            toast({ variant: 'destructive', title: 'Error', description: 'Session expired. Please try again.' });
-            setStep('error');
-            return;
-        }
+    } catch (error: any) {
+      console.error("Error creating account:", error);
+      let description = "Could not create your account. Please try again.";
+      if (error.code === 'auth/email-already-in-use') {
+          description = 'This email is already registered. Please log in.';
+      }
+      toast({ variant: "destructive", title: "Registration Failed", description });
+    } finally {
+        setIsLoading(false);
+    }
+  };
 
-        setStatus('Creating your account...');
-        const user = userCredential.user;
+  const handleGoogleSignIn = async () => {
+    if (!auth || !firestore) {
+      toast({ variant: 'destructive', title: 'Auth service not available.' });
+      return;
+    }
+    const provider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
 
-        try {
-            await updatePassword(user, values.password);
+      const userDocRef = doc(firestore, 'users', user.uid);
+      const userDoc = await getDoc(userDocRef);
 
-            const userDocRef = doc(firestore, 'users', user.uid);
-            const userDoc = await getDoc(userDocRef);
+      if (!userDoc.exists()) {
+        await setDoc(userDocRef, {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          role: 'customer',
+          status: 'approved',
+          createdAt: serverTimestamp(),
+          loyaltyPoints: 100, // Bonus points for new sign-up
+          totalSpent: 0,
+          membershipTier: 'silver',
+        });
+        toast({ title: "Welcome!", description: "Your account is created and you've received 100 bonus points!" });
+      } else {
+        toast({ title: 'Google Sign-In Successful', description: 'Welcome back!' });
+      }
 
-            if (!userDoc.exists()) {
-                const detailsString = window.localStorage.getItem('registrationDetails');
-                const registrationDetails = detailsString ? JSON.parse(detailsString) : { name: user.email?.split('@')[0] || 'New User', role: 'customer' };
+      router.push('/login');
+    } catch (error: any) {
+      toast({ variant: 'destructive', title: 'Google Sign-In Failed', description: error.message });
+    }
+  };
+  
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-secondary p-4">
+      <Card className="w-full max-w-sm">
+        <CardHeader className="text-center">
+          <AverzoLogo className="mx-auto mb-4" />
+          <CardTitle>Create an Account</CardTitle>
+          <CardDescription>Join our community by entering your details below.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField control={form.control} name="name" render={({ field }) => (
+                  <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="John Doe" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+              <FormField control={form.control} name="email" render={({ field }) => (
+                  <FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder="name@example.com" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+              <FormField control={form.control} name="role" render={({ field }) => (
+                  <FormItem><FormLabel>Register as</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger></FormControl>
+                    <SelectContent>
+                        <SelectItem value="customer">Customer</SelectItem>
+                        <SelectItem value="vendor">Vendor</SelectItem>
+                        <SelectItem value="rider">Rider</SelectItem>
+                        <SelectItem value="sales">Sales Representative</SelectItem>
+                    </SelectContent>
+                    </Select><FormMessage /></FormItem>
+              )} />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="••••••••" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? 'Processing...' : 'Create Account'}
+              </Button>
+            </form>
+          </Form>
 
-                if (registrationDetails.name) {
-                  await updateProfile(user, { displayName: registrationDetails.name });
-                }
-
-                const status = registrationDetails.role === 'customer' ? 'approved' : 'pending';
-
-                await setDoc(userDocRef, {
-                    uid: user.uid,
-                    email: user.email,
-                    displayName: registrationDetails.name,
-                    photoURL: user.photoURL,
-                    role: registrationDetails.role,
-                    status: status,
-                    createdAt: serverTimestamp(),
-                    loyaltyPoints: 100,
-                    totalSpent: 0,
-                    membershipTier: 'silver',
-                });
-                toast({ title: "Welcome!", description: "Your account is created. You've been awarded 100 bonus points!" });
-            }
-
-            window.localStorage.removeItem('registrationDetails');
-            
-            setStatus('All set! Redirecting...');
-            router.push('/permissions');
-
-        } catch (error: any) {
-            console.error(error);
-            setStatus(`Account creation failed: ${error.message}`);
-            setStep('error');
-            toast({ variant: 'destructive', title: 'Account Creation Failed', description: 'Could not set your password. Please try again.' });
-        }
-    };
-
-
-    if (step === 'verifying' || step === 'error') {
-      return (
-          <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-background">
-              <AverzoLogo />
-              <div className="flex items-center gap-2 text-muted-foreground">
-                  {step === 'verifying' && <Loader2 className="animate-spin" />}
-                  <p className="font-medium">{status}</p>
-              </div>
-              {step === 'error' && <Button onClick={() => router.push('/register')}>Go to Registration</Button>}
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+            <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-2 text-muted-foreground">Or continue with</span></div>
           </div>
-      );
-    }
 
-     if (step === 'promptEmail') {
-        return (
-             <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-background">
-                <Dialog open={true} onOpenChange={() => setStep('error')}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Confirm Your Email</DialogTitle>
-                            <DialogDescription>
-                                To complete verification, please provide the email address where you received the link.
-                            </DialogDescription>
-                        </DialogHeader>
-                        <form onSubmit={handleEmailPromptSubmit}>
-                            <div className="grid gap-4 py-4">
-                                <Label htmlFor="email-prompt">Email Address</Label>
-                                <Input
-                                    id="email-prompt"
-                                    type="email"
-                                    placeholder="name@example.com"
-                                    value={emailForVerification}
-                                    onChange={(e) => setEmailForVerification(e.target.value)}
-                                    required
-                                />
-                            </div>
-                            <DialogFooter>
-                                <Button type="submit">Confirm Email</Button>
-                            </DialogFooter>
-                        </form>
-                    </DialogContent>
-                </Dialog>
-                {/* Background content */}
-                 <AverzoLogo />
-                <div className="flex items-center gap-2 text-muted-foreground">
-                    <p className="font-medium">Waiting for email confirmation...</p>
-                </div>
-            </div>
-        );
-    }
-    
-    if (step === 'setPassword') {
-       return (
-            <div className="flex min-h-screen items-center justify-center bg-secondary p-4">
-                <Card className="w-full max-w-sm">
-                    <CardHeader className="text-center">
-                    <AverzoLogo className="mx-auto mb-4" />
-                    <CardTitle>Set Your Password</CardTitle>
-                    <CardDescription>Your email has been verified. Create a secure password to complete your registration.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                    <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onPasswordSubmit)} className="space-y-4">
-                        <FormField
-                            control={form.control}
-                            name="password"
-                            render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Password</FormLabel>
-                                <FormControl>
-                                <Input type="password" placeholder="••••••••" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="confirmPassword"
-                            render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Confirm Password</FormLabel>
-                                <FormControl>
-                                <Input type="password" placeholder="••••••••" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                            )}
-                        />
-                        <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-                            {form.formState.isSubmitting ? 'Saving...' : 'Complete Registration'}
-                        </Button>
-                        </form>
-                    </Form>
-                    </CardContent>
-                </Card>
-            </div>
-       )
-    }
-
-    return null;
+          <Button variant="outline" className="w-full" onClick={handleGoogleSignIn}>Google</Button>
+          <p className="mt-4 text-center text-sm text-muted-foreground">Already have an account?{' '}
+            <Link href="/login" className="font-medium text-primary hover:underline">Sign in</Link>
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
 }
 
-export default function VerifyEmailPage() {
+export default function RegisterPage() {
     return (
         <FirebaseClientProvider>
-            <VerifyEmailPageContent />
+            <RegisterPageContent />
         </FirebaseClientProvider>
-    );
+    )
 }
