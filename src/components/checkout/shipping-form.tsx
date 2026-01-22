@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -12,6 +11,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from '@/hooks/use-toast';
@@ -38,7 +38,7 @@ const formSchema = z.object({
   paymentMethod: z.enum(['cod', 'online'], { required_error: 'You need to select a payment method.' }),
 });
 
-const addressIcons = {
+const addressIcons: { [key: string]: React.ReactNode } = {
   Home: <Home size={16} />,
   Office: <Briefcase size={16} />,
   Other: <MapPin size={16} />,
@@ -421,5 +421,3 @@ export function ShippingForm() {
     </>
   );
 }
-
-    
