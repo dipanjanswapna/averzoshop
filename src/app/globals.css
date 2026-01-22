@@ -14,69 +14,69 @@ body {
     overflow-x: hidden;
   }
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 262 86% 51%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 240 5% 96%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 5% 96%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
+    --background: 0 0% 96.5%; /* Off-White */
+    --foreground: 0 0% 14.1%; /* Deep Charcoal */
+    --card: 0 0% 100%; /* White */
+    --card-foreground: 0 0% 14.1%; /* Deep Charcoal */
+    --popover: 0 0% 100%; /* White */
+    --popover-foreground: 0 0% 14.1%; /* Deep Charcoal */
+    --primary: 0 100% 63.9%; /* Vibrant Coral */
+    --primary-foreground: 0 0% 98%; /* White-ish */
+    --secondary: 0 0% 93%; /* Lighter Grey for contrast */
+    --secondary-foreground: 0 0% 14.1%; /* Deep Charcoal */
+    --muted: 0 0% 93%;
+    --muted-foreground: 0 0% 47.5%; /* Medium Grey */
+    --accent: 0 0% 93%;
+    --accent-foreground: 0 0% 14.1%; /* Deep Charcoal */
+    --destructive: 0 100% 63.9%; /* Vibrant Coral */
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5% 90%;
-    --input: 240 5% 90%;
-    --ring: 262 86% 51%;
+    --border: 0 0% 90%; /* Light Grey */
+    --input: 0 0% 90%;
+    --ring: 0 100% 63.9%; /* Vibrant Coral */
     --chart-1: 221 83% 53%;
     --chart-2: 120 73% 65%;
     --chart-3: 40 80% 60%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
     --radius: 0.5rem;
-    --sidebar-background: 240 10% 4%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 0 0% 98%;
-    --sidebar-primary-foreground: 240 10% 4%;
-    --sidebar-accent: 240 5% 12%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 240 5% 12%;
-    --sidebar-ring: 262 86% 61%;
+    --sidebar-background: 0 0% 14.1%; /* Deep Charcoal */
+    --sidebar-foreground: 0 0% 96.5%; /* Off-White */
+    --sidebar-primary: 0 0% 96.5%; /* Off-White for active item background */
+    --sidebar-primary-foreground: 0 0% 14.1%; /* Deep Charcoal for active item text */
+    --sidebar-accent: 0 0% 22%; /* Lighter Charcoal */
+    --sidebar-accent-foreground: 0 0% 96.5%; /* Off-White */
+    --sidebar-border: 0 0% 22%;
+    --sidebar-ring: 0 100% 63.9%; /* Vibrant Coral */
   }
 
   .dark {
-    --background: 240 10% 4%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 8%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 4%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 262 86% 61%;
+    --background: 0 0% 14.1%; /* Deep Charcoal */
+    --foreground: 0 0% 96.5%; /* Off-White */
+    --card: 0 0% 18%; /* Darker Grey */
+    --card-foreground: 0 0% 96.5%; /* Off-White */
+    --popover: 0 0% 10%; /* Even darker charcoal for popovers */
+    --popover-foreground: 0 0% 96.5%; /* Off-White */
+    --primary: 0 100% 63.9%; /* Vibrant Coral */
     --primary-foreground: 0 0% 98%;
-    --secondary: 240 5% 12%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 5% 12%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 5% 12%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --secondary: 0 0% 18%; /* Darker Grey */
+    --secondary-foreground: 0 0% 96.5%; /* Off-White */
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 47.5%; /* Medium Grey */
+    --accent: 0 0% 18%;
+    --accent-foreground: 0 0% 96.5%; /* Off-White */
+    --destructive: 0 80% 55%; /* Darker Coral */
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5% 16%;
-    --input: 240 5% 16%;
-    --ring: 262 86% 61%;
-    --sidebar-background: 240 10% 6%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 0 0% 98%;
-    --sidebar-primary-foreground: 240 10% 4%;
-    --sidebar-accent: 240 5% 14%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 240 5% 14%;
-    --sidebar-ring: 262 86% 61%;
+    --border: 0 0% 22%; /* Lighter Charcoal */
+    --input: 0 0% 22%;
+    --ring: 0 100% 63.9%; /* Vibrant Coral */
+    --sidebar-background: 0 0% 10%; /* Even Darker Charcoal */
+    --sidebar-foreground: 0 0% 96.5%; /* Off-White */
+    --sidebar-primary: 0 0% 96.5%; /* Off-White for active item background */
+    --sidebar-primary-foreground: 0 0% 10%; /* Even Darker Charcoal for active item text */
+    --sidebar-accent: 0 0% 18%; /* Darker Grey */
+    --sidebar-accent-foreground: 0 0% 96.5%; /* Off-White */
+    --sidebar-border: 0 0% 18%;
+    --sidebar-ring: 0 100% 63.9%; /* Vibrant Coral */
   }
 }
 
