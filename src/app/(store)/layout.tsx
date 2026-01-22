@@ -1,5 +1,4 @@
 
-
 import { MobileBottomNav } from '@/components/mobile-bottom-nav';
 import AverzoNavbar from '@/components/store-header';
 import Link from 'next/link';
@@ -21,7 +20,7 @@ export default function StoreLayout({
     <div className="flex min-h-screen flex-col bg-background text-foreground font-body">
       <AverzoNavbar />
       <CartExpirationChecker />
-      <main className="flex-1 pt-[68px] lg:pt-[108px] pb-24 lg:pb-0">
+      <main className="flex-1 pt-[108px] pb-24 lg:pb-0">
         <div className="p-4 border-b md:hidden bg-background sticky top-[68px] z-40">
             <LiveSearch />
         </div>
@@ -90,8 +89,8 @@ export default function StoreLayout({
              <div>
               <h3 className="font-semibold font-headline text-foreground">Legal</h3>
               <ul className="mt-4 space-y-2 text-sm">
-                <li><Link href="#" className="text-muted-foreground hover:text-primary">Terms of Service</Link></li>
-                <li><Link href="#" className="text-muted-foreground hover:text-primary">Privacy Policy</Link></li>
+                <li><Link href="/terms-of-service" className="text-muted-foreground hover:text-primary">Terms of Service</Link></li>
+                <li><Link href="/privacy-policy" className="text-muted-foreground hover:text-primary">Privacy Policy</Link></li>
               </ul>
             </div>
           </div>
