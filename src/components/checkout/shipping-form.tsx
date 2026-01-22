@@ -219,22 +219,22 @@ export function ShippingForm() {
         return;
     }
 
-    const finalShippingAddress: ShippingAddress | undefined = orderMode === 'delivery' ? {
+    const finalShippingAddress: ShippingAddress | null = orderMode === 'delivery' ? {
         name: selectedAddress!.name, phone: selectedAddress!.phone, district: selectedAddress!.district,
         area: selectedAddress!.area, streetAddress: selectedAddress!.streetAddress,
-    } : undefined;
+    } : null;
 
     const orderId = doc(collection(firestore, 'orders')).id;
     const isPreOrderInCart = cartItems.some(item => item.isPreOrder);
-    const assignedOutletId = orderMode === 'pickup' ? pickupOutletId! : shippingInfo.outletId!;
-    const pickupCode = orderMode === 'pickup' ? `AZ-${Math.floor(1000 + Math.random() * 9000)}` : undefined;
+    const assignedOutletId = orderMode === 'pickup' ? pickupOutletId : shippingInfo.outletId;
+    const pickupCode = orderMode === 'pickup' ? `AZ-${Math.floor(1000 + Math.random() * 9000)}` : null;
 
     const baseOrderData: Omit<Order, 'status' | 'createdAt' | 'paymentStatus'> = {
         id: orderId, customerId: user.uid, items: cartItems.map(item => ({ productId: item.product.id, productName: item.product.name, variantSku: item.variant.sku, quantity: item.quantity, price: item.variant.price })),
         subtotal: subtotal, cardPromoDiscountAmount: cardPromoDiscountAmount, discountAmount: discount, promoCode: promoCode ? promoCode.code : null, loyaltyPointsUsed: pointsApplied, loyaltyDiscount: pointsDiscount,
         totalAmount: totalPayable, fullOrderValue: fullOrderTotal, orderType: isPreOrderInCart ? 'pre-order' as const : 'regular' as const,
         orderMode: orderMode, pickupOutletId: orderMode === 'pickup' ? pickupOutletId : null,
-        assignedOutletId: assignedOutletId, pickupCode: pickupCode, shippingAddress: finalShippingAddress
+        assignedOutletId: assignedOutletId || null, pickupCode: pickupCode, shippingAddress: finalShippingAddress
     };
 
     if (values.paymentMethod === 'cod') {
@@ -256,10 +256,10 @@ export function ShippingForm() {
                         const variantIndex = variantsArray.findIndex((v: ProductVariant) => v.sku === item.variant.sku);
                         if (variantIndex === -1) throw new Error(`Variant ${item.variant.sku} not found.`);
                         const variant = variantsArray[variantIndex];
-                        const currentStock = variant.outlet_stocks?.[assignedOutletId] ?? 0;
+                        const currentStock = variant.outlet_stocks?.[assignedOutletId!] ?? 0;
                         if (currentStock < item.quantity) throw new Error(`Not enough stock for ${productData.name}.`);
                         variantsArray[variantIndex].stock = (variant.stock || 0) - item.quantity;
-                        if (variantsArray[variantIndex].outlet_stocks) variantsArray[variantIndex].outlet_stocks[assignedOutletId] = currentStock - item.quantity;
+                        if (variantsArray[variantIndex].outlet_stocks) variantsArray[variantIndex].outlet_stocks[assignedOutletId!] = currentStock - item.quantity;
                         transaction.update(productRefs[i], { variants: variantsArray, total_stock: increment(-item.quantity) });
                     }
                 }

@@ -22,7 +22,7 @@ export type OrderStatus = 'pending_payment' | 'new' | 'preparing' | 'ready_for_p
 export interface Order {
     id: string;
     customerId: string;
-    shippingAddress?: ShippingAddress;
+    shippingAddress?: ShippingAddress | null;
     items: OrderItem[];
     subtotal?: number;
     cardPromoDiscountAmount?: number;
@@ -32,12 +32,12 @@ export interface Order {
     loyaltyDiscount?: number;
     totalAmount: number;
     fullOrderValue?: number;
-    assignedOutletId?: string;
+    assignedOutletId?: string | null;
     status: OrderStatus;
     orderType: 'regular' | 'pre-order';
     orderMode: 'delivery' | 'pickup';
     pickupOutletId?: string;
-    pickupCode?: string;
+    pickupCode?: string | null;
     createdAt: Timestamp;
     riderId?: string;
     salesRepId?: string;
