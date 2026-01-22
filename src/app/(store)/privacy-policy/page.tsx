@@ -24,7 +24,7 @@ import {
         </Breadcrumb>
         <h1 className="text-4xl font-extrabold font-headline tracking-tight mb-4">Privacy Policy</h1>
         <p className="text-muted-foreground mb-8">
-          Last Updated: {new Date().toLocaleDateString()}
+          Last Updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
         </p>
   
         <div className="prose dark:prose-invert max-w-none space-y-6 text-muted-foreground">
