@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 import { useCart } from '@/hooks/use-cart';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
@@ -52,22 +52,30 @@ export function MobileBottomNav() {
             key={item.label}
             href={href}
             className={cn(
-                'relative flex h-full items-center justify-center text-muted-foreground transition-colors duration-200 ease-in-out hover:text-primary',
+                'relative flex h-full flex-col items-center justify-center text-muted-foreground transition-colors duration-200 ease-in-out hover:text-primary',
                 isActive && 'text-primary'
             )}
         >
-            <div className="relative">
-                {isActive && (
-                    <motion.div
-                        layoutId="active-nav-item"
-                        className="absolute -inset-2 bg-primary/10 rounded-full"
-                        transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                    />
-                )}
-                <div className="relative">
-                    <item.icon className="h-6 w-6" />
-                </div>
-            </div>
+            <motion.div 
+              className="relative"
+              animate={{ y: isActive ? -4 : 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            >
+                <item.icon className="h-6 w-6" />
+            </motion.div>
+            
+            <AnimatePresence>
+              {isActive && (
+                <motion.div
+                  className="absolute bottom-1.5 h-1 w-1 rounded-full bg-primary"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                />
+              )}
+            </AnimatePresence>
+
 
             {item.label === 'Bag' && isMounted && items.length > 0 && (
                 <span className="absolute top-2 right-2 bg-primary text-primary-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
@@ -80,8 +88,8 @@ export function MobileBottomNav() {
 
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/80 backdrop-blur-sm lg:hidden shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
-      <div className="grid h-14 grid-cols-5">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 h-14 border-t bg-background/95 backdrop-blur-sm lg:hidden">
+      <div className="grid h-full grid-cols-5">
         {navItems.map(getNavItem)}
       </div>
     </nav>
