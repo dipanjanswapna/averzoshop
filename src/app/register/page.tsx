@@ -17,16 +17,12 @@ import AverzoLogo from '@/components/averzo-logo';
 import { FirebaseClientProvider, useFirebase } from '@/firebase';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useRouter } from 'next/navigation';
-import { sendMagicLink } from '@/actions/auth-actions';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   email: z.string().email({ message: 'Invalid email address.' }),
   role: z.enum(['customer', 'vendor', 'rider', 'outlet', 'admin', 'sales'], { required_error: 'Please select a role.' }),
-  password: z.string().optional(),
-}).refine(data => data.role === 'customer' || (data.password && data.password.length >= 6), {
-  message: "Password must be at least 6 characters for this role.",
-  path: ["password"],
+  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
 });
 
 
@@ -46,8 +42,6 @@ function RegisterPageContent() {
     },
   });
 
-  const selectedRole = form.watch('role');
-
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     if (!auth || !firestore) {
@@ -55,48 +49,47 @@ function RegisterPageContent() {
       setIsLoading(false);
       return;
     }
-
-    // Customer registration with magic link
-    if (values.role === 'customer') {
-      try {
-        window.localStorage.setItem('nameForSignIn', values.name); // Store name for account creation
-        const result = await sendMagicLink(auth, values.email);
-        if (result.success) {
-          toast({ title: 'Verification Link Sent', description: result.message });
-          router.push('/login'); // Redirect to login page to inform user
-        } else {
-          throw new Error(result.message);
-        }
-      } catch (error: any) {
-        toast({ variant: "destructive", title: "Could not send link", description: error.message });
-      } finally {
-        setIsLoading(false);
-      }
-      return;
-    }
     
-    // Password-based registration for other roles
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password!);
       const user = userCredential.user;
 
       await updateProfile(user, { displayName: values.name });
+      
+      const isCustomer = values.role === 'customer';
+      const status = isCustomer ? 'approved' : 'pending';
 
-      await setDoc(doc(firestore, "users", user.uid), {
+      const userData: any = {
         uid: user.uid,
         email: user.email,
         displayName: values.name,
         photoURL: user.photoURL,
         role: values.role,
-        status: 'pending',
+        status: status,
         createdAt: serverTimestamp(),
-      });
+      };
       
-      toast({
-        title: "Registration Submitted!",
-        description: "Your account is pending approval. We'll notify you soon."
-      });
-      router.push('/login');
+      if (isCustomer) {
+        userData.loyaltyPoints = 100;
+        userData.totalSpent = 0;
+        userData.membershipTier = 'silver';
+      }
+
+      await setDoc(doc(firestore, "users", user.uid), userData);
+      
+      if (isCustomer) {
+          toast({
+            title: "Welcome!",
+            description: "Your account is created and you've received 100 bonus points!"
+          });
+          router.push('/permissions'); // Go to permissions setup
+      } else {
+         toast({
+            title: "Registration Submitted!",
+            description: "Your account is pending approval. We'll notify you soon."
+          });
+         router.push('/login');
+      }
 
     } catch (error: any) {
       let description = "Could not create your account. Please try again.";
@@ -179,23 +172,21 @@ function RegisterPageContent() {
                     </SelectContent>
                     </Select><FormMessage /></FormItem>
               )} />
-              {selectedRole !== 'customer' && (
-                  <FormField
+                <FormField
                     control={form.control}
                     name="password"
                     render={({ field }) => (
-                      <FormItem>
+                    <FormItem>
                         <FormLabel>Password</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="••••••••" {...field} />
+                        <Input type="password" placeholder="••••••••" {...field} />
                         </FormControl>
                         <FormMessage />
-                      </FormItem>
+                    </FormItem>
                     )}
-                  />
-              )}
+                />
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Processing...' : (selectedRole === 'customer' ? 'Send Verification Link' : 'Create Account')}
+                {isLoading ? 'Processing...' : 'Create Account'}
               </Button>
             </form>
           </Form>

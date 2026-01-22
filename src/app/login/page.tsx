@@ -16,22 +16,15 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import AverzoLogo from '@/components/averzo-logo';
 import { useAuth } from '@/hooks/use-auth';
-import { FirebaseClientProvider, useFirebase } from '@/firebase';
-import { sendMagicLink } from '@/actions/auth-actions';
+import { FirebaseClientProvider } from '@/firebase';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
 });
 
-const passwordlessSchema = z.object({
-  email: z.string().email({ message: 'Invalid email address.' }),
-});
-
 function LoginPageContent() {
   const [loading, setLoading] = useState(false);
-  const [isPasswordless, setIsPasswordless] = useState(false);
-  const [cooldown, setCooldown] = useState(0);
   const { auth, firestore, user, userData, loading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -45,44 +38,27 @@ function LoginPageContent() {
     },
   });
 
-  const passwordlessForm = useForm<z.infer<typeof passwordlessSchema>>({
-    resolver: zodResolver(passwordlessSchema),
-    defaultValues: {
-      email: '',
-    },
-  });
-  
-  useEffect(() => {
-    if (cooldown > 0) {
-      const timer = setTimeout(() => setCooldown(cooldown - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [cooldown]);
-
   useEffect(() => {
     if (!authLoading && user && userData) {
-      // Check if user needs to go through permissions setup.
       const hasAddress = userData.addresses && userData.addresses.length > 0;
       if (userData.role === 'customer' && !hasAddress) {
         router.replace('/permissions');
         return;
       }
 
-      // Handle specific redirects (e.g., from trying to access a protected page)
       const redirectUrl = searchParams.get('redirect');
       if (redirectUrl) {
           router.replace(redirectUrl);
           return;
       }
       
-      // Default role-based redirection
       const roleRedirects: { [key: string]: string } = {
         admin: '/dashboard',
         vendor: '/vendor/dashboard',
         outlet: '/outlet/dashboard',
         rider: '/rider/dashboard',
         sales: '/sales/dashboard',
-        customer: '/', // Customers go to the homepage after login
+        customer: '/',
       };
       
       router.replace(roleRedirects[userData.role] || '/');
@@ -105,30 +81,6 @@ function LoginPageContent() {
       toast({ variant: 'destructive', title: 'Login Failed', description: error.message });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handlePasswordlessSubmit = async (values: z.infer<typeof passwordlessSchema>) => {
-    if (!auth) {
-        toast({ variant: 'destructive', title: 'Auth service not available.' });
-        return;
-    }
-    setLoading(true);
-    try {
-      const result = await sendMagicLink(auth, values.email);
-      if (result.success) {
-        toast({ title: 'Link Sent!', description: result.message });
-        setCooldown(30);
-      } else {
-        throw new Error(result.message);
-      }
-    } catch (error: any) {
-       toast({ variant: "destructive", title: 'Failed to send link', description: error.message });
-       if (error.message.includes('Too many requests')) {
-          setCooldown(60);
-       }
-    } finally {
-        setLoading(false);
     }
   };
 
@@ -159,6 +111,7 @@ function LoginPageContent() {
           membershipTier: 'silver',
         });
         toast({ title: 'Welcome!', description: "Your account is created and you've received 100 bonus points!" });
+        router.push('/permissions');
       } else {
         await setDoc(userDocRef, {
           displayName: user.displayName,
@@ -193,32 +146,6 @@ function LoginPageContent() {
           <CardDescription>Enter your credentials to access your account.</CardDescription>
         </CardHeader>
         <CardContent>
-          {isPasswordless ? (
-            <Form {...passwordlessForm}>
-              <form onSubmit={passwordlessForm.handleSubmit(handlePasswordlessSubmit)} className="space-y-4">
-                <FormField
-                  control={passwordlessForm.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input placeholder="name@example.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit" className="w-full" disabled={loading || cooldown > 0}>
-                  {loading
-                  ? 'Sending...'
-                  : cooldown > 0
-                  ? `Try again in ${cooldown}s`
-                  : 'Send Sign-in Link'}
-                </Button>
-              </form>
-            </Form>
-          ) : (
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
@@ -253,13 +180,6 @@ function LoginPageContent() {
                 </Button>
               </form>
             </Form>
-          )}
-
-           <div className="text-center mt-4">
-              <Button variant="link" onClick={() => setIsPasswordless(!isPasswordless)} className="text-sm">
-                 {isPasswordless ? 'Sign in with password instead' : 'Sign in with email link'}
-              </Button>
-          </div>
 
           <div className="relative my-4">
             <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
