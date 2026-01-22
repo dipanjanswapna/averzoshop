@@ -1,205 +1,117 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
-import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { useEffect, useState, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
+import { isSignInWithEmailLink, signInWithEmailLink } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
-
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import AverzoLogo from '@/components/averzo-logo';
-import { FirebaseClientProvider, useFirebase } from '@/firebase';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
 
-const formSchema = z.object({
-  name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
-  email: z.string().email({ message: 'Invalid email address.' }),
-  role: z.enum(['customer', 'vendor', 'rider', 'sales'], { required_error: 'Please select a role.' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
-});
+function VerifyEmailContent() {
+    const { auth, firestore } = useAuth();
+    const router = useRouter();
+    const { toast } = useToast();
+    const [status, setStatus] = useState('Verifying your email link...');
+    const [error, setError] = useState<string | null>(null);
 
+    useEffect(() => {
+        const verifyLink = async () => {
+            if (!auth || !firestore || !window.localStorage) {
+                setError('Could not initialize services. Please try again.');
+                return;
+            }
 
-function RegisterPageContent() {
-  const [isLoading, setIsLoading] = useState(false);
-  const { auth, firestore } = useFirebase();
-  const router = useRouter();
-  const { toast } = useToast();
+            if (isSignInWithEmailLink(auth, window.location.href)) {
+                let email = window.localStorage.getItem('emailForSignIn');
+                let name = window.localStorage.getItem('nameForSignIn');
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: '',
-      email: '',
-      role: 'customer',
-      password: '',
-    },
-  });
+                if (!email) {
+                    setError('Could not find email for sign-in. Please try the registration process again.');
+                    return;
+                }
+                
+                if (!name) {
+                    name = 'New Customer';
+                }
 
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    setIsLoading(true);
-    if (!auth || !firestore) {
-      toast({ variant: 'destructive', title: 'Auth service not available.' });
-      setIsLoading(false);
-      return;
-    }
+                try {
+                    const result = await signInWithEmailLink(auth, email, window.location.href);
+                    window.localStorage.removeItem('emailForSignIn');
+                    window.localStorage.removeItem('nameForSignIn');
+                    
+                    const user = result.user;
+                    setStatus('Sign-in successful. Setting up your account...');
 
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
-      const user = userCredential.user;
+                    const userDocRef = doc(firestore, 'users', user.uid);
+                    const userDoc = await getDoc(userDocRef);
 
-      await updateProfile(user, { displayName: values.name });
+                    if (!userDoc.exists()) {
+                        await setDoc(userDocRef, {
+                            uid: user.uid,
+                            email: user.email,
+                            displayName: name,
+                            photoURL: user.photoURL,
+                            role: 'customer',
+                            status: 'approved',
+                            createdAt: serverTimestamp(),
+                            loyaltyPoints: 100, // Welcome bonus
+                            totalSpent: 0,
+                            membershipTier: 'silver',
+                        });
+                        toast({ title: 'Welcome!', description: "Your account is created and you've received 100 bonus points!" });
+                    } else {
+                         toast({ title: 'Welcome Back!', description: 'You have successfully signed in.' });
+                    }
 
-      const isCustomer = values.role === 'customer';
-      const status = isCustomer ? 'approved' : 'pending';
+                    setStatus('Redirecting to account setup...');
+                    router.replace('/permissions');
 
-      await setDoc(doc(firestore, 'users', user.uid), {
-        uid: user.uid,
-        email: user.email,
-        displayName: values.name,
-        photoURL: user.photoURL,
-        role: values.role,
-        status: status,
-        createdAt: serverTimestamp(),
-        loyaltyPoints: isCustomer ? 100 : 0, // Welcome bonus for customers
-        totalSpent: 0,
-        membershipTier: 'silver',
-      });
-      
-      if (isCustomer) {
-        toast({
-            title: "Account Created!",
-            description: "Welcome! You've received 100 bonus points. Please log in."
-        });
-      } else {
-        toast({
-          title: "Registration Submitted!",
-          description: "Your account is pending approval. We'll notify you soon."
-        });
-      }
-      router.push('/login');
+                } catch (err: any) {
+                    setError(`Failed to sign in. The link may be expired or invalid.`);
+                    console.error(err);
+                }
 
-    } catch (error: any) {
-      console.error("Error creating account:", error);
-      let description = "Could not create your account. Please try again.";
-      if (error.code === 'auth/email-already-in-use') {
-          description = 'This email is already registered. Please log in.';
-      }
-      toast({ variant: "destructive", title: "Registration Failed", description });
-    } finally {
-        setIsLoading(false);
-    }
-  };
+            } else {
+                setError('This is not a valid sign-in link.');
+            }
+        };
 
-  const handleGoogleSignIn = async () => {
-    if (!auth || !firestore) {
-      toast({ variant: 'destructive', title: 'Auth service not available.' });
-      return;
-    }
-    const provider = new GoogleAuthProvider();
-    try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
+        verifyLink();
+    }, [auth, firestore, router, toast]);
 
-      const userDocRef = doc(firestore, 'users', user.uid);
-      const userDoc = await getDoc(userDocRef);
-
-      if (!userDoc.exists()) {
-        await setDoc(userDocRef, {
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName,
-          photoURL: user.photoURL,
-          role: 'customer',
-          status: 'approved',
-          createdAt: serverTimestamp(),
-          loyaltyPoints: 100, // Bonus points for new sign-up
-          totalSpent: 0,
-          membershipTier: 'silver',
-        });
-        toast({ title: "Welcome!", description: "Your account is created and you've received 100 bonus points!" });
-      } else {
-        toast({ title: 'Google Sign-In Successful', description: 'Welcome back!' });
-      }
-
-      router.push('/login');
-    } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Google Sign-In Failed', description: error.message });
-    }
-  };
-  
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-secondary p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-          <AverzoLogo className="mx-auto mb-4" />
-          <CardTitle>Create an Account</CardTitle>
-          <CardDescription>Join our community by entering your details below.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField control={form.control} name="name" render={({ field }) => (
-                  <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="John Doe" {...field} /></FormControl><FormMessage /></FormItem>
-              )} />
-              <FormField control={form.control} name="email" render={({ field }) => (
-                  <FormItem><FormLabel>Email</FormLabel><FormControl><Input placeholder="name@example.com" {...field} /></FormControl><FormMessage /></FormItem>
-              )} />
-              <FormField control={form.control} name="role" render={({ field }) => (
-                  <FormItem><FormLabel>Register as</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger></FormControl>
-                    <SelectContent>
-                        <SelectItem value="customer">Customer</SelectItem>
-                        <SelectItem value="vendor">Vendor</SelectItem>
-                        <SelectItem value="rider">Rider</SelectItem>
-                        <SelectItem value="sales">Sales Representative</SelectItem>
-                    </SelectContent>
-                    </Select><FormMessage /></FormItem>
-              )} />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+    return (
+        <div className="flex min-h-screen flex-col items-center justify-center bg-secondary text-center p-4">
+            <AverzoLogo className="text-4xl mb-8" />
+            <div className="bg-background p-8 rounded-xl shadow-lg w-full max-w-md">
+                <h1 className="text-2xl font-bold font-headline">{error ? 'Verification Failed' : 'Verifying Your Email'}</h1>
+                <div className="flex items-center justify-center h-24">
+                    {error ? (
+                        <p className="text-destructive">{error}</p>
+                    ) : (
+                        <div className="flex flex-col items-center justify-center gap-6">
+                            <div className="lds-ring">
+                                <div /><div /><div /><div />
+                            </div>
+                            <p className="text-muted-foreground animate-pulse">{status}</p>
+                        </div>
+                    )}
+                </div>
+                 {error && (
+                    <Button onClick={() => router.replace('/login')} className="mt-4">
+                        Back to Login
+                    </Button>
                 )}
-              />
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Processing...' : 'Create Account'}
-              </Button>
-            </form>
-          </Form>
-
-          <div className="relative my-4">
-            <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
-            <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-2 text-muted-foreground">Or continue with</span></div>
-          </div>
-
-          <Button variant="outline" className="w-full" onClick={handleGoogleSignIn}>Google</Button>
-          <p className="mt-4 text-center text-sm text-muted-foreground">Already have an account?{' '}
-            <Link href="/login" className="font-medium text-primary hover:underline">Sign in</Link>
-          </p>
-        </CardContent>
-      </Card>
-    </div>
-  );
+            </div>
+        </div>
+    );
 }
 
-export default function RegisterPage() {
+export default function VerifyEmailPage() {
     return (
-        <FirebaseClientProvider>
-            <RegisterPageContent />
-        </FirebaseClientProvider>
+        <Suspense fallback={<div>Loading...</div>}>
+            <VerifyEmailContent />
+        </Suspense>
     )
 }

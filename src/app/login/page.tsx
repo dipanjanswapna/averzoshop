@@ -17,14 +17,20 @@ import { useToast } from '@/hooks/use-toast';
 import AverzoLogo from '@/components/averzo-logo';
 import { useAuth } from '@/hooks/use-auth';
 import { FirebaseClientProvider } from '@/firebase';
+import { sendSignInLink } from '@/actions/auth-actions';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
 });
 
+const passwordlessSchema = z.object({
+  email: z.string().email({ message: 'Invalid email address.' }),
+});
+
 function LoginPageContent() {
   const [loading, setLoading] = useState(false);
+  const [isPasswordless, setIsPasswordless] = useState(false);
   const { auth, firestore, user, userData, loading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -38,6 +44,13 @@ function LoginPageContent() {
     },
   });
 
+  const passwordlessForm = useForm<z.infer<typeof passwordlessSchema>>({
+    resolver: zodResolver(passwordlessSchema),
+    defaultValues: {
+      email: '',
+    },
+  });
+
   useEffect(() => {
     if (!authLoading && user && userData) {
       const redirectUrl = searchParams.get('redirect');
@@ -46,11 +59,16 @@ function LoginPageContent() {
           return;
       }
       
-      if (userData.role === 'customer') {
-        router.replace('/customer');
-      } else {
-        router.replace('/dashboard');
-      }
+      const dashboardPaths = {
+        admin: '/dashboard',
+        customer: '/customer',
+        vendor: '/vendor/dashboard',
+        outlet: '/outlet/dashboard',
+        rider: '/rider/dashboard',
+        sales: '/sales/dashboard',
+      };
+      
+      router.replace(dashboardPaths[userData.role] || '/');
     }
   }, [user, userData, authLoading, router, searchParams]);
 
@@ -73,6 +91,24 @@ function LoginPageContent() {
     }
   };
 
+  const handlePasswordlessSubmit = async (values: z.infer<typeof passwordlessSchema>) => {
+    setLoading(true);
+    try {
+      window.localStorage.setItem('emailForSignIn', values.email);
+      const result = await sendSignInLink({ email: values.email });
+      if (result.success) {
+        toast({ title: 'Check your email', description: 'A sign-in link has been sent to your email address.' });
+        setIsPasswordless(false); // Switch back to password form
+      } else {
+        throw new Error(result.message);
+      }
+    } catch (error: any) {
+       toast({ variant: 'destructive', title: 'Failed to send link', description: error.message });
+    } finally {
+        setLoading(false);
+    }
+  };
+
   const handleGoogleSignIn = async () => {
     if (!auth || !firestore) {
       toast({ variant: 'destructive', title: 'Auth service not available.' });
@@ -87,7 +123,6 @@ function LoginPageContent() {
       const userDoc = await getDoc(userDocRef);
 
       if (!userDoc.exists()) {
-        // New user, create document with customer role
         await setDoc(userDocRef, {
           uid: user.uid,
           email: user.email,
@@ -96,13 +131,12 @@ function LoginPageContent() {
           role: 'customer',
           status: 'approved',
           createdAt: serverTimestamp(),
-          loyaltyPoints: 100, // Welcome bonus
+          loyaltyPoints: 100,
           totalSpent: 0,
           membershipTier: 'silver',
         });
         toast({ title: 'Welcome!', description: "Your account is created and you've received 100 bonus points!" });
       } else {
-        // Existing user, merge data but don't overwrite role/status
         await setDoc(userDocRef, {
           displayName: user.displayName,
           photoURL: user.photoURL,
@@ -119,14 +153,9 @@ function LoginPageContent() {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-background">
         <div className="flex flex-col items-center justify-center gap-6">
-            <div className="lds-ring">
-                <div />
-                <div />
-                <div />
-                <div />
-            </div>
+            <div className="lds-ring"><div /><div /><div /><div /></div>
             <AverzoLogo className="text-xl" />
-            <p className="text-muted-foreground animate-pulse">Redirecting to your dashboard...</p>
+            <p className="text-muted-foreground animate-pulse">Redirecting...</p>
         </div>
       </div>
     );
@@ -141,70 +170,86 @@ function LoginPageContent() {
           <CardDescription>Enter your credentials to access your account.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input placeholder="name@example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="flex items-center justify-between">
-                      <FormLabel>Password</FormLabel>
-                      <Link href="#" className="text-sm font-medium text-primary hover:underline">
-                        Forgot password?
-                      </Link>
-                    </div>
-                    <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Logging in...' : 'Login'}
-              </Button>
-            </form>
-          </Form>
+          {isPasswordless ? (
+            <Form {...passwordlessForm}>
+              <form onSubmit={passwordlessForm.handleSubmit(handlePasswordlessSubmit)} className="space-y-4">
+                <FormField
+                  control={passwordlessForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="name@example.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? 'Sending...' : 'Send Sign-in Link'}
+                </Button>
+              </form>
+            </Form>
+          ) : (
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="name@example.com" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="flex items-center justify-between">
+                        <FormLabel>Password</FormLabel>
+                        <Link href="#" className="text-sm font-medium text-primary hover:underline">Forgot password?</Link>
+                      </div>
+                      <FormControl><Input type="password" placeholder="••••••••" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? 'Logging in...' : 'Login'}
+                </Button>
+              </form>
+            </Form>
+          )}
 
-          <div className="relative my-4">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-            </div>
+           <div className="text-center mt-4">
+              <Button variant="link" onClick={() => setIsPasswordless(!isPasswordless)} className="text-sm">
+                 {isPasswordless ? 'Sign in with password instead' : 'Sign in with email link'}
+              </Button>
           </div>
 
-          <Button variant="outline" className="w-full" onClick={handleGoogleSignIn}>
-            Google
-          </Button>
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+            <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-2 text-muted-foreground">Or continue with</span></div>
+          </div>
+
+          <Button variant="outline" className="w-full" onClick={handleGoogleSignIn}>Google</Button>
 
           <p className="mt-4 text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{' '}
-            <Link href="/register" className="font-medium text-primary hover:underline">
-              Sign up
-            </Link>
+            <Link href="/register" className="font-medium text-primary hover:underline">Sign up</Link>
           </p>
         </CardContent>
       </Card>
     </div>
   );
 }
-
 
 export default function LoginPage() {
   return (
