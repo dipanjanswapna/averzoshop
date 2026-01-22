@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -11,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { ArrowRight, CheckCircle, Gift, Sparkles, Truck } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import React from 'react';
@@ -21,7 +22,7 @@ const onboardingSlides = [
     icon: Sparkles,
     title: "Discover Your Unique Style",
     description: "Explore thousands of products from top brands and find what truly fits you.",
-    image: "/jon-ly-Xn7GvimQrk8-unsplash.jpg",
+    image: "/freestocks-_3Q3tsJ01nc-unsplash.jpg",
     imageHint: "online shopping fashion",
   },
   {
@@ -77,34 +78,32 @@ export default function OnboardingPage() {
             <div className="w-full max-w-md mx-auto flex flex-col justify-center flex-1">
                 
                 <div className="h-48 md:h-56 lg:h-64 relative">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={current}
-                            variants={textVariants}
-                            initial="hidden"
-                            animate="visible"
-                            exit="exit"
-                            className="absolute inset-0 flex flex-col justify-center"
-                        >
-                            <div className="flex items-center gap-4">
-                               <div className="bg-primary/10 text-primary p-3 rounded-xl">
-                                  {React.createElement(onboardingSlides[current].icon, { size: 28 })}
-                               </div>
-                               <div>
-                                    <p className="text-xs font-bold text-primary uppercase tracking-widest">
-                                        Step {current + 1} / {count}
-                                    </p>
-                                    <h1 className="text-3xl lg:text-4xl font-extrabold font-headline text-foreground mt-1">
-                                        {onboardingSlides[current].title}
-                                    </h1>
-                               </div>
-                            </div>
+                    <motion.div
+                        key={current}
+                        variants={textVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        className="absolute inset-0 flex flex-col justify-center"
+                    >
+                        <div className="flex items-center gap-4">
+                           <div className="bg-primary/10 text-primary p-3 rounded-xl">
+                              {React.createElement(onboardingSlides[current].icon, { size: 28 })}
+                           </div>
+                           <div>
+                                <p className="text-xs font-bold text-primary uppercase tracking-widest">
+                                    Step {current + 1} / {count}
+                                </p>
+                                <h1 className="text-3xl lg:text-4xl font-extrabold font-headline text-foreground mt-1">
+                                    {onboardingSlides[current].title}
+                                </h1>
+                           </div>
+                        </div>
 
-                            <p className="mt-4 text-base text-muted-foreground">
-                                {onboardingSlides[current].description}
-                            </p>
-                        </motion.div>
-                    </AnimatePresence>
+                        <p className="mt-4 text-base text-muted-foreground">
+                            {onboardingSlides[current].description}
+                        </p>
+                    </motion.div>
                 </div>
 
 
@@ -126,35 +125,25 @@ export default function OnboardingPage() {
                         </Link>
                     </div>
 
-                    <AnimatePresence mode="wait">
+                    <motion.div
+                        key={isLastSlide ? 'get-started' : 'next'}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.5, ease: 'easeOut' }}
+                        className="w-full"
+                    >
                         {isLastSlide ? (
-                            <motion.div
-                                key="get-started"
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.8 }}
-                                className="w-full"
-                            >
-                                <Link href={registerHref} passHref>
-                                    <Button size="lg" className="w-full h-14 text-base font-bold group">
-                                        Get Started <CheckCircle className="ml-2 h-5 w-5" />
-                                    </Button>
-                                </Link>
-                            </motion.div>
-                        ) : (
-                            <motion.div
-                                key="next"
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.8 }}
-                                className="w-full"
-                            >
-                                <Button size="lg" className="w-full h-14 text-base font-bold group" onClick={() => api?.scrollNext()}>
-                                    Next <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                            <Link href={registerHref} passHref>
+                                <Button size="lg" className="w-full h-14 text-base font-bold group">
+                                    Get Started <CheckCircle className="ml-2 h-5 w-5" />
                                 </Button>
-                            </motion.div>
+                            </Link>
+                        ) : (
+                            <Button size="lg" className="w-full h-14 text-base font-bold group" onClick={() => api?.scrollNext()}>
+                                Next <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                            </Button>
                         )}
-                    </AnimatePresence>
+                    </motion.div>
                 </div>
             </div>
         </div>
