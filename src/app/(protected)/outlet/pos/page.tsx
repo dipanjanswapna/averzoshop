@@ -975,7 +975,7 @@ export default function POSPage() {
                 </div>
             </div>
 
-             <div className="lg:hidden fixed bottom-16 left-0 right-0 bg-background/80 backdrop-blur-sm p-3 border-t no-print">
+             <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm p-3 border-t no-print">
                  <Sheet>
                     <SheetTrigger asChild>
                        <Button size="lg" className="w-full h-14 text-lg font-bold flex items-center justify-between">
@@ -1011,3 +1011,5 @@ export default function POSPage() {
         </>
     );
 }
+
+    
