@@ -1,5 +1,4 @@
-
-"use client";
+'use client';
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import L from 'leaflet';
@@ -8,11 +7,12 @@ import { useDebounce } from '@/hooks/use-debounce';
 import { barikoiReverseGeocode, barikoiAutocomplete } from '@/lib/barikoi';
 
 // Fix for default icon issue with webpack
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+// @ts-ignore
+delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png').default,
-  iconUrl: require('leaflet/dist/images/marker-icon.png').default,
-  shadowUrl: require('leaflet/dist/images/marker-shadow.png').default,
+  iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png'),
+  iconUrl: require('leaflet/dist/images/marker-icon.png'),
+  shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
 });
 
 
@@ -56,7 +56,7 @@ const InteractiveMap: React.FC<InteractiveMapProps> = ({
         mapRef.current = null;
       }
     };
-  }, []);
+  }, [initialPosition]);
 
   const updateMapAndView = (lat: number, lng: number, zoom: number = 15) => {
     if (mapRef.current) {
