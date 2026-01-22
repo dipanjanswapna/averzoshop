@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from 'next/image';
@@ -70,10 +69,13 @@ export default function OnboardingPage() {
   
   const isLastSlide = current === count - 1;
 
+  const currentSlide = onboardingSlides[current];
+  const Icon = currentSlide?.icon;
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen">
         {/* Left Panel (Desktop) */}
-        <div className="relative hidden lg:flex flex-col items-center justify-center p-12 transition-colors duration-700" style={{backgroundColor: onboardingSlides[current]?.bgColor}}>
+        <div className="relative hidden lg:flex flex-col items-center justify-center p-12 transition-colors duration-700" style={{backgroundColor: currentSlide?.bgColor}}>
              <motion.div 
                 key={current} 
                 className="flex flex-col items-center text-center"
@@ -81,11 +83,11 @@ export default function OnboardingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
             >
-                <div className={cn("p-4 rounded-full mb-6", onboardingSlides[current]?.bgColor)}>
-                    <onboardingSlides[current].icon size={48} className={onboardingSlides[current]?.textColor}/>
+                <div className={cn("p-4 rounded-full mb-6", currentSlide?.bgColor)}>
+                    {Icon && <Icon size={48} className={currentSlide?.textColor}/>}
                 </div>
-                <h1 className={cn("text-4xl font-extrabold font-headline", onboardingSlides[current]?.textColor)}>{onboardingSlides[current]?.title}</h1>
-                <p className={cn("mt-4 text-lg max-w-md opacity-80", onboardingSlides[current]?.textColor)}>{onboardingSlides[current]?.description}</p>
+                <h1 className={cn("text-4xl font-extrabold font-headline", currentSlide?.textColor)}>{currentSlide?.title}</h1>
+                <p className={cn("mt-4 text-lg max-w-md opacity-80", currentSlide?.textColor)}>{currentSlide?.description}</p>
             </motion.div>
         </div>
         
