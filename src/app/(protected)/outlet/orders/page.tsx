@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -45,13 +44,13 @@ export default function OnlineOrdersPage() {
   const deliveryOrders = useMemo(() => {
     if (!allOrders || !outletId) return [];
     return allOrders.filter(order => order.assignedOutletId === outletId && order.orderMode === 'delivery')
-      .sort((a,b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+      .sort((a,b) => (b.createdAt?.toDate?.().getTime() || 0) - (a.createdAt?.toDate?.().getTime() || 0));
   }, [allOrders, outletId]);
 
   const pickupOrders = useMemo(() => {
     if (!allOrders || !outletId) return [];
     return allOrders.filter(order => (order.assignedOutletId === outletId || order.pickupOutletId === outletId) && order.orderMode === 'pickup')
-      .sort((a,b) => b.createdAt.toDate().getTime() - a.createdAt.toDate().getTime());
+      .sort((a,b) => (b.createdAt?.toDate?.().getTime() || 0) - (a.createdAt?.toDate?.().getTime() || 0));
   }, [allOrders, outletId]);
 
   const handleUpdateDeliveryStatus = async (orderId: string, newStatus: OrderStatus) => {
