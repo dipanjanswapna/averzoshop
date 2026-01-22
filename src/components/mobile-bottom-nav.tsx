@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -20,7 +21,7 @@ const navItems = [
   { href: '/shop', label: 'Shop', icon: Store },
   { href: '/cart', label: 'Bag', icon: ShoppingBag }, 
   { href: '/wishlist', label: 'Wishlist', icon: Heart },
-  { href: '/login', label: 'Profile', icon: User },
+  { href: '/welcome', label: 'Profile', icon: User },
 ];
 
 export function MobileBottomNav() {

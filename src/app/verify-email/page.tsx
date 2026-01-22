@@ -1,6 +1,7 @@
+
 'use client';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { isSignInWithEmailLink, signInWithEmailLink, updatePassword, updateProfile, type UserCredential } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { useFirebase, FirebaseClientProvider } from '@/firebase';
@@ -29,6 +30,8 @@ const passwordSchema = z.object({
 function VerifyEmailPageContent() {
     const { auth, firestore } = useFirebase();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const redirect = searchParams.get('redirect');
     const { toast } = useToast();
     const [status, setStatus] = useState('Verifying your email...');
     const [step, setStep] = useState<'verifying' | 'setPassword' | 'error' | 'promptEmail'>('verifying');
@@ -137,7 +140,7 @@ function VerifyEmailPageContent() {
             window.localStorage.removeItem('registrationDetails');
             
             setStatus('All set! Redirecting...');
-            router.push('/dashboard');
+            router.push(redirect || '/customer');
 
         } catch (error: any) {
             console.error(error);

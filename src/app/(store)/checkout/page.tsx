@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useCart } from '@/hooks/use-cart';
@@ -30,7 +31,7 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (isMounted && !authLoading && !user) {
-      router.replace('/login?redirect=/checkout');
+      router.replace('/welcome?redirect=/checkout');
     }
   }, [isMounted, authLoading, user, router]);
 

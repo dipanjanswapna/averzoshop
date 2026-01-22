@@ -17,7 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import AverzoLogo from '@/components/averzo-logo';
 import { FirebaseClientProvider, useFirebase } from '@/firebase';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -40,6 +40,7 @@ function RegisterPageContent() {
   const [emailSent, setEmailSent] = useState(false);
   const { auth, firestore } = useFirebase();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -109,8 +110,13 @@ function RegisterPageContent() {
       return;
     }
     
+    const redirect = searchParams.get('redirect');
+    const verificationUrl = redirect
+      ? `${window.location.origin}/verify-email?redirect=${encodeURIComponent(redirect)}`
+      : `${window.location.origin}/verify-email`;
+
     const actionCodeSettings = {
-      url: `${window.location.origin}/verify-email`, // New page to handle verification
+      url: verificationUrl,
       handleCodeInApp: true,
     };
 
