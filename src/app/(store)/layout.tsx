@@ -22,9 +22,6 @@ export default function StoreLayout({
       <AverzoNavbar />
       <CartExpirationChecker />
       <main className="flex-1 pt-[108px] pb-24 lg:pb-0">
-        <div className="p-4 border-b md:hidden bg-background sticky top-[68px] z-40">
-            <LiveSearch />
-        </div>
         {children}
       </main>
       

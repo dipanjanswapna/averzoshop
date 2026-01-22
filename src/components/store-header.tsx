@@ -1,3 +1,4 @@
+
 "use client";
 import React, { useState, useEffect } from 'react';
 import { Search, ShoppingBag, User, Menu, ChevronDown, X, ChevronRight, Zap, Sun, Moon } from 'lucide-react';
@@ -123,7 +124,7 @@ export default function AverzoNavbar() {
   const { items } = useCart();
   const [isMounted, setIsMounted] = useState(false);
   const { theme, setTheme } = useTheme();
-  
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -146,8 +147,9 @@ export default function AverzoNavbar() {
   return (
     <header className="fixed top-0 left-0 w-full z-[100] bg-background shadow-sm transition-all duration-300">
       
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4 md:gap-8 h-[68px]">
-        <div className="flex items-center gap-4">
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4 h-[68px]">
+        {/* Left Part */}
+        <div className="flex items-center gap-2">
              <button 
                 onClick={() => setIsDrawerOpen(true)}
                 className="p-2 lg:hidden hover:bg-muted rounded-md transition-colors"
@@ -157,21 +159,29 @@ export default function AverzoNavbar() {
             <Link href="/" className="text-2xl font-black font-saira tracking-tighter text-foreground">
                 AVERZO<span className="text-primary">.</span>
             </Link>
-            <div className="hidden lg:flex items-center gap-2">
-                <Link href="/shop">
-                    <Button variant="ghost" className="font-bold">Shop</Button>
-                </Link>
-                <Link href="/track-order">
-                    <Button variant="ghost" className="font-bold">Track Order</Button>
-                </Link>
+        </div>
+        
+        {/* Center Part (Desktop) */}
+        <div className="hidden lg:flex flex-1 items-center justify-center gap-6">
+             <nav className="flex items-center gap-2">
+                 <Link href="/shop"><Button variant="ghost" className="font-bold">Shop</Button></Link>
+                <Link href="/track-order"><Button variant="ghost" className="font-bold">Track Order</Button></Link>
+            </nav>
+            <div className="w-full max-w-sm">
+                <LiveSearch />
             </div>
         </div>
 
-        <div className="flex-1 max-w-lg relative hidden md:block">
-            <LiveSearch />
-        </div>
-
-        <div className="flex items-center gap-2 md:gap-3">
+        {/* Right Part */}
+        <div className="flex items-center gap-1">
+             <div className="lg:hidden">
+                <LiveSearch trigger={
+                    <Button variant="ghost" size="icon" className="h-9 w-9">
+                        <Search size={22}/>
+                    </Button>}
+                />
+            </div>
+          
             <Button
               variant="ghost"
               size="icon"
@@ -184,24 +194,30 @@ export default function AverzoNavbar() {
             </Button>
           <NotificationBell />
           <Link href="/login">
-            <User size={22} className="cursor-pointer hover:text-primary transition-colors" />
+             <Button variant="ghost" size="icon" className="h-9 w-9">
+                <User size={22} className="hover:text-primary transition-colors" />
+             </Button>
           </Link>
-          <Link href="/cart" className="relative cursor-pointer">
-            <ShoppingBag size={22} className="hover:text-primary transition-colors" />
-            {isMounted && items.length > 0 && (
-              <span className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
-                {items.reduce((acc, item) => acc + item.quantity, 0)}
-              </span>
-            )}
+          <Link href="/cart" className="relative">
+            <Button variant="ghost" size="icon" className="h-9 w-9">
+                <ShoppingBag size={22} className="hover:text-primary transition-colors" />
+                {isMounted && items.length > 0 && (
+                <span className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
+                    {items.reduce((acc, item) => acc + item.quantity, 0)}
+                </span>
+                )}
+            </Button>
           </Link>
         </div>
       </div>
-
+      
+      {/* Category Nav */}
       <nav 
         className={cn(
           "bg-secondary text-secondary-foreground transition-all duration-300 origin-top",
           "hidden lg:flex h-10"
-      )}>
+      )}
+      onMouseLeave={() => setActiveMenu(null)}>
         <div className="w-full overflow-x-auto whitespace-nowrap no-scrollbar">
             <div className="container mx-auto flex items-center gap-8 h-full">
               <Link href="/flash-sale" className="h-full flex items-center">
@@ -216,58 +232,58 @@ export default function AverzoNavbar() {
                       key={item.mother_name} 
                       className="group relative h-full flex items-center"
                       onMouseEnter={() => setActiveMenu(item.mother_name)}
-                      onMouseLeave={() => setActiveMenu(null)}
                     >
                       <Link href={motherCategoryPath} className="h-full flex items-center">
                           <span className="text-[11px] font-bold uppercase tracking-widest flex items-center gap-1 hover:text-primary">
                               {item.mother_name} <ChevronDown size={12} />
                           </span>
                       </Link>
-                    
-                      <AnimatePresence>
-                        {activeMenu === item.mother_name && (
-                           <motion.div
-                              initial="hidden"
-                              animate="visible"
-                              exit="hidden"
-                              variants={menuVariants}
-                              className="fixed top-[108px] left-0 w-full bg-background text-foreground border-t shadow-lg z-[110]"
-                              style={{ maxHeight: 'calc(100vh - 108px)', overflowY: 'auto' }}
-                            >
-                                <div className="container mx-auto grid grid-cols-5 gap-x-10 gap-y-6 p-10">
-                                    {item.groups.map(group => (
-                                        <motion.div 
-                                          key={group.group_name} 
-                                          className="col-span-1"
-                                          initial={{ opacity: 0, x: -10 }}
-                                          animate={{ opacity: 1, x: 0 }}
-                                        >
-                                            <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">
-                                                <Link href={`/shop?${createQueryString({ mother_category: item.mother_name, group: group.group_name })}`} className="truncate block">
-                                                {group.group_name}
-                                                </Link>
-                                            </h4>
-                                            <ul className="space-y-2 text-sm text-muted-foreground font-body">
-                                            {group.subs.map(sub => (
-                                                <li key={sub} className="hover:text-primary cursor-pointer">
-                                                    <Link href={`/shop?${createQueryString({ mother_category: item.mother_name, group: group.group_name, subcategory: sub })}`} className="truncate block">
-                                                        {sub}
-                                                    </Link>
-                                                </li>
-                                            ))}
-                                            </ul>
-                                        </motion.div>
-                                    ))}
-                                </div>
-                            </motion.div>
-                        )}
-                      </AnimatePresence>
                     </div>
                 )
             })}
             </div>
         </div>
       </nav>
+      
+      {/* Mega Menu */}
+      {activeMenu && (
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          exit="hidden"
+          variants={menuVariants}
+          className="fixed top-[108px] left-0 w-full bg-background text-foreground border-t shadow-lg z-[110]"
+          onMouseEnter={() => setActiveMenu(activeMenu)}
+          onMouseLeave={() => setActiveMenu(null)}
+          style={{ maxHeight: 'calc(100vh - 108px)', overflowY: 'auto' }}
+        >
+            <div className="container mx-auto grid grid-cols-5 gap-x-10 gap-y-6 p-10">
+                {(categoriesData.find(c => c.mother_name === activeMenu)?.groups || []).map(group => (
+                    <motion.div 
+                      key={group.group_name} 
+                      className="col-span-1"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                    >
+                        <h4 className="font-bold text-primary mb-4 border-b pb-2 text-xs uppercase">
+                            <Link href={`/shop?${createQueryString({ mother_category: activeMenu, group: group.group_name })}`} className="truncate block">
+                            {group.group_name}
+                            </Link>
+                        </h4>
+                        <ul className="space-y-2 text-sm text-muted-foreground font-body">
+                        {group.subs.map(sub => (
+                            <li key={sub} className="hover:text-primary cursor-pointer">
+                                <Link href={`/shop?${createQueryString({ mother_category: activeMenu, group: group.group_name, subcategory: sub })}`} className="truncate block">
+                                    {sub}
+                                </Link>
+                            </li>
+                        ))}
+                        </ul>
+                    </motion.div>
+                ))}
+            </div>
+        </motion.div>
+      )}
 
        <MobileSidebar 
           isOpen={isDrawerOpen} 
