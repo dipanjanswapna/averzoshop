@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -33,21 +32,19 @@ import { useState } from 'react';
 import { AddOutletDialog } from '@/components/dashboard/add-outlet-dialog';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-
-interface Outlet {
-  id: string;
-  name: string;
-  location: {
-    address: string;
-    lat: number;
-    lng: number;
-  };
-  status: 'Active' | 'Inactive';
-}
+import type { Outlet } from '@/types/outlet';
+import { EditOutletDialog } from '@/components/dashboard/edit-outlet-dialog';
 
 export default function OutletsPage() {
   const { data: outlets, isLoading } = useFirestoreQuery<Outlet>('outlets');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [outletToEdit, setOutletToEdit] = useState<Outlet | null>(null);
+
+  const handleEditClick = (outlet: Outlet) => {
+    setOutletToEdit(outlet);
+    setIsEditDialogOpen(true);
+  };
 
   const renderDesktopSkeleton = () => (
     [...Array(3)].map((_, i) => (
@@ -122,7 +119,7 @@ export default function OutletsPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                           <Badge variant={outlet.status === 'Active' ? 'secondary' : 'destructive'} className={cn(outlet.status === 'Active' && 'bg-green-500/10 text-green-600')}>
+                           <Badge variant={outlet.status === 'Active' ? 'secondary' : 'destructive'} className={cn(outlet.status === 'Active' && 'bg-green-100 text-green-800')}>
                               <Power className="mr-1 h-3 w-3" />
                             {outlet.status}
                           </Badge>
@@ -142,7 +139,7 @@ export default function OutletsPage() {
                                   <Eye className="mr-2 h-4 w-4" /> View Details & Inventory
                                 </Link>
                               </DropdownMenuItem>
-                              <DropdownMenuItem>Edit Details</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleEditClick(outlet)}>Edit Details</DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
@@ -196,6 +193,7 @@ export default function OutletsPage() {
         </Card>
       </div>
       <AddOutletDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} />
+      <EditOutletDialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} outlet={outletToEdit} />
     </>
   );
 }
