@@ -1,13 +1,14 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { Input } from './input';
 import { Button } from './button';
-import { Search, LocateFixed } from 'lucide-react';
+import { LocateFixed } from 'lucide-react';
 import { useDebounce } from '@/hooks/use-debounce';
+import { barikoi } from '@/lib/barikoi';
 
 // Fix for default icon issue with webpack
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -35,12 +36,14 @@ function MapController({ center, onLocationSelect }: { center: [number, number],
     const map = useMap();
     
     useEffect(() => {
-        map.setView(center, 15);
+        if (map) {
+            map.setView(center, 15);
+        }
     }, [center, map]);
     
-    useMapEvents({
+    const mapEvents = useMap({
         click(e) {
-            onLocationSelect(e.latlng.lat, e.latlng.lng);
+             onLocationSelect(e.latlng.lat, e.latlng.lng);
         },
     });
 
@@ -53,26 +56,23 @@ const InteractiveMap = ({ onLocationSelect, initialPosition }: InteractiveMapPro
     const debouncedSearchQuery = useDebounce(searchQuery, 500);
     const [suggestions, setSuggestions] = useState<any[]>([]);
     const [mapCenter, setMapCenter] = useState<[number, number]>(initialPosition);
-    const apiKey = process.env.NEXT_PUBLIC_BARIKOI_API_KEY;
 
     useEffect(() => {
         setMapCenter(initialPosition);
     }, [initialPosition]);
 
-    // Fetch autocomplete suggestions
+    // Fetch autocomplete suggestions using the new SDK
     useEffect(() => {
-        if (debouncedSearchQuery.length < 3 || !apiKey) {
+        if (debouncedSearchQuery.length < 3) {
             setSuggestions([]);
             return;
         }
 
         const fetchSuggestions = async () => {
-            const url = `https://barikoi.xyz/v2/api/search/autocomplete/place?api_key=${apiKey}&q=${encodeURIComponent(debouncedSearchQuery)}`;
             try {
-                const response = await fetch(url);
-                const data = await response.json();
-                if (data.status === 200 && data.places) {
-                    setSuggestions(data.places);
+                const result = await barikoi.autocomplete({ q: debouncedSearchQuery });
+                if (result.data && result.data.status === 200 && result.data.places) {
+                    setSuggestions(result.data.places);
                 } else {
                     setSuggestions([]);
                 }
@@ -83,23 +83,31 @@ const InteractiveMap = ({ onLocationSelect, initialPosition }: InteractiveMapPro
         };
 
         fetchSuggestions();
-    }, [debouncedSearchQuery, apiKey]);
+    }, [debouncedSearchQuery]);
 
+    // Fetch address from coordinates using the new SDK
     const fetchAddressFromCoords = async (lat: number, lng: number) => {
-        if (!apiKey) return;
-        const url = `https://barikoi.xyz/v2/api/search/reverse/geocode?api_key=${apiKey}&longitude=${lng}&latitude=${lat}&district=true&post_code=true&sub_district=true&division=true&address=true&area=true`;
         try {
-            const response = await fetch(url);
-            const data = await response.json();
-            if (data.status === 200 && data.place) {
+            const result = await barikoi.reverseGeocode({
+                longitude: lng,
+                latitude: lat,
+                district: true,
+                post_code: true,
+                sub_district: true,
+                division: true,
+                address: true,
+                area: true,
+            });
+
+            if (result.data && result.data.status === 200 && result.data.place) {
                 onLocationSelect({
                     lat,
                     lng,
-                    division: data.place.division || '',
-                    district: data.place.district || '',
-                    upazila: data.place.sub_district || '',
-                    area: data.place.area || '',
-                    streetAddress: data.place.address || ''
+                    division: result.data.place.division || '',
+                    district: result.data.place.district || '',
+                    upazila: result.data.place.sub_district || '',
+                    area: result.data.place.area || '',
+                    streetAddress: result.data.place.address || ''
                 });
             }
         } catch (error) {
@@ -157,7 +165,7 @@ const InteractiveMap = ({ onLocationSelect, initialPosition }: InteractiveMapPro
                 )}
             </div>
             <div className="w-full h-full min-h-[300px] rounded-lg overflow-hidden z-0">
-                <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }}>
+                <MapContainer center={initialPosition} zoom={13} style={{ height: '100%', width: '100%' }}>
                     <TileLayer
                         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
