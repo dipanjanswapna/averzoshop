@@ -52,7 +52,7 @@ export function MobileBottomNav() {
             key={item.label}
             href={href}
             className={cn(
-                'relative flex flex-col items-center justify-center gap-1 text-muted-foreground transition-colors duration-200 ease-in-out hover:text-primary',
+                'relative flex h-full items-center justify-center text-muted-foreground transition-colors duration-200 ease-in-out hover:text-primary',
                 isActive && 'text-primary'
             )}
         >
@@ -60,7 +60,7 @@ export function MobileBottomNav() {
                 {isActive && (
                     <motion.div
                         layoutId="active-nav-item"
-                        className="absolute -inset-2.5 bg-primary/10 rounded-full"
+                        className="absolute -inset-2 bg-primary/10 rounded-full"
                         transition={{ type: "spring", stiffness: 300, damping: 25 }}
                     />
                 )}
@@ -69,15 +69,8 @@ export function MobileBottomNav() {
                 </div>
             </div>
 
-            <span className={cn(
-                "text-[10px] font-bold transition-opacity duration-200", 
-                isActive ? 'opacity-100' : 'opacity-0 scale-95'
-            )}>
-                {item.label}
-            </span>
-
             {item.label === 'Bag' && isMounted && items.length > 0 && (
-                <span className="absolute top-0 right-1.5 bg-primary text-primary-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
+                <span className="absolute top-2 right-2 bg-primary text-primary-foreground text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold">
                     {items.reduce((acc, item) => acc + item.quantity, 0)}
                 </span>
             )}
@@ -87,8 +80,8 @@ export function MobileBottomNav() {
 
 
   return (
-    <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[95%] max-w-sm z-50 lg:hidden">
-      <div className="grid h-16 grid-cols-5 bg-background/80 backdrop-blur-sm border rounded-full shadow-lg">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/80 backdrop-blur-sm lg:hidden shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+      <div className="grid h-14 grid-cols-5">
         {navItems.map(getNavItem)}
       </div>
     </nav>
