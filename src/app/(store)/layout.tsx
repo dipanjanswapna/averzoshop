@@ -1,4 +1,5 @@
 
+"use client";
 import { MobileBottomNav } from '@/components/mobile-bottom-nav';
 import AverzoNavbar from '@/components/store-header';
 import Link from 'next/link';
@@ -102,8 +103,8 @@ export default function StoreLayout({
                       <Image
                           src="https://securepay.sslcommerz.com/public/image/SSLCommerz-Pay-With-logo-All-Size-03.png"
                           alt="SSLCommerz Payment Gateways"
-                          width={800}
-                          height={114}
+                          width={1200}
+                          height={171}
                       />
                   </a>
               </div>
