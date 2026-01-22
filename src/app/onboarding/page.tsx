@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -12,7 +13,6 @@ import { Button } from '@/components/ui/button';
 import { useEffect, useState } from 'react';
 import { ArrowRight, CheckCircle, Gift, Sparkles, Truck } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import React from 'react';
 
@@ -21,21 +21,21 @@ const onboardingSlides = [
     icon: Sparkles,
     title: "Discover Your Unique Style",
     description: "Explore thousands of products from top brands and find what truly fits you.",
-    image: "https://picsum.photos/seed/style/800/800",
+    image: "https://i.postimg.cc/Y9YRw12z/freestocks_3Q3ts_J01nc_unsplash.jpg",
     imageHint: "online shopping fashion",
   },
   {
     icon: Truck,
     title: "Fast & Reliable Delivery",
     description: "Get your favorite items delivered to your doorstep faster than you can imagine.",
-    image: "https://picsum.photos/seed/delivery/800/800",
+    image: "https://i.postimg.cc/GpZKNMRz/jon_ly_Xn7Gvim_Qrk8_unsplash.jpg",
     imageHint: "delivery package shipping",
   },
   {
     icon: Gift,
     title: "Exclusive Offers & Deals",
     description: "Unlock special discounts, loyalty points, and deals exclusively for our members.",
-    image: "https://picsum.photos/seed/offer/800/800",
+    image: "https://i.postimg.cc/MKDsTb0J/mike_petrucci_c9FQyq_IECds_unsplash.jpg",
     imageHint: "exclusive offer sale",
   },
 ];
@@ -85,23 +85,16 @@ export default function OnboardingPage() {
                         initial="hidden"
                         animate="visible"
                         exit="exit"
-                        className="absolute inset-0 flex flex-col justify-center"
+                        className="absolute inset-0 flex flex-col justify-center text-center lg:text-left items-center lg:items-start"
                     >
-                        <div className="flex items-center gap-4">
-                           <div className="bg-primary/10 text-primary p-3 rounded-xl">
-                              <Icon size={28} />
-                           </div>
-                           <div>
-                                <p className="text-xs font-bold text-primary uppercase tracking-widest">
-                                    Step {current + 1} / {count}
-                                </p>
-                                <h1 className="text-3xl lg:text-4xl font-extrabold font-headline text-foreground mt-1">
-                                    {onboardingSlides[current].title}
-                                </h1>
-                           </div>
+                        <div className="bg-primary/10 text-primary p-3 rounded-xl w-fit">
+                            <Icon size={32} />
                         </div>
+                        <h1 className="text-3xl lg:text-4xl font-extrabold font-headline text-foreground mt-4">
+                            {onboardingSlides[current].title}
+                        </h1>
 
-                        <p className="mt-4 text-base text-muted-foreground">
+                        <p className="mt-2 text-base text-muted-foreground">
                             {onboardingSlides[current].description}
                         </p>
                     </motion.div>
@@ -150,28 +143,27 @@ export default function OnboardingPage() {
         </div>
         
         {/* Visuals Panel (Right on Desktop, Top on Mobile) */}
-        <div className="lg:order-2 w-full aspect-square lg:aspect-auto lg:h-screen flex items-center justify-center bg-secondary p-0 lg:p-8">
-            <div className="relative w-full h-full lg:max-w-lg lg:aspect-square lg:rounded-2xl lg:shadow-2xl overflow-hidden">
-                <Carousel setApi={setApi} className="w-full h-full">
-                    <CarouselContent className="h-full">
-                        {onboardingSlides.map((slide, index) => (
-                        <CarouselItem key={index} className="h-full">
-                            <div className="relative w-full h-full">
-                                <Image 
-                                    src={slide.image} 
-                                    alt={slide.title}
-                                    fill
-                                    className="object-cover"
-                                    data-ai-hint={slide.imageHint}
-                                    priority={index === 0}
-                                />
-                            </div>
-                        </CarouselItem>
-                        ))}
-                    </CarouselContent>
-                </Carousel>
-            </div>
+        <div className="lg:order-2 w-full aspect-square lg:aspect-auto lg:h-screen flex items-center justify-center bg-zinc-100 dark:bg-zinc-900 p-4 lg:p-8">
+             <Carousel setApi={setApi} className="w-full h-full max-w-md lg:max-w-lg">
+                <CarouselContent className="h-full">
+                    {onboardingSlides.map((slide, index) => (
+                    <CarouselItem key={index} className="h-full">
+                        <div className="relative w-full h-full">
+                            <Image 
+                                src={slide.image} 
+                                alt={slide.title}
+                                fill
+                                className="object-cover rounded-2xl shadow-2xl"
+                                data-ai-hint={slide.imageHint}
+                                priority={index === 0}
+                            />
+                        </div>
+                    </CarouselItem>
+                    ))}
+                </CarouselContent>
+            </Carousel>
         </div>
     </div>
   );
 }
+
