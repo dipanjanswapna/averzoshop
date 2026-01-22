@@ -1,4 +1,3 @@
-
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -19,7 +18,7 @@ export default function WelcomePage() {
     <div className="grid grid-cols-1 lg:grid-cols-2 min-h-screen font-body">
       <div className="relative hidden lg:block">
          <Image 
-          src="/freestocks-_3Q3tsJ01nc-unsplash.jpg"
+          src="https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?q=80&w=800&auto=format&fit=crop"
           alt="Welcome to Averzo"
           fill
           className="object-cover"

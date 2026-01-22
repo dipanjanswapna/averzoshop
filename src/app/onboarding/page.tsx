@@ -1,4 +1,3 @@
-
 'use client';
 
 import Image from 'next/image';
@@ -22,21 +21,21 @@ const onboardingSlides = [
     icon: Sparkles,
     title: "Discover Your Unique Style",
     description: "Explore thousands of products from top brands and find what truly fits you.",
-    image: "/freestocks-_3Q3tsJ01nc-unsplash.jpg",
+    image: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=800&auto=format&fit=crop",
     imageHint: "online shopping fashion",
   },
   {
     icon: Truck,
     title: "Fast & Reliable Delivery",
     description: "Get your favorite items delivered to your doorstep faster than you can imagine.",
-    image: "/boxed-water-is-better-7H1hDt694s8-unsplash.jpg",
+    image: "https://images.unsplash.com/photo-1590524452096-36d105435b54?q=80&w=800&auto=format&fit=crop",
     imageHint: "delivery package shipping",
   },
   {
     icon: Gift,
     title: "Exclusive Offers & Deals",
     description: "Unlock special discounts, loyalty points, and deals exclusively for our members.",
-    image: "/hc-digital-7qCeFo19r24-unsplash.jpg",
+    image: "https://images.unsplash.com/photo-1549465220-1a7bcf2f195c?q=80&w=800&auto=format&fit=crop",
     imageHint: "exclusive offer sale",
   },
 ];
