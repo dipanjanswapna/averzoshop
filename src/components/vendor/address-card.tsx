@@ -2,7 +2,7 @@
 
 import { Address } from '@/types/address';
 import { Button } from '@/components/ui/button';
-import { Home, Briefcase, MapPin, MoreVertical } from 'lucide-react';
+import { Home, Briefcase, MapPin, MoreVertical, Warehouse } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 interface AddressCardProps {
@@ -11,7 +11,7 @@ interface AddressCardProps {
   onDelete: () => void;
 }
 
-const addressIcons = {
+const addressIcons: { [key: string]: React.ReactNode } = {
   Home: <Home size={16} />,
   Office: <Briefcase size={16} />,
   Other: <MapPin size={16} />,
