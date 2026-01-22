@@ -40,12 +40,8 @@ function LoginPageContent() {
 
   useEffect(() => {
     if (!authLoading && user && userData) {
-      const hasAddress = userData.addresses && userData.addresses.length > 0;
-      if (userData.role === 'customer' && !hasAddress) {
-        router.replace('/permissions');
-        return;
-      }
-
+      // The protected layout will handle permissions and role-based redirects.
+      // This effect just handles the post-login redirect.
       const redirectUrl = searchParams.get('redirect');
       if (redirectUrl) {
           router.replace(redirectUrl);
@@ -58,9 +54,10 @@ function LoginPageContent() {
         outlet: '/outlet/dashboard',
         rider: '/rider/dashboard',
         sales: '/sales/dashboard',
-        customer: '/',
+        customer: '/', // Default to home for customers
       };
       
+      // Let the protected layout handle routing after this initial redirect.
       router.replace(roleRedirects[userData.role] || '/');
     }
   }, [user, userData, authLoading, router, searchParams]);

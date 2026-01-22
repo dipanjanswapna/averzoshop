@@ -1,4 +1,3 @@
-
 'use client';
 import { FirebaseClientProvider } from '@/firebase';
 import { useAuth } from '@/hooks/use-auth';
@@ -22,6 +21,7 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
     }
 
     if (userData) {
+      // 1. Check for account approval status
       if (userData.status !== 'approved') {
         if (pathname !== '/pending-approval') {
            router.replace('/pending-approval');
@@ -29,8 +29,28 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
         return;
       }
       
-      // The logic to redirect to /permissions is now centralized in login/page.tsx and verify-email/page.tsx
+      const onPermissionsRoute = pathname === '/permissions';
+      const hasAddress = userData.addresses && userData.addresses.length > 0;
 
+      // For customers, handle onboarding/permissions flow
+      if (userData.role === 'customer') {
+        if (!hasAddress && !onPermissionsRoute) {
+          // If customer has no address and is not on permissions page, redirect there.
+          router.replace('/permissions');
+          return;
+        }
+        if (hasAddress && onPermissionsRoute) {
+          // If customer has address and tries to go to permissions page, redirect away.
+          router.replace('/customer');
+          return;
+        }
+      } else if (onPermissionsRoute) {
+        // If a non-customer lands on permissions page, redirect them.
+        router.replace('/');
+        return;
+      }
+      
+      // Role-based route protection for all other pages
       const isCustomer = userData.role === 'customer';
       const isOutlet = userData.role === 'outlet';
       const isVendor = userData.role === 'vendor';
@@ -44,13 +64,9 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
       const onVendorRoute = pathname.startsWith('/vendor');
       const onRiderRoute = pathname.startsWith('/rider');
       const onSalesRoute = pathname.startsWith('/sales');
-      const onPermissionsRoute = pathname === '/permissions';
+      
 
-      if (onPermissionsRoute) {
-          return; // Allow user to stay on permissions page
-      }
-
-      if (isCustomer && !onCustomerRoute) {
+      if (isCustomer && !onCustomerRoute && !onPermissionsRoute) {
         router.replace('/customer');
       } else if (isOutlet && !onOutletRoute) {
         router.replace('/outlet/dashboard');
