@@ -1,4 +1,3 @@
-
 'use client';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
@@ -93,7 +92,7 @@ export function AddressManager() {
             </Button>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {userData?.addresses && userData.addresses.length > 0 ? (
                 userData.addresses.map(address => (
                     <AddressCard 
@@ -104,7 +103,7 @@ export function AddressManager() {
                     />
                 ))
             ) : (
-                <div className="text-center text-muted-foreground border-2 border-dashed rounded-lg p-12">
+                <div className="md:col-span-2 text-center text-muted-foreground border-2 border-dashed rounded-lg p-12">
                     <p>You haven't saved any addresses yet.</p>
                 </div>
             )}
@@ -121,5 +120,3 @@ export function AddressManager() {
     </>
   );
 }
-
-    
