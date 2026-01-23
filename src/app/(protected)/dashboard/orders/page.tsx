@@ -6,6 +6,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
 import {
   Table,
@@ -34,12 +35,12 @@ import { cancelOrder } from '@/actions/order-actions';
 function OrderTable({ orders, isLoading, onCancelClick }: { orders: Order[], isLoading: boolean, onCancelClick: (order: Order) => void }) {
   const getStatusBadge = (status: Order['status']) => {
     switch (status) {
-      case 'pending_payment': return <Badge variant="destructive" className="capitalize animate-pulse">{status.replace('_', ' ')}</Badge>;
-      case 'pre-ordered': return <Badge className="bg-purple-600/10 text-purple-600 capitalize">{status.replace('_', ' ')}</Badge>;
+      case 'pending_payment': return <Badge variant="destructive" className="capitalize animate-pulse">{status.replace(/_/g, ' ')}</Badge>;
+      case 'pre-ordered': return <Badge className="bg-purple-600/10 text-purple-600 capitalize">{status.replace(/_/g, ' ')}</Badge>;
       case 'new': return <Badge className="bg-orange-500/10 text-orange-600 capitalize">Order Placed</Badge>;
       case 'preparing': return <Badge className="bg-yellow-500/10 text-yellow-600 capitalize">{status}</Badge>;
-      case 'ready_for_pickup': return <Badge className="bg-cyan-500/10 text-cyan-600 capitalize">{status.replace('_', ' ')}</Badge>;
-      case 'out_for_delivery': return <Badge className="bg-blue-500/10 text-blue-600 capitalize">{status.replace('_', ' ')}</Badge>;
+      case 'ready_for_pickup': return <Badge className="bg-cyan-500/10 text-cyan-600 capitalize">{status.replace(/_/g, ' ')}</Badge>;
+      case 'out_for_delivery': return <Badge className="bg-blue-500/10 text-blue-600 capitalize">{status.replace(/_/g, ' ')}</Badge>;
       case 'fulfilled':
       case 'delivered': return <Badge className="bg-green-500/10 text-green-600 capitalize">{status}</Badge>;
       case 'canceled': return <Badge variant="destructive" className="capitalize">{status}</Badge>;
@@ -59,7 +60,7 @@ function OrderTable({ orders, isLoading, onCancelClick }: { orders: Order[], isL
   ));
 
   const renderMobileSkeleton = () => [...Array(3)].map((_, i) => (
-    <Card key={i}>
+    <Card key={i} className="flex-1 min-w-[280px]">
       <CardHeader>
         <Skeleton className="h-5 w-3/4" />
         <Skeleton className="h-4 w-1/2" />
@@ -122,10 +123,10 @@ function OrderTable({ orders, isLoading, onCancelClick }: { orders: Order[], isL
           </TableBody>
         </Table>
       </div>
-      <div className="grid md:hidden gap-4">
+      <div className="flex flex-wrap justify-center gap-4 md:hidden">
         {isLoading ? renderMobileSkeleton() : orders.length > 0 ? (
           orders.map(order => (
-            <Card key={order.id} className="flex flex-col">
+            <Card key={order.id} className="flex flex-col flex-1 min-w-[280px] max-w-sm">
               <CardHeader>
                 <div className="flex items-start justify-between gap-4">
                   <div>
