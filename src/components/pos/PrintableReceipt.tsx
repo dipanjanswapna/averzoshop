@@ -82,6 +82,12 @@ export function PrintableReceipt({ sale, outletId }: PrintableReceiptProps) {
                         <span>- ৳{sale.loyaltyDiscount.toFixed(2)}</span>
                     </div>
                 )}
+                 {sale.giftCardDiscount > 0 && (
+                    <div className="flex justify-between">
+                        <span>Gift Card ({sale.giftCardCode}):</span>
+                        <span>- ৳{sale.giftCardDiscount.toFixed(2)}</span>
+                    </div>
+                )}
                 <div className="flex justify-between font-bold text-xs border-t border-dotted mt-1 pt-1">
                     <span>Grand Total:</span>
                     <span>৳{sale.totalAmount.toFixed(2)}</span>

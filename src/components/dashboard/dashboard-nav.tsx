@@ -16,6 +16,9 @@ import {
   ArrowRightLeft,
   BellRing,
   ImageIcon,
+  Briefcase,
+  Map,
+  Gift,
 } from 'lucide-react';
 import {
   SidebarMenu,
@@ -25,6 +28,8 @@ import {
 
 const adminNavItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/dashboard/sfa', label: 'SFA Dashboard', icon: Briefcase },
+  { href: '/dashboard/sfa/route-planner', label: 'Route Planner', icon: Map },
   { href: '/dashboard/products', label: 'Products', icon: Package },
   { href: '/dashboard/orders', label: 'Orders & Delivery', icon: ShoppingCart },
   { href: '/dashboard/pre-orders', label: 'Pre-orders', icon: ClipboardList },
@@ -34,6 +39,7 @@ const adminNavItems = [
   { href: '/dashboard/stock-requests', label: 'Stock Requests', icon: ClipboardList },
   { href: '/dashboard/stock-transfers', label: 'Stock Transfers', icon: ArrowRightLeft },
   { href: '/dashboard/coupons', label: 'Coupons', icon: Tags },
+  { href: '/dashboard/gift-cards', label: 'Gift Cards', icon: Gift },
   { href: '/dashboard/sub-brands', label: 'Sub-Brands', icon: Tags },
   { href: '/dashboard/outlets', label: 'Offline Outlets', icon: Building },
   { href: '/dashboard/appearance', label: 'Appearance', icon: ImageIcon },

@@ -1,4 +1,3 @@
-
 import { NextResponse, type NextRequest } from 'next/server';
 import { firestore, getFirebaseAdminApp } from '@/firebase/server';
 import * as admin from 'firebase-admin';
@@ -32,7 +31,7 @@ export async function POST(request: NextRequest) {
             if (!productDoc.exists()) throw new Error(`Product ${item.productName} not found.`);
             
             const productData = productDoc.data() as Product;
-            const variantsArray = Array.isArray(productData.variants) ? [...productData.variants] : [...Object.values(productData.variants)];
+            const variantsArray = Array.isArray(productData.variants) ? [...productData.variants] : [...Object.values(productData.variants || {})];
             const variantIndex = variantsArray.findIndex(v => v.sku === item.variantSku);
 
             if (variantIndex === -1) throw new Error(`Variant ${item.variantSku} not found.`);
