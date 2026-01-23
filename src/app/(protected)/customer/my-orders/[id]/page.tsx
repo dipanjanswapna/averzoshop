@@ -7,7 +7,7 @@ import type { Product } from '@/types/product';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Home, Package, Printer } from 'lucide-react';
+import { ArrowLeft, Home, Package, Printer, ShoppingCart, Truck, Hand, BadgePercent } from 'lucide-react';
 import Image from 'next/image';
 import { OrderTracker } from '@/components/order/order-tracker';
 import { Separator } from '@/components/ui/separator';
@@ -16,6 +16,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import type { UserData } from '@/types/user';
 import { InvoicePreviewDialog } from '@/components/order/InvoicePreviewDialog';
+import { cn } from '@/lib/utils';
 
 const getStatusBadge = (status: OrderStatus) => {
     switch (status) {
@@ -23,8 +24,8 @@ const getStatusBadge = (status: OrderStatus) => {
       case 'pre-ordered': return <Badge className="bg-purple-600/10 text-purple-600 capitalize">{status.replace('_', ' ')}</Badge>;
       case 'new': return <Badge className="bg-orange-500/10 text-orange-600 capitalize">Order Placed</Badge>;
       case 'preparing': return <Badge className="bg-yellow-500/10 text-yellow-600 capitalize">{status}</Badge>;
-      case 'ready_for_pickup': return <Badge className="bg-cyan-500/10 text-cyan-600 capitalize">{status.replace('_', ' ')}</Badge>;
-      case 'out_for_delivery': return <Badge className="bg-blue-500/10 text-blue-600 capitalize">{status.replace('_', ' ')}</Badge>;
+      case 'ready_for_pickup': return <Badge className="bg-cyan-500/10 text-cyan-600 capitalize">{status.replace(/_/g, ' ')}</Badge>;
+      case 'out_for_delivery': return <Badge className="bg-blue-500/10 text-blue-600 capitalize">{status.replace(/_/g, ' ')}</Badge>;
       case 'fulfilled':
       case 'delivered': return <Badge className="bg-green-500/10 text-green-600 capitalize">{status}</Badge>;
       case 'canceled': return <Badge variant="destructive" className="capitalize">{status}</Badge>;
@@ -56,8 +57,16 @@ export default function OrderDetailsPage() {
                 <Skeleton className="h-9 w-24" />
                 <Skeleton className="h-8 w-48" />
             </div>
-            <Skeleton className="h-64 w-full" />
-            <Skeleton className="h-48 w-full" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="md:col-span-2 space-y-6">
+                    <Skeleton className="h-32 w-full" />
+                    <Skeleton className="h-64 w-full" />
+                </div>
+                <div className="space-y-6">
+                    <Skeleton className="h-48 w-full" />
+                    <Skeleton className="h-32 w-full" />
+                </div>
+            </div>
         </div>
     );
   }
@@ -72,9 +81,11 @@ export default function OrderDetailsPage() {
     );
   }
 
+  const orderTypeIcon = order.orderMode === 'delivery' ? <Truck size={18}/> : <Hand size={18}/>;
+
   return (
     <>
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
             <Button variant="outline" size="icon" asChild>
@@ -87,31 +98,35 @@ export default function OrderDetailsPage() {
                 <p className="text-sm text-muted-foreground">Order ID: <span className="font-mono">{order.id}</span></p>
             </div>
         </div>
-        <Button variant="outline" onClick={() => setIsInvoiceOpen(true)}>
-            <Printer className="mr-2 h-4 w-4" />
-            Invoice
-        </Button>
+        <div className="flex items-center gap-2">
+            {getStatusBadge(order.status)}
+            <Button variant="outline" onClick={() => setIsInvoiceOpen(true)}>
+                <Printer className="mr-2 h-4 w-4" />
+                Invoice
+            </Button>
+        </div>
       </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+        <div className="md:col-span-2 space-y-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                        <span>Order Status</span>
+                        <Badge variant="outline" className="capitalize">{order.status.replace(/_/g, ' ')}</Badge>
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <OrderTracker status={order.status} orderType={order.orderType} orderMode={order.orderMode} />
+                </CardContent>
+            </Card>
 
-      <Card>
-        <CardHeader>
-            <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-                <div>
-                    <CardTitle>Status: {order.status.replace(/_/g, ' ')}</CardTitle>
-                    <CardDescription>Placed on {order.createdAt?.toDate().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</CardDescription>
-                </div>
-                {getStatusBadge(order.status)}
-            </div>
-        </CardHeader>
-        <CardContent>
-            <OrderTracker status={order.status} orderType={order.orderType} />
-        </CardContent>
-      </Card>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
-           <Card>
-                <CardHeader><CardTitle>Items Ordered</CardTitle></CardHeader>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <ShoppingCart size={20}/> Items Ordered ({order.items.length})
+                    </CardTitle>
+                </CardHeader>
                 <CardContent>
                     <div className="space-y-4">
                         {order.items.map(item => (
@@ -133,30 +148,70 @@ export default function OrderDetailsPage() {
                 </CardContent>
            </Card>
         </div>
-        <div className="space-y-6">
-            {order.shippingAddress && (
-                <Card>
-                    <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Home size={18}/> Shipping Address</CardTitle></CardHeader>
-                    <CardContent className="text-sm text-muted-foreground">
-                        <p className="font-bold text-foreground">{order.shippingAddress.name}</p>
-                        <p>{order.shippingAddress.streetAddress}, {order.shippingAddress.area}</p>
-                        <p>{order.shippingAddress.district}</p>
-                        <p>{order.shippingAddress.phone}</p>
-                    </CardContent>
-                </Card>
-            )}
+
+        <div className="space-y-6 sticky top-24">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-base">
+                        {orderTypeIcon} {order.orderMode === 'delivery' ? 'Shipping Details' : 'Pickup Details'}
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm text-muted-foreground">
+                    {order.orderMode === 'delivery' && order.shippingAddress ? (
+                       <>
+                         <p className="font-bold text-foreground">{order.shippingAddress.name}</p>
+                         <p>{order.shippingAddress.streetAddress}, {order.shippingAddress.area}</p>
+                         <p>{order.shippingAddress.district}</p>
+                         <p>{order.shippingAddress.phone}</p>
+                       </>
+                    ) : (
+                       <>
+                         <p className="font-bold text-foreground">Store Pickup</p>
+                         <p>Please collect your order from the assigned outlet.</p>
+                         {order.pickupCode && (
+                             <div className="mt-2">
+                                 <p className="font-bold text-foreground">Your Pickup Code:</p>
+                                 <p className="text-2xl font-bold text-primary font-mono tracking-widest bg-muted p-2 rounded-md text-center">{order.pickupCode}</p>
+                             </div>
+                         )}
+                       </>
+                    )}
+                </CardContent>
+            </Card>
+
              <Card>
-                <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Package size={18}/> Payment Summary</CardTitle></CardHeader>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-base">
+                        <BadgePercent size={18}/> Payment Summary
+                    </CardTitle>
+                </CardHeader>
                 <CardContent className="space-y-2 text-sm">
                     <div className="flex justify-between"><span className="text-muted-foreground">Subtotal:</span> <span>৳{order.subtotal?.toFixed(2) ?? 'N/A'}</span></div>
-                    {order.discountAmount && order.discountAmount > 0 ? (
-                        <div className="flex justify-between"><span className="text-muted-foreground">Discount:</span> <span>- ৳{order.discountAmount.toFixed(2)}</span></div>
+                    
+                    {order.cardPromoDiscountAmount && order.cardPromoDiscountAmount > 0 ? (
+                        <div className="flex justify-between text-green-600"><span className="text-muted-foreground">↳ Card Promo:</span> <span>- ৳{order.cardPromoDiscountAmount.toFixed(2)}</span></div>
                     ) : null}
+
+                    {order.discountAmount && order.discountAmount > 0 ? (
+                        <div className="flex justify-between text-green-600"><span className="text-muted-foreground">↳ Coupon Discount:</span> <span>- ৳{order.discountAmount.toFixed(2)}</span></div>
+                    ) : null}
+                    
                     {order.loyaltyDiscount && order.loyaltyDiscount > 0 ? (
-                         <div className="flex justify-between"><span className="text-muted-foreground">Loyalty Discount:</span> <span>- ৳{order.loyaltyDiscount.toFixed(2)}</span></div>
+                         <div className="flex justify-between text-green-600"><span className="text-muted-foreground">↳ Loyalty Discount:</span> <span>- ৳{order.loyaltyDiscount.toFixed(2)}</span></div>
                     ): null}
+
+                    {order.giftCardDiscount && order.giftCardDiscount > 0 ? (
+                         <div className="flex justify-between text-green-600"><span className="text-muted-foreground">↳ Gift Card:</span> <span>- ৳{order.giftCardDiscount.toFixed(2)}</span></div>
+                    ): null}
+
                     <Separator/>
-                    <div className="flex justify-between font-bold text-base"><span className="text-foreground">Total:</span> <span>৳{order.totalAmount.toFixed(2)}</span></div>
+                    <div className="flex justify-between font-bold text-base"><span className="text-foreground">Total Paid:</span> <span>৳{order.totalAmount.toFixed(2)}</span></div>
+                     {order.orderType === 'pre-order' && order.fullOrderValue && order.fullOrderValue > order.totalAmount && (
+                        <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">Full Order Value:</span>
+                            <span className="font-medium">৳{order.fullOrderValue.toFixed(2)}</span>
+                        </div>
+                    )}
                 </CardContent>
              </Card>
         </div>
