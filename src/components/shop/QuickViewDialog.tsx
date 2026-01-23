@@ -7,6 +7,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import type { Product, ProductVariant } from '@/types/product';
 import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
@@ -21,6 +22,8 @@ import { WishlistButton } from '../ui/wishlist-button';
 import { ScrollArea } from '../ui/scroll-area';
 import { FlashSaleTimer } from '../product/flash-sale-timer';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { useIsMobile } from '@/hooks/use-mobile';
+
 
 interface QuickViewDialogProps {
   product: Product | null;
@@ -31,6 +34,7 @@ interface QuickViewDialogProps {
 export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialogProps) {
   const { addItem } = useCart();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
@@ -171,21 +175,17 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
 
   if (!product) return null;
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl w-[95vw] h-auto max-h-[90vh] flex flex-col md:flex-row p-0 gap-0">
-        <DialogHeader className="sr-only">
-          <DialogTitle>Product Quick View: {product.name}</DialogTitle>
-          <DialogDescription>Quickly view product details, select options, and add to cart.</DialogDescription>
-        </DialogHeader>
-        <div className="w-full md:w-1/2 bg-muted/50 p-4 flex flex-col gap-4">
-          <div className="relative aspect-square w-full rounded-xl overflow-hidden shadow-lg border">
+  const content = (
+    <>
+      {/* Image Gallery */}
+      <div className="w-full md:w-1/2 bg-muted/50 p-4 flex flex-col gap-4 sticky top-0 md:relative z-10">
+        <div className="relative aspect-square w-full rounded-xl overflow-hidden shadow-lg border">
             {activeMedia.type === 'video' ? (
                 <iframe className="w-full h-full" src={getAutoplayUrl(activeMedia.src)} title={product.name} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
             ) : (
                 <Image src={activeMedia.src} alt={product.name} fill sizes="(max-width: 768px) 90vw, 45vw" className="object-cover" />
             )}
-             {isOutOfStock && (
+            {isOutOfStock && (
                 <div className="absolute inset-0 bg-white/70 flex items-center justify-center pointer-events-none">
                     <span className="bg-destructive text-destructive-foreground font-bold text-lg px-6 py-3 rounded-md uppercase tracking-widest -rotate-12 border-2 border-destructive">Out of Stock</span>
                 </div>
@@ -198,12 +198,12 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
                 {product.isNew && <Badge className="text-[10px] font-bold px-2 py-0.5 bg-blue-500">NEW</Badge>}
                 {product.isBestSeller && <Badge className="text-[10px] font-bold px-2 py-0.5 bg-teal-500">BEST SELLER</Badge>}
             </div>
-          </div>
-          <Carousel opts={{ align: "start" }} className="w-full">
+        </div>
+        <Carousel opts={{ align: "start" }} className="w-full">
             <CarouselContent className="-ml-2">
                 {allMedia.map((media, index) => (
                 <CarouselItem key={index} className="basis-1/4 sm:basis-1/5 pl-2">
-                     <button
+                    <button
                         onClick={() => setActiveMedia(media)}
                         className={cn("relative aspect-square w-full rounded-md overflow-hidden border-2 flex-shrink-0", activeMedia.src === media.src ? 'border-primary' : 'border-transparent')}
                     >
@@ -216,94 +216,105 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
                 ))}
             </CarouselContent>
             {allMedia.length > 5 && (
-              <>
+            <>
                 <CarouselPrevious className="absolute -left-3 top-1/2 -translate-y-1/2 z-10 hidden sm:flex bg-white/80 hover:bg-white text-black h-7 w-7" />
                 <CarouselNext className="absolute -right-3 top-1/2 -translate-y-1/2 z-10 hidden sm:flex bg-white/80 hover:bg-white text-black h-7 w-7" />
-              </>
+            </>
             )}
-          </Carousel>
-        </div>
-        
-        <div className="w-full md:w-1/2 flex flex-col">
-          <ScrollArea className="h-full">
+        </Carousel>
+      </div>
+      {/* Product Details */}
+      <div className="w-full md:w-1/2 flex flex-col">
+        <ScrollArea className="h-full">
             <div className="p-6 space-y-3">
-              <div>
+            <div>
                 <p className="text-xs font-medium text-muted-foreground">{product.brand}</p>
                 <h2 className="text-xl font-bold font-headline">{product.name}</h2>
                 <div className="flex items-center gap-2 mt-1">
                     <div className="flex items-center gap-0.5 text-yellow-500">{[...Array(5)].map((_, i) => <Star key={i} size={14} className={i < 4 ? "fill-current" : "text-gray-300"} />)}</div>
                     <span className="text-xs text-muted-foreground">(123 reviews)</span>
                 </div>
-              </div>
-
-              <p className="text-sm text-muted-foreground leading-relaxed">
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">
                 {product.description.length > 150 ? `${product.description.substring(0, 150)}...` : product.description}
-              </p>
-
-              <div className="flex items-baseline gap-3 pt-1">
+            </p>
+            <div className="flex items-baseline gap-3 pt-1">
                 <span className="text-3xl font-bold font-roboto text-primary">৳{displayPrice.toFixed(2)}</span>
                 {displayOriginalPrice && displayOriginalPrice > displayPrice && (
                     <span className="text-lg text-muted-foreground line-through">৳{displayOriginalPrice.toFixed(2)}</span>
                 )}
-              </div>
-              
-               {isFlashSaleActive && product.flashSale?.endDate && <FlashSaleTimer endDate={product.flashSale.endDate} />}
-               {product.giftWithPurchase?.enabled && product.giftWithPurchase.description && (
-                  <div className="bg-green-50 border border-green-200 text-green-800 p-3 rounded-md flex items-center gap-3">
-                      <Gift size={24} />
-                      <div><p className="font-bold text-sm">Free Gift:</p><p className="text-xs">{product.giftWithPurchase.description}</p></div>
-                  </div>
-              )}
-
-              <div className="space-y-3 pt-2">
+            </div>
+            {isFlashSaleActive && product.flashSale?.endDate && <FlashSaleTimer endDate={product.flashSale.endDate} />}
+            {product.giftWithPurchase?.enabled && product.giftWithPurchase.description && (
+                <div className="bg-green-50 border border-green-200 text-green-800 p-3 rounded-md flex items-center gap-3">
+                    <Gift size={24} />
+                    <div><p className="font-bold text-sm">Free Gift:</p><p className="text-xs">{product.giftWithPurchase.description}</p></div>
+                </div>
+            )}
+            <div className="space-y-3 pt-2">
                 {availableColors.length > 0 && (
-                  <div className="space-y-2"><p className="font-semibold text-sm">Color: <span className="font-normal text-muted-foreground">{selectedColor}</span></p><div className="flex flex-wrap gap-2">{availableColors.map(color => (<button key={color} onClick={() => setSelectedColor(color)} className={cn('h-8 w-8 rounded-full border-2 transition-transform transform hover:scale-110', selectedColor === color ? 'border-primary ring-2 ring-primary/50' : 'border-border')} style={{ backgroundColor: color.toLowerCase() }} title={color} />))}</div></div>
+                <div className="space-y-2"><p className="font-semibold text-sm">Color: <span className="font-normal text-muted-foreground">{selectedColor}</span></p><div className="flex flex-wrap gap-2">{availableColors.map(color => (<button key={color} onClick={() => setSelectedColor(color)} className={cn('h-8 w-8 rounded-full border-2 transition-transform transform hover:scale-110', selectedColor === color ? 'border-primary ring-2 ring-primary/50' : 'border-border')} style={{ backgroundColor: color.toLowerCase() }} title={color} />))}</div></div>
                 )}
                 {availableSizes.length > 0 && (
-                  <div className="space-y-2"><p className="font-semibold text-sm">Size: <span className="font-normal text-muted-foreground">{selectedSize}</span></p><div className="flex flex-wrap gap-2">{availableSizes.map(size => (<button key={size} onClick={() => setSelectedSize(size)} className={cn('h-9 px-3 border rounded-md text-xs font-medium transition-colors', selectedSize === size ? 'bg-primary text-primary-foreground' : 'bg-secondary hover:bg-muted')}>{size}</button>))}</div></div>
+                <div className="space-y-2"><p className="font-semibold text-sm">Size: <span className="font-normal text-muted-foreground">{selectedSize}</span></p><div className="flex flex-wrap gap-2">{availableSizes.map(size => (<button key={size} onClick={() => setSelectedSize(size)} className={cn('h-9 px-3 border rounded-md text-xs font-medium transition-colors', selectedSize === size ? 'bg-primary text-primary-foreground' : 'bg-secondary hover:bg-muted')}>{size}</button>))}</div></div>
                 )}
-              </div>
-              
-              <div className="flex items-center gap-2 text-sm pt-2">
+            </div>
+            <div className="flex items-center gap-2 text-sm pt-2">
                 <p className="font-semibold">Availability:</p>
                 {isOutOfStock ? (
-                  <Badge variant="destructive">Out of Stock</Badge>
+                <Badge variant="destructive">Out of Stock</Badge>
                 ) : product.preOrder?.enabled ? (
-                  <Badge className="bg-blue-600/10 text-blue-600">Pre-order</Badge>
+                <Badge className="bg-blue-600/10 text-blue-600">Pre-order</Badge>
                 ) : (
-                  <Badge className="bg-green-600/10 text-green-600">In Stock: {stockCount} items</Badge>
+                <Badge className="bg-green-600/10 text-green-600">In Stock: {stockCount} items</Badge>
                 )}
-              </div>
-              
-              <div className="space-y-3 pt-3 border-t">
-                  <div className="flex items-center gap-3">
-                      <p className="text-sm font-semibold">Quantity:</p>
-                      <div className="flex items-center border rounded-md">
-                          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => handleQuantityChange(-1)}><Minus size={14} /></Button>
-                          <span className="font-bold text-sm w-8 text-center">{quantity}</span>
-                          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => handleQuantityChange(1)}><Plus size={14} /></Button>
-                      </div>
-                  </div>
-                  <div className="flex items-center gap-2">
+            </div>
+            <div className="space-y-3 pt-3 border-t">
+                <div className="flex items-center gap-3">
+                    <p className="text-sm font-semibold">Quantity:</p>
+                    <div className="flex items-center border rounded-md">
+                        <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => handleQuantityChange(-1)}><Minus size={14} /></Button>
+                        <span className="font-bold text-sm w-8 text-center">{quantity}</span>
+                        <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => handleQuantityChange(1)}><Plus size={14} /></Button>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2">
                     <Button onClick={handleAddToCart} size="lg" className="w-full h-11 text-sm flex-1" disabled={isOutOfStock}>
                         <ShoppingBag size={18} className="mr-2" />
                         {product.preOrder?.enabled ? 'Pre-order Now' : 'Add to Bag'}
                     </Button>
-                     <WishlistButton productId={product.id} variant="outline" size="icon" className="h-11 w-11 flex-shrink-0" />
-                  </div>
-              </div>
-              
-              <div className="pt-3 border-t">
-                  <Button variant="link" asChild className="p-0 h-auto">
-                      <Link href={`/product/${product.id}`} onClick={() => onOpenChange(false)}>
-                          View Full Product Details <ArrowRight size={16} className="ml-2" />
-                      </Link>
-                  </Button>
-              </div>
-
+                    <WishlistButton productId={product.id} variant="outline" size="icon" className="h-11 w-11 flex-shrink-0" />
+                </div>
+            </div>
+            <div className="pt-3 border-t">
+                <Button variant="link" asChild className="p-0 h-auto">
+                    <Link href={`/product/${product.id}`} onClick={() => onOpenChange(false)}>
+                        View Full Product Details <ArrowRight size={16} className="ml-2" />
+                    </Link>
+                </Button>
+            </div>
             </div>
           </ScrollArea>
         </div>
+    </>
+  );
+
+  if (isMobile) {
+    return (
+        <Drawer open={open} onOpenChange={onOpenChange}>
+            <DrawerContent className="h-[90vh] flex flex-col p-0">
+                <ScrollArea className="h-full">
+                    {content}
+                </ScrollArea>
+            </DrawerContent>
+        </Drawer>
+    );
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl w-[95vw] h-auto max-h-[90vh] flex flex-col md:flex-row p-0 gap-0">
+        {content}
       </DialogContent>
     </Dialog>
   );
