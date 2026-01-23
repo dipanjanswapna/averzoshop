@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
@@ -64,7 +63,7 @@ export default function VendorChallansPage() {
 
   const renderMobileSkeleton = () => (
     [...Array(3)].map((_, i) => (
-      <Card key={i}>
+      <Card key={i} className="flex-1 min-w-[280px] max-w-sm">
         <CardHeader>
           <Skeleton className="h-5 w-3/4" />
           <Skeleton className="h-4 w-1/2" />
@@ -129,10 +128,10 @@ export default function VendorChallansPage() {
           </div>
 
            {/* Mobile Cards */}
-          <div className="flex flex-col md:hidden gap-4">
+          <div className="flex flex-wrap justify-center gap-4 md:hidden">
              {isLoading ? renderMobileSkeleton() : vendorChallans.length > 0 ? (
                 vendorChallans.map(challan => (
-                  <Card key={challan.id}>
+                  <Card key={challan.id} className="flex-1 min-w-[280px] max-w-sm">
                     <CardHeader>
                       <div className="flex justify-between items-start">
                         <div>

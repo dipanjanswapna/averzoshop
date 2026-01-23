@@ -136,40 +136,83 @@ export default function SfaDashboardPage() {
             <CardDescription>Live performance metrics for your field sales team.</CardDescription>
         </CardHeader>
         <CardContent>
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Sales Rep</TableHead>
-                        <TableHead>Total Orders</TableHead>
-                        <TableHead className="text-right">Total Sales Value</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {isLoading ? [...Array(3)].map((_, i) => (
-                         <TableRow key={i}>
-                            <TableCell><div className="flex items-center gap-2"><Skeleton className="h-10 w-10 rounded-full" /><Skeleton className="h-5 w-24" /></div></TableCell>
-                            <TableCell><Skeleton className="h-5 w-12" /></TableCell>
-                            <TableCell className="text-right"><Skeleton className="h-5 w-24 ml-auto" /></TableCell>
+            {/* Desktop Table */}
+            <div className="hidden md:block">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Sales Rep</TableHead>
+                            <TableHead>Total Orders</TableHead>
+                            <TableHead className="text-right">Total Sales Value</TableHead>
                         </TableRow>
-                    )) : repPerformance.map(rep => (
-                        <TableRow key={rep.uid}>
-                            <TableCell>
-                                <div className="flex items-center gap-3">
-                                    <Avatar>
-                                        <AvatarFallback><User /></AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                        <div className="font-medium">{rep.displayName}</div>
-                                        <div className="text-sm text-muted-foreground">{rep.email}</div>
+                    </TableHeader>
+                    <TableBody>
+                        {isLoading ? [...Array(3)].map((_, i) => (
+                            <TableRow key={i}>
+                                <TableCell><div className="flex items-center gap-2"><Skeleton className="h-10 w-10 rounded-full" /><Skeleton className="h-5 w-24" /></div></TableCell>
+                                <TableCell><Skeleton className="h-5 w-12" /></TableCell>
+                                <TableCell className="text-right"><Skeleton className="h-5 w-24 ml-auto" /></TableCell>
+                            </TableRow>
+                        )) : repPerformance.map(rep => (
+                            <TableRow key={rep.uid}>
+                                <TableCell>
+                                    <div className="flex items-center gap-3">
+                                        <Avatar>
+                                            <AvatarFallback><User /></AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <div className="font-medium">{rep.displayName}</div>
+                                            <div className="text-sm text-muted-foreground">{rep.email}</div>
+                                        </div>
                                     </div>
+                                </TableCell>
+                                <TableCell className="font-medium">{rep.orderCount}</TableCell>
+                                <TableCell className="text-right font-medium">৳{rep.totalSales.toFixed(2)}</TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
+            {/* Mobile Cards */}
+            <div className="flex flex-wrap justify-center gap-4 md:hidden">
+              {isLoading ? (
+                  [...Array(3)].map((_, i) => (
+                    <Card key={i} className="flex-1 min-w-[280px] max-w-sm">
+                      <CardHeader><Skeleton className="h-6 w-3/4" /></CardHeader>
+                      <CardContent className="space-y-3">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-full" />
+                      </CardContent>
+                    </Card>
+                  ))
+              ) : (
+                repPerformance.map(rep => (
+                    <Card key={rep.uid} className="flex-1 min-w-[280px] max-w-sm">
+                        <CardHeader>
+                            <div className="flex items-center gap-3">
+                                <Avatar>
+                                    <AvatarFallback><User /></AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <div className="font-medium">{rep.displayName}</div>
+                                    <div className="text-sm text-muted-foreground">{rep.email}</div>
                                 </div>
-                            </TableCell>
-                            <TableCell className="font-medium">{rep.orderCount}</TableCell>
-                            <TableCell className="text-right font-medium">৳{rep.totalSales.toFixed(2)}</TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="text-sm space-y-2">
+                             <div className="flex justify-between items-center">
+                                <span className="text-muted-foreground">Total Orders:</span>
+                                <span className="font-bold">{rep.orderCount}</span>
+                            </div>
+                             <div className="flex justify-between items-center">
+                                <span className="text-muted-foreground">Total Sales:</span>
+                                <span className="font-bold">৳{rep.totalSales.toFixed(2)}</span>
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))
+              )}
+            </div>
         </CardContent>
        </Card>
     </div>

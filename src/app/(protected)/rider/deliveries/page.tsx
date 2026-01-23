@@ -17,11 +17,11 @@ import { sendTargetedNotification } from '@/ai/flows/send-targeted-notification'
 
 function DeliveryCard({ order, outlet, onAction, actionLabel, actionIcon: Icon, isLoading }: { order: Order, outlet: Outlet | undefined, onAction: (orderId: string) => void, actionLabel: string, actionIcon: React.ElementType, isLoading: boolean }) {
     return (
-        <Card>
+        <Card className="flex-1 min-w-[320px] max-w-sm flex flex-col">
             <CardHeader>
                 <CardTitle className="text-base">Order ID: <span className="font-mono">{order.id.substring(0,8)}...</span></CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 text-sm">
+            <CardContent className="space-y-4 text-sm flex-grow">
                  {outlet && (
                     <div className="space-y-1">
                         <p className="font-bold text-primary flex items-center gap-2"><Warehouse className="h-4 w-4" /> Pickup From</p>
@@ -133,9 +133,9 @@ export default function RiderDeliveriesPage() {
     };
     
     const renderSkeleton = () => (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="flex flex-wrap justify-center gap-4">
             {[...Array(3)].map((_, i) => (
-                <Card key={i}>
+                <Card key={i} className="flex-1 min-w-[320px] max-w-sm">
                     <CardHeader><Skeleton className="h-5 w-3/4" /></CardHeader>
                     <CardContent className="space-y-2">
                         <Skeleton className="h-4 w-full" />
@@ -157,7 +157,7 @@ export default function RiderDeliveriesPage() {
                 </TabsList>
                 <TabsContent value="available" className="mt-4">
                      {isLoading ? renderSkeleton() : availableDeliveries.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="flex flex-wrap justify-center gap-4">
                            {availableDeliveries.map(order => (
                                <DeliveryCard 
                                     key={order.id}
@@ -179,7 +179,7 @@ export default function RiderDeliveriesPage() {
                 </TabsContent>
                 <TabsContent value="my_deliveries" className="mt-4">
                      {isLoading ? renderSkeleton() : myDeliveries.length > 0 ? (
-                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                         <div className="flex flex-wrap justify-center gap-4">
                            {myDeliveries.map(order => (
                                <DeliveryCard 
                                     key={order.id}
@@ -203,5 +203,3 @@ export default function RiderDeliveriesPage() {
          </div>
     );
 }
-
-    
