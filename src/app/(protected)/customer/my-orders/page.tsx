@@ -121,17 +121,9 @@ const OrderListView = ({
   const renderMobileSkeleton = () => (
      <>
         {[...Array(3)].map((_, i) => (
-          <Card key={i}>
-            <CardHeader>
-                <Skeleton className="h-5 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-            </CardHeader>
-            <CardContent>
-                <Skeleton className="h-6 w-24" />
-            </CardContent>
-            <CardFooter>
-                <Skeleton className="h-9 w-full" />
-            </CardFooter>
+          <Card key={i} className="overflow-hidden">
+            <div className="p-4"><Skeleton className="h-12 w-full" /></div>
+            <CardFooter className="bg-muted/50 p-4"><Skeleton className="h-9 w-full" /></CardFooter>
           </Card>
         ))}
     </>
@@ -143,7 +135,7 @@ const OrderListView = ({
             <div className="hidden md:block">
                 <Table><TableHeader><TableRow><TableHead>Order ID</TableHead><TableHead>Date</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader><TableBody>{renderDesktopSkeleton()}</TableBody></Table>
             </div>
-            <div className="grid md:hidden gap-4">{renderMobileSkeleton()}</div>
+            <div className="flex flex-col md:hidden gap-4">{renderMobileSkeleton()}</div>
           </div>
       );
   }
@@ -207,40 +199,37 @@ const OrderListView = ({
         </div>
 
         {/* Mobile Cards */}
-        <div className="grid md:hidden gap-4">
+        <div className="flex flex-col md:hidden gap-4">
             {orders.map(order => (
-                <Card key={order.id}>
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <div>
-                            <CardDescription>Order ID</CardDescription>
-                            <CardTitle className="text-base font-mono text-primary flex items-center gap-1">
-                                {order.id.substring(0, 8)}...
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7"
-                                    onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleCopyOrderId(order.id); }}
-                                >
-                                    <Copy className="h-4 w-4" />
-                                    <span className="sr-only">Copy Order ID</span>
-                                </Button>
-                            </CardTitle>
+                <Card key={order.id} className="overflow-hidden">
+                    <div className="p-4" onClick={() => router.push(`/customer/my-orders/${order.id}`)}>
+                        <div className="flex items-start justify-between gap-4">
+                            <div>
+                                <CardDescription>Order ID</CardDescription>
+                                <div className="flex items-center gap-1">
+                                    <CardTitle className="text-base font-mono text-primary">
+                                        {order.id.substring(0, 8)}...
+                                    </CardTitle>
+                                    <Button variant="ghost" size="icon" className="h-7 w-7 -mr-2" onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleCopyOrderId(order.id); }}>
+                                        <Copy className="h-4 w-4" />
+                                        <span className="sr-only">Copy Order ID</span>
+                                    </Button>
+                                </div>
+                            </div>
+                            {getStatusBadge(order.status)}
                         </div>
-                        {getStatusBadge(order.status)}
-                    </CardHeader>
-                    <CardContent>
-                        <div className="flex justify-between items-center text-sm">
+                        <div className="flex justify-between items-end mt-2 text-sm">
                             <span className="text-muted-foreground">{order.createdAt?.toDate().toLocaleDateString()}</span>
                             <span className="font-bold text-lg">৳{order.totalAmount.toFixed(2)}</span>
                         </div>
-                    </CardContent>
-                    <CardFooter className="flex flex-col items-stretch gap-3">
-                         {renderAction(order) && (
-                           <div onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}>
-                             {renderAction(order)}
-                           </div>
-                         )}
-                        <Button asChild variant="outline" className="w-full">
+                    </div>
+                    <CardFooter className="bg-muted/50 p-4 flex flex-col items-stretch gap-2">
+                            {renderAction(order) && (
+                            <div onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}>
+                                {renderAction(order)}
+                            </div>
+                            )}
+                        <Button asChild variant="outline" className="w-full bg-background">
                             <Link href={`/customer/my-orders/${order.id}`}>
                                 View Details <ArrowRight className="ml-2 h-4 w-4" />
                             </Link>
