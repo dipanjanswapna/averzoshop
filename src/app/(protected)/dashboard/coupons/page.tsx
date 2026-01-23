@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -111,7 +112,7 @@ export default function CouponsPage() {
             </div>
 
             {/* Mobile Cards */}
-            <div className="flex flex-wrap justify-center md:hidden gap-4">
+            <div className="flex flex-wrap justify-center gap-4 md:hidden">
                {isLoading ? renderMobileSkeleton() : sortedCoupons && sortedCoupons.length > 0 ? (
                   sortedCoupons.map((coupon) => (
                     <Card key={coupon.id} className="flex-1 min-w-[300px] max-w-sm">
