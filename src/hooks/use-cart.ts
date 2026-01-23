@@ -6,6 +6,9 @@ import type { Product, ProductVariant } from '@/types/product';
 import { toast } from './use-toast';
 import type { Coupon } from '@/types/coupon';
 import type { UserData } from '@/types/user';
+import type { GiftCard } from '@/types/gift-card';
+import { doc, getDoc, type Firestore } from 'firebase/firestore';
+
 
 export type CartItem = {
   product: Product;
@@ -24,6 +27,9 @@ type CartState = {
   cardPromoDiscountAmount: number;
   pointsApplied: number;
   pointsDiscount: number;
+  giftCard: GiftCard | null;
+  giftCardCode: string | null;
+  giftCardDiscount: number;
   shippingInfo: {
     fee: number;
     outletId: string | null;
@@ -47,6 +53,8 @@ type CartState = {
   removeCardPromo: () => void;
   applyPoints: (points: number, userPoints: number, pointValue: number) => void;
   removePoints: () => void;
+  applyGiftCard: (code: string, firestore: Firestore) => Promise<void>;
+  removeGiftCard: () => void;
   setOrderMode: (mode: 'delivery' | 'pickup') => void;
   setPickupOutlet: (outletId: string | null) => void;
   setShippingInfo: (info: Partial<CartState['shippingInfo']>) => void;
@@ -100,6 +108,9 @@ export const useCart = create<CartState>()(
       cardPromoDiscountAmount: 0,
       pointsApplied: 0,
       pointsDiscount: 0,
+      giftCard: null,
+      giftCardCode: null,
+      giftCardDiscount: 0,
       shippingInfo: { fee: 0, outletId: null, distance: null, estimate: null },
       subtotal: 0,
       discount: 0,
@@ -112,7 +123,7 @@ export const useCart = create<CartState>()(
       
       _recalculate: () => {
         const state = get();
-        const { items, promoCode, pointsApplied, shippingInfo, orderMode, cardPromoPercent } = state;
+        const { items, promoCode, pointsApplied, shippingInfo, orderMode, cardPromoPercent, giftCard } = state;
         const pointValue = 0.20; // This should ideally come from settings
         
         let regularItemsSubtotal = 0;
@@ -148,7 +159,15 @@ export const useCart = create<CartState>()(
         const regularItemsForDiscount = items.filter(item => !item.isPreOrder);
         const promoCodeDiscount = calculateDiscount(regularItemsForDiscount, promoCode);
         
-        const payableBeforePoints = (regularItemsSubtotal - cardPromoAmount - promoCodeDiscount) + preOrderDepositPayable;
+        const payableAfterPromos = (regularItemsSubtotal - cardPromoAmount - promoCodeDiscount);
+        
+        let giftCardDiscountValue = 0;
+        if(giftCard) {
+            const payableBeforeGiftCard = (payableAfterPromos > 0 ? payableAfterPromos : 0) + preOrderDepositPayable;
+            giftCardDiscountValue = Math.min(giftCard.balance, payableBeforeGiftCard);
+        }
+
+        const payableBeforePoints = payableAfterPromos - giftCardDiscountValue + preOrderDepositPayable;
 
         let applicablePointsDiscount = 0;
         if (pointsApplied > 0) {
@@ -163,6 +182,7 @@ export const useCart = create<CartState>()(
             discount: promoCodeDiscount,
             cardPromoDiscountAmount: cardPromoAmount,
             pointsDiscount: applicablePointsDiscount,
+            giftCardDiscount: giftCardDiscountValue,
             totalPayable,
             fullOrderTotal: subtotal,
             isPartialPayment: isPartialPaymentInCart,
@@ -193,6 +213,32 @@ export const useCart = create<CartState>()(
       },
       setPickupOutlet: (outletId) => {
           set({ pickupOutletId: outletId });
+      },
+      
+      applyGiftCard: async (code, firestore) => {
+        const giftCardRef = doc(firestore, 'gift_cards', code.trim());
+        try {
+            const giftCardSnap = await getDoc(giftCardRef);
+            if (!giftCardSnap.exists() || !giftCardSnap.data()?.isEnabled) {
+                throw new Error('Gift card is invalid or disabled.');
+            }
+            const cardData = { id: giftCardSnap.id, ...giftCardSnap.data() } as GiftCard;
+            if (cardData.balance <= 0) {
+                throw new Error('Gift card has no remaining balance.');
+            }
+            set({ giftCard: cardData, giftCardCode: cardData.code });
+            toast({ title: "Gift Card Applied!", description: `Code ${cardData.code} has a balance of ৳${cardData.balance.toFixed(2)}.` });
+        } catch (error: any) {
+            set({ giftCard: null, giftCardCode: null, giftCardDiscount: 0 });
+            toast({ variant: 'destructive', title: 'Gift Card Error', description: error.message });
+        }
+        get()._recalculate();
+      },
+
+      removeGiftCard: () => {
+        set({ giftCard: null, giftCardCode: null, giftCardDiscount: 0 });
+        get()._recalculate();
+        toast({ title: 'Gift card removed.' });
       },
 
       addItem: (product, variant, quantity = 1) => {
@@ -270,6 +316,9 @@ export const useCart = create<CartState>()(
             cardPromoDiscountAmount: 0,
             pointsApplied: 0,
             pointsDiscount: 0,
+            giftCard: null,
+            giftCardCode: null,
+            giftCardDiscount: 0,
             subtotal: 0, 
             discount: 0, 
             shippingInfo: { fee: 0, outletId: null, distance: null, estimate: null },
@@ -313,9 +362,9 @@ export const useCart = create<CartState>()(
             return;
         }
         
-        const { regularItemsSubtotal, cardPromoDiscountAmount, discount, preOrderDepositPayable } = get();
+        const { regularItemsSubtotal, cardPromoDiscountAmount, discount, preOrderDepositPayable, giftCardDiscount } = get();
         
-        const maxDiscount = (regularItemsSubtotal - cardPromoDiscountAmount - discount) + preOrderDepositPayable;
+        const maxDiscount = (regularItemsSubtotal - cardPromoDiscountAmount - discount - giftCardDiscount) + preOrderDepositPayable;
         const requestedDiscount = pointsToUse * pointValue;
 
         if (requestedDiscount > maxDiscount) {
