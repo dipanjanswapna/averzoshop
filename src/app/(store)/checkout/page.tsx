@@ -17,29 +17,54 @@ import { CheckoutOrderSummary } from '@/components/checkout/order-summary';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
 
 export default function CheckoutPage() {
   const { items } = useCart();
   const [isMounted, setIsMounted] = useState(false);
-  const { user, loading: authLoading } = useAuth();
+  const { user, userData, loading: authLoading } = useAuth();
   const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
   useEffect(() => {
-    if (isMounted && !authLoading && !user) {
-      router.replace('/welcome?redirect=/checkout');
-    }
-  }, [isMounted, authLoading, user, router]);
+    if (isMounted && !authLoading) {
+      // Redirect if not logged in
+      if (!user) {
+        router.replace('/login?redirect=/checkout');
+        return;
+      }
+      
+      // Check for profile completeness if the user is a customer
+      if (userData && userData.role === 'customer') {
+          const hasPhone = !!userData.phone?.trim();
+          const hasAddress = !!userData.addresses && userData.addresses.length > 0;
 
-  if (!isMounted || authLoading || !user) {
+          if (!hasPhone || !hasAddress) {
+              let missingInfo = [];
+              if (!hasPhone) missingInfo.push("phone number");
+              if (!hasAddress) missingInfo.push("address");
+              
+              toast({
+                  variant: "destructive",
+                  title: "Profile Incomplete",
+                  description: `Please add your ${missingInfo.join(' and ')} to proceed with checkout.`,
+              });
+              router.replace('/customer/profile');
+          }
+      }
+    }
+  }, [isMounted, authLoading, user, userData, router, toast]);
+
+  if (!isMounted || authLoading || !user || !userData) {
     return (
       <div className="container mx-auto flex min-h-[60vh] flex-col items-center justify-center text-center">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          <p className="text-muted-foreground">Verifying authentication...</p>
+          <p className="text-muted-foreground">Verifying information...</p>
         </div>
       </div>
     );

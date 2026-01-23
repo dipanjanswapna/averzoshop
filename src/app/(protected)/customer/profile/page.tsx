@@ -1,6 +1,5 @@
-
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,7 +16,13 @@ export default function CustomerProfilePage() {
     const { user, userData, firestore, auth } = useAuth();
     const { toast } = useToast();
     const [name, setName] = useState(user?.displayName || '');
+    const [phone, setPhone] = useState(userData?.phone || '');
     const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        if(user?.displayName) setName(user.displayName);
+        if(userData?.phone) setPhone(userData.phone);
+    }, [user, userData])
     
     const handleSave = async () => {
         if (!user || !auth || !firestore || !name) {
@@ -27,11 +32,24 @@ export default function CustomerProfilePage() {
         
         setIsLoading(true);
         try {
-            if (auth.currentUser) {
-                await updateProfile(auth.currentUser, { displayName: name });
+             // Prepare updates
+            const authUpdates: { displayName?: string } = {};
+            if (name !== user.displayName) {
+                authUpdates.displayName = name;
             }
+
+            const firestoreUpdates: { displayName: string, phone?: string } = { displayName: name };
+            if (phone !== userData?.phone) {
+                firestoreUpdates.phone = phone;
+            }
+
+            // Perform updates
+            if (Object.keys(authUpdates).length > 0 && auth.currentUser) {
+                await updateProfile(auth.currentUser, authUpdates);
+            }
+            
             const userRef = doc(firestore, 'users', user.uid);
-            await updateDoc(userRef, { displayName: name });
+            await updateDoc(userRef, firestoreUpdates);
 
             toast({ title: 'Profile Updated', description: 'Your changes have been saved.' });
         } catch (error: any) {
@@ -66,6 +84,10 @@ export default function CustomerProfilePage() {
                         <div className="space-y-2">
                             <Label htmlFor="email">Email</Label>
                             <Input id="email" type="email" defaultValue={user?.email || ''} disabled />
+                        </div>
+                         <div className="space-y-2">
+                            <Label htmlFor="phone">Phone Number</Label>
+                            <Input id="phone" type="tel" placeholder="Your phone number" value={phone} onChange={(e) => setPhone(e.target.value)} />
                         </div>
                          <div className="space-y-2">
                             <Label htmlFor="role">Role</Label>
