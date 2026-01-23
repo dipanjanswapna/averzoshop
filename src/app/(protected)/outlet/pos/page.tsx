@@ -3,7 +3,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Search, PlusCircle, MinusCircle, XCircle, ShoppingCart, Banknote, CreditCard, Smartphone, User, Nfc, Loader2, Award } from 'lucide-react';
+import { Search, PlusCircle, MinusCircle, XCircle, ShoppingCart, Banknote, CreditCard, Smartphone, User, Nfc, Loader2, Award, Gift } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useFirestoreQuery, useFirestoreDoc } from '@/hooks/useFirestoreQuery';
 import { Product, ProductVariant } from '@/types/product';
@@ -29,6 +29,7 @@ import {
 import { Separator } from '@/components/ui/separator';
 import type { Coupon } from '@/types/coupon';
 import { UserData } from '@/types/user';
+import type { GiftCard } from '@/types/gift-card';
 
 
 type CartItem = {
@@ -52,7 +53,8 @@ const CartPanel = ({
     setCustomerSearch, filteredCustomers, handleSelectCustomer, handleClearCustomer,
     handleNfcRead, isScanningNfc, pointsToUse, setPointsToUse, handleApplyPoints,
     pointsApplied, pointsDiscount, removePoints, cardPromoDiscountAmount, potentialPointsDiscount,
-    handleApplyMaxPoints, maxPointsForSale, maxDiscountFromPoints
+    handleApplyMaxPoints, maxPointsForSale, maxDiscountFromPoints,
+    giftCardInput, setGiftCardInput, handleApplyGiftCard, isApplyingGiftCard, appliedGiftCard, removeGiftCard, giftCardDiscount
 }: any) => (
     <div className="flex flex-col gap-4 h-full">
         <Card className="shadow-md flex-shrink-0">
@@ -185,6 +187,12 @@ const CartPanel = ({
                             <span>- ৳{discountAmount.toFixed(2)}</span>
                         </div>
                     )}
+                    {giftCardDiscount > 0 && (
+                         <div className="flex justify-between text-green-600">
+                            <span className='font-medium'>↳ Gift Card</span>
+                            <span>- ৳{giftCardDiscount.toFixed(2)}</span>
+                        </div>
+                    )}
                     {pointsDiscount > 0 && (
                          <div className="flex justify-between text-green-600">
                             <span className='font-medium'>↳ Loyalty Points</span>
@@ -229,6 +237,40 @@ const CartPanel = ({
                         </div>
                     )}
                 </div>
+
+                <Separator />
+                
+                <div className="space-y-2">
+                    <Label className="font-bold flex items-center gap-2"><Gift size={16} /> Gift Card</Label>
+                    {appliedGiftCard ? (
+                        <div className="flex justify-between items-center bg-green-100/50 p-2 rounded-md">
+                            <div className="text-green-700">
+                                <p className="text-sm font-bold">Code Applied: {appliedGiftCard.code}</p>
+                                <p className="text-xs">-৳{giftCardDiscount.toFixed(2)} (Balance: ৳{appliedGiftCard.balance.toFixed(2)})</p>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={removeGiftCard}>
+                                <XCircle className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    ) : (
+                        <div className="flex items-end gap-2">
+                            <div className="flex-1 space-y-1">
+                                <Input
+                                    id="gift-card-code"
+                                    placeholder="Enter gift card code"
+                                    value={giftCardInput}
+                                    onChange={(e) => setGiftCardInput(e.target.value)}
+                                    disabled={isApplyingGiftCard}
+                                />
+                            </div>
+                            <Button onClick={handleApplyGiftCard} disabled={isApplyingGiftCard || !giftCardInput}>
+                                {isApplyingGiftCard ? 'Applying...' : 'Apply'}
+                            </Button>
+                        </div>
+                    )}
+                </div>
+                
+                <Separator />
 
                 {selectedCustomer && (selectedCustomer.loyaltyPoints || 0) > 0 && (
                    <div className="space-y-3 pt-2">
@@ -351,6 +393,11 @@ export default function POSPage() {
     const [grandTotal, setGrandTotal] = useState(0);
     const [potentialPointsDiscount, setPotentialPointsDiscount] = useState(0);
 
+    const [giftCardInput, setGiftCardInput] = useState('');
+    const [appliedGiftCard, setAppliedGiftCard] = useState<GiftCard | null>(null);
+    const [isApplyingGiftCard, setIsApplyingGiftCard] = useState(false);
+    const [giftCardDiscount, setGiftCardDiscount] = useState(0);
+
     const isLoading = productsLoading || usersLoading;
     const outletId = useMemo(() => userData?.outletId, [userData]);
 
@@ -372,6 +419,8 @@ export default function POSPage() {
         setPromoDiscount(0);
         setPointsApplied(0);
         setPointsDiscount(0);
+        setAppliedGiftCard(null);
+        setGiftCardDiscount(0);
     };
 
     const handleClearCustomer = () => {
@@ -382,6 +431,8 @@ export default function POSPage() {
         setCardPromoDiscountAmount(0);
         setPointsApplied(0);
         setPointsDiscount(0);
+        setAppliedGiftCard(null);
+        setGiftCardDiscount(0);
     };
     
     const handleApplyPoints = () => {
@@ -397,7 +448,7 @@ export default function POSPage() {
             return;
         }
 
-        const currentSubtotalAfterDiscounts = cartSubtotal - promoDiscount - cardPromoDiscountAmount;
+        const currentSubtotalAfterDiscounts = cartSubtotal - promoDiscount - cardPromoDiscountAmount - giftCardDiscount;
         const requestedDiscount = pointsNum * pointValue;
 
         if (requestedDiscount > currentSubtotalAfterDiscounts) {
@@ -502,11 +553,20 @@ export default function POSPage() {
         }
         setPromoDiscount(currentPromoDiscount);
         
-        // This is what's payable today before points are applied
-        const regularSubtotalAfterDiscounts = regularItemsSubtotal - cardDiscount - currentPromoDiscount;
+        const subtotalAfterPromos = regularItemsSubtotal - cardDiscount - currentPromoDiscount;
+        
+        // 3. Gift Card
+        let currentGiftCardDiscount = 0;
+        if (appliedGiftCard) {
+            const payableAfterPromos = (subtotalAfterPromos > 0 ? subtotalAfterPromos : 0) + preOrderDepositPayable;
+            currentGiftCardDiscount = Math.min(appliedGiftCard.balance, payableAfterPromos);
+        }
+        setGiftCardDiscount(currentGiftCardDiscount);
+
+        const regularSubtotalAfterDiscounts = subtotalAfterPromos - currentGiftCardDiscount;
         const payableBeforePoints = (regularSubtotalAfterDiscounts > 0 ? regularSubtotalAfterDiscounts : 0) + preOrderDepositPayable;
 
-        // 3. Apply Points on the remaining payable amount
+        // 4. Apply Points on the remaining payable amount
         let currentPointsDiscount = 0;
         if (pointsApplied > 0) {
             const maxDiscountFromPoints = pointsApplied * pointValue;
@@ -517,13 +577,13 @@ export default function POSPage() {
         const finalTotal = payableBeforePoints - currentPointsDiscount;
         setGrandTotal(finalTotal < 0 ? 0 : finalTotal);
 
-    }, [cart, regularItemsSubtotal, preOrderItemsSubtotal, preOrderDepositPayable, selectedCustomer, appliedCoupon, pointsApplied, pointValue]);
+    }, [cart, regularItemsSubtotal, preOrderItemsSubtotal, preOrderDepositPayable, selectedCustomer, appliedCoupon, pointsApplied, pointValue, appliedGiftCard]);
 
 
     const { maxPointsForSale, maxDiscountFromPoints } = useMemo(() => {
         if (!selectedCustomer) return { maxPointsForSale: 0, maxDiscountFromPoints: 0 };
     
-        const regularSubtotalAfterDiscounts = regularItemsSubtotal - cardPromoDiscountAmount - promoDiscount;
+        const regularSubtotalAfterDiscounts = regularItemsSubtotal - cardPromoDiscountAmount - promoDiscount - giftCardDiscount;
         const payableBeforePoints = (regularSubtotalAfterDiscounts > 0 ? regularSubtotalAfterDiscounts : 0) + preOrderDepositPayable;
         const maxDiscount = Math.max(0, payableBeforePoints);
         const maxPoints = Math.floor(maxDiscount / pointValue);
@@ -532,7 +592,7 @@ export default function POSPage() {
         const discount = usablePoints * pointValue;
     
         return { maxPointsForSale: usablePoints, maxDiscountFromPoints: discount };
-    }, [regularItemsSubtotal, preOrderDepositPayable, promoDiscount, cardPromoDiscountAmount, selectedCustomer, pointValue]);
+    }, [regularItemsSubtotal, preOrderDepositPayable, promoDiscount, cardPromoDiscountAmount, giftCardDiscount, selectedCustomer, pointValue]);
     
     useEffect(() => {
         const pointsNum = parseInt(pointsToUse, 10);
@@ -811,6 +871,39 @@ export default function POSPage() {
             setIsApplyingPromo(false);
         }
     };
+    
+    const handleApplyGiftCard = async () => {
+        if (!giftCardInput.trim() || !firestore) return;
+        setIsApplyingGiftCard(true);
+        const giftCardRef = doc(firestore, 'gift_cards', giftCardInput.trim());
+        try {
+            const giftCardSnap = await getDoc(giftCardRef);
+            if (!giftCardSnap.exists() || !giftCardSnap.data()?.isEnabled) {
+                throw new Error('Gift card is invalid or disabled.');
+            }
+            const cardData = { id: giftCardSnap.id, ...giftCardSnap.data() } as GiftCard;
+            if (cardData.balance <= 0) {
+                throw new Error('Gift card has no remaining balance.');
+            }
+            
+            setAppliedGiftCard(cardData);
+            toast({ title: "Gift Card Applied!", description: `Code ${cardData.code} applied.` });
+    
+        } catch (error: any) {
+            toast({ variant: 'destructive', title: 'Gift Card Error', description: error.message });
+            setAppliedGiftCard(null);
+        } finally {
+            setIsApplyingGiftCard(false);
+            setGiftCardInput('');
+        }
+    };
+
+    const removeGiftCard = () => {
+        setAppliedGiftCard(null);
+        setGiftCardDiscount(0);
+        setGiftCardInput('');
+        toast({ title: 'Gift card removed.' });
+    };
 
     const removePromoCode = () => {
         setAppliedCoupon(null);
@@ -854,8 +947,9 @@ export default function POSPage() {
                 promoCode: appliedCoupon ? appliedCoupon.code : null,
                 loyaltyPointsUsed: pointsApplied,
                 loyaltyDiscount: pointsDiscount,
+                giftCardCode: appliedGiftCard ? appliedGiftCard.code : null,
+                giftCardDiscount: giftCardDiscount,
                 totalAmount: grandTotal,
-                ...(isPartialPayment && { fullOrderValue: cartSubtotal }),
                 paymentMethod: paymentMethod,
                 createdAt: serverTimestamp(),
                 customerId: selectedCustomer?.uid,
@@ -912,6 +1006,7 @@ export default function POSPage() {
         handleNfcRead, isScanningNfc, pointsToUse, setPointsToUse, handleApplyPoints,
         pointsApplied, pointsDiscount, removePoints, cardPromoDiscountAmount, potentialPointsDiscount,
         handleApplyMaxPoints, maxPointsForSale, maxDiscountFromPoints,
+        giftCardInput, setGiftCardInput, handleApplyGiftCard, isApplyingGiftCard, appliedGiftCard, removeGiftCard, giftCardDiscount
     };
 
     return (

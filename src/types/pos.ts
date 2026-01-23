@@ -1,4 +1,3 @@
-
 import { Timestamp } from "firebase/firestore";
 
 export interface POSSaleItem {
@@ -25,9 +24,6 @@ export interface POSSale {
     giftCardCode?: string | null;
     giftCardDiscount?: number;
     totalAmount: number;
-    fullOrderValue?: number;
     paymentMethod: 'cash' | 'card' | 'mobile';
     createdAt: any; // Firestore Timestamp
 }
-
-    
