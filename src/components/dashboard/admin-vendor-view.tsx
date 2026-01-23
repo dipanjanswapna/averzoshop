@@ -126,7 +126,7 @@ export function AdminVendorView() {
           </Table>
         </div>
         {/* Mobile Cards */}
-        <div className="flex flex-wrap justify-center gap-4 md:hidden">
+        <div className="flex flex-wrap justify-center md:hidden gap-4">
            {isLoading ? renderMobileSkeleton() : vendors && vendors.length > 0 ? (
                 vendors.map((vendor) => (
                   <Card key={vendor.uid} className="flex-1 min-w-[280px] max-w-sm">
