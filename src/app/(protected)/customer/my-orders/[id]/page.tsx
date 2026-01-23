@@ -77,12 +77,12 @@ export default function OrderDetailsPage() {
                 <Skeleton className="h-9 w-24" />
                 <Skeleton className="h-8 w-48" />
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                <div className="lg:col-span-3 space-y-6">
+            <div className="flex flex-col lg:flex-row gap-8 items-start">
+                <div className="flex-1 w-full space-y-6">
                     <Skeleton className="h-32 w-full" />
                     <Skeleton className="h-64 w-full" />
                 </div>
-                <div className="lg:col-span-2 space-y-6">
+                <div className="w-full lg:w-96 space-y-6">
                     <Skeleton className="h-48 w-full" />
                     <Skeleton className="h-32 w-full" />
                 </div>
@@ -132,8 +132,8 @@ export default function OrderDetailsPage() {
         </div>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
-        <div className="lg:col-span-3 space-y-6">
+      <div className="flex flex-col lg:flex-row gap-8 items-start">
+        <div className="flex-1 w-full space-y-6">
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center justify-between">
@@ -173,7 +173,7 @@ export default function OrderDetailsPage() {
            </Card>
         </div>
 
-        <div className="lg:col-span-2 space-y-6 sticky top-24">
+        <div className="w-full lg:w-96 lg:sticky top-24 space-y-6">
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-base">

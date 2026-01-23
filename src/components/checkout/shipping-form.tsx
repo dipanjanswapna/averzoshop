@@ -88,6 +88,7 @@ export function ShippingForm() {
       return allOutlets.filter(outlet => 
           outlet.status === 'Active' &&
           cartItems.every(cartItem => {
+              if (!cartItem.product) return false;
               const product = allProducts.find(p => p.id === cartItem.product.id);
               if (!product || product.preOrder?.enabled) return true;
               const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants || {});
@@ -305,13 +306,13 @@ export function ShippingForm() {
                 <FormItem>
                   <FormLabel>Delivery Method</FormLabel>
                   <FormControl>
-                  <RadioGroup onValueChange={(value: 'delivery' | 'pickup') => setOrderMode(value)} value={orderMode} className="grid grid-cols-2 gap-4">
-                    <FormItem><FormControl>
+                  <RadioGroup onValueChange={(value: 'delivery' | 'pickup') => setOrderMode(value)} value={orderMode} className="flex flex-wrap gap-4">
+                    <FormItem className="flex-1 min-w-[180px]"><FormControl>
                       <Label className="flex items-center gap-2 p-4 border rounded-lg cursor-pointer has-[:checked]:bg-primary/10 has-[:checked]:border-primary">
                         <RadioGroupItem value="delivery" /> Home Delivery
                       </Label>
                     </FormControl></FormItem>
-                    <FormItem><FormControl>
+                    <FormItem className="flex-1 min-w-[180px]"><FormControl>
                       <Label className="flex items-center gap-2 p-4 border rounded-lg cursor-pointer has-[:checked]:bg-primary/10 has-[:checked]:border-primary">
                         <RadioGroupItem value="pickup" /> Store Pickup
                       </Label>
@@ -332,9 +333,9 @@ export function ShippingForm() {
                         </Button>
                     </div>
                     {userData?.addresses && userData.addresses.length > 0 ? (
-                        <RadioGroup value={selectedAddressId || ''} onValueChange={setSelectedAddressId} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <RadioGroup value={selectedAddressId || ''} onValueChange={setSelectedAddressId} className="flex flex-wrap gap-3">
                             {userData.addresses.map(address => (
-                                <FormItem key={address.id}>
+                                <FormItem key={address.id} className="flex-1 min-w-[240px]">
                                     <FormControl>
                                     <Label className="flex items-start gap-3 p-3 border rounded-lg cursor-pointer has-[:checked]:bg-primary/10 has-[:checked]:border-primary">
                                         <RadioGroupItem value={address.id} className="mt-1 flex-shrink-0"/>
@@ -360,9 +361,9 @@ export function ShippingForm() {
                       setShippingDetails({ method: method as any, courierName: name || null });
                     }} 
                     value={shippingMethod ? `${shippingMethod}:${courierName || ''}` : ''}
-                    className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+                    className="flex flex-wrap gap-3"
                   >
-                    <FormItem>
+                    <FormItem className="flex-1 min-w-[180px]">
                       <FormControl>
                         <Label className="flex items-center gap-2 p-4 border rounded-lg cursor-pointer has-[:checked]:bg-primary/10 has-[:checked]:border-primary">
                           <RadioGroupItem value="averzo_rider:" /> Averzo Rider
@@ -370,7 +371,7 @@ export function ShippingForm() {
                       </FormControl>
                     </FormItem>
                     {couriers.map(c => (
-                      <FormItem key={c}>
+                      <FormItem key={c} className="flex-1 min-w-[180px]">
                         <FormControl>
                           <Label className="flex items-center gap-2 p-4 border rounded-lg cursor-pointer has-[:checked]:bg-primary/10 has-[:checked]:border-primary">
                             <RadioGroupItem value={`third_party_courier:${c}`} /> {c}

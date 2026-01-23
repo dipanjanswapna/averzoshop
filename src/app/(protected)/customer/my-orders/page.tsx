@@ -121,7 +121,7 @@ const OrderListView = ({
   const renderMobileSkeleton = () => (
      <>
         {[...Array(3)].map((_, i) => (
-          <Card key={i} className="overflow-hidden">
+          <Card key={i} className="overflow-hidden flex-1 min-w-[300px] max-w-sm">
             <div className="p-4"><Skeleton className="h-12 w-full" /></div>
             <CardFooter className="bg-muted/50 p-4"><Skeleton className="h-9 w-full" /></CardFooter>
           </Card>
@@ -135,7 +135,7 @@ const OrderListView = ({
             <div className="hidden md:block">
                 <Table><TableHeader><TableRow><TableHead>Order ID</TableHead><TableHead>Date</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-right">Actions</TableHead></TableRow></TableHeader><TableBody>{renderDesktopSkeleton()}</TableBody></Table>
             </div>
-            <div className="flex flex-col md:hidden gap-4">{renderMobileSkeleton()}</div>
+            <div className="flex flex-wrap justify-center md:hidden gap-4">{renderMobileSkeleton()}</div>
           </div>
       );
   }
@@ -199,9 +199,9 @@ const OrderListView = ({
         </div>
 
         {/* Mobile Cards */}
-        <div className="flex flex-col md:hidden gap-4">
+        <div className="flex flex-wrap justify-center md:hidden gap-4">
             {orders.map(order => (
-                <Card key={order.id} className="overflow-hidden">
+                <Card key={order.id} className="overflow-hidden flex-1 min-w-[300px] max-w-sm">
                     <div className="p-4" onClick={() => router.push(`/customer/my-orders/${order.id}`)}>
                         <div className="flex items-start justify-between gap-4">
                             <div>

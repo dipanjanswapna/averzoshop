@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useCart } from '@/hooks/use-cart';
@@ -77,12 +76,12 @@ export default function CheckoutPage() {
                 </h1>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-                <div className="lg:col-span-1 bg-background p-6 rounded-xl shadow-md">
+            <div className="flex flex-col lg:flex-row items-start gap-12">
+                <div className="flex-1 w-full bg-background p-6 rounded-xl shadow-md">
                     <ShippingForm />
                 </div>
 
-                <div className="lg:col-span-1 sticky top-32">
+                <div className="w-full lg:w-[420px] lg:sticky top-32">
                     <CheckoutOrderSummary />
                 </div>
             </div>

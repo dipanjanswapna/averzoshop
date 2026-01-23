@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useCart } from '@/hooks/use-cart';
@@ -50,8 +49,8 @@ export default function CartPage() {
                 </h1>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                <div className="lg:col-span-2 bg-background p-6 rounded-xl shadow-md">
+            <div className="flex flex-col lg:flex-row items-start gap-8">
+                <div className="flex-1 w-full bg-background p-6 rounded-xl shadow-md">
                     <div className="space-y-6">
                     {items.map((item, index) => (
                         <CartItem key={item.variant?.sku || `${item.product.id}-${index}`} item={item} />
@@ -59,7 +58,7 @@ export default function CartPage() {
                     </div>
                 </div>
 
-                <div className="lg:col-span-1 sticky top-28">
+                <div className="w-full lg:w-96 lg:sticky top-28">
                     <CartSummary />
                 </div>
             </div>
