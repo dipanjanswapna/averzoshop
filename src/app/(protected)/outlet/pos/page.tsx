@@ -309,10 +309,10 @@ const CartPanel = ({
                 
                 <div className='space-y-2'>
                     <Label className='text-sm font-medium'>Payment Method</Label>
-                    <div className='grid grid-cols-3 gap-2'>
-                        <Button variant={paymentMethod === 'cash' ? 'default' : 'outline'} onClick={() => setPaymentMethod('cash')} className="flex-col h-16 gap-1"><Banknote size={20}/>Cash</Button>
-                        <Button variant={paymentMethod === 'card' ? 'default' : 'outline'} onClick={() => setPaymentMethod('card')} className="flex-col h-16 gap-1"><CreditCard size={20}/>Card</Button>
-                        <Button variant={paymentMethod === 'mobile' ? 'default' : 'outline'} onClick={() => setPaymentMethod('mobile')} className="flex-col h-16 gap-1"><Smartphone size={20}/>Mobile</Button>
+                    <div className='flex flex-wrap gap-2'>
+                        <Button variant={paymentMethod === 'cash' ? 'default' : 'outline'} onClick={() => setPaymentMethod('cash')} className="flex-col h-16 gap-1 flex-1 min-w-[90px]"><Banknote size={20}/>Cash</Button>
+                        <Button variant={paymentMethod === 'card' ? 'default' : 'outline'} onClick={() => setPaymentMethod('card')} className="flex-col h-16 gap-1 flex-1 min-w-[90px]"><CreditCard size={20}/>Card</Button>
+                        <Button variant={paymentMethod === 'mobile' ? 'default' : 'outline'} onClick={() => setPaymentMethod('mobile')} className="flex-col h-16 gap-1 flex-1 min-w-[90px]"><Smartphone size={20}/>Mobile</Button>
                     </div>
                 </div>
                 
@@ -329,12 +329,12 @@ const CartPanel = ({
                                 className="h-12 text-lg font-bold"
                             />
                         </div>
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="flex flex-wrap gap-2">
                             {[500, 1000, 2000].map(amt => (
-                                <Button key={amt} type="button" variant="outline" onClick={() => setCashReceived((prev: number) => prev + amt)}>+ ৳{amt}</Button>
+                                <Button key={amt} type="button" variant="outline" onClick={() => setCashReceived((prev: number) => prev + amt)} className="flex-1 min-w-[80px]">+ ৳{amt}</Button>
                             ))}
-                             <Button type="button" variant="outline" onClick={() => setCashReceived(grandTotal)}>Exact</Button>
-                             <Button type="button" variant="ghost" className="col-span-2 text-destructive hover:bg-destructive/10" onClick={() => setCashReceived(0)}>Clear</Button>
+                             <Button type="button" variant="outline" onClick={() => setCashReceived(grandTotal)} className="flex-1 min-w-[80px]">Exact</Button>
+                             <Button type="button" variant="ghost" className="text-destructive hover:bg-destructive/10 flex-1 min-w-[80px]" onClick={() => setCashReceived(0)}>Clear</Button>
                         </div>
                         <div className={cn("p-3 rounded-md text-center", changeDue >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')}>
                             <span className="text-sm font-medium">Change Due: </span>
