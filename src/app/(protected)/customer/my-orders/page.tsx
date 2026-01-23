@@ -24,12 +24,12 @@ import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { useAuth } from '@/hooks/use-auth';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useFirebase } from '@/firebase';
-import { collection, query, where, doc, updateDoc } from 'firebase/firestore';
+import { collection, query, where, doc, updateDoc, orderBy } from 'firebase/firestore';
 import type { Order, OrderStatus } from '@/types/order';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import type { UserData } from '@/types/user';
-import { MessageCircle, Copy, ArrowRight, ShoppingCart, XCircle } from 'lucide-react';
+import { MessageCircle, Copy, ArrowRight, ShoppingCart, XCircle, Loader2 } from 'lucide-react';
 import { createSslCommerzSession } from '@/actions/payment-actions';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { cancelOrder } from '@/actions/order-actions';
@@ -75,7 +75,7 @@ const OrderListView = ({
     
     if (['pending_payment', 'new'].includes(order.status)) {
         return (
-            <div className="flex gap-2 w-full md:w-auto">
+            <div className="flex gap-2 w-full">
                 {order.status === 'pending_payment' && (
                     <Button onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleCompletePayment(order); }} disabled={updatingId === order.id} size="sm" className="flex-1">
                         {updatingId === order.id ? 'Processing...' : 'Pay Now'}
@@ -92,7 +92,7 @@ const OrderListView = ({
       return (
         <div className="text-right w-full">
             <p className="text-xs text-muted-foreground">Contact your rider:</p>
-            <Button asChild variant="outline" size="sm" className="mt-1 bg-green-50 hover:bg-green-100 border-green-200 text-green-800 w-full md:w-auto">
+            <Button asChild variant="outline" size="sm" className="mt-1 bg-green-50 hover:bg-green-100 border-green-200 text-green-800 w-full">
                 <a href={`https://wa.me/${riderPhone}`} target="_blank" rel="noopener noreferrer" onClick={(e) => {e.stopPropagation();}}>
                     <MessageCircle className="mr-2 h-4 w-4" />
                     WhatsApp Rider
@@ -224,7 +224,7 @@ const OrderListView = ({
                         </div>
                     </div>
                     <CardFooter className="bg-muted/50 p-4 flex flex-col items-stretch gap-2">
-                            {renderAction(order)}
+                        {renderAction(order)}
                         <Button asChild variant="outline" className="w-full bg-background">
                             <Link href={`/customer/my-orders/${order.id}`}>
                                 View Details <ArrowRight className="ml-2 h-4 w-4" />
@@ -252,7 +252,8 @@ export default function MyOrdersPage() {
     if (!firestore || !user?.uid) return null;
     return query(
       collection(firestore, 'orders'), 
-      where('customerId', '==', user.uid)
+      where('customerId', '==', user.uid),
+      orderBy('createdAt', 'desc')
     );
   }, [firestore, user]);
 
@@ -261,14 +262,9 @@ export default function MyOrdersPage() {
 
   const isLoading = ordersLoading || usersLoading;
 
-  const sortedUserOrders = useMemo(() => {
-    if (!userOrders) return [];
-    return [...userOrders].sort((a, b) => (b.createdAt?.toDate().getTime() || 0) - (a.createdAt?.toDate().getTime() || 0));
-  }, [userOrders]);
-  
-  const activeOrders = useMemo(() => sortedUserOrders.filter(o => ['pending_payment', 'pre-ordered', 'new', 'preparing', 'ready_for_pickup', 'out_for_delivery'].includes(o.status)), [sortedUserOrders]);
-  const completedOrders = useMemo(() => sortedUserOrders.filter(o => ['delivered', 'fulfilled'].includes(o.status)), [sortedUserOrders]);
-  const canceledOrders = useMemo(() => sortedUserOrders.filter(o => o.status === 'canceled'), [sortedUserOrders]);
+  const activeOrders = useMemo(() => userOrders?.filter(o => ['pending_payment', 'pre-ordered', 'new', 'preparing', 'ready_for_pickup', 'out_for_delivery'].includes(o.status)) || [], [userOrders]);
+  const completedOrders = useMemo(() => userOrders?.filter(o => ['delivered', 'fulfilled'].includes(o.status)) || [], [userOrders]);
+  const canceledOrders = useMemo(() => userOrders?.filter(o => o.status === 'canceled') || [], [userOrders]);
 
   const userMap = useMemo(() => {
     if (!users) return new Map();
@@ -354,7 +350,7 @@ export default function MyOrdersPage() {
               </div>
               <TabsContent value="all" className="mt-4">
                 <OrderListView 
-                  orders={sortedUserOrders} 
+                  orders={userOrders || []} 
                   isLoading={isLoading} 
                   userMap={userMap} 
                   updatingId={updatingId} 
@@ -408,7 +404,7 @@ export default function MyOrdersPage() {
               <AlertDialogFooter>
                   <AlertDialogCancel>Back</AlertDialogCancel>
                   <AlertDialogAction onClick={handleConfirmCancel} className={buttonVariants({ variant: "destructive" })}>
-                      Yes, Cancel Order
+                      {updatingId === orderToCancel?.id ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Canceling...</> : 'Yes, Cancel Order'}
                   </AlertDialogAction>
               </AlertDialogFooter>
           </AlertDialogContent>

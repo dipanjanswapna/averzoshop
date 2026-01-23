@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import AverzoLogo from '@/components/averzo-logo';
 import { FirebaseClientProvider, useFirebase } from '@/firebase';
 import { sendPasswordReset } from '@/actions/auth-actions';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
@@ -99,6 +99,7 @@ function ForgotPasswordPageContent() {
                 )}
               />
               <Button type="submit" className="w-full" disabled={loading || cooldown > 0}>
+                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                  {loading
                   ? 'Sending...'
                   : cooldown > 0

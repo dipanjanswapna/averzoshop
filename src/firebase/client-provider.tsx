@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -7,6 +6,7 @@ import { initializeFirebase } from '.';
 import { AuthProvider } from '@/hooks/use-auth';
 import { getMessaging, onMessage, isSupported } from 'firebase/messaging';
 import { useToast } from '@/hooks/use-toast';
+import AverzoLogo from '@/components/averzo-logo';
 
 export function FirebaseClientProvider({
   children,
@@ -14,17 +14,18 @@ export function FirebaseClientProvider({
   children: React.ReactNode;
 }) {
   const [firebase, setFirebase] = useState<FirebaseProviderProps | null>(null);
+  const [initializing, setInitializing] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
     const init = async () => {
-      const firebaseInstance = await initializeFirebase();
-      setFirebase(firebaseInstance);
-
+      setInitializing(true);
       try {
+        const firebaseInstance = await initializeFirebase();
+        setFirebase(firebaseInstance);
+
         const supported = await isSupported();
         if (supported && firebaseInstance.firebaseApp) {
-          // Register service worker
           if ('serviceWorker' in navigator) {
             const firebaseConfig = {
               apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -43,7 +44,6 @@ export function FirebaseClientProvider({
               });
           }
 
-          // Set up foreground message listener
           const messaging = getMessaging(firebaseInstance.firebaseApp);
           onMessage(messaging, (payload) => {
             console.log('Foreground message received. ', payload);
@@ -54,15 +54,40 @@ export function FirebaseClientProvider({
           });
         }
       } catch (error) {
-        console.error("Error setting up Firebase messaging:", error);
+        console.error("Error setting up Firebase services:", error);
+      } finally {
+        setInitializing(false);
       }
     };
     init();
   }, [toast]);
 
+  if (initializing) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-background text-foreground">
+        <div className="flex flex-col items-center justify-center gap-6">
+          <div className="lds-ring">
+            <div />
+            <div />
+            <div />
+            <div />
+          </div>
+          <AverzoLogo className="text-2xl" />
+          <p className="text-muted-foreground animate-pulse">Loading Averzo...</p>
+        </div>
+      </div>
+    );
+  }
+
   if (!firebase) {
-    // You can return a loading spinner here if you want
-    return <>{children}</>;
+     return (
+        <div className="flex h-screen w-full items-center justify-center bg-background text-foreground">
+            <div className="text-center">
+                <h1 className="text-2xl font-bold text-destructive">Initialization Failed</h1>
+                <p className="text-muted-foreground">Could not connect to services. Please refresh the page.</p>
+            </div>
+        </div>
+    )
   }
 
   return (
@@ -77,5 +102,3 @@ export function FirebaseClientProvider({
     </FirebaseProvider>
   );
 }
-
-    

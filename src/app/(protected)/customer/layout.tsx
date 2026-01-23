@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -81,7 +80,7 @@ export default function CustomerDashboardLayout({
           <CustomerNav />
         </SidebarContent>
       </Sidebar>
-      <SidebarInset className="bg-sidebar overflow-x-hidden">
+      <SidebarInset className="bg-sidebar">
         <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-sidebar-border bg-sidebar px-4 md:px-6">
             <SidebarTrigger className="flex text-sidebar-foreground md:hidden"/>
             <div className="w-full flex-1">
@@ -98,7 +97,7 @@ export default function CustomerDashboardLayout({
             </div>
             <UserNav />
         </header>
-        <main className="flex-1 p-4 md:p-6 text-sidebar-foreground">{children}</main>
+        <main className="flex-1 p-4 md:p-6 text-sidebar-foreground overflow-x-hidden">{children}</main>
       </SidebarInset>
     </SidebarProvider>
   );
