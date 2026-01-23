@@ -224,11 +224,7 @@ const OrderListView = ({
                         </div>
                     </div>
                     <CardFooter className="bg-muted/50 p-4 flex flex-col items-stretch gap-2">
-                            {renderAction(order) && (
-                            <div onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}>
-                                {renderAction(order)}
-                            </div>
-                            )}
+                            {renderAction(order)}
                         <Button asChild variant="outline" className="w-full bg-background">
                             <Link href={`/customer/my-orders/${order.id}`}>
                                 View Details <ArrowRight className="ml-2 h-4 w-4" />

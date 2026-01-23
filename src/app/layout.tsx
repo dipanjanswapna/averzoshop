@@ -16,6 +16,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <title>Averzo</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="description" content="The future of fashion and retail." />
         <meta name="theme-color" content="#8b5cf6" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
