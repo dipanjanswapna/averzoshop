@@ -81,7 +81,7 @@ export default function CustomerDashboardLayout({
           <CustomerNav />
         </SidebarContent>
       </Sidebar>
-      <SidebarInset className="bg-sidebar">
+      <SidebarInset className="bg-sidebar overflow-x-hidden">
         <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b border-sidebar-border bg-sidebar px-4 md:px-6">
             <SidebarTrigger className="flex text-sidebar-foreground md:hidden"/>
             <div className="w-full flex-1">
