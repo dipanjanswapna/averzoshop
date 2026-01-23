@@ -1,3 +1,4 @@
+
 'use client';
 import {
   Card,
@@ -164,8 +165,8 @@ export default function VendorDashboardPage() {
         
         <TabsContent value="dashboard">
             <div className="space-y-6">
-                <div className="flex flex-wrap justify-center gap-4">
-                    <Card className="flex-1 min-w-[250px] max-w-sm">
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
                             <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -175,7 +176,7 @@ export default function VendorDashboardPage() {
                             <p className="text-xs text-muted-foreground">From all completed sales.</p>
                         </CardContent>
                     </Card>
-                    <Card className="flex-1 min-w-[250px] max-w-sm">
+                    <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Total Units Sold</CardTitle>
                             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
@@ -185,7 +186,7 @@ export default function VendorDashboardPage() {
                              <p className="text-xs text-muted-foreground">From all completed sales.</p>
                         </CardContent>
                     </Card>
-                    <Card className="flex-1 min-w-[250px] max-w-sm">
+                    <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Product Status</CardTitle>
                             <Package className="h-4 w-4 text-muted-foreground" />
@@ -197,7 +198,7 @@ export default function VendorDashboardPage() {
                             </p>
                         </CardContent>
                     </Card>
-                    <Card className="flex-1 min-w-[250px] max-w-sm">
+                    <Card>
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                             <CardTitle className="text-sm font-medium">Active Pre-orders</CardTitle>
                             <Clock className="h-4 w-4 text-muted-foreground" />

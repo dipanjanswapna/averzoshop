@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -60,8 +61,8 @@ export default function SalesDashboardPage() {
             <h1 className="text-3xl font-bold font-headline">My Dashboard</h1>
         </div>
         
-      <div className="flex flex-wrap justify-center gap-4">
-        <Card className="flex-1 min-w-[250px] max-w-sm">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">My Customers</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -71,7 +72,7 @@ export default function SalesDashboardPage() {
              <Link href="/sales/customers"><Button variant="link" className="p-0 h-auto text-xs">View Customers</Button></Link>
           </CardContent>
         </Card>
-        <Card className="flex-1 min-w-[250px] max-w-sm">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Orders Placed</CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
@@ -81,7 +82,7 @@ export default function SalesDashboardPage() {
              <Link href="/sales/order"><Button variant="link" className="p-0 h-auto text-xs">Place a New Order</Button></Link>
           </CardContent>
         </Card>
-         <Card className="flex-1 min-w-[250px] max-w-sm">
+         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Sales Value</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
