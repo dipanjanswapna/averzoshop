@@ -53,3 +53,5 @@ export type Product = {
     status: 'pending' | 'approved' | 'rejected';
     createdAt: any; // Can be Timestamp or string
 };
+
+  

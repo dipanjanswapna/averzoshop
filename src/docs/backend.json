@@ -538,3 +538,5 @@
     "/settings/registration": { "schema": { "$ref": "#/entities/registration_settings" }, "description": "Controls role-based registration settings." }
   }
 }
+
+  

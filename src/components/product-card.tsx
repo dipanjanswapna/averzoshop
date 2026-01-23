@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -186,3 +187,5 @@ export const ProductCard = ({ product }: { product: Product }) => {
     </>
   );
 };
+
+  

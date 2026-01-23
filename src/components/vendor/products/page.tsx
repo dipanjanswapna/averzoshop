@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useMemo } from 'react';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
@@ -171,3 +172,5 @@ export default function VendorProductsPage() {
     </>
   );
 }
+
+  

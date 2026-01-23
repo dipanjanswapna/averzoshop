@@ -733,10 +733,10 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
                                       </PopoverContent>
                                       </Popover>
                                       <FormMessage /></FormItem>
-                      )} />
-                  </div>
-                )}
-            </div>
+                              )} />
+                          </div>
+                        )}
+                    </div>
                   </div>
                 </AccordionContent>
               </AccordionItem>
@@ -753,3 +753,5 @@ export function EditProductDialog({ open, onOpenChange, product }: EditProductDi
     </Dialog>
   );
 }
+
+  

@@ -719,3 +719,5 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
     </Dialog>
   );
 }
+
+  
