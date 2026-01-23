@@ -37,11 +37,14 @@ export function FlashSaleTimer({ endDate }: FlashSaleTimerProps) {
     { label: 'hours', value: timeLeft.hours },
     { label: 'mins', value: timeLeft.minutes },
     { label: 'secs', value: timeLeft.seconds },
-  ].map(item => (
-    <div key={item.label} className="flex flex-col items-center">
-        <span className="text-xl font-bold">{String(item.value).padStart(2, '0')}</span>
-        <span className="text-xs uppercase">{item.label}</span>
-    </div>
+  ].filter(item => timeLeft.days > 0 || item.label !== 'days').map(item => (
+    <React.Fragment key={item.label}>
+      <div className="flex flex-col items-center">
+          <span className="text-xl font-bold">{String(item.value).padStart(2, '0')}</span>
+          <span className="text-[10px] uppercase opacity-80">{item.label}</span>
+      </div>
+      {item.label !== 'secs' && <span className="text-xl font-bold opacity-50">:</span>}
+    </React.Fragment>
   ));
   
   const allZero = Object.values(timeLeft).every(val => val === 0);
@@ -55,9 +58,9 @@ export function FlashSaleTimer({ endDate }: FlashSaleTimerProps) {
   }
 
   return (
-    <div className="bg-destructive/10 text-destructive p-4 rounded-lg flex items-center justify-center gap-6 animate-pulse">
-        <Timer size={28} />
-        <div className="flex items-center gap-4 font-mono">
+    <div className="bg-destructive/10 text-destructive p-3 rounded-lg flex items-center justify-center gap-4">
+        <Timer size={24} />
+        <div className="flex items-center gap-2 font-mono">
            {timerComponents}
         </div>
     </div>

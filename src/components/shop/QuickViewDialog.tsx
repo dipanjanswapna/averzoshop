@@ -276,7 +276,7 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
 
               <div className="pt-4 border-t">
                   <Button variant="link" asChild className="p-0 h-auto">
-                      <Link href={`/product/${product.id}`}>
+                      <Link href={`/product/${product.id}`} onClick={() => onOpenChange(false)}>
                           View Full Product Details <ArrowRight size={16} className="ml-2" />
                       </Link>
                   </Button>

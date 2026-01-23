@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import type { Product, ProductVariant } from '@/types/product';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { motion } from 'framer-motion';
-import { Youtube } from 'lucide-react';
+import { Youtube, Gift, Zap } from 'lucide-react';
 
 interface ProductImageGalleryProps {
   product: Product;
@@ -58,6 +58,23 @@ export function ProductImageGallery({ product, selectedVariant }: ProductImageGa
   }, [selectedVariant, product.image]);
   
   const isOutOfStock = !product.preOrder?.enabled && (!selectedVariant || (selectedVariant.stock || 0) <= 0);
+
+  const discount = useMemo(() => {
+    const price = selectedVariant?.price ?? product.price;
+    const originalPrice = selectedVariant?.compareAtPrice ?? product.compareAtPrice;
+    if (originalPrice && originalPrice > price) {
+      return Math.round(((originalPrice - price) / originalPrice) * 100);
+    }
+    return 0;
+  }, [product, selectedVariant]);
+
+  const isFlashSaleActive = useMemo(() => {
+    if (!product.flashSale?.enabled || !product.flashSale.endDate) {
+      return false;
+    }
+    const endDate = product.flashSale.endDate.toDate ? product.flashSale.endDate.toDate() : new Date(product.flashSale.endDate);
+    return endDate > new Date();
+  }, [product.flashSale]);
   
   const getYouTubeThumbnail = (url: string) => {
     if (!url || !url.includes('embed/')) return 'https://placehold.co/120x90?text=Invalid+Video';
@@ -117,18 +134,24 @@ export function ProductImageGallery({ product, selectedVariant }: ProductImageGa
         )}
 
         <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
+             {discount > 0 && !isOutOfStock && (
+              <div className="bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full">
+                -{discount}% OFF
+              </div>
+            )}
+             {isFlashSaleActive && (
+                <div className="bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full animate-pulse flex items-center gap-1"><Zap size={12} /> FLASH SALE</div>
+            )}
             {product.preOrder?.enabled && (
               <div className="bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase">
                 Pre-Order
               </div>
             )}
-            {product.isNew && <div className="bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">NEW</div>}
-            {product.discount > 0 && !isOutOfStock && (
-              <div className="bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-full">
-                -{product.discount}% OFF
-              </div>
+            {product.giftWithPurchase?.enabled && (
+                <div className="bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase flex items-center gap-1"><Gift size={12}/> FREE GIFT</div>
             )}
-            {product.isBestSeller && <div className="bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full">BEST SELLER</div>}
+            {product.isNew && <div className="bg-blue-500 text-white text-xs font-bold px-3 py-1 rounded-full">NEW</div>}
+            {product.isBestSeller && <div className="bg-teal-500 text-white text-xs font-bold px-3 py-1 rounded-full">BEST SELLER</div>}
         </div>
       </motion.div>
       <div className="grid grid-cols-5 gap-2">
