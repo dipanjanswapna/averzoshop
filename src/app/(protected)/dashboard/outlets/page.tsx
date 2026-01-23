@@ -17,8 +17,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { PlusCircle, MoreHorizontal, MapPin, Power, Eye, Building } from 'lucide-react';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { PlusCircle, MoreHorizontal, MapPin, Power, Eye, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
@@ -26,6 +26,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -35,16 +36,66 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import type { Outlet } from '@/types/outlet';
 import { EditOutletDialog } from '@/components/dashboard/edit-outlet-dialog';
+import { updateOutletStatus, deleteOutlet } from '@/actions/outlet-actions';
+import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function OutletsPage() {
   const { data: outlets, isLoading } = useFirestoreQuery<Outlet>('outlets');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [outletToEdit, setOutletToEdit] = useState<Outlet | null>(null);
+  
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [outletToDelete, setOutletToDelete] = useState<Outlet | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const handleEditClick = (outlet: Outlet) => {
     setOutletToEdit(outlet);
     setIsEditDialogOpen(true);
+  };
+  
+  const handleDeleteClick = (outlet: Outlet) => {
+    setOutletToDelete(outlet);
+    setIsDeleteDialogOpen(true);
+  };
+  
+  const handleConfirmDelete = async () => {
+    if (!outletToDelete) return;
+    setIsDeleting(true);
+    const result = await deleteOutlet(outletToDelete.id);
+    if (result.success) {
+      toast({ title: 'Outlet Deleted', description: result.message });
+    } else {
+      toast({ variant: 'destructive', title: 'Deletion Failed', description: result.message });
+    }
+    setIsDeleting(false);
+    setIsDeleteDialogOpen(false);
+    setOutletToDelete(null);
+  };
+
+  const handleStatusToggle = async (outlet: Outlet) => {
+    setIsUpdatingStatus(outlet.id);
+    const newStatus = outlet.status === 'Active' ? 'Inactive' : 'Active';
+    const result = await updateOutletStatus(outlet.id, newStatus);
+    if (result.success) {
+        toast({ title: 'Status Updated', description: result.message });
+    } else {
+        toast({ variant: 'destructive', title: 'Update Failed', description: result.message });
+    }
+    setIsUpdatingStatus(null);
   };
 
   const renderDesktopSkeleton = () => (
@@ -128,8 +179,8 @@ export default function OutletsPage() {
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button aria-haspopup="true" size="icon" variant="ghost">
-                                <MoreHorizontal className="h-4 w-4" />
+                              <Button aria-haspopup="true" size="icon" variant="ghost" disabled={isUpdatingStatus === outlet.id}>
+                                {isUpdatingStatus === outlet.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreHorizontal className="h-4 w-4" />}
                                 <span className="sr-only">Toggle menu</span>
                               </Button>
                             </DropdownMenuTrigger>
@@ -141,6 +192,11 @@ export default function OutletsPage() {
                                 </Link>
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleEditClick(outlet)}>Edit Details</DropdownMenuItem>
+                               <DropdownMenuItem onClick={() => handleStatusToggle(outlet)}>
+                                {outlet.status === 'Active' ? 'Deactivate' : 'Activate'}
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteClick(outlet)}>Delete Outlet</DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
@@ -164,13 +220,30 @@ export default function OutletsPage() {
                      <Card key={outlet.id} className="flex-1 min-w-[300px] max-w-sm">
                       <CardHeader className="flex flex-row items-center justify-between">
                          <CardTitle className="text-lg">{outlet.name}</CardTitle>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button aria-haspopup="true" size="icon" variant="ghost" className="h-8 w-8 -mt-2 -mr-2" disabled={isUpdatingStatus === outlet.id}>
+                                {isUpdatingStatus === outlet.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreHorizontal className="h-4 w-4" />}
+                                <span className="sr-only">Toggle menu</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => handleEditClick(outlet)}>Edit Details</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleStatusToggle(outlet)}>
+                                {outlet.status === 'Active' ? 'Deactivate' : 'Activate'}
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteClick(outlet)}>Delete Outlet</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                      </CardHeader>
+                      <CardContent>
                           <Badge variant={outlet.status === 'Active' ? 'secondary' : 'destructive'} className={cn(outlet.status === 'Active' && 'bg-green-500/10 text-green-600')}>
                               <Power className="mr-1 h-3 w-3" />
                             {outlet.status}
                           </Badge>
-                      </CardHeader>
-                      <CardContent className="pt-4">
-                          <div className="flex items-center gap-2 text-muted-foreground text-sm">
+                          <div className="flex items-center gap-2 text-muted-foreground text-sm mt-2">
                             <MapPin className="h-4 w-4" />
                             {outlet.location.address}
                           </div>
@@ -195,6 +268,22 @@ export default function OutletsPage() {
       </div>
       <AddOutletDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} />
       <EditOutletDialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} outlet={outletToEdit} />
+       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the outlet "{outletToDelete?.name}" and unassign its manager.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} disabled={isDeleting} className={buttonVariants({ variant: "destructive" })}>
+                {isDeleting ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"/> Deleting...</> : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
