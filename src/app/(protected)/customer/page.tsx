@@ -1,4 +1,3 @@
-
 'use client';
 import { useAuth } from '@/hooks/use-auth';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -17,10 +16,10 @@ export default function CustomerDashboardPage() {
                     <Skeleton className="h-48 rounded-2xl" />
                     <Skeleton className="h-48 rounded-2xl" />
                  </div>
-                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    <Skeleton className="h-40" />
-                    <Skeleton className="h-40" />
-                    <Skeleton className="h-40" />
+                 <div className="flex flex-wrap justify-center gap-4">
+                    <Skeleton className="h-40 w-full min-w-[300px] max-w-sm" />
+                    <Skeleton className="h-40 w-full min-w-[300px] max-w-sm" />
+                    <Skeleton className="h-40 w-full min-w-[300px] max-w-sm" />
                  </div>
             </div>
         )
@@ -33,37 +32,37 @@ export default function CustomerDashboardPage() {
 
             <LoyaltyDashboard userData={userData} />
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                 <Card>
+            <div className="flex flex-wrap justify-center gap-4">
+                 <Card className="flex flex-col flex-1 min-w-[300px] max-w-sm">
                     <CardHeader>
                         <CardTitle>My Profile</CardTitle>
                         <CardDescription>View and edit your personal information.</CardDescription>
                     </CardHeader>
-                    <CardContent>
-                        <Link href="/customer/profile">
-                            <Button>Go to Profile</Button>
+                    <CardContent className="flex-1 flex items-end">
+                        <Link href="/customer/profile" className="w-full">
+                            <Button className="w-full">Go to Profile</Button>
                         </Link>
                     </CardContent>
                 </Card>
-                 <Card>
+                 <Card className="flex flex-col flex-1 min-w-[300px] max-w-sm">
                     <CardHeader>
                         <CardTitle>My Orders</CardTitle>
                         <CardDescription>Track your recent and past orders.</CardDescription>
                     </CardHeader>
-                    <CardContent>
-                        <Link href="/customer/my-orders">
-                            <Button>View Orders</Button>
+                    <CardContent className="flex-1 flex items-end">
+                        <Link href="/customer/my-orders" className="w-full">
+                            <Button className="w-full">View Orders</Button>
                         </Link>
                     </CardContent>
                 </Card>
-                 <Card>
+                 <Card className="flex flex-col flex-1 min-w-[300px] max-w-sm">
                     <CardHeader>
                         <CardTitle>My Wishlist</CardTitle>
                         <CardDescription>See all the products you've saved.</CardDescription>
                     </CardHeader>
-                    <CardContent>
-                        <Link href="/customer/my-wishlist">
-                            <Button>View Wishlist</Button>
+                    <CardContent className="flex-1 flex items-end">
+                        <Link href="/customer/my-wishlist" className="w-full">
+                            <Button className="w-full">View Wishlist</Button>
                         </Link>
                     </CardContent>
                 </Card>
@@ -71,5 +70,3 @@ export default function CustomerDashboardPage() {
         </div>
     );
 }
-
-    

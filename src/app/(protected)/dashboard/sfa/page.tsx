@@ -91,8 +91,8 @@ export default function SfaDashboardPage() {
             <h1 className="text-3xl font-bold font-headline">Sales Force Automation (SFA) Dashboard</h1>
         </div>
         
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+      <div className="flex flex-wrap justify-center gap-4">
+        <Card className="flex-1 min-w-[250px] max-w-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Sales Reps</CardTitle>
             <Briefcase className="h-4 w-4 text-muted-foreground" />
@@ -101,7 +101,7 @@ export default function SfaDashboardPage() {
             {isLoading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{totalSalesReps}</div>}
           </CardContent>
         </Card>
-        <Card>
+        <Card className="flex-1 min-w-[250px] max-w-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -110,7 +110,7 @@ export default function SfaDashboardPage() {
             {isLoading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{totalCustomers}</div>}
           </CardContent>
         </Card>
-        <Card>
+        <Card className="flex-1 min-w-[250px] max-w-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Today's Field Orders</CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
@@ -119,7 +119,7 @@ export default function SfaDashboardPage() {
             {isLoading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">+{todayFieldOrders}</div>}
           </CardContent>
         </Card>
-         <Card>
+         <Card className="flex-1 min-w-[250px] max-w-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Field Sales</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />

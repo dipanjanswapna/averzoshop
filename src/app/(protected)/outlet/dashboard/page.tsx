@@ -125,15 +125,15 @@ export default function OutletDashboardPage() {
     return (
       <div className="space-y-6">
         <Skeleton className="h-9 w-48" />
-        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-          <Skeleton className="h-36 rounded-lg" />
-          <Skeleton className="h-36 rounded-lg" />
-          <Skeleton className="h-36 rounded-lg" />
-          <Skeleton className="h-36 rounded-lg" />
+        <div className="flex flex-wrap justify-center gap-6">
+          <Skeleton className="h-36 flex-1 min-w-[250px] max-w-sm" />
+          <Skeleton className="h-36 flex-1 min-w-[250px] max-w-sm" />
+          <Skeleton className="h-36 flex-1 min-w-[250px] max-w-sm" />
+          <Skeleton className="h-36 flex-1 min-w-[250px] max-w-sm" />
         </div>
-        <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
-          <Skeleton className="h-80 rounded-lg" />
-          <Skeleton className="h-80 rounded-lg" />
+        <div className="grid gap-6 grid-cols-1 lg:grid-cols-7">
+          <Skeleton className="h-80 lg:col-span-4 rounded-lg" />
+          <Skeleton className="h-80 lg:col-span-3 rounded-lg" />
         </div>
       </div>
     );
@@ -147,8 +147,8 @@ export default function OutletDashboardPage() {
                 <p className="text-muted-foreground">Live performance for your outlet: <span className="font-bold text-primary">{outletId}</span></p>
             </div>
        </div>
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <Card>
+      <div className="flex flex-wrap justify-center gap-6">
+        <Card className="flex-1 min-w-[250px] max-w-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Today's Offline Sales</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -160,7 +160,7 @@ export default function OutletDashboardPage() {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="flex-1 min-w-[250px] max-w-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Products in Stock</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
@@ -172,7 +172,7 @@ export default function OutletDashboardPage() {
             </p>
           </CardContent>
         </Card>
-         <Card>
+         <Card className="flex-1 min-w-[250px] max-w-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pending Online Orders</CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
@@ -184,7 +184,7 @@ export default function OutletDashboardPage() {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="flex-1 min-w-[250px] max-w-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-destructive">Low Stock Alert</CardTitle>
             <AlertCircle className="h-4 w-4 text-destructive" />
