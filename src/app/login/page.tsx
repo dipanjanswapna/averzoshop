@@ -41,8 +41,6 @@ function LoginPageContent() {
 
   useEffect(() => {
     if (!authLoading && user && userData) {
-      // The protected layout will handle permissions and role-based redirects.
-      // This effect just handles the post-login redirect.
       const redirectUrl = searchParams.get('redirect');
       if (redirectUrl) {
           router.replace(redirectUrl);
@@ -55,10 +53,9 @@ function LoginPageContent() {
         outlet: '/outlet/dashboard',
         rider: '/rider/dashboard',
         sales: '/sales/dashboard',
-        customer: '/customer', // Redirect to customer dashboard
+        customer: '/', // Redirect customer to home page
       };
       
-      // Let the protected layout handle routing after this initial redirect.
       router.replace(roleRedirects[userData.role] || '/');
     }
   }, [user, userData, authLoading, router, searchParams]);
@@ -74,7 +71,6 @@ function LoginPageContent() {
     try {
       await signInWithEmailAndPassword(auth, values.email, values.password);
       toast({ title: 'Login Successful', description: 'Redirecting...' });
-      // The useEffect will handle the redirection.
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Login Failed', description: error.message });
     } finally {
@@ -109,7 +105,7 @@ function LoginPageContent() {
           membershipTier: 'silver',
         });
         toast({ title: 'Welcome!', description: "Your account is created and you've received 100 bonus points!" });
-        router.push('/permissions');
+        router.push('/onboarding');
       } else {
         await setDoc(userDocRef, {
           displayName: user.displayName,
