@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
@@ -54,7 +55,7 @@ export default function CustomerProfilePage() {
                             <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || ''} />
                             <AvatarFallback>{user?.displayName?.charAt(0) || 'U'}</AvatarFallback>
                         </Avatar>
-                        <Button variant="outline" className="w-full sm:w-auto">Change Photo</Button>
+                        <Button variant="outline" className="w-full flex-shrink-0 sm:w-auto">Change Photo</Button>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

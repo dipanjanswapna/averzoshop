@@ -42,7 +42,7 @@ export default function WelcomePage() {
         </div>
       </div>
 
-      <div className="flex flex-col items-center justify-center bg-background p-8">
+      <div className="flex flex-col items-center justify-center bg-background p-4 md:p-8">
         <div className="w-full max-w-sm text-center">
             <motion.div
                 initial={{ opacity: 0, y: -20 }}

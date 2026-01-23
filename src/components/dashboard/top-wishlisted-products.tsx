@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -83,11 +84,11 @@ export function TopWishlistedProducts({ products, users, isLoading }: TopWishlis
                             height={40}
                             className="rounded-md aspect-square object-cover border"
                         />
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium truncate">{product.name}</p>
                             <p className="text-xs text-muted-foreground font-mono">{product.baseSku}</p>
                         </div>
-                        <div className="flex items-center gap-1.5 text-red-500 font-bold">
+                        <div className="flex items-center gap-1.5 text-red-500 font-bold flex-shrink-0">
                             <Heart size={16} className="fill-current" />
                             <span>{product.wishlistedCount}</span>
                         </div>

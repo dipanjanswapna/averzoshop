@@ -1,3 +1,4 @@
+
 "use client";
 import { MobileBottomNav } from '@/components/mobile-bottom-nav';
 import AverzoNavbar from '@/components/store-header';
@@ -42,8 +43,8 @@ export default function StoreLayout({
             </form>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 py-12">
-            <div className="col-span-2">
+          <div className="flex flex-wrap justify-between gap-8 py-12">
+            <div className="flex-shrink-0">
               <AverzoLogo />
               <p className="mt-4 text-sm text-muted-foreground max-w-xs">
                 Averzo is your one-stop destination for fashion, electronics, and lifestyle products, offering a seamless B2B2D2C experience.
@@ -55,39 +56,41 @@ export default function StoreLayout({
                   <Link href="#" className="text-muted-foreground hover:text-primary"><Linkedin size={20} /></Link>
               </div>
             </div>
-            <div>
-              <h3 className="font-semibold font-headline text-foreground">Shop</h3>
-              <ul className="mt-4 space-y-2 text-sm">
-                <li><Link href="/mens-fashion" className="text-muted-foreground hover:text-primary">Men's Fashion</Link></li>
-                <li><Link href="/womens-fashion" className="text-muted-foreground hover:text-primary">Women's Fashion</Link></li>
-                <li><Link href="/kids-baby" className="text-muted-foreground hover:text-primary">Kids & Baby</Link></li>
-                <li><Link href="/shop" className="text-muted-foreground hover:text-primary">All Products</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold font-headline text-foreground">About Us</h3>
-              <ul className="mt-4 space-y-2 text-sm">
-                <li><Link href="#" className="text-muted-foreground hover:text-primary">Our Story</Link></li>
-                <li><Link href="#" className="text-muted-foreground hover:text-primary">Careers</Link></li>
-                <li><Link href="#" className="text-muted-foreground hover:text-primary">Press</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold font-headline text-foreground">Support</h3>
-              <ul className="mt-4 space-y-2 text-sm">
-                <li><Link href="#" className="text-muted-foreground hover:text-primary">Contact Us</Link></li>
-                <li><Link href="/track-order" className="text-muted-foreground hover:text-primary">Track Your Order</Link></li>
-                <li><Link href="#" className="text-muted-foreground hover:text-primary">FAQ</Link></li>
-                <li><Link href="#" className="text-muted-foreground hover:text-primary">Shipping & Returns</Link></li>
-                <li><Link href="/install-pwa" className="text-muted-foreground hover:text-primary">Install App</Link></li>
-              </ul>
-            </div>
-             <div>
-              <h3 className="font-semibold font-headline text-foreground">Legal</h3>
-              <ul className="mt-4 space-y-2 text-sm">
-                <li><Link href="/terms-of-service" className="text-muted-foreground hover:text-primary">Terms of Service</Link></li>
-                <li><Link href="/privacy-policy" className="text-muted-foreground hover:text-primary">Privacy Policy</Link></li>
-              </ul>
+            <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-8 min-w-[300px]">
+                <div>
+                  <h3 className="font-semibold font-headline text-foreground">Shop</h3>
+                  <ul className="mt-4 space-y-2 text-sm">
+                    <li><Link href="/mens-fashion" className="text-muted-foreground hover:text-primary">Men's Fashion</Link></li>
+                    <li><Link href="/womens-fashion" className="text-muted-foreground hover:text-primary">Women's Fashion</Link></li>
+                    <li><Link href="/kids-baby" className="text-muted-foreground hover:text-primary">Kids & Baby</Link></li>
+                    <li><Link href="/shop" className="text-muted-foreground hover:text-primary">All Products</Link></li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="font-semibold font-headline text-foreground">About Us</h3>
+                  <ul className="mt-4 space-y-2 text-sm">
+                    <li><Link href="#" className="text-muted-foreground hover:text-primary">Our Story</Link></li>
+                    <li><Link href="#" className="text-muted-foreground hover:text-primary">Careers</Link></li>
+                    <li><Link href="#" className="text-muted-foreground hover:text-primary">Press</Link></li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 className="font-semibold font-headline text-foreground">Support</h3>
+                  <ul className="mt-4 space-y-2 text-sm">
+                    <li><Link href="#" className="text-muted-foreground hover:text-primary">Contact Us</Link></li>
+                    <li><Link href="/track-order" className="text-muted-foreground hover:text-primary">Track Your Order</Link></li>
+                    <li><Link href="#" className="text-muted-foreground hover:text-primary">FAQ</Link></li>
+                    <li><Link href="#" className="text-muted-foreground hover:text-primary">Shipping & Returns</Link></li>
+                    <li><Link href="/install-pwa" className="text-muted-foreground hover:text-primary">Install App</Link></li>
+                  </ul>
+                </div>
+                 <div>
+                  <h3 className="font-semibold font-headline text-foreground">Legal</h3>
+                  <ul className="mt-4 space-y-2 text-sm">
+                    <li><Link href="/terms-of-service" className="text-muted-foreground hover:text-primary">Terms of Service</Link></li>
+                    <li><Link href="/privacy-policy" className="text-muted-foreground hover:text-primary">Privacy Policy</Link></li>
+                  </ul>
+                </div>
             </div>
           </div>
 

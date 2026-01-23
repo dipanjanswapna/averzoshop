@@ -1,3 +1,4 @@
+
 'use client';
 import { Suspense } from 'react';
 import { CheckCircle2, Loader2, XCircle } from 'lucide-react';
@@ -89,7 +90,7 @@ function SuccessContent() {
                 <p className="mt-2 text-muted-foreground max-w-lg">
                     {error || "We couldn't confirm your payment automatically. Please check your 'My Orders' page for the final status or contact support if the amount was deducted from your account."}
                 </p>
-                 <div className="mt-8 flex gap-4">
+                 <div className="mt-8 flex flex-wrap justify-center gap-4">
                     <Link href="/customer/my-orders"><Button>View My Orders</Button></Link>
                      <Link href="/"><Button variant="outline">Back to Home</Button></Link>
                 </div>
@@ -139,7 +140,7 @@ function SuccessContent() {
                 </CardContent>
             </Card>
 
-            <div className="mt-8 flex gap-4">
+            <div className="mt-8 flex flex-wrap justify-center gap-4">
                 <Link href="/customer/my-orders">
                     <Button>View My Orders</Button>
                 </Link>

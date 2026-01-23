@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -86,7 +87,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap justify-center gap-4">
-        <Card className="flex-1 min-w-[250px] max-w-sm">
+        <Card className="flex-1 min-w-[280px] max-w-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -98,7 +99,7 @@ export default function DashboardPage() {
             </p>
           </CardContent>
         </Card>
-        <Card className="flex-1 min-w-[250px] max-w-sm">
+        <Card className="flex-1 min-w-[280px] max-w-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">New Orders</CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
@@ -110,7 +111,7 @@ export default function DashboardPage() {
             </p>
           </CardContent>
         </Card>
-        <Card className="flex-1 min-w-[250px] max-w-sm">
+        <Card className="flex-1 min-w-[280px] max-w-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Products</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
@@ -122,7 +123,7 @@ export default function DashboardPage() {
             </p>
           </CardContent>
         </Card>
-        <Card className="flex-1 min-w-[250px] max-w-sm">
+        <Card className="flex-1 min-w-[280px] max-w-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Users</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />

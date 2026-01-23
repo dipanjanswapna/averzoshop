@@ -1,3 +1,4 @@
+
 'use client';
 import React, { useMemo } from 'react';
 import type { Outlet } from '@/types/outlet';
@@ -99,7 +100,7 @@ export function PrintableReceipt({ sale, outletId }: PrintableReceiptProps) {
                              <span>৳{(sale.cashReceived || 0).toFixed(2)}</span>
                          </div>
                         <div className="flex justify-between text-xs font-black">
-                            <span>Change Due:</span><span>৳{(sale.changeDue || 0).toFixed(2)}</span>
+                            <span>Change Due:</span><span>৳{Math.max(0, sale.changeDue || 0).toFixed(2)}</span>
                         </div>
                     </>
                 )}

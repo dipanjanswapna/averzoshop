@@ -200,15 +200,15 @@ export function ProductDetails({
         )}
       </div>
 
-       <div className="grid grid-cols-2 lg:grid-cols-3 gap-2 pt-6 border-t">
-          <Button variant="ghost" onClick={() => setIsStoreAvailabilityOpen(true)} className="text-sm justify-start gap-2"><MapPin size={16}/> Check In-Store</Button>
-          <Button variant="ghost" onClick={() => setIsBarcodeOpen(true)} className="text-sm justify-start gap-2"><Barcode size={16}/> Show Barcode</Button>
+       <div className="flex flex-wrap gap-x-4 gap-y-2 pt-6 border-t">
+          <Button variant="ghost" onClick={() => setIsStoreAvailabilityOpen(true)} className="text-sm justify-start gap-2 p-0 h-auto"><MapPin size={16}/> Check In-Store</Button>
+          <Button variant="ghost" onClick={() => setIsBarcodeOpen(true)} className="text-sm justify-start gap-2 p-0 h-auto"><Barcode size={16}/> Show Barcode</Button>
           {isMobile ? (
-            <Button variant="ghost" onClick={handleMobileShare} className="text-sm justify-start gap-2"><Share2 size={16}/> Share</Button>
+            <Button variant="ghost" onClick={handleMobileShare} className="text-sm justify-start gap-2 p-0 h-auto"><Share2 size={16}/> Share</Button>
           ) : (
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="ghost" className="text-sm justify-start gap-2"><Share2 size={16}/> Share</Button>
+                <Button variant="ghost" className="text-sm justify-start gap-2 p-0 h-auto"><Share2 size={16}/> Share</Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto">
                 <ShareButtons url={shareUrl} />
@@ -235,5 +235,3 @@ export function ProductDetails({
     </div>
   );
 }
-
-    

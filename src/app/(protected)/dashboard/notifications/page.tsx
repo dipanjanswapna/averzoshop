@@ -181,11 +181,13 @@ export default function NotificationsPage() {
       <Card className="shadow-lg border-2">
          <Tabs defaultValue="all" className="w-full">
             <CardHeader>
-                <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3">
-                    <TabsTrigger value="all"><Users className="mr-2 h-4 w-4" /> To All Users</TabsTrigger>
-                    <TabsTrigger value="role"><User className="mr-2 h-4 w-4" /> By Role</TabsTrigger>
-                    <TabsTrigger value="user"><User className="mr-2 h-4 w-4" /> To Specific User</TabsTrigger>
-                </TabsList>
+                <div className="w-full overflow-x-auto no-scrollbar">
+                  <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3">
+                      <TabsTrigger value="all"><Users className="mr-2 h-4 w-4" /> To All Users</TabsTrigger>
+                      <TabsTrigger value="role"><User className="mr-2 h-4 w-4" /> By Role</TabsTrigger>
+                      <TabsTrigger value="user"><User className="mr-2 h-4 w-4" /> To Specific User</TabsTrigger>
+                  </TabsList>
+                </div>
             </CardHeader>
             <CardContent>
                 <TabsContent value="all">
