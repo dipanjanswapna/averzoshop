@@ -172,7 +172,7 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl w-full h-auto md:h-[90vh] flex flex-col md:flex-row p-0 gap-0">
+      <DialogContent className="max-w-4xl w-[95vw] h-auto max-h-[90vh] flex flex-col md:flex-row p-0 gap-0">
         <DialogHeader className="sr-only">
           <DialogTitle>Product Quick View: {product.name}</DialogTitle>
           <DialogDescription>Quickly view product details, select options, and add to cart.</DialogDescription>
