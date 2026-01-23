@@ -9,15 +9,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import {
   DollarSign,
   Package,
   ShoppingCart,
@@ -33,6 +24,7 @@ import type { Order } from '@/types/order';
 import type { UserData } from '@/types/user';
 import type { Product } from '@/types/product';
 import { TopWishlistedProducts } from './top-wishlisted-products';
+
 
 export function AdminDashboard() {
   const { firestore } = useFirebase();
@@ -142,7 +134,7 @@ export function AdminDashboard() {
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+      <div className="grid gap-4 lg:grid-cols-7">
         <Card className="lg:col-span-4">
           <CardHeader>
             <CardTitle className="font-headline">Sales Overview</CardTitle>
