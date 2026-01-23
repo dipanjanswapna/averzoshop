@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo } from 'react';
@@ -8,14 +7,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '../ui/skeleton';
 import Image from 'next/image';
 import { Heart } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface TopWishlistedProductsProps {
   products: Product[] | null;
   users: UserData[] | null;
   isLoading: boolean;
+  className?: string;
 }
 
-export function TopWishlistedProducts({ products, users, isLoading }: TopWishlistedProductsProps) {
+export function TopWishlistedProducts({ products, users, isLoading, className }: TopWishlistedProductsProps) {
   const topProducts = useMemo(() => {
     if (!products || !users) return [];
 
@@ -41,7 +42,7 @@ export function TopWishlistedProducts({ products, users, isLoading }: TopWishlis
   
   if (isLoading) {
     return (
-        <Card className="lg:col-span-3">
+        <Card className={cn(className)}>
           <CardHeader>
             <CardTitle className="font-headline">Top Wishlisted Products</CardTitle>
             <CardDescription>The most popular items on your customers' wishlists.</CardDescription>
@@ -65,7 +66,7 @@ export function TopWishlistedProducts({ products, users, isLoading }: TopWishlis
   }
 
   return (
-    <Card className="lg:col-span-3">
+    <Card className={cn(className)}>
       <CardHeader>
         <CardTitle className="font-headline">Top Wishlisted Products</CardTitle>
         <CardDescription>

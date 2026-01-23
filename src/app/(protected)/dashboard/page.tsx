@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -137,8 +136,8 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-7">
-        <Card className="lg:col-span-4">
+      <div className="flex flex-col xl:flex-row gap-6">
+        <Card className="flex-1">
           <CardHeader>
             <CardTitle className="font-headline">Sales Overview</CardTitle>
             <CardDescription>Sales performance over the last 6 months.</CardDescription>
@@ -147,7 +146,7 @@ export default function DashboardPage() {
              <SalesChart data={salesData} />
           </CardContent>
         </Card>
-        <TopWishlistedProducts products={products} users={users} isLoading={isLoading} />
+        <TopWishlistedProducts products={products} users={users} isLoading={isLoading} className="w-full xl:w-[400px] flex-shrink-0" />
       </div>
       
       <ReplenishmentAdvisor className="w-full" />
