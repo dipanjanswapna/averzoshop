@@ -26,11 +26,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useFirebase } from '@/firebase';
 import { collection, query, where, doc, updateDoc } from 'firebase/firestore';
 import type { Order, OrderStatus } from '@/types/order';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import type { UserData } from '@/types/user';
-import { MessageCircle, Copy, ArrowRight, ShoppingCart } from 'lucide-react';
+import { MessageCircle, Copy, ArrowRight, ShoppingCart, XCircle } from 'lucide-react';
 import { createSslCommerzSession } from '@/actions/payment-actions';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { cancelOrder } from '@/actions/order-actions';
+
 
 const getStatusBadge = (status: OrderStatus) => {
     switch (status) {
@@ -53,6 +56,7 @@ const OrderListView = ({
   userMap,
   updatingId,
   handleCompletePayment,
+  handleCancelClick,
   handleCopyOrderId,
 }: {
   orders: Order[];
@@ -60,6 +64,7 @@ const OrderListView = ({
   userMap: Map<string, string | null | undefined>;
   updatingId: string | null;
   handleCompletePayment: (order: Order) => void;
+  handleCancelClick: (order: Order) => void;
   handleCopyOrderId: (orderId: string) => void;
 }) => {
   const router = useRouter();
@@ -68,12 +73,19 @@ const OrderListView = ({
     const rider = order.riderId ? userMap.get(order.riderId) : null;
     const riderPhone = rider ? `88${(userMap.get(order.riderId || '') || '').replace(/\D/g, '').replace(/^0/, '')}` : null;
     
-    if (order.status === 'pending_payment') {
-      return (
-        <Button onClick={(e) => {e.stopPropagation(); e.preventDefault(); handleCompletePayment(order);}} disabled={updatingId === order.id} size="sm" className="w-full md:w-auto">
-            {updatingId === order.id ? 'Processing...' : 'Complete Payment'}
-        </Button>
-      );
+    if (['pending_payment', 'new'].includes(order.status)) {
+        return (
+            <div className="flex gap-2 w-full md:w-auto">
+                {order.status === 'pending_payment' && (
+                    <Button onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleCompletePayment(order); }} disabled={updatingId === order.id} size="sm" className="flex-1">
+                        {updatingId === order.id ? 'Processing...' : 'Pay Now'}
+                    </Button>
+                )}
+                <Button onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleCancelClick(order); }} disabled={updatingId === order.id} size="sm" variant="destructive" className="flex-1">
+                    Cancel
+                </Button>
+            </div>
+        );
     }
 
     if (order.status === 'out_for_delivery' && riderPhone) {
@@ -231,6 +243,9 @@ export default function MyOrdersPage() {
   const router = useRouter();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
+  const [isCancelAlertOpen, setIsCancelAlertOpen] = useState(false);
+  const [orderToCancel, setOrderToCancel] = useState<Order | null>(null);
+
   const userOrdersQuery = useMemo(() => {
     if (!firestore || !user?.uid) return null;
     return query(
@@ -298,6 +313,25 @@ export default function MyOrdersPage() {
     });
   };
 
+  const handleCancelClick = (order: Order) => {
+    setOrderToCancel(order);
+    setIsCancelAlertOpen(true);
+  };
+
+  const handleConfirmCancel = async () => {
+      if (!orderToCancel) return;
+      setUpdatingId(orderToCancel.id);
+      const result = await cancelOrder(orderToCancel.id);
+      if (result.success) {
+          toast({ title: 'Order Canceled', description: 'Your order has been successfully canceled.' });
+      } else {
+          toast({ variant: 'destructive', title: 'Cancellation Failed', description: result.message });
+      }
+      setUpdatingId(null);
+      setIsCancelAlertOpen(false);
+      setOrderToCancel(null);
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-3xl font-bold font-headline">My Orders</h1>
@@ -308,12 +342,14 @@ export default function MyOrdersPage() {
         </CardHeader>
         <CardContent>
            <Tabs defaultValue="all" className="w-full">
-              <TabsList>
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="active">Active</TabsTrigger>
-                <TabsTrigger value="completed">Completed</TabsTrigger>
-                <TabsTrigger value="canceled">Canceled</TabsTrigger>
-              </TabsList>
+              <div className="w-full overflow-x-auto no-scrollbar">
+                <TabsList>
+                  <TabsTrigger value="all">All</TabsTrigger>
+                  <TabsTrigger value="active">Active</TabsTrigger>
+                  <TabsTrigger value="completed">Completed</TabsTrigger>
+                  <TabsTrigger value="canceled">Canceled</TabsTrigger>
+                </TabsList>
+              </div>
               <TabsContent value="all" className="mt-4">
                 <OrderListView 
                   orders={sortedUserOrders} 
@@ -321,6 +357,7 @@ export default function MyOrdersPage() {
                   userMap={userMap} 
                   updatingId={updatingId} 
                   handleCompletePayment={handleCompletePayment} 
+                  handleCancelClick={handleCancelClick}
                   handleCopyOrderId={handleCopyOrderId}
                 />
               </TabsContent>
@@ -331,6 +368,7 @@ export default function MyOrdersPage() {
                   userMap={userMap} 
                   updatingId={updatingId} 
                   handleCompletePayment={handleCompletePayment} 
+                  handleCancelClick={handleCancelClick}
                   handleCopyOrderId={handleCopyOrderId}
                 />
               </TabsContent>
@@ -341,6 +379,7 @@ export default function MyOrdersPage() {
                   userMap={userMap} 
                   updatingId={updatingId} 
                   handleCompletePayment={handleCompletePayment} 
+                  handleCancelClick={handleCancelClick}
                   handleCopyOrderId={handleCopyOrderId}
                 />
               </TabsContent>
@@ -351,12 +390,27 @@ export default function MyOrdersPage() {
                   userMap={userMap} 
                   updatingId={updatingId} 
                   handleCompletePayment={handleCompletePayment} 
+                  handleCancelClick={handleCancelClick}
                   handleCopyOrderId={handleCopyOrderId}
                 />
               </TabsContent>
             </Tabs>
         </CardContent>
       </Card>
+      <AlertDialog open={isCancelAlertOpen} onOpenChange={setIsCancelAlertOpen}>
+          <AlertDialogContent>
+              <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>This will permanently cancel your order. This action cannot be undone.</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                  <AlertDialogCancel>Back</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleConfirmCancel} className={buttonVariants({ variant: "destructive" })}>
+                      Yes, Cancel Order
+                  </AlertDialogAction>
+              </AlertDialogFooter>
+          </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

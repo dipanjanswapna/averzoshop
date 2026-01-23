@@ -85,19 +85,26 @@ service cloud.firestore {
                             && get(/databases/$(database)/documents/users/$(request.resource.data.customerId)).data.managedBy == request.auth.uid
                            )
                       );
-      allow update: if request.auth != null && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
-                      || ( // Outlet manager
-                         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.outletId == resource.data.assignedOutletId || 
+      allow update: if request.auth != null && (
+                      // Admin can always update
+                      get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+                      // Customer can cancel if order is new or pending payment
+                      || (request.auth.uid == resource.data.customerId && 
+                          request.resource.data.status == 'canceled' && 
+                          resource.data.status in ['new', 'pending_payment'])
+                      // Outlet manager can update status for their orders
+                      || ((get(/databases/$(database)/documents/users/$(request.auth.uid)).data.outletId == resource.data.assignedOutletId || 
                           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.outletId == resource.data.pickupOutletId) &&
-                         resource.data.status in ['new', 'preparing', 'pending_payment']
-                       )
-                      || ( // Rider
-                         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'rider' &&
+                         resource.data.status in ['new', 'preparing', 'pending_payment'] &&
+                         request.resource.data.status in ['preparing', 'ready_for_pickup', 'canceled'])
+                      // Rider can update delivery status
+                      || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'rider' &&
                          (
                            (resource.data.status == 'ready_for_pickup' && request.resource.data.status == 'out_for_delivery' && request.resource.data.riderId == request.auth.uid) ||
                            (resource.data.riderId == request.auth.uid && resource.data.status == 'out_for_delivery' && request.resource.data.status == 'delivered')
                          )
-                       ));
+                       )
+                    );
     }
 
     // POS sales can be created and read by the outlet manager or an admin.
@@ -152,6 +159,12 @@ service cloud.firestore {
       allow read: if true;
       allow create, update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
                               || (request.resource.data.creatorType == 'vendor' && request.auth.uid == request.resource.data.creatorId);
+    }
+    
+    // Gift Cards: Admins can manage them. Authenticated users can read.
+    match /gift_cards/{cardId} {
+      allow read: if request.auth != null;
+      allow write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     
     // Notification subscriptions can be created by anyone, but not read publicly.

@@ -26,10 +26,11 @@ import { useFirebase } from '@/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useMemo, useState } from 'react';
-import { Check, Package, Send, Truck, CheckCircle, Hand, Clock, ShoppingCart } from 'lucide-react';
+import { Check, Package, Send, Truck, CheckCircle, Hand, Clock, ShoppingCart, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { sendNotificationToRole } from '@/ai/flows/send-notification-to-role';
 import { sendTargetedNotification } from '@/ai/flows/send-targeted-notification';
+import { cancelOrder } from '@/actions/order-actions';
 
 export default function OnlineOrdersPage() {
   const { userData } = useAuth();
@@ -76,6 +77,17 @@ export default function OnlineOrdersPage() {
         setUpdatingId(null);
     }
   };
+  
+  const handleCancelOrder = async (order: Order) => {
+    setUpdatingId(order.id);
+    const result = await cancelOrder(order.id);
+    if (result.success) {
+        toast({ title: 'Order Canceled', description: `Order #${order.id.substring(0,8)} has been canceled.` });
+    } else {
+        toast({ variant: 'destructive', title: 'Cancellation Failed', description: result.message });
+    }
+    setUpdatingId(null);
+  };
 
   const handleMarkFulfilled = async (order: Order) => {
     if (!firestore) return;
@@ -105,7 +117,7 @@ export default function OnlineOrdersPage() {
   };
   
   const filterDeliveryOrders = (status: OrderStatus) => deliveryOrders.filter(o => o.status === status);
-  const pendingPickupOrders = pickupOrders.filter(o => o.status === 'new' || o.status === 'pending_payment');
+  const pendingPickupOrders = pickupOrders.filter(o => ['new', 'preparing', 'pending_payment'].includes(o.status));
   const completedPickupOrders = pickupOrders.filter(o => o.status === 'fulfilled' || o.status === 'canceled');
 
 
@@ -132,11 +144,11 @@ export default function OnlineOrdersPage() {
                   <TabsTrigger value="out_for_delivery">Out for Delivery</TabsTrigger>
                   <TabsTrigger value="delivered">Delivered</TabsTrigger>
                 </TabsList>
-                <TabsContent value="new" className="mt-4"><OrdersView orders={filterDeliveryOrders('new')} isLoading={isLoading} onAction={handleUpdateDeliveryStatus} updatingId={updatingId} orderType="delivery"/></TabsContent>
-                <TabsContent value="preparing" className="mt-4"><OrdersView orders={filterDeliveryOrders('preparing')} isLoading={isLoading} onAction={handleUpdateDeliveryStatus} updatingId={updatingId} orderType="delivery"/></TabsContent>
-                <TabsContent value="ready_for_pickup" className="mt-4"><OrdersView orders={filterDeliveryOrders('ready_for_pickup')} isLoading={isLoading} onAction={handleUpdateDeliveryStatus} updatingId={updatingId} orderType="delivery"/></TabsContent>
-                <TabsContent value="out_for_delivery" className="mt-4"><OrdersView orders={filterDeliveryOrders('out_for_delivery')} isLoading={isLoading} onAction={handleUpdateDeliveryStatus} updatingId={updatingId} orderType="delivery"/></TabsContent>
-                <TabsContent value="delivered" className="mt-4"><OrdersView orders={filterDeliveryOrders('delivered')} isLoading={isLoading} onAction={handleUpdateDeliveryStatus} updatingId={updatingId} orderType="delivery"/></TabsContent>
+                <TabsContent value="new" className="mt-4"><OrdersView orders={filterDeliveryOrders('new')} isLoading={isLoading} onAction={handleUpdateDeliveryStatus} onCancel={handleCancelOrder} updatingId={updatingId} orderType="delivery"/></TabsContent>
+                <TabsContent value="preparing" className="mt-4"><OrdersView orders={filterDeliveryOrders('preparing')} isLoading={isLoading} onAction={handleUpdateDeliveryStatus} onCancel={handleCancelOrder} updatingId={updatingId} orderType="delivery"/></TabsContent>
+                <TabsContent value="ready_for_pickup" className="mt-4"><OrdersView orders={filterDeliveryOrders('ready_for_pickup')} isLoading={isLoading} onAction={handleUpdateDeliveryStatus} onCancel={handleCancelOrder} updatingId={updatingId} orderType="delivery"/></TabsContent>
+                <TabsContent value="out_for_delivery" className="mt-4"><OrdersView orders={filterDeliveryOrders('out_for_delivery')} isLoading={isLoading} onAction={handleUpdateDeliveryStatus} onCancel={handleCancelOrder} updatingId={updatingId} orderType="delivery"/></TabsContent>
+                <TabsContent value="delivered" className="mt-4"><OrdersView orders={filterDeliveryOrders('delivered')} isLoading={isLoading} onAction={handleUpdateDeliveryStatus} onCancel={handleCancelOrder} updatingId={updatingId} orderType="delivery"/></TabsContent>
               </Tabs>
             </CardContent>
           </Card>
@@ -153,8 +165,8 @@ export default function OnlineOrdersPage() {
                   <TabsTrigger value="pending">Pending Collection</TabsTrigger>
                   <TabsTrigger value="completed">Completed</TabsTrigger>
                 </TabsList>
-                 <TabsContent value="pending" className="mt-4"><OrdersView orders={pendingPickupOrders} isLoading={isLoading} onAction={handleMarkFulfilled} updatingId={updatingId} orderType="pickup" /></TabsContent>
-                 <TabsContent value="completed" className="mt-4"><OrdersView orders={completedPickupOrders} isLoading={isLoading} onAction={handleMarkFulfilled} updatingId={updatingId} orderType="pickup"/></TabsContent>
+                 <TabsContent value="pending" className="mt-4"><OrdersView orders={pendingPickupOrders} isLoading={isLoading} onAction={handleMarkFulfilled} onCancel={handleCancelOrder} updatingId={updatingId} orderType="pickup" /></TabsContent>
+                 <TabsContent value="completed" className="mt-4"><OrdersView orders={completedPickupOrders} isLoading={isLoading} onAction={handleMarkFulfilled} onCancel={handleCancelOrder} updatingId={updatingId} orderType="pickup"/></TabsContent>
               </Tabs>
             </CardContent>
           </Card>
@@ -165,7 +177,7 @@ export default function OnlineOrdersPage() {
 }
 
 // Reusable component to display orders in a table or cards
-function OrdersView({ orders, isLoading, onAction, updatingId, orderType }: { orders: Order[], isLoading: boolean, onAction: (orderOrId: any, newStatus?: OrderStatus) => void, updatingId: string | null, orderType: 'delivery' | 'pickup' }) {
+function OrdersView({ orders, isLoading, onAction, onCancel, updatingId, orderType }: { orders: Order[], isLoading: boolean, onAction: (orderOrId: any, newStatus?: OrderStatus) => void, onCancel: (order: Order) => void, updatingId: string | null, orderType: 'delivery' | 'pickup' }) {
     const renderDesktopSkeleton = (cols: number) => (
         [...Array(3)].map((_, i) => (
             <TableRow key={i}>
@@ -204,12 +216,12 @@ function OrdersView({ orders, isLoading, onAction, updatingId, orderType }: { or
                 <Table>
                     <TableHeader>{orderType === 'delivery' ? <DeliveryHeader/> : <PickupHeader/>}</TableHeader>
                     <TableBody>
-                        {orders.map(order => orderType === 'delivery' ? <DeliveryRow key={order.id} order={order} onAction={onAction} updatingId={updatingId} /> : <PickupRow key={order.id} order={order} onAction={onAction} updatingId={updatingId} />)}
+                        {orders.map(order => orderType === 'delivery' ? <DeliveryRow key={order.id} order={order} onAction={onAction} onCancel={onCancel} updatingId={updatingId} /> : <PickupRow key={order.id} order={order} onAction={onAction} onCancel={onCancel} updatingId={updatingId} />)}
                     </TableBody>
                 </Table>
             </div>
             <div className="grid md:hidden gap-4">
-                {orders.map(order => orderType === 'delivery' ? <DeliveryCard key={order.id} order={order} onAction={onAction} updatingId={updatingId} /> : <PickupCard key={order.id} order={order} onAction={onAction} updatingId={updatingId} />)}
+                {orders.map(order => orderType === 'delivery' ? <DeliveryCard key={order.id} order={order} onAction={onAction} onCancel={onCancel} updatingId={updatingId} /> : <PickupCard key={order.id} order={order} onAction={onAction} onCancel={onCancel} updatingId={updatingId} />)}
             </div>
         </div>
     )
@@ -218,15 +230,25 @@ function OrdersView({ orders, isLoading, onAction, updatingId, orderType }: { or
 // Components for Delivery Orders
 const DeliveryHeader = () => (<TableRow><TableHead>Order ID</TableHead><TableHead>Customer</TableHead><TableHead>Items</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-center">Action / Status</TableHead></TableRow>);
 
-const DeliveryRow = ({ order, onAction, updatingId }: { order: Order, onAction: (id: string, status: OrderStatus) => void, updatingId: string | null}) => (
+const DeliveryRow = ({ order, onAction, onCancel, updatingId }: { order: Order, onAction: (id: string, status: OrderStatus) => void, onCancel: (order: Order) => void, updatingId: string | null}) => (
     <TableRow key={order.id}>
         <TableCell className="font-medium font-mono text-xs">{order.id.substring(0, 8)}...</TableCell>
         <TableCell>{order.shippingAddress?.name}</TableCell>
         <TableCell>{order.items.reduce((acc, item) => acc + item.quantity, 0)}</TableCell>
         <TableCell className="text-right">৳{order.totalAmount.toFixed(2)}</TableCell>
         <TableCell className="text-center">
-            {order.status === 'new' && <Button size="sm" onClick={() => onAction(order.id, 'preparing')} disabled={updatingId === order.id}><Check className="mr-2 h-4 w-4"/>Accept Order</Button>}
-            {order.status === 'preparing' && <Button size="sm" onClick={() => onAction(order.id, 'ready_for_pickup')} disabled={updatingId === order.id}><Package className="mr-2 h-4 w-4"/>Ready for Pickup</Button>}
+            {order.status === 'new' && (
+                <div className="flex gap-2 justify-center">
+                    <Button size="sm" onClick={() => onAction(order.id, 'preparing')} disabled={updatingId === order.id}><Check className="mr-2 h-4 w-4"/>Accept</Button>
+                    <Button size="sm" variant="destructive" onClick={() => onCancel(order)} disabled={updatingId === order.id}><XCircle className="mr-2 h-4 w-4"/>Cancel</Button>
+                </div>
+            )}
+            {order.status === 'preparing' && (
+                <div className="flex gap-2 justify-center">
+                    <Button size="sm" onClick={() => onAction(order.id, 'ready_for_pickup')} disabled={updatingId === order.id}><Package className="mr-2 h-4 w-4"/>Ready</Button>
+                    <Button size="sm" variant="destructive" onClick={() => onCancel(order)} disabled={updatingId === order.id}><XCircle className="mr-2 h-4 w-4"/>Cancel</Button>
+                </div>
+            )}
             {order.status === 'ready_for_pickup' && <Button size="sm" variant="outline" disabled><Send className="mr-2 h-4 w-4"/>Awaiting Rider</Button>}
             {order.status === 'out_for_delivery' && <Badge variant="secondary" className="bg-blue-100 text-blue-800"><Truck className="mr-2 h-4 w-4" />On its way</Badge>}
             {order.status === 'delivered' && <Badge className="bg-green-100 text-green-800"><CheckCircle className="mr-2 h-4 w-4" />Delivered</Badge>}
@@ -234,7 +256,7 @@ const DeliveryRow = ({ order, onAction, updatingId }: { order: Order, onAction: 
     </TableRow>
 );
 
-const DeliveryCard = ({ order, onAction, updatingId }: { order: Order, onAction: (id: string, status: OrderStatus) => void, updatingId: string | null}) => (
+const DeliveryCard = ({ order, onAction, onCancel, updatingId }: { order: Order, onAction: (id: string, status: OrderStatus) => void, onCancel: (order: Order) => void, updatingId: string | null}) => (
     <Card key={order.id}>
         <CardHeader>
             <CardTitle className="text-sm font-mono text-primary">{order.id.substring(0,8)}...</CardTitle>
@@ -247,8 +269,18 @@ const DeliveryCard = ({ order, onAction, updatingId }: { order: Order, onAction:
             </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-2">
-            {order.status === 'new' && <Button className="w-full" size="sm" onClick={() => onAction(order.id, 'preparing')} disabled={updatingId === order.id}><Check className="mr-2 h-4 w-4"/>Accept Order</Button>}
-            {order.status === 'preparing' && <Button className="w-full" size="sm" onClick={() => onAction(order.id, 'ready_for_pickup')} disabled={updatingId === order.id}><Package className="mr-2 h-4 w-4"/>Ready for Pickup</Button>}
+            {order.status === 'new' && (
+                <div className="flex gap-2 w-full">
+                    <Button className="w-full" size="sm" onClick={() => onAction(order.id, 'preparing')} disabled={updatingId === order.id}><Check className="mr-2 h-4 w-4"/>Accept</Button>
+                    <Button className="w-full" size="sm" variant="destructive" onClick={() => onCancel(order)} disabled={updatingId === order.id}><XCircle className="mr-2 h-4 w-4"/>Cancel</Button>
+                </div>
+            )}
+            {order.status === 'preparing' && (
+                 <div className="flex gap-2 w-full">
+                    <Button className="w-full" size="sm" onClick={() => onAction(order.id, 'ready_for_pickup')} disabled={updatingId === order.id}><Package className="mr-2 h-4 w-4"/>Ready</Button>
+                    <Button className="w-full" size="sm" variant="destructive" onClick={() => onCancel(order)} disabled={updatingId === order.id}><XCircle className="mr-2 h-4 w-4"/>Cancel</Button>
+                </div>
+            )}
             {order.status === 'ready_for_pickup' && <Button className="w-full" size="sm" variant="outline" disabled><Send className="mr-2 h-4 w-4"/>Awaiting Rider</Button>}
             {order.status === 'out_for_delivery' && <Badge variant="secondary" className="bg-blue-100 text-blue-800 w-full justify-center py-2"><Truck className="mr-2 h-4 w-4" />On its way</Badge>}
             {order.status === 'delivered' && <Badge className="bg-green-100 text-green-800 w-full justify-center py-2"><CheckCircle className="mr-2 h-4 w-4" />Delivered</Badge>}
@@ -260,7 +292,7 @@ const DeliveryCard = ({ order, onAction, updatingId }: { order: Order, onAction:
 // Components for Pickup Orders
 const PickupHeader = () => (<TableRow><TableHead>Order ID</TableHead><TableHead>Customer</TableHead><TableHead>Phone</TableHead><TableHead>Pickup Code</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-center">Action</TableHead></TableRow>);
 
-const PickupRow = ({ order, onAction, updatingId }: { order: Order, onAction: (order: Order) => void, updatingId: string | null}) => (
+const PickupRow = ({ order, onAction, onCancel, updatingId }: { order: Order, onAction: (order: Order) => void, onCancel: (order: Order) => void, updatingId: string | null}) => (
     <TableRow key={order.id}>
         <TableCell className="font-medium font-mono text-xs">{order.id.substring(0, 8)}...</TableCell>
         <TableCell>{order.shippingAddress?.name || 'N/A'}</TableCell>
@@ -268,8 +300,11 @@ const PickupRow = ({ order, onAction, updatingId }: { order: Order, onAction: (o
         <TableCell><Badge variant="outline" className="font-bold text-base tracking-widest">{order.pickupCode}</Badge></TableCell>
         <TableCell className="text-right">৳{order.totalAmount.toFixed(2)}</TableCell>
         <TableCell className="text-center">
-            { (order.status === 'new' || order.status === 'pending_payment') && 
-                <Button size="sm" onClick={() => onAction(order)} disabled={updatingId === order.id}><Hand className="mr-2 h-4 w-4"/>Mark as Collected</Button>
+            { (order.status === 'new' || order.status === 'pending_payment' || order.status === 'preparing') && 
+                <div className="flex gap-2 justify-center">
+                    <Button size="sm" onClick={() => onAction(order)} disabled={updatingId === order.id}><Hand className="mr-2 h-4 w-4"/>Mark Collected</Button>
+                    <Button size="sm" variant="destructive" onClick={() => onCancel(order)} disabled={updatingId === order.id}><XCircle className="mr-2 h-4 w-4"/>Cancel</Button>
+                </div>
             }
             {order.status === 'fulfilled' && <Badge className="bg-green-100 text-green-800"><CheckCircle className="mr-2 h-4 w-4" />Collected</Badge>}
             {order.status === 'canceled' && <Badge variant="destructive">Canceled</Badge>}
@@ -277,7 +312,7 @@ const PickupRow = ({ order, onAction, updatingId }: { order: Order, onAction: (o
     </TableRow>
 );
 
-const PickupCard = ({ order, onAction, updatingId }: { order: Order, onAction: (order: Order) => void, updatingId: string | null}) => (
+const PickupCard = ({ order, onAction, onCancel, updatingId }: { order: Order, onAction: (order: Order) => void, onCancel: (order: Order) => void, updatingId: string | null}) => (
     <Card key={order.id}>
         <CardHeader>
             <div className="flex justify-between items-start">
@@ -295,8 +330,11 @@ const PickupCard = ({ order, onAction, updatingId }: { order: Order, onAction: (
             </div>
         </CardContent>
         <CardFooter>
-            { (order.status === 'new' || order.status === 'pending_payment') && 
-                <Button className="w-full" size="sm" onClick={() => onAction(order)} disabled={updatingId === order.id}><Hand className="mr-2 h-4 w-4"/>Mark as Collected</Button>
+            { (order.status === 'new' || order.status === 'pending_payment' || order.status === 'preparing') && 
+                <div className="flex gap-2 w-full">
+                    <Button className="w-full" size="sm" onClick={() => onAction(order)} disabled={updatingId === order.id}><Hand className="mr-2 h-4 w-4"/>Mark Collected</Button>
+                    <Button className="w-full" size="sm" variant="destructive" onClick={() => onCancel(order)} disabled={updatingId === order.id}><XCircle className="mr-2 h-4 w-4"/>Cancel</Button>
+                </div>
             }
             {order.status === 'fulfilled' && <Badge className="bg-green-100 text-green-800 w-full justify-center py-2"><CheckCircle className="mr-2 h-4 w-4" />Collected</Badge>}
             {order.status === 'canceled' && <Badge variant="destructive" className="w-full justify-center py-2">Canceled</Badge>}

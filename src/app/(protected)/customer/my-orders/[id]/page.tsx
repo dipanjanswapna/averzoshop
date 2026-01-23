@@ -6,8 +6,8 @@ import type { Order, OrderStatus } from '@/types/order';
 import type { Product } from '@/types/product';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft, Home, Package, Printer, ShoppingCart, Truck, Hand, BadgePercent } from 'lucide-react';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { ArrowLeft, Hand, BadgePercent, Printer, ShoppingCart, Truck, XCircle } from 'lucide-react';
 import Image from 'next/image';
 import { OrderTracker } from '@/components/order/order-tracker';
 import { Separator } from '@/components/ui/separator';
@@ -17,6 +17,10 @@ import { useMemo, useState } from 'react';
 import type { UserData } from '@/types/user';
 import { InvoicePreviewDialog } from '@/components/order/InvoicePreviewDialog';
 import { cn } from '@/lib/utils';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
+import { cancelOrder } from '@/actions/order-actions';
+
 
 const getStatusBadge = (status: OrderStatus) => {
     switch (status) {
@@ -36,8 +40,11 @@ const getStatusBadge = (status: OrderStatus) => {
 export default function OrderDetailsPage() {
   const params = useParams();
   const router = useRouter();
+  const { toast } = useToast();
   const id = params.id as string;
   const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
+  const [isCancelAlertOpen, setIsCancelAlertOpen] = useState(false);
+  const [isCanceling, setIsCanceling] = useState(false);
 
   const { data: order, isLoading: orderLoading } = useFirestoreDoc<Order>(`orders/${id}`);
   const { data: customer, isLoading: customerLoading } = useFirestoreDoc<UserData>(order ? `users/${order.customerId}` : null);
@@ -49,6 +56,19 @@ export default function OrderDetailsPage() {
     if (!allProducts) return new Map();
     return new Map(allProducts.map(p => [p.id, p]));
   }, [allProducts]);
+  
+  const handleCancelOrder = async () => {
+    if (!order) return;
+    setIsCanceling(true);
+    const result = await cancelOrder(order.id);
+    if (result.success) {
+        toast({ title: 'Order Canceled', description: 'Your order has been successfully canceled.' });
+    } else {
+        toast({ variant: 'destructive', title: 'Cancellation Failed', description: result.message });
+    }
+    setIsCanceling(false);
+    setIsCancelAlertOpen(false);
+  };
   
   if (isLoading) {
     return (
@@ -100,6 +120,11 @@ export default function OrderDetailsPage() {
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
             {getStatusBadge(order.status)}
+            {['pending_payment', 'new'].includes(order.status) && (
+              <Button variant="destructive" size="sm" onClick={() => setIsCancelAlertOpen(true)} disabled={isCanceling}>
+                  <XCircle className="mr-2 h-4 w-4" /> Cancel Order
+              </Button>
+            )}
             <Button variant="outline" onClick={() => setIsInvoiceOpen(true)}>
                 <Printer className="mr-2 h-4 w-4" />
                 Invoice
@@ -222,6 +247,22 @@ export default function OrderDetailsPage() {
         order={order}
         customer={customer}
     />
+     <AlertDialog open={isCancelAlertOpen} onOpenChange={setIsCancelAlertOpen}>
+        <AlertDialogContent>
+        <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+            This action cannot be undone. This will permanently cancel your order.
+            </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+            <AlertDialogCancel>Back</AlertDialogCancel>
+            <AlertDialogAction onClick={handleCancelOrder} disabled={isCanceling} className={buttonVariants({ variant: "destructive" })}>
+                {isCanceling ? 'Canceling...' : 'Yes, Cancel Order'}
+            </AlertDialogAction>
+        </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
     </>
   );
 }
