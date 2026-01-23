@@ -132,9 +132,9 @@ export default function OutletDashboardPage() {
           <Skeleton className="h-36 flex-1 min-w-[280px] max-w-sm" />
           <Skeleton className="h-36 flex-1 min-w-[280px] max-w-sm" />
         </div>
-        <div className="grid gap-6 grid-cols-1 lg:grid-cols-7">
-          <Skeleton className="h-80 lg:col-span-4 rounded-lg" />
-          <Skeleton className="h-80 lg:col-span-3 rounded-lg" />
+        <div className="flex flex-col lg:flex-row gap-6">
+          <Skeleton className="h-80 flex-1 rounded-lg" />
+          <Skeleton className="h-80 w-full lg:w-1/3 rounded-lg" />
         </div>
       </div>
     );
@@ -148,7 +148,7 @@ export default function OutletDashboardPage() {
                 <p className="text-muted-foreground">Live performance for your outlet: <span className="font-bold text-primary">{outletId}</span></p>
             </div>
        </div>
-      <div className="flex flex-wrap justify-center gap-6">
+      <div className="flex flex-wrap justify-center gap-4">
         <Card className="flex-1 min-w-[280px] max-w-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Today's Offline Sales</CardTitle>
@@ -198,8 +198,8 @@ export default function OutletDashboardPage() {
           </CardContent>
         </Card>
       </div>
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-7">
-        <Card className="lg:col-span-4">
+      <div className="flex flex-col xl:flex-row gap-6">
+        <Card className="flex-1">
           <CardHeader>
             <CardTitle className="font-headline">Outlet Sales Overview</CardTitle>
           </CardHeader>
@@ -207,7 +207,7 @@ export default function OutletDashboardPage() {
              <SalesChart data={salesData} />
           </CardContent>
         </Card>
-        <Card className="lg:col-span-3">
+        <Card className="w-full xl:w-[400px] shrink-0">
           <CardHeader>
             <CardTitle className="font-headline">Recent Activities</CardTitle>
             <CardDescription>

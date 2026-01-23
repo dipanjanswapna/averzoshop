@@ -1,4 +1,3 @@
-
 'use client';
 import {
   Card,
@@ -211,8 +210,8 @@ export default function VendorDashboardPage() {
                         </CardContent>
                     </Card>
                 </div>
-                <div className="grid gap-4 lg:grid-cols-2">
-                    <Card>
+                <div className="flex flex-col xl:flex-row gap-6">
+                    <Card className="flex-1">
                          <CardHeader>
                             <CardTitle className="font-headline">Sales Overview</CardTitle>
                             <CardDescription>Your sales performance over the last 6 months.</CardDescription>
@@ -221,7 +220,7 @@ export default function VendorDashboardPage() {
                             <SalesChart data={salesData} />
                          </CardContent>
                     </Card>
-                     <Card>
+                     <Card className="w-full xl:w-[400px] shrink-0">
                         <CardHeader>
                             <CardTitle>Top Selling Products</CardTitle>
                             <CardDescription>Your most popular products by units sold.</CardDescription>
