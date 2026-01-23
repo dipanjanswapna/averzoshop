@@ -126,10 +126,10 @@ export default function InventoryPage() {
   
    const renderMobileSkeleton = (rows = 3) => (
     [...Array(rows)].map((_, i) => (
-        <Card key={i}>
-            <CardHeader><Skeleton className="h-5 w-3/4" /></CardHeader>
-            <CardContent><Skeleton className="h-4 w-1/2" /></CardContent>
-            <CardFooter><Skeleton className="h-9 w-full" /></CardFooter>
+        <Card key={i} className="flex-1 min-w-[280px] max-w-sm">
+          <CardHeader><Skeleton className="h-5 w-3/4" /></CardHeader>
+          <CardContent><Skeleton className="h-4 w-1/2" /></CardContent>
+          <CardFooter><Skeleton className="h-9 w-full" /></CardFooter>
         </Card>
     ))
   );
@@ -213,10 +213,10 @@ export default function InventoryPage() {
                             </Table>
                         </div>
                          {/* Mobile Cards */}
-                        <div className="grid md:hidden gap-4">
+                        <div className="flex flex-wrap justify-center md:hidden gap-4">
                            {isLoading ? renderMobileSkeleton() : outletProducts.length > 0 ? (
                             outletProducts.map(product => (
-                                <Card key={product.id}>
+                                <Card key={product.id} className="flex-1 min-w-[280px] max-w-sm">
                                     <CardHeader className="p-4 flex flex-row items-center gap-4">
                                         <Image alt={product.name} className="aspect-square rounded-md object-cover" height={64} src={product.image || 'https://placehold.co/64'} width={64} />
                                         <div className="flex-1 space-y-1">
@@ -290,10 +290,10 @@ export default function InventoryPage() {
                             </Table>
                        </div>
                        {/* Mobile */}
-                       <div className="grid md:hidden gap-4">
+                       <div className="flex flex-wrap justify-center md:hidden gap-4">
                             {isLoading ? renderMobileSkeleton() : enhancedChallans.length > 0 ? (
                                 enhancedChallans.map(challan => (
-                                    <Card key={challan.id}>
+                                    <Card key={challan.id} className="flex-1 min-w-[280px] max-w-sm">
                                         <CardHeader>
                                             <CardTitle className="text-sm font-mono">{challan.id.substring(0, 8)}...</CardTitle>
                                             <CardDescription>From: {challan.vendorName}</CardDescription>
@@ -370,10 +370,10 @@ export default function InventoryPage() {
                                     </Table>
                                 </div>
                                 {/* Mobile */}
-                                <div className="grid md:hidden gap-4">
+                                <div className="flex flex-wrap justify-center md:hidden gap-4">
                                      {isLoading ? renderMobileSkeleton(1) : incomingTransfers.length > 0 ? (
                                          incomingTransfers.map(t => (
-                                            <Card key={t.id}>
+                                            <Card key={t.id} className="flex-1 min-w-[280px] max-w-sm">
                                                 <CardHeader>
                                                     <CardTitle className="text-base">{t.productName}</CardTitle>
                                                     <CardDescription>From: {t.sourceOutletName}</CardDescription>
@@ -436,10 +436,10 @@ export default function InventoryPage() {
                                     </Table>
                                </div>
                                {/* Mobile */}
-                               <div className="grid md:hidden gap-4">
+                               <div className="flex flex-wrap justify-center md:hidden gap-4">
                                      {isLoading ? renderMobileSkeleton(1) : outgoingTransfers.length > 0 ? (
                                          outgoingTransfers.map(t => (
-                                            <Card key={t.id}>
+                                            <Card key={t.id} className="flex-1 min-w-[280px] max-w-sm">
                                                 <CardHeader>
                                                     <CardTitle className="text-base">{t.productName}</CardTitle>
                                                     <CardDescription>To: {t.destinationOutletName}</CardDescription>

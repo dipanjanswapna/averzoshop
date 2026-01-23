@@ -75,7 +75,7 @@ export default function OutletDetailsPage() {
 
   const renderMobileSkeleton = () => (
      [...Array(3)].map((_, i) => (
-        <Card key={i}>
+        <Card key={i} className="flex-1 min-w-[300px] max-w-sm">
           <CardHeader className="flex-row items-center gap-4">
              <Skeleton className="h-16 w-16 rounded-md" />
              <div className="space-y-2">
@@ -205,11 +205,11 @@ export default function OutletDetailsPage() {
               </Table>
             </div>
              {/* Mobile Cards */}
-            <div className="grid md:hidden gap-4">
+            <div className="flex flex-wrap justify-center md:hidden gap-4">
               {isLoading ? renderMobileSkeleton() : inventory.length > 0 ? (
                 inventory.map(product => (
-                  <Card key={product.id}>
-                    <CardHeader className="flex flex-row items-center gap-4">
+                  <Card key={product.id} className="flex-1 min-w-[300px] max-w-sm">
+                    <CardHeader className="flex-row items-center gap-4">
                        <Image alt={product.name} className="aspect-square rounded-md object-cover" height="64" src={product.image || 'https://placehold.co/64'} width="64" />
                        <div className="flex-1">
                           <h4 className="font-semibold text-sm leading-tight">{product.name}</h4>

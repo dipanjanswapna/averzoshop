@@ -69,7 +69,7 @@ export default function ProductsPage() {
 
   const renderMobileSkeleton = () => (
     [...Array(3)].map((_, i) => (
-      <Card key={i}>
+      <Card key={i} className="flex-1 min-w-[280px] max-w-sm">
         <CardHeader className="flex flex-row items-center gap-4">
           <Skeleton className="h-16 w-16 rounded-md" />
           <div className="flex-1 space-y-2">
@@ -99,7 +99,7 @@ export default function ProductsPage() {
 
     switch (product.status) {
         case 'approved':
-            variant = 'default';
+            variant = 'secondary';
             className = 'bg-green-500/10 text-green-600';
             break;
         case 'pending':
@@ -190,10 +190,10 @@ export default function ProductsPage() {
             </div>
             
             {/* Mobile View */}
-            <div className="grid md:hidden gap-4">
+            <div className="flex flex-wrap justify-center md:hidden gap-4">
               {isLoading ? renderMobileSkeleton() :
                 products && products.length > 0 ? products.map((product) => (
-                  <Card key={product.id} className="flex flex-col">
+                  <Card key={product.id} className="flex flex-col flex-1 min-w-[280px] max-w-sm">
                     <CardHeader className="flex flex-row items-start gap-4 p-4">
                        <Image alt={product.name} className="aspect-square rounded-md object-cover" height="64" src={product.image || 'https://placehold.co/64'} width="64" />
                        <div className="flex-1 space-y-1">

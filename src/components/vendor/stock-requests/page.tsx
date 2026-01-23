@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/use-auth';
 import type { StockRequest } from '@/types/logistics';
 import type { Outlet } from '@/types/outlet';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -51,8 +51,7 @@ export default function VendorStockRequestsPage() {
   );
 
   const getStatusBadge = (status: StockRequest['status']) => {
-    let variant: 'default' | 'secondary' | 'destructive' = 'secondary';
-    let className = '';
+    let variant: 'default' | 'secondary' | 'destructive' | 'outline' = 'outline';
     let Icon = Clock;
     
     switch (status) {
@@ -62,7 +61,6 @@ export default function VendorStockRequestsPage() {
         Icon = Clock;
         break;
       case 'approved':
-      case 'received':
         variant = 'secondary';
         className = 'bg-green-500/10 text-green-600';
         Icon = CheckCircle;
@@ -72,6 +70,11 @@ export default function VendorStockRequestsPage() {
          className = 'bg-blue-500/10 text-blue-600';
          Icon = Truck;
          break;
+      case 'received':
+        variant = 'secondary';
+        className = 'bg-green-500/10 text-green-600';
+        Icon = CheckCircle;
+        break;
       case 'rejected':
         variant = 'destructive';
         Icon = XCircle;
@@ -79,7 +82,7 @@ export default function VendorStockRequestsPage() {
     }
     
     return (
-        <Badge variant={variant} className={cn('capitalize gap-1', className)}>
+        <Badge variant={variant} className={cn('capitalize gap-1')}>
             <Icon className="h-3 w-3" />
             {status}
         </Badge>

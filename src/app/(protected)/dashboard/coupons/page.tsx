@@ -48,7 +48,7 @@ export default function CouponsPage() {
 
   const renderMobileSkeleton = () => (
     [...Array(3)].map((_, i) => (
-      <Card key={i}>
+      <Card key={i} className="flex-1 min-w-[300px] max-w-sm">
         <CardHeader>
           <Skeleton className="h-6 w-3/4" />
         </CardHeader>
@@ -111,10 +111,10 @@ export default function CouponsPage() {
             </div>
 
             {/* Mobile Cards */}
-            <div className="grid md:hidden gap-4">
+            <div className="flex flex-wrap justify-center md:hidden gap-4">
                {isLoading ? renderMobileSkeleton() : sortedCoupons && sortedCoupons.length > 0 ? (
                   sortedCoupons.map((coupon) => (
-                    <Card key={coupon.id}>
+                    <Card key={coupon.id} className="flex-1 min-w-[300px] max-w-sm">
                       <CardHeader>
                         <CardTitle className="font-mono text-primary flex justify-between items-center">
                             <span>{coupon.code}</span>

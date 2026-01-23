@@ -59,7 +59,7 @@ export default function OutletsPage() {
 
   const renderMobileSkeleton = () => (
      [...Array(3)].map((_, i) => (
-        <Card key={i}>
+        <Card key={i} className="flex-1 min-w-[300px] max-w-sm">
           <CardHeader>
             <Skeleton className="h-6 w-3/4" />
           </CardHeader>
@@ -157,10 +157,10 @@ export default function OutletsPage() {
             </div>
             
              {/* Mobile Cards */}
-            <div className="grid md:hidden gap-4">
+            <div className="flex flex-wrap justify-center md:hidden gap-4">
                 {isLoading ? renderMobileSkeleton() : outlets && outlets.length > 0 ? (
                   outlets.map((outlet) => (
-                     <Card key={outlet.id}>
+                     <Card key={outlet.id} className="flex-1 min-w-[300px] max-w-sm">
                       <CardHeader className="flex flex-row items-center justify-between">
                          <CardTitle className="text-lg">{outlet.name}</CardTitle>
                           <Badge variant={outlet.status === 'Active' ? 'secondary' : 'destructive'} className={cn(outlet.status === 'Active' && 'bg-green-500/10 text-green-600')}>
