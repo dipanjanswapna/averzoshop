@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -44,13 +45,15 @@ const addressIcons: { [key: string]: React.ReactNode } = {
   Other: <MapPin size={16} />,
 };
 
+const couriers = ['RedX', 'Steadfast', 'Paperfly', 'Sundarban Courier'];
+
 
 export function ShippingForm() {
     const { 
         cartItems, clearCart, totalPayable, subtotal, fullOrderTotal, promoCode, 
         discount, setShippingInfo, shippingInfo, pointsApplied, pointsDiscount,
         orderMode, setOrderMode, pickupOutletId, setPickupOutlet, cardPromoDiscountAmount,
-        giftCardCode, giftCardDiscount
+        giftCardCode, giftCardDiscount, shippingMethod, courierName, setShippingDetails
     } = useCart(state => ({
         cartItems: state.items,
         clearCart: state.clearCart,
@@ -70,6 +73,9 @@ export function ShippingForm() {
         cardPromoDiscountAmount: state.cardPromoDiscountAmount,
         giftCardCode: state.giftCardCode,
         giftCardDiscount: state.giftCardDiscount,
+        shippingMethod: state.shippingMethod,
+        courierName: state.courierName,
+        setShippingDetails: state.setShippingDetails,
     }));
 
   const [isLoading, setIsLoading] = useState(false);
@@ -204,6 +210,11 @@ export function ShippingForm() {
       setIsLoading(false);
       return;
     }
+     if (orderMode === 'delivery' && !shippingMethod) {
+      toast({ variant: 'destructive', title: 'Please select a delivery partner.' });
+      setIsLoading(false);
+      return;
+    }
 
     if (!firestore || !user || !userData || cartItems.length === 0) {
       toast({ variant: 'destructive', title: 'Error', description: 'Could not process order. Please try again.' });
@@ -238,7 +249,9 @@ export function ShippingForm() {
         giftCardCode: giftCardCode, giftCardDiscount: giftCardDiscount,
         totalAmount: totalPayable, fullOrderValue: fullOrderTotal, orderType: isPreOrderInCart ? 'pre-order' as const : 'regular' as const,
         orderMode: orderMode, pickupOutletId: orderMode === 'pickup' ? pickupOutletId : null,
-        assignedOutletId: assignedOutletId || null, pickupCode: pickupCode, shippingAddress: finalShippingAddress
+        assignedOutletId: assignedOutletId || null, pickupCode: pickupCode, shippingAddress: finalShippingAddress,
+        shippingMethod: shippingMethod || undefined,
+        courierName: courierName || null,
     };
 
     if (values.paymentMethod === 'cod') {
@@ -331,7 +344,8 @@ export function ShippingForm() {
               )}
             />
 
-            {orderMode === 'delivery' ? (
+            {orderMode === 'delivery' && (
+              <>
                 <div className="space-y-4 pt-4 border-t">
                     <div className="flex justify-between items-center">
                         <FormLabel>Select a shipping address</FormLabel>
@@ -360,7 +374,38 @@ export function ShippingForm() {
                         <p className="text-sm text-muted-foreground text-center py-4">No saved addresses. Please add one.</p>
                     )}
                 </div>
-            ) : (
+                 <div className="space-y-4 pt-4 border-t">
+                  <FormLabel>Delivery Partner</FormLabel>
+                   <RadioGroup 
+                    onValueChange={(value) => {
+                      const [method, name] = value.split(':');
+                      setShippingDetails({ method: method as any, courierName: name || null });
+                    }} 
+                    value={shippingMethod ? `${shippingMethod}:${courierName || ''}` : ''}
+                    className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+                  >
+                    <FormItem>
+                      <FormControl>
+                        <Label className="flex items-center gap-2 p-4 border rounded-lg cursor-pointer has-[:checked]:bg-primary/10 has-[:checked]:border-primary">
+                          <RadioGroupItem value="averzo_rider:" /> Averzo Rider
+                        </Label>
+                      </FormControl>
+                    </FormItem>
+                    {couriers.map(c => (
+                      <FormItem key={c}>
+                        <FormControl>
+                          <Label className="flex items-center gap-2 p-4 border rounded-lg cursor-pointer has-[:checked]:bg-primary/10 has-[:checked]:border-primary">
+                            <RadioGroupItem value={`third_party_courier:${c}`} /> {c}
+                          </Label>
+                        </FormControl>
+                      </FormItem>
+                    ))}
+                  </RadioGroup>
+                </div>
+              </>
+            )}
+
+            {orderMode === 'pickup' && (
                 <div className="space-y-4 pt-4 border-t">
                     <FormLabel>Select Pickup Outlet</FormLabel>
                     {outletsLoading ? <p>Loading outlets...</p> : suitablePickupOutlets.length > 0 ? (
@@ -412,7 +457,7 @@ export function ShippingForm() {
                 )}
             />
 
-            <Button type="submit" className="w-full" size="lg" disabled={isLoading || (orderMode === 'delivery' && !selectedAddressId) || (orderMode === 'pickup' && !pickupOutletId)}>
+            <Button type="submit" className="w-full" size="lg" disabled={isLoading || (orderMode === 'delivery' && !selectedAddressId) || (orderMode === 'pickup' && !pickupOutletId) || (orderMode === 'delivery' && !shippingMethod)}>
                 {isLoading ? 'Processing...' : 'Place Order'}
             </Button>
         </form>

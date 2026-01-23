@@ -234,6 +234,8 @@
         "status": { "type": "string", "enum": ["pending_payment", "new", "preparing", "ready_for_pickup", "out_for_delivery", "delivered", "canceled", "pre-ordered", "fulfilled"] },
         "orderType": { "type": "string", "enum": ["regular", "pre-order"] },
         "orderMode": { "type": "string", "enum": ["delivery", "pickup"], "description": "The mode of order fulfillment." },
+        "shippingMethod": { "type": "string", "enum": ["averzo_rider", "third_party_courier"], "description": "The selected shipping method." },
+        "courierName": { "type": "string", "description": "The name of the third-party courier service, if applicable." },
         "pickupOutletId": { "type": "string", "description": "The ID of the outlet selected for pickup." },
         "pickupCode": { "type": "string", "description": "The unique code for the customer to pick up the order." },
         "createdAt": { "type": "string", "format": "date-time" },

@@ -38,6 +38,8 @@ export interface Order {
     status: OrderStatus;
     orderType: 'regular' | 'pre-order';
     orderMode: 'delivery' | 'pickup';
+    shippingMethod?: 'averzo_rider' | 'third_party_courier';
+    courierName?: string | null;
     pickupOutletId?: string;
     pickupCode?: string | null;
     createdAt: Timestamp;
