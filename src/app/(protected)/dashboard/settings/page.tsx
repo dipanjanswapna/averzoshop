@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { useTheme } from '@/components/providers';
 import { Moon, Sun } from 'lucide-react';
 import { Label } from '@/components/ui/label';
+import { RegistrationSettings } from '@/components/dashboard/admin/RegistrationSettings';
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
@@ -49,6 +50,7 @@ export default function SettingsPage() {
       </Card>
 
       <LoyaltySettings />
+      <RegistrationSettings />
       
       <Card>
         <CardHeader>

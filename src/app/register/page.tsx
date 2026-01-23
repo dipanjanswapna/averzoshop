@@ -199,8 +199,8 @@ function RegisterPageContent() {
                     </FormItem>
                     )}
                 />
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? 'Processing...' : 'Create Account'}
+              <Button type="submit" className="w-full" disabled={isLoading || settingsLoading}>
+                {isLoading || settingsLoading ? 'Processing...' : 'Create Account'}
               </Button>
             </form>
           </Form>

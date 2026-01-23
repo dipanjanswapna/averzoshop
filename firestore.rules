@@ -8,6 +8,14 @@ service cloud.firestore {
     match /{document=**} {
       allow read, write: if false;
     }
+    
+    function canSelfRegister(role) {
+      let settings = get(/databases/$(database)/documents/settings/registration).data;
+      return (role == 'customer')
+          || (role == 'vendor' && settings.vendor == true)
+          || (role == 'rider' && settings.rider == true)
+          || (role == 'sales' && settings.sales == true);
+    }
 
     // Users can read their own profile. Admins can read any profile.
     // Sales reps can read customers they manage.
@@ -16,9 +24,9 @@ service cloud.firestore {
                     || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
                     || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'sales' && resource.data.managedBy == request.auth.uid);
 
-      allow create: if (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
-                      || (request.auth.uid == userId) // user self-signup
-                      || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'sales' && request.resource.data.managedBy == request.auth.uid);
+      allow create: if (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') // Admin creation
+                      || (request.auth.uid == userId && canSelfRegister(request.resource.data.role)) // Self-signup
+                      || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'sales' && request.resource.data.managedBy == request.auth.uid); // Sales rep creates customer
 
       allow update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' 
                     || (request.auth.uid == userId && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'status', 'loyaltyPoints', 'membershipTier', 'totalSpent', 'outletId', 'managedBy', 'cardPromoDiscount']))
@@ -96,7 +104,7 @@ service cloud.firestore {
                       || ((get(/databases/$(database)/documents/users/$(request.auth.uid)).data.outletId == resource.data.assignedOutletId || 
                           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.outletId == resource.data.pickupOutletId) &&
                          resource.data.status in ['new', 'preparing', 'pending_payment'] &&
-                         request.resource.data.status in ['preparing', 'ready_for_pickup', 'canceled'])
+                         request.resource.data.status in ['preparing', 'ready_for_pickup', 'canceled', 'fulfilled'])
                       // Rider can update delivery status
                       || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'rider' &&
                          (
