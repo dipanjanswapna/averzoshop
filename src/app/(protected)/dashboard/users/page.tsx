@@ -18,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { PlusCircle, MoreHorizontal, Mail, Search, CheckCircle, XCircle, Clock, Users, Award } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -44,6 +44,16 @@ import { AssignSalesRepDialog } from '@/components/dashboard/assign-sales-rep-di
 import { AdjustPointsDialog } from '@/components/dashboard/adjust-points-dialog';
 import { cn } from '@/lib/utils';
 import { SetCardPromoDialog } from '@/components/dashboard/set-card-promo-dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 
 export default function UsersPage() {
@@ -62,6 +72,8 @@ export default function UsersPage() {
   const [selectedUserForPoints, setSelectedUserForPoints] = useState<UserData | null>(null);
   const [isSetPromoDialogOpen, setIsSetPromoDialogOpen] = useState(false);
   const [selectedUserForPromo, setSelectedUserForPromo] = useState<UserData | null>(null);
+  const [isSuspendDialogOpen, setIsSuspendDialogOpen] = useState(false);
+  const [userToSuspend, setUserToSuspend] = useState<UserData | null>(null);
 
 
   const handleStatusChange = async (uid: string, newStatus: 'approved' | 'rejected') => {
@@ -101,6 +113,18 @@ export default function UsersPage() {
   const handleSetPromoClick = (user: UserData) => {
     setSelectedUserForPromo(user);
     setIsSetPromoDialogOpen(true);
+  };
+
+  const handleSuspendClick = (user: UserData) => {
+    setUserToSuspend(user);
+    setIsSuspendDialogOpen(true);
+  };
+
+  const handleConfirmSuspend = async () => {
+    if (!userToSuspend) return;
+    await handleStatusChange(userToSuspend.uid, 'rejected');
+    setIsSuspendDialogOpen(false);
+    setUserToSuspend(null);
   };
 
   const salesRepMap = useMemo(() => {
@@ -302,7 +326,7 @@ export default function UsersPage() {
                                 </>
                               )}
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem className="text-destructive focus:text-destructive">Suspend</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleSuspendClick(user)} className="text-destructive focus:text-destructive">Suspend</DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
@@ -389,6 +413,8 @@ export default function UsersPage() {
                                         <DropdownMenuItem onClick={() => handleStatusChange(user.uid, 'rejected')} className="text-destructive focus:bg-destructive/10">Reject</DropdownMenuItem>
                                         </>
                                     )}
+                                     <DropdownMenuSeparator />
+                                      <DropdownMenuItem onClick={() => handleSuspendClick(user)} className="text-destructive focus:text-destructive">Suspend</DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                              </div>
@@ -443,6 +469,22 @@ export default function UsersPage() {
             user={selectedUserForPromo}
         />
     )}
+    <AlertDialog open={isSuspendDialogOpen} onOpenChange={setIsSuspendDialogOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This will suspend the user <span className="font-bold">{userToSuspend?.displayName}</span> and block their access.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={handleConfirmSuspend} className={buttonVariants({ variant: "destructive" })}>
+              Confirm Suspension
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
     </>
   );
 }
