@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -88,7 +89,7 @@ export default function OutletLayout({
         </div>
       </main>
     ) : (
-      <main className={cn("flex-1 text-sidebar-foreground", !isPosPage && "p-4 md:p-6")}>
+      <main className={cn("flex-1 text-sidebar-foreground overflow-x-hidden", !isPosPage && "p-4 md:p-6")}>
         {children}
       </main>
     )
