@@ -7,6 +7,7 @@ import {
   Users,
   Settings,
   ShoppingCart,
+  Package,
 } from 'lucide-react';
 import {
   SidebarMenu,
@@ -18,6 +19,7 @@ const navItems = [
   { href: '/sales/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/sales/customers', label: 'My Customers', icon: Users },
   { href: '/sales/order', label: 'Place Order', icon: ShoppingCart },
+  { href: '/sales/my-orders', label: 'My Orders', icon: Package },
 ];
 
 export function SalesNav() {

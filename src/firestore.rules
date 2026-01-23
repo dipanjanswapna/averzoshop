@@ -77,15 +77,18 @@ service cloud.firestore {
         allow update: if request.auth != null;
     }
 
-    // Orders can be read by the customer, assigned outlet, assigned rider or an admin.
+    // Orders can be read by the customer, assigned outlet, assigned rider, sales rep or an admin.
     // Created only by the customer or their assigned sales rep.
     // Updated by admin, outlet manager (for early stages), or rider (for delivery stages).
     match /orders/{orderId} {
-      allow read: if request.auth != null && (request.auth.uid == resource.data.customerId 
+      allow read: if request.auth != null && (
+                    request.auth.uid == resource.data.customerId 
                     || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
                     || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.outletId == resource.data.assignedOutletId
                     || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.outletId == resource.data.pickupOutletId
-                    || request.auth.uid == resource.data.riderId);
+                    || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'sales' && resource.data.salesRepId == request.auth.uid)
+                    || request.auth.uid == resource.data.riderId
+                  );
       allow create: if request.auth != null && (
                         request.auth.uid == request.resource.data.customerId 
                         || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'sales' 
