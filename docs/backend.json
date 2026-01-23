@@ -336,6 +336,18 @@
                 "enabled": { "type": "boolean" },
                 "endDate": { "type": "string", "format": "date-time" }
             }
+        },
+        "metaTitle": { "type": "string", "description": "Custom SEO title for the product page." },
+        "metaDescription": { "type": "string", "description": "Custom SEO description for the product page." },
+        "weight": { "type": "number", "description": "Weight of the product in kilograms." },
+        "dimensions": {
+            "type": "object",
+            "description": "Dimensions of the product packaging in centimeters.",
+            "properties": {
+                "length": { "type": "number" },
+                "width": { "type": "number" },
+                "height": { "type": "number" }
+            }
         }
       },
       "required": ["name", "price", "total_stock", "vendorId", "status", "category", "group", "subcategory", "brand", "image", "baseSku", "variants"]

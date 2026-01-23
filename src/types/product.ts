@@ -52,6 +52,14 @@ export type Product = {
     vendorId: string;
     status: 'pending' | 'approved' | 'rejected';
     createdAt: any; // Can be Timestamp or string
+    metaTitle?: string;
+    metaDescription?: string;
+    weight?: number; // in kg
+    dimensions?: {
+        length: number; // in cm
+        width: number;  // in cm
+        height: number; // in cm
+    };
 };
 
   

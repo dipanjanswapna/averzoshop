@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -133,6 +134,18 @@ export function ProductTabs({ product }: { product: Product }) {
                         <TableRow>
                           <TableCell className="font-semibold text-foreground">Subcategory</TableCell>
                           <TableCell className="text-muted-foreground">{product.subcategory}</TableCell>
+                        </TableRow>
+                      )}
+                       {product.weight && (
+                        <TableRow>
+                          <TableCell className="font-semibold text-foreground">Weight</TableCell>
+                          <TableCell className="text-muted-foreground">{product.weight} kg</TableCell>
+                        </TableRow>
+                      )}
+                      {product.dimensions && (
+                        <TableRow>
+                          <TableCell className="font-semibold text-foreground">Dimensions</TableCell>
+                          <TableCell className="text-muted-foreground">{product.dimensions.length} x {product.dimensions.width} x {product.dimensions.height} cm</TableCell>
                         </TableRow>
                       )}
                       {product.baseSku && (
