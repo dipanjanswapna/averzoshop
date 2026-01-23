@@ -50,6 +50,8 @@
     "firebase-admin": "^12.1.0",
     "framer-motion": "^11.3.8",
     "html5-qrcode": "^2.3.8",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^2.5.1",
     "leaflet": "^1.9.4",
     "lodash": "^4.17.21",
     "lucide-react": "^0.475.0",
