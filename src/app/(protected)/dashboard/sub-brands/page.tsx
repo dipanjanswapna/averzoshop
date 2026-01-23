@@ -1,4 +1,3 @@
-
 'use client';
 import {
   Card,
@@ -81,9 +80,9 @@ export default function SubBrandsPage() {
             </Table>
           </div>
           {/* Mobile Cards */}
-          <div className="flex flex-col md:hidden gap-4">
+          <div className="flex flex-wrap justify-center gap-4 md:hidden">
             {subBrands.map((brand) => (
-              <Card key={brand.id}>
+              <Card key={brand.id} className="flex-1 min-w-[280px] max-w-sm">
                 <CardHeader className="flex flex-row items-center justify-between">
                   <CardTitle className="text-lg">{brand.name}</CardTitle>
                    <DropdownMenu>

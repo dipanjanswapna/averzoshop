@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -8,6 +7,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter
 } from '@/components/ui/card';
 import {
   Table,
@@ -46,7 +46,7 @@ export default function GiftCardsPage() {
     setIsDialogOpen(true);
   }
 
-  const renderSkeleton = () => (
+  const renderDesktopSkeleton = () => (
     [...Array(5)].map((_, i) => (
       <TableRow key={i}>
         <TableCell><Skeleton className="h-5 w-32" /></TableCell>
@@ -56,6 +56,20 @@ export default function GiftCardsPage() {
         <TableCell><Skeleton className="h-6 w-20 rounded-full" /></TableCell>
       </TableRow>
     ))
+  );
+
+  const renderMobileSkeleton = () => (
+     [...Array(3)].map((_, i) => (
+        <Card key={i} className="flex-1 min-w-[280px] max-w-sm">
+          <CardHeader>
+            <Skeleton className="h-6 w-3/4" />
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+          </CardContent>
+        </Card>
+      ))
   );
 
   return (
@@ -74,38 +88,67 @@ export default function GiftCardsPage() {
             <CardDescription>Create, view, and manage digital gift cards.</CardDescription>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Code</TableHead>
-                  <TableHead>Balance</TableHead>
-                  <TableHead>Initial Value</TableHead>
-                  <TableHead>Expiry</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? renderSkeleton() : sortedCards.length > 0 ? (
-                  sortedCards.map((card) => (
-                    <TableRow key={card.id}>
-                      <TableCell className="font-medium font-mono text-primary">{card.code}</TableCell>
-                      <TableCell className="font-bold">৳{card.balance.toFixed(2)}</TableCell>
-                      <TableCell>৳{card.initialValue.toFixed(2)}</TableCell>
-                      <TableCell>{card.expiryDate.toDate().toLocaleDateString()}</TableCell>
-                      <TableCell>
-                         <Badge variant={card.isEnabled ? 'secondary' : 'destructive'} className={cn(card.isEnabled && 'bg-green-100 text-green-800')}>
-                            {card.isEnabled ? 'Active' : 'Disabled'}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
+            {/* Desktop Table */}
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">No gift cards found.</TableCell>
+                    <TableHead>Code</TableHead>
+                    <TableHead>Balance</TableHead>
+                    <TableHead>Initial Value</TableHead>
+                    <TableHead>Expiry</TableHead>
+                    <TableHead>Status</TableHead>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {isLoading ? renderDesktopSkeleton() : sortedCards.length > 0 ? (
+                    sortedCards.map((card) => (
+                      <TableRow key={card.id}>
+                        <TableCell className="font-medium font-mono text-primary">{card.code}</TableCell>
+                        <TableCell className="font-bold">৳{card.balance.toFixed(2)}</TableCell>
+                        <TableCell>৳{card.initialValue.toFixed(2)}</TableCell>
+                        <TableCell>{card.expiryDate.toDate().toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          <Badge variant={card.isEnabled ? 'secondary' : 'destructive'} className={cn(card.isEnabled && 'bg-green-100 text-green-800')}>
+                              {card.isEnabled ? 'Active' : 'Disabled'}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} className="h-24 text-center">No gift cards found.</TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            {/* Mobile Cards */}
+            <div className="flex flex-wrap justify-center gap-4 md:hidden">
+              {isLoading ? renderMobileSkeleton() : sortedCards.length > 0 ? (
+                sortedCards.map((card) => (
+                  <Card key={card.id} className="flex-1 min-w-[280px] max-w-sm">
+                    <CardHeader>
+                      <CardTitle className="font-mono text-primary">{card.code}</CardTitle>
+                      <CardDescription>
+                         <Badge variant={card.isEnabled ? 'secondary' : 'destructive'} className={cn(card.isEnabled && 'bg-green-100 text-green-800')}>
+                              {card.isEnabled ? 'Active' : 'Disabled'}
+                          </Badge>
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="text-sm space-y-2">
+                       <div>
+                          <p className="font-bold text-lg">৳{card.balance.toFixed(2)}</p>
+                          <p className="text-xs text-muted-foreground">Initial: ৳{card.initialValue.toFixed(2)}</p>
+                       </div>
+                        <p className="text-xs text-muted-foreground pt-2 border-t">Expires: {card.expiryDate.toDate().toLocaleDateString()}</p>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <div className="text-center py-10">No gift cards found.</div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>
