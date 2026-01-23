@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -57,7 +57,7 @@ export function TransferStockDialog({ open, onOpenChange, product, sourceOutletI
         },
     });
 
-    const destinationOutlets = allOutlets?.filter(o => o.id !== sourceOutletId);
+    const destinationOutlets = allOutlets?.filter(o => o.id !== sourceOutletId && o.status === 'Active');
     
     const selectedVariantSku = form.watch('variantSku');
     const selectedVariant = product.variants.find(v => v.sku === selectedVariantSku);
@@ -137,7 +137,7 @@ export function TransferStockDialog({ open, onOpenChange, product, sourceOutletI
                                         <SelectContent>
                                             {product.variants.map(v => (
                                                 <SelectItem key={v.sku} value={v.sku}>
-                                                    {v.color || ''} {v.size || ''} ({v.sku}) - Stock: {v.outlet_stocks?.[sourceOutletId] ?? 0}
+                                                    {v.color || ''} {v.size ? `(${v.size})` : ''} ({v.sku}) - Stock: {v.outlet_stocks?.[sourceOutletId] ?? 0}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>

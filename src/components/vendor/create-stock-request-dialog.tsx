@@ -57,7 +57,7 @@ export function CreateStockRequestDialog({ open, onOpenChange }: CreateStockRequ
     if (!allOutlets || !userData?.assignedOutlets) {
       return [];
     }
-    return allOutlets.filter(outlet => userData.assignedOutlets?.includes(outlet.id));
+    return allOutlets.filter(outlet => outlet.status === 'Active' && userData.assignedOutlets?.includes(outlet.id));
   }, [allOutlets, userData]);
 
   const availableProducts = useMemo(() => {
@@ -146,7 +146,7 @@ export function CreateStockRequestDialog({ open, onOpenChange }: CreateStockRequ
                               </SelectItem>
                           ))
                       ) : (
-                          <SelectItem value="no-outlets" disabled>No outlets assigned to you.</SelectItem>
+                          <SelectItem value="no-outlets" disabled>No active outlets assigned to you.</SelectItem>
                       )}
                     </SelectContent>
                   </Select>

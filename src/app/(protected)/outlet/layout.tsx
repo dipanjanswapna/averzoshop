@@ -1,4 +1,3 @@
-
 'use client';
 
 import {
@@ -12,11 +11,13 @@ import {
 import { OutletNav } from '@/components/outlet-nav';
 import { UserNav } from '@/components/user-nav';
 import AverzoLogo from '@/components/averzo-logo';
-import { Search } from 'lucide-react';
+import { Search, Warehouse } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/use-auth';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useFirestoreDoc } from '@/hooks/useFirestoreQuery';
+import type { Outlet } from '@/types/outlet';
 
 export default function OutletLayout({
   children,
@@ -26,8 +27,11 @@ export default function OutletLayout({
   const { user, userData, loading } = useAuth();
   const pathname = usePathname();
   const isPosPage = pathname === '/outlet/pos';
+  const { data: outletData, isLoading: outletLoading } = useFirestoreDoc<Outlet>(
+    userData?.outletId ? `outlets/${userData.outletId}` : null
+);
   
-  if (loading) {
+  if (loading || outletLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background text-foreground">
           <div className="flex flex-col items-center justify-center gap-6">
@@ -44,8 +48,6 @@ export default function OutletLayout({
     );
   }
   
-  // This is a crucial check. If the user data is loaded and the role is NOT 'outlet',
-  // we redirect them. The main protected layout will catch this and send them away.
   if (!user || (userData && userData.role !== 'outlet')) {
       return (
         <div className="flex h-screen items-center justify-center bg-background text-foreground">
@@ -54,8 +56,6 @@ export default function OutletLayout({
       );
   }
   
-  // If still loading or role is not yet confirmed, we can show a loader.
-  // Once loading is false and the role is 'outlet', the main content will render.
   if (!userData) {
      return (
         <div className="flex h-screen items-center justify-center bg-background text-foreground">
@@ -72,6 +72,27 @@ export default function OutletLayout({
         </div>
     );
   }
+  
+  const mainContent = (
+    outletData && outletData.status === 'Inactive' ? (
+      <main className="flex-1 p-4 md:p-6 text-sidebar-foreground flex items-center justify-center">
+        <div className="text-center bg-card p-8 rounded-lg shadow-lg max-w-md">
+          <Warehouse className="mx-auto h-16 w-16 text-destructive mb-4" />
+          <h1 className="text-2xl font-bold font-headline text-card-foreground">Outlet Inactive</h1>
+          <p className="text-muted-foreground mt-2">
+            This outlet is currently inactive. All functionality, including Point of Sale and inventory management, is disabled.
+          </p>
+          <p className="text-sm text-muted-foreground mt-4">
+            Please contact an administrator for more information.
+          </p>
+        </div>
+      </main>
+    ) : (
+      <main className={cn("flex-1 text-sidebar-foreground", !isPosPage && "p-4 md:p-6")}>
+        {children}
+      </main>
+    )
+  );
 
   return (
     <SidebarProvider>
@@ -100,7 +121,7 @@ export default function OutletLayout({
             </div>
             <UserNav />
         </header>
-        <main className={cn("flex-1 text-sidebar-foreground", !isPosPage && "p-4 md:p-6")}>{children}</main>
+        {mainContent}
       </SidebarInset>
     </SidebarProvider>
   );
