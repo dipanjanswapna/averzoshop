@@ -57,12 +57,12 @@ export default function OrderDetailsPage() {
                 <Skeleton className="h-9 w-24" />
                 <Skeleton className="h-8 w-48" />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="md:col-span-2 space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                <div className="lg:col-span-3 space-y-6">
                     <Skeleton className="h-32 w-full" />
                     <Skeleton className="h-64 w-full" />
                 </div>
-                <div className="space-y-6">
+                <div className="lg:col-span-2 space-y-6">
                     <Skeleton className="h-48 w-full" />
                     <Skeleton className="h-32 w-full" />
                 </div>
@@ -86,7 +86,7 @@ export default function OrderDetailsPage() {
   return (
     <>
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-4">
             <Button variant="outline" size="icon" asChild>
                 <Link href="/customer/my-orders">
@@ -98,7 +98,7 @@ export default function OrderDetailsPage() {
                 <p className="text-sm text-muted-foreground">Order ID: <span className="font-mono">{order.id}</span></p>
             </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-shrink-0">
             {getStatusBadge(order.status)}
             <Button variant="outline" onClick={() => setIsInvoiceOpen(true)}>
                 <Printer className="mr-2 h-4 w-4" />
@@ -107,13 +107,12 @@ export default function OrderDetailsPage() {
         </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
-        <div className="md:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
+        <div className="lg:col-span-3 space-y-6">
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center justify-between">
                         <span>Order Status</span>
-                        <Badge variant="outline" className="capitalize">{order.status.replace(/_/g, ' ')}</Badge>
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -134,8 +133,8 @@ export default function OrderDetailsPage() {
                                 <div className="relative h-16 w-16 rounded-md overflow-hidden border flex-shrink-0">
                                     <Image src={productMap.get(item.productId)?.image || 'https://placehold.co/100'} alt={item.productName} fill className="object-cover" />
                                 </div>
-                                <div className="flex-1">
-                                    <p className="font-medium text-sm">{item.productName}</p>
+                                <div className="flex-1 min-w-0">
+                                    <p className="font-medium text-sm truncate">{item.productName}</p>
                                     <p className="text-xs text-muted-foreground">SKU: {item.variantSku}</p>
                                     <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
                                 </div>
@@ -149,7 +148,7 @@ export default function OrderDetailsPage() {
            </Card>
         </div>
 
-        <div className="space-y-6 sticky top-24">
+        <div className="lg:col-span-2 space-y-6 sticky top-24">
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-base">

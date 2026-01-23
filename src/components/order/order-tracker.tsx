@@ -76,7 +76,7 @@ export function OrderTracker({ status, orderType, orderMode }: { status: OrderSt
                 <step.icon size={20} />
               </div>
               <p className={cn(
-                  "text-xs mt-2 font-medium w-20 transition-colors duration-300",
+                  "text-xs mt-2 font-medium transition-colors duration-300",
                   isActive ? 'text-primary' : 'text-muted-foreground'
               )}>
                 {step.label}
