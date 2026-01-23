@@ -28,7 +28,7 @@ export function UserNav() {
   const handleLogout = async () => {
     if (auth) {
       await firebaseSignOut(auth);
-      router.push('/login');
+      router.push('/welcome');
     }
   };
   
@@ -40,6 +40,18 @@ export function UserNav() {
       case 'rider': return '/rider/dashboard';
       case 'sales': return '/sales/dashboard';
       case 'customer': return '/customer';
+      default: return '/';
+    }
+  }
+
+  const getProfileLink = () => {
+    switch (userData?.role) {
+      case 'admin': return '/dashboard/settings';
+      case 'vendor': return '/vendor/settings';
+      case 'outlet': return '/outlet/settings';
+      case 'rider': return '/rider/settings';
+      case 'sales': return '/sales/settings';
+      case 'customer': return '/customer/profile';
       default: return '/';
     }
   }
@@ -86,9 +98,11 @@ export function UserNav() {
                   <span>Dashboard</span>
                </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem>
-              Profile
-              <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+            <DropdownMenuItem asChild>
+              <Link href={getProfileLink()}>
+                Profile
+                <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuItem>
               Settings
