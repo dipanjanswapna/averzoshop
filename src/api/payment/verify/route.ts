@@ -1,3 +1,4 @@
+
 import { NextResponse, type NextRequest } from 'next/server';
 import { firestore } from '@/firebase/server';
 import { FieldValue } from 'firebase-admin/firestore';
@@ -76,6 +77,8 @@ export async function POST(request: NextRequest) {
         
         const regularItems = currentOrderData.items.filter(item => {
           const productRef = firestore().collection('products').doc(item.productId);
+          // This logic might need adjustment if preOrder status is not on product level.
+          // For now, assume if product.preOrder.enabled is true, it's a pre-order item.
           return transaction.get(productRef).then(p => !p.data()?.preOrder?.enabled);
         });
 
@@ -111,25 +114,25 @@ export async function POST(request: NextRequest) {
         }
     
         // Deduct stock for regular (non-pre-order) items, only if it's the initial payment
-        if (!isPreOrderCompletion) {
+        if (!isPreOrderCompletion && currentOrderData.assignedOutletId) {
           for (const item of regularItems) {
               const product = productMap.get(item.productId);
               if (!product) continue; 
               
               const productRefToUpdate = firestore().collection('products').doc(item.productId);
-              const variantsArray = JSON.parse(JSON.stringify(Array.isArray(product.variants) ? product.variants : Object.values(product.variants)));
+              const variantsArray = JSON.parse(JSON.stringify(Array.isArray(product.variants) ? product.variants : Object.values(product.variants || {})));
               
               const variantIndex = variantsArray.findIndex((v: ProductVariant) => v.sku === item.variantSku);
               if (variantIndex === -1) throw new Error(`Variant ${item.variantSku} not found for product ${product.name}.`);
               
               const variant = variantsArray[variantIndex];
-              const currentOutletStock = variant.outlet_stocks?.[currentOrderData.assignedOutletId!] ?? 0;
+              const currentOutletStock = variant.outlet_stocks?.[currentOrderData.assignedOutletId] ?? 0;
               if (currentOutletStock < item.quantity) {
                   throw new Error(`Not enough stock for ${product.name} in outlet ${currentOrderData.assignedOutletId}.`);
               }
               
               variant.stock = (variant.stock || 0) - item.quantity;
-              if (variant.outlet_stocks && currentOrderData.assignedOutletId) {
+              if (variant.outlet_stocks) {
                   variant.outlet_stocks[currentOrderData.assignedOutletId] = currentOutletStock - item.quantity;
               }
       
@@ -144,7 +147,7 @@ export async function POST(request: NextRequest) {
         if (currentOrderData.giftCardCode && currentOrderData.giftCardDiscount && currentOrderData.giftCardDiscount > 0 && !isPreOrderCompletion) {
             const giftCardRef = firestore().collection('gift_cards').doc(currentOrderData.giftCardCode);
             const giftCardDoc = await transaction.get(giftCardRef);
-            if (!giftCardDoc.exists) throw new Error('Gift Card not found during transaction.');
+            if (!giftCardDoc.exists()) throw new Error('Gift Card not found during transaction.');
             const giftCard = giftCardDoc.data() as GiftCard;
             if (!giftCard.isEnabled || giftCard.balance < currentOrderData.giftCardDiscount) {
                 throw new Error('Gift card is invalid or has insufficient balance.');

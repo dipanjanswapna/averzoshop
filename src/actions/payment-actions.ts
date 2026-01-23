@@ -1,3 +1,4 @@
+
 'use server';
 
 import { Order } from '@/types/order';
@@ -24,6 +25,15 @@ export async function createSslCommerzSession(order: Order, user: UserData, amou
     : 'https://secure.sslcommerz.com/gwprocess/v4/api.php';
     
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9003';
+  
+  let shippingMethodString = 'Courier';
+  if (order.orderMode === 'pickup') {
+    shippingMethodString = 'Store Pickup';
+  } else if (order.shippingMethod === 'averzo_rider') {
+      shippingMethodString = 'Averzo Rider';
+  } else if (order.shippingMethod === 'third_party_courier' && order.courierName) {
+      shippingMethodString = order.courierName;
+  }
 
   const postData = {
     store_id: storeId,
@@ -35,7 +45,7 @@ export async function createSslCommerzSession(order: Order, user: UserData, amou
     fail_url: `${baseUrl}/payment/fail`,
     cancel_url: `${baseUrl}/payment/cancel`,
     ipn_url: `${baseUrl}/api/payment/verify`,
-    shipping_method: 'Courier',
+    shipping_method: shippingMethodString,
     product_name: order.items.map(i => i.productName).join(', '),
     product_category: 'eCommerce',
     product_profile: 'general',
@@ -43,14 +53,14 @@ export async function createSslCommerzSession(order: Order, user: UserData, amou
     cus_email: user.email,
     cus_add1: order.shippingAddress?.streetAddress || 'N/A',
     cus_city: order.shippingAddress?.district || 'N/A',
-    cus_state: order.shippingAddress?.division || 'N/A',
+    cus_state: (order.shippingAddress as any)?.division || 'N/A',
     cus_postcode: '1200', // SSLCommerz requires a postcode
     cus_country: 'Bangladesh',
     cus_phone: order.shippingAddress?.phone || 'N/A',
     ship_name: order.shippingAddress?.name || user.displayName,
     ship_add1: order.shippingAddress?.streetAddress || 'N/A',
     ship_city: order.shippingAddress?.district || 'N/A',
-    ship_state: order.shippingAddress?.division || 'N/A',
+    ship_state: (order.shippingAddress as any)?.division || 'N/A',
     ship_postcode: '1200',
     ship_country: 'Bangladesh',
   };

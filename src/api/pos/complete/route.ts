@@ -1,3 +1,4 @@
+
 import { NextResponse, type NextRequest } from 'next/server';
 import { firestore, getFirebaseAdminApp } from '@/firebase/server';
 import * as admin from 'firebase-admin';
@@ -58,8 +59,8 @@ export async function POST(request: NextRequest) {
             const giftCardDoc = await transaction.get(giftCardRef);
             if (!giftCardDoc.exists()) throw new Error('Gift card not found.');
             const giftCardData = giftCardDoc.data() as GiftCard;
-            if (giftCardData.balance < saleData.giftCardDiscount) {
-                throw new Error('Insufficient gift card balance.');
+            if (!giftCardData.isEnabled || giftCardData.balance < saleData.giftCardDiscount) {
+                throw new Error('Gift card is invalid or has insufficient balance.');
             }
             transaction.update(giftCardRef, { balance: admin.firestore.FieldValue.increment(-saleData.giftCardDiscount) });
         }
