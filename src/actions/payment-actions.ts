@@ -24,7 +24,7 @@ export async function createSslCommerzSession(order: Order, user: UserData, amou
     ? 'https://sandbox.sslcommerz.com/gwprocess/v4/api.php'
     : 'https://secure.sslcommerz.com/gwprocess/v4/api.php';
     
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:9003';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
   
   let shippingMethodString = 'Courier';
   if (order.orderMode === 'pickup') {
