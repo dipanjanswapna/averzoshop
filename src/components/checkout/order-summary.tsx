@@ -9,7 +9,7 @@ import Image from 'next/image';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { doc, getDoc, collection, query, where, getDocs, limit, Firestore } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, limit, type Firestore } from 'firebase/firestore';
 import { useFirebase } from '@/firebase';
 import type { Coupon } from '@/types/coupon';
 import { Award, XCircle, Gift } from 'lucide-react';

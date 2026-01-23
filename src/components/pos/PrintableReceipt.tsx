@@ -38,6 +38,7 @@ export function PrintableReceipt({ sale, outletId }: PrintableReceiptProps) {
                 {outlet && <p className="text-[9px]">Address: {outlet.location.address}</p>}
                 <p className="text-[9px] font-bold mt-1">Sale ID: #{sale.id.substring(0, 8).toUpperCase()}</p>
                  <p className="text-[9px]">Date: {saleDate.toLocaleString()}</p>
+                 {sale.customerName && <p className="text-[9px] font-bold">Customer: {sale.customerName}</p>}
             </div>
 
             <table className="w-full text-[9px]">
