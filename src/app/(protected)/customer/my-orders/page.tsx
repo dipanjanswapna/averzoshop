@@ -38,8 +38,8 @@ const getStatusBadge = (status: OrderStatus) => {
       case 'pre-ordered': return <Badge className="bg-purple-600/10 text-purple-600 capitalize">{status.replace('_', ' ')}</Badge>;
       case 'new': return <Badge className="bg-orange-500/10 text-orange-600 capitalize">Order Placed</Badge>;
       case 'preparing': return <Badge className="bg-yellow-500/10 text-yellow-600 capitalize">{status}</Badge>;
-      case 'ready_for_pickup': return <Badge className="bg-cyan-500/10 text-cyan-600 capitalize">{status.replace('_', ' ')}</Badge>;
-      case 'out_for_delivery': return <Badge className="bg-blue-500/10 text-blue-600 capitalize">{status.replace('_', ' ')}</Badge>;
+      case 'ready_for_pickup': return <Badge className="bg-cyan-500/10 text-cyan-600 capitalize">{status.replace(/_/g, ' ')}</Badge>;
+      case 'out_for_delivery': return <Badge className="bg-blue-500/10 text-blue-600 capitalize">{status.replace(/_/g, ' ')}</Badge>;
       case 'fulfilled':
       case 'delivered': return <Badge className="bg-green-500/10 text-green-600 capitalize">{status}</Badge>;
       case 'canceled': return <Badge variant="destructive" className="capitalize">{status}</Badge>;
@@ -62,6 +62,7 @@ const OrderListView = ({
   handleCompletePayment: (order: Order) => void;
   handleCopyOrderId: (orderId: string) => void;
 }) => {
+  const router = useRouter();
 
   const renderAction = (order: Order) => {
     const rider = order.riderId ? userMap.get(order.riderId) : null;
@@ -161,34 +162,30 @@ const OrderListView = ({
                 </TableHeader>
                 <TableBody>
                 {orders.map(order => (
-                    <TableRow key={order.id} className="group">
+                    <TableRow key={order.id} className="group cursor-pointer hover:bg-muted/50" onClick={() => router.push(`/customer/my-orders/${order.id}`)}>
                         <TableCell className="font-medium">
-                            <Link href={`/customer/my-orders/${order.id}`} className="hover:underline">
-                                <div className="flex items-center gap-2">
-                                    <span className="font-mono text-xs">{order.id.substring(0, 8)}...</span>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-7 w-7"
-                                        onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleCopyOrderId(order.id); }}
-                                    >
-                                        <Copy className="h-4 w-4" />
-                                        <span className="sr-only">Copy Order ID</span>
-                                    </Button>
-                                </div>
-                            </Link>
+                            <div className="flex items-center gap-2">
+                                <span className="font-mono text-xs">{order.id.substring(0, 8)}...</span>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7"
+                                    onClick={(e) => { e.stopPropagation(); e.preventDefault(); handleCopyOrderId(order.id); }}
+                                >
+                                    <Copy className="h-4 w-4" />
+                                    <span className="sr-only">Copy Order ID</span>
+                                </Button>
+                            </div>
                         </TableCell>
                         <TableCell>{order.createdAt?.toDate().toLocaleDateString()}</TableCell>
                         <TableCell>{getStatusBadge(order.status)}</TableCell>
                         <TableCell className="text-right">৳{order.totalAmount.toFixed(2)}</TableCell>
                         <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-2">
+                            <div className="flex items-center justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                                 {renderAction(order)}
-                                <Link href={`/customer/my-orders/${order.id}`} passHref>
-                                    <Button variant="outline" size="icon" className="h-9 w-9">
-                                        <ArrowRight className="h-4 w-4" />
-                                    </Button>
-                                </Link>
+                                <Button variant="outline" size="icon" className="h-9 w-9">
+                                    <ArrowRight className="h-4 w-4" />
+                                </Button>
                             </div>
                         </TableCell>
                     </TableRow>
@@ -201,7 +198,7 @@ const OrderListView = ({
         <div className="grid md:hidden gap-4">
             {orders.map(order => (
                 <Link key={order.id} href={`/customer/my-orders/${order.id}`} className="block">
-                    <Card className="flex flex-col h-full hover:bg-muted/50">
+                    <Card className="flex flex-col h-full hover:bg-muted/50 transition-colors">
                         <CardHeader>
                         <div className="flex items-start justify-between gap-4">
                             <div>
