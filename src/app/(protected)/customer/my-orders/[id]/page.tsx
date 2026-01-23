@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
@@ -8,7 +7,7 @@ import type { Product } from '@/types/product';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Home, Package } from 'lucide-react';
+import { ArrowLeft, Home, Package, Printer } from 'lucide-react';
 import Image from 'next/image';
 import { OrderTracker } from '@/components/order/order-tracker';
 import { Separator } from '@/components/ui/separator';
@@ -71,16 +70,24 @@ export default function OrderDetailsPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" asChild>
-            <Link href="/customer/my-orders">
-                <ArrowLeft className="h-4 w-4" />
-            </Link>
-        </Button>
-        <div>
-            <h1 className="text-2xl font-bold font-headline">Order Details</h1>
-            <p className="text-sm text-muted-foreground">Order ID: <span className="font-mono">{order.id}</span></p>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+            <Button variant="outline" size="icon" asChild>
+                <Link href="/customer/my-orders">
+                    <ArrowLeft className="h-4 w-4" />
+                </Link>
+            </Button>
+            <div>
+                <h1 className="text-2xl font-bold font-headline">Order Details</h1>
+                <p className="text-sm text-muted-foreground">Order ID: <span className="font-mono">{order.id}</span></p>
+            </div>
         </div>
+         <Link href={`/customer/my-orders/${id}/invoice`}>
+            <Button variant="outline">
+                <Printer className="mr-2 h-4 w-4" />
+                Print Invoice
+            </Button>
+        </Link>
       </div>
 
       <Card>
@@ -154,5 +161,3 @@ export default function OrderDetailsPage() {
     </div>
   );
 }
-
-    
