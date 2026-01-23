@@ -13,7 +13,9 @@ import { OrderTracker } from '@/components/order/order-tracker';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import type { UserData } from '@/types/user';
+import { InvoicePreviewDialog } from '@/components/order/InvoicePreviewDialog';
 
 const getStatusBadge = (status: OrderStatus) => {
     switch (status) {
@@ -34,11 +36,13 @@ export default function OrderDetailsPage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
+  const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
 
   const { data: order, isLoading: orderLoading } = useFirestoreDoc<Order>(`orders/${id}`);
+  const { data: customer, isLoading: customerLoading } = useFirestoreDoc<UserData>(order ? `users/${order.customerId}` : null);
   const { data: allProducts, isLoading: productsLoading } = useFirestoreQuery<Product>('products');
 
-  const isLoading = orderLoading || productsLoading;
+  const isLoading = orderLoading || productsLoading || customerLoading;
 
   const productMap = useMemo(() => {
     if (!allProducts) return new Map();
@@ -69,6 +73,7 @@ export default function OrderDetailsPage() {
   }
 
   return (
+    <>
     <div className="space-y-8">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -82,12 +87,10 @@ export default function OrderDetailsPage() {
                 <p className="text-sm text-muted-foreground">Order ID: <span className="font-mono">{order.id}</span></p>
             </div>
         </div>
-         <Link href={`/customer/my-orders/${id}/invoice`}>
-            <Button variant="outline">
-                <Printer className="mr-2 h-4 w-4" />
-                Print Invoice
-            </Button>
-        </Link>
+        <Button variant="outline" onClick={() => setIsInvoiceOpen(true)}>
+            <Printer className="mr-2 h-4 w-4" />
+            Invoice
+        </Button>
       </div>
 
       <Card>
@@ -159,5 +162,12 @@ export default function OrderDetailsPage() {
         </div>
       </div>
     </div>
+    <InvoicePreviewDialog
+        open={isInvoiceOpen}
+        onOpenChange={setIsInvoiceOpen}
+        order={order}
+        customer={customer}
+    />
+    </>
   );
 }
