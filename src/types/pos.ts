@@ -1,3 +1,4 @@
+
 import { Timestamp } from "firebase/firestore";
 
 export interface POSSaleItem {
@@ -21,6 +22,8 @@ export interface POSSale {
     promoCode?: string | null;
     loyaltyPointsUsed?: number;
     loyaltyDiscount?: number;
+    giftCardCode?: string;
+    giftCardDiscount?: number;
     totalAmount: number;
     fullOrderValue?: number;
     paymentMethod: 'cash' | 'card' | 'mobile';

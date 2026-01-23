@@ -180,6 +180,8 @@
         "promoCode": { "type": "string", "description": "The promo code used for the sale." },
         "loyaltyPointsUsed": { "type": "number", "description": "Number of loyalty points redeemed for this sale." },
         "loyaltyDiscount": { "type": "number", "description": "The discount amount in BDT from redeemed loyalty points." },
+        "giftCardDiscount": { "type": "number", "description": "Discount amount in BDT from a gift card." },
+        "giftCardCode": { "type": "string", "description": "The code of the gift card used." },
         "totalAmount": { "type": "number", "description": "The final amount after discounts." },
         "paymentMethod": { "type": "string", "enum": ["cash", "card", "mobile"] },
         "createdAt": { "type": "string", "format": "date-time" }
@@ -222,6 +224,8 @@
         "promoCode": { "type": "string", "description": "The promo code used." },
         "loyaltyPointsUsed": { "type": "number", "description": "Number of loyalty points redeemed for this order." },
         "loyaltyDiscount": { "type": "number", "description": "The discount amount in BDT from redeemed loyalty points." },
+        "giftCardDiscount": { "type": "number", "description": "Discount amount in BDT from a gift card." },
+        "giftCardCode": { "type": "string", "description": "The code of the gift card used." },
         "totalAmount": { "type": "number", "description": "The amount paid by the customer (can be partial for pre-orders)." },
         "fullOrderValue": { "type": "number", "description": "The total value of the order, especially for pre-orders with partial payment." },
         "assignedOutletId": { "type": "string" },
@@ -466,6 +470,23 @@
       },
       "required": ["code", "discountType", "value", "expiryDate", "creatorType", "creatorId"]
     },
+    "gift_card": {
+      "title": "Gift Card",
+      "description": "A digital gift card with a monetary value.",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string", "description": "The unique, redeemable code for the gift card." },
+        "initialValue": { "type": "number", "description": "The initial value of the card in BDT." },
+        "balance": { "type": "number", "description": "The remaining balance on the card in BDT." },
+        "recipientEmail": { "type": "string", "format": "email", "description": "The email of the person the card is for." },
+        "senderName": { "type": "string", "description": "The name of the person who sent the card." },
+        "message": { "type": "string", "description": "A personal message included with the card." },
+        "expiryDate": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "isEnabled": { "type": "boolean", "description": "Whether the gift card is active and can be used." }
+      },
+      "required": ["code", "initialValue", "balance", "expiryDate", "createdAt", "isEnabled"]
+    },
     "notification_subscription": {
       "title": "Notification Subscription",
       "description": "Tracks user requests for back-in-stock notifications.",
@@ -499,6 +520,7 @@
     "/orders/{orderId}": { "schema": { "$ref": "#/entities/order" }, "description": "Stores customer online orders routed to specific outlets for fulfillment." },
     "/stock_transfers/{transferId}": { "schema": { "$ref": "#/entities/stock_transfer" }, "description": "Tracks inter-outlet stock transfers initiated by admins." },
     "/coupons/{couponId}": { "schema": { "$ref": "#/entities/coupon" }, "description": "Stores all promotional codes for discounts." },
+    "/gift_cards/{cardId}": { "schema": { "$ref": "#/entities/gift_card" }, "description": "Stores all gift card data." },
     "/notification_subscriptions/{subscriptionId}": { "schema": { "$ref": "#/entities/notification_subscription" }, "description": "Stores all user requests for back-in-stock notifications." },
     "/settings/loyalty": { "schema": { "$ref": "#/entities/loyalty_settings" }, "description": "Stores the global settings for the loyalty program." }
   }

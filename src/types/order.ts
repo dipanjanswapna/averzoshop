@@ -30,6 +30,8 @@ export interface Order {
     promoCode?: string | null;
     loyaltyPointsUsed?: number;
     loyaltyDiscount?: number;
+    giftCardCode?: string;
+    giftCardDiscount?: number;
     totalAmount: number;
     fullOrderValue?: number;
     assignedOutletId?: string | null;
