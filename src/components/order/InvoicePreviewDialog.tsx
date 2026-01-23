@@ -83,7 +83,7 @@ export function InvoicePreviewDialog({ open, onOpenChange, order, customer }: In
     return (
         <>
             <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogContent className="max-w-4xl w-full no-print">
+                <DialogContent className="w-full sm:max-w-4xl no-print">
                     <DialogHeader>
                         <DialogTitle>Invoice Preview</DialogTitle>
                         <DialogDescription>
@@ -91,7 +91,7 @@ export function InvoicePreviewDialog({ open, onOpenChange, order, customer }: In
                         </DialogDescription>
                     </DialogHeader>
                     
-                    <div className="bg-gray-100 dark:bg-gray-900 p-8 rounded-md overflow-y-auto max-h-[60vh] my-4">
+                    <div className="bg-muted p-2 md:p-4 overflow-auto max-h-[60vh] my-4 rounded-md">
                         {/* The ref is on the wrapper of the component to be printed */}
                         <div ref={invoiceRef} className="mx-auto bg-white dark:bg-card">
                             <PrintableInvoice order={order} customer={customer} />
@@ -102,7 +102,7 @@ export function InvoicePreviewDialog({ open, onOpenChange, order, customer }: In
                         <DialogClose asChild>
                             <Button variant="outline" className="w-full sm:w-auto">Close</Button>
                         </DialogClose>
-                        <div className="flex gap-2 w-full sm:w-auto">
+                        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                             <Button onClick={handleDownloadPdf} className="w-full gap-2" disabled={isDownloading}>
                                 {isDownloading ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
                                 Download PDF
