@@ -46,7 +46,6 @@ export function InvoicePreviewDialog({ open, onOpenChange, order, customer }: In
 
             const imgData = canvas.toDataURL('image/png');
             
-            // Using jspdf
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = pdf.internal.pageSize.getHeight();
@@ -83,7 +82,7 @@ export function InvoicePreviewDialog({ open, onOpenChange, order, customer }: In
     return (
         <>
             <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogContent className="w-full sm:max-w-4xl no-print">
+                <DialogContent className="w-[95vw] max-w-2xl p-4 sm:p-6 no-print">
                     <DialogHeader>
                         <DialogTitle>Invoice Preview</DialogTitle>
                         <DialogDescription>
@@ -91,30 +90,32 @@ export function InvoicePreviewDialog({ open, onOpenChange, order, customer }: In
                         </DialogDescription>
                     </DialogHeader>
                     
-                    <div className="bg-muted p-2 md:p-4 overflow-auto max-h-[60vh] my-4 rounded-md">
-                        {/* The ref is on the wrapper of the component to be printed */}
-                        <div ref={invoiceRef} className="mx-auto bg-white dark:bg-card">
+                    <div className="bg-muted p-2 my-4 rounded-md overflow-auto max-h-[60vh]">
+                        <div ref={invoiceRef} className="bg-white dark:bg-card w-[800px] transform scale-[0.9] origin-top-left">
                             <PrintableInvoice order={order} customer={customer} />
                         </div>
                     </div>
 
-                    <DialogFooter className="sm:justify-between gap-2 flex-col-reverse sm:flex-row">
+                    <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between gap-2">
                         <DialogClose asChild>
                             <Button variant="outline" className="w-full sm:w-auto">Close</Button>
                         </DialogClose>
-                        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                            <Button onClick={handleDownloadPdf} className="w-full gap-2" disabled={isDownloading}>
-                                {isDownloading ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
-                                Download PDF
+                        <div className="flex gap-2 w-full sm:w-auto">
+                            <Button onClick={handleDownloadPdf} className="flex-1 sm:flex-initial gap-2" disabled={isDownloading}>
+                                {isDownloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+                                <span className="sm:hidden">PDF</span>
+                                <span className="hidden sm:inline">Download</span>
                             </Button>
-                            <Button onClick={handlePrint} className="w-full gap-2">
-                                <Printer size={18} /> Print Now
+                            <Button onClick={handlePrint} className="flex-1 sm:flex-initial gap-2">
+                                <Printer size={16} />
+                                <span className="sm:hidden">Print</span>
+                                <span className="hidden sm:inline">Print Now</span>
                             </Button>
                         </div>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-            {/* This hidden element is for the browser's native print function */}
+            
             <div className="printable-area">
                 <PrintableInvoice order={order} customer={customer} />
             </div>
