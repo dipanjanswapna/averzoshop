@@ -3,6 +3,7 @@ import { firestore } from '@/firebase/server';
 import { FieldValue } from 'firebase-admin/firestore';
 import type { Product, ProductVariant } from '@/types/product';
 import type { Order } from '@/types/order';
+import type { GiftCard } from '@/types/gift-card';
 
 export async function POST(request: NextRequest) {
   try {
@@ -139,6 +140,19 @@ export async function POST(request: NextRequest) {
           }
         }
     
+        // Handle gift card balance deduction, only on initial payment
+        if (currentOrderData.giftCardCode && currentOrderData.giftCardDiscount && currentOrderData.giftCardDiscount > 0 && !isPreOrderCompletion) {
+            const giftCardRef = firestore().collection('gift_cards').doc(currentOrderData.giftCardCode);
+            const giftCardDoc = await transaction.get(giftCardRef);
+            if (!giftCardDoc.exists) throw new Error('Gift Card not found during transaction.');
+            const giftCard = giftCardDoc.data() as GiftCard;
+            if (!giftCard.isEnabled || giftCard.balance < currentOrderData.giftCardDiscount) {
+                throw new Error('Gift card is invalid or has insufficient balance.');
+            }
+            transaction.update(giftCardRef, { balance: FieldValue.increment(-currentOrderData.giftCardDiscount) });
+        }
+
+
         if(userDoc.exists) {
             const loyaltyPointsUsed = currentOrderData.loyaltyPointsUsed || 0;
 

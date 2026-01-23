@@ -6,6 +6,7 @@ import type { POSSale } from '@/types/pos';
 import type { UserData } from '@/types/user';
 import type { Product } from '@/types/product';
 import { sendTargetedNotification } from '@/ai/flows/send-targeted-notification';
+import { GiftCard } from '@/types/gift-card';
 
 interface LoyaltySettingsData {
     pointsPer100Taka: { silver: number; gold: number; platinum: number; };
@@ -50,6 +51,17 @@ export async function POST(request: NextRequest) {
         if (saleData.promoCode) {
             const couponRef = db.collection('coupons').doc(saleData.promoCode);
             transaction.update(couponRef, { usedCount: admin.firestore.FieldValue.increment(1) });
+        }
+        
+        if (saleData.giftCardCode && saleData.giftCardDiscount && saleData.giftCardDiscount > 0) {
+            const giftCardRef = db.collection('gift_cards').doc(saleData.giftCardCode);
+            const giftCardDoc = await transaction.get(giftCardRef);
+            if (!giftCardDoc.exists()) throw new Error('Gift card not found.');
+            const giftCardData = giftCardDoc.data() as GiftCard;
+            if (giftCardData.balance < saleData.giftCardDiscount) {
+                throw new Error('Insufficient gift card balance.');
+            }
+            transaction.update(giftCardRef, { balance: admin.firestore.FieldValue.increment(-saleData.giftCardDiscount) });
         }
 
         if (saleData.customerId) {

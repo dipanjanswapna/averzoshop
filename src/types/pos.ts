@@ -22,7 +22,7 @@ export interface POSSale {
     promoCode?: string | null;
     loyaltyPointsUsed?: number;
     loyaltyDiscount?: number;
-    giftCardCode?: string;
+    giftCardCode?: string | null;
     giftCardDiscount?: number;
     totalAmount: number;
     fullOrderValue?: number;

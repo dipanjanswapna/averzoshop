@@ -9,17 +9,18 @@ import Image from 'next/image';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { doc, getDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, limit, Firestore } from 'firebase/firestore';
 import { useFirebase } from '@/firebase';
 import type { Coupon } from '@/types/coupon';
-import { Award, XCircle } from 'lucide-react';
+import { Award, XCircle, Gift } from 'lucide-react';
 import { Label } from '../ui/label';
 
 export function CheckoutOrderSummary() {
   const { 
     items, discount, promoCode, pointsApplied, pointsDiscount, shippingInfo, totalPayable,
     regularItemsSubtotal, preOrderItemsSubtotal, preOrderDepositPayable,
-    cardPromoDiscountAmount, fullOrderTotal, isPartialPayment
+    cardPromoDiscountAmount, fullOrderTotal, isPartialPayment,
+    giftCardCode, giftCardDiscount, applyGiftCard, removeGiftCard,
   } = useCart(state => ({
     items: state.items,
     discount: state.discount,
@@ -34,6 +35,10 @@ export function CheckoutOrderSummary() {
     cardPromoDiscountAmount: state.cardPromoDiscountAmount,
     fullOrderTotal: state.fullOrderTotal,
     isPartialPayment: state.isPartialPayment,
+    giftCardCode: state.giftCardCode,
+    giftCardDiscount: state.giftCardDiscount,
+    applyGiftCard: state.applyGiftCard,
+    removeGiftCard: state.removeGiftCard,
   }));
 
   const applyPromoCode = useCart(state => state.applyPromoCode);
@@ -50,6 +55,9 @@ export function CheckoutOrderSummary() {
   const [pointsToUseInput, setPointsToUseInput] = useState('');
   const [potentialPointsDiscount, setPotentialPointsDiscount] = useState(0);
 
+  const [giftCardInput, setGiftCardInput] = useState('');
+  const [isApplyingGiftCard, setIsApplyingGiftCard] = useState(false);
+
   const pointValue = 0.20; // This should ideally come from settings
   const availablePoints = userData?.loyaltyPoints || 0;
 
@@ -62,12 +70,16 @@ export function CheckoutOrderSummary() {
   }, [userData, applyCardPromo]);
 
   const { maxPointsForOrder, maxDiscountFromPoints } = useMemo(() => {
-    const maxDiscount = regularItemsSubtotal - cardPromoDiscountAmount - discount + preOrderDepositPayable;
+    const payableAfterPromos = regularItemsSubtotal - cardPromoDiscountAmount - discount;
+    const payableAfterGiftCard = (payableAfterPromos > 0 ? payableAfterPromos : 0) - giftCardDiscount;
+    const maxDiscount = (payableAfterGiftCard > 0 ? payableAfterGiftCard : 0) + preOrderDepositPayable;
+    
     const maxPoints = Math.floor(Math.max(0, maxDiscount) / pointValue);
     const usablePoints = Math.min(maxPoints, availablePoints);
     const discountValue = usablePoints * pointValue;
     return { maxPointsForOrder: usablePoints, maxDiscountFromPoints: discountValue };
-  }, [regularItemsSubtotal, cardPromoDiscountAmount, discount, preOrderDepositPayable, availablePoints, pointValue]);
+  }, [regularItemsSubtotal, cardPromoDiscountAmount, discount, giftCardDiscount, preOrderDepositPayable, availablePoints, pointValue]);
+
 
   useEffect(() => {
       const pointsNum = parseInt(pointsToUseInput, 10);
@@ -126,6 +138,13 @@ export function CheckoutOrderSummary() {
     } finally {
       setIsApplyingPromo(false);
     }
+  };
+
+  const handleApplyGiftCard = async () => {
+    if (!giftCardInput.trim() || !firestore) return;
+    setIsApplyingGiftCard(true);
+    await applyGiftCard(giftCardInput, firestore);
+    setIsApplyingGiftCard(false);
   };
 
   const handleApplyPoints = () => {
@@ -190,6 +209,13 @@ export function CheckoutOrderSummary() {
                 </div>
             )}
 
+             {giftCardDiscount > 0 && (
+                <div className="flex justify-between text-green-600">
+                    <span className="font-medium pl-4">↳ Gift Card</span>
+                    <span>- ৳{giftCardDiscount.toFixed(2)}</span>
+                </div>
+            )}
+
             {pointsDiscount > 0 && (
                 <div className="flex justify-between text-green-600">
                     <span className="font-medium pl-4">↳ Loyalty Points</span>
@@ -233,6 +259,33 @@ export function CheckoutOrderSummary() {
                 {isApplyingPromo ? 'Applying...' : 'Apply'}
                 </Button>
             </div>
+        </div>
+
+        <Separator />
+         <div className="space-y-2">
+            <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1"><Gift size={12}/> Gift Card</Label>
+            {giftCardCode ? (
+                <div className="flex justify-between items-center bg-green-100/50 p-2 rounded-md">
+                    <div className="text-green-700">
+                        <p className="text-sm font-bold">Applied: {giftCardCode}</p>
+                        <p className="text-xs">-৳{giftCardDiscount.toFixed(2)}</p>
+                    </div>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={removeGiftCard}><XCircle className="h-4 w-4" /></Button>
+                </div>
+            ) : (
+                <div className="flex items-end gap-2">
+                    <Input 
+                        id="gift-card-code" 
+                        placeholder="Enter gift card code" 
+                        value={giftCardInput}
+                        onChange={(e) => setGiftCardInput(e.target.value)}
+                        disabled={isApplyingGiftCard}
+                    />
+                    <Button onClick={handleApplyGiftCard} disabled={isApplyingGiftCard || !giftCardInput}>
+                    {isApplyingGiftCard ? 'Applying...' : 'Apply'}
+                    </Button>
+                </div>
+            )}
         </div>
 
         {userData && availablePoints > 0 && (
@@ -279,7 +332,3 @@ export function CheckoutOrderSummary() {
     </Card>
   );
 }
-
-    
-
-    
