@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import { WishlistButton } from '../ui/wishlist-button';
 import { ScrollArea } from '../ui/scroll-area';
 import { FlashSaleTimer } from '../product/flash-sale-timer';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 interface QuickViewDialogProps {
   product: Product | null;
@@ -71,7 +72,7 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
       setActiveMedia({ type: 'image', src: product.image });
       setQuantity(1);
     }
-  }, [product]);
+  }, [product, open]);
 
   useEffect(() => {
     if (!product) return;
@@ -172,12 +173,12 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl w-[95vw] h-auto max-h-[90vh] flex flex-col md:flex-row p-0 gap-0">
+      <DialogContent className="max-w-3xl w-[95vw] h-auto max-h-[90vh] flex flex-col md:flex-row p-0 gap-0">
         <DialogHeader className="sr-only">
           <DialogTitle>Product Quick View: {product.name}</DialogTitle>
           <DialogDescription>Quickly view product details, select options, and add to cart.</DialogDescription>
         </DialogHeader>
-        <div className="w-full md:w-1/2 bg-muted/30 p-4 md:p-6 flex flex-col gap-4">
+        <div className="w-full md:w-1/2 bg-muted/50 p-4 flex flex-col gap-4">
           <div className="relative aspect-square w-full rounded-xl overflow-hidden shadow-lg border">
             {activeMedia.type === 'video' ? (
                 <iframe className="w-full h-full" src={getAutoplayUrl(activeMedia.src)} title={product.name} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
@@ -190,40 +191,48 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
                 </div>
             )}
             <div className="absolute top-2 left-2 z-10 flex flex-col gap-1.5">
-                {discount > 0 && !isOutOfStock && <Badge variant="destructive">{discount}% OFF</Badge>}
-                {product.preOrder?.enabled && <Badge className="bg-purple-600">Pre-Order</Badge>}
-                {isFlashSaleActive && <Badge className="bg-orange-500 animate-pulse flex items-center gap-1"><Zap size={12} /> FLASH SALE</Badge>}
-                {product.giftWithPurchase?.enabled && <Badge className="bg-green-600 flex items-center gap-1"><Gift size={12}/> FREE GIFT</Badge>}
-                {product.isBestSeller && <Badge className="bg-teal-500">Best Seller</Badge>}
+                {discount > 0 && !isOutOfStock && <Badge className="text-[10px] font-bold px-2 py-0.5" variant="destructive">{discount}% OFF</Badge>}
+                {product.preOrder?.enabled && <Badge className="text-[10px] font-bold px-2 py-0.5 bg-purple-600">Pre-Order</Badge>}
+                {isFlashSaleActive && <Badge className="text-[10px] font-bold px-2 py-0.5 bg-orange-500 animate-pulse flex items-center gap-1"><Zap size={12} /> FLASH SALE</Badge>}
+                {product.giftWithPurchase?.enabled && <Badge className="text-[10px] font-bold px-2 py-0.5 bg-green-600 flex items-center gap-1"><Gift size={12}/> FREE GIFT</Badge>}
+                {product.isNew && <Badge className="text-[10px] font-bold px-2 py-0.5 bg-blue-500">NEW</Badge>}
+                {product.isBestSeller && <Badge className="text-[10px] font-bold px-2 py-0.5 bg-teal-500">BEST SELLER</Badge>}
             </div>
           </div>
-          <ScrollArea className="w-full">
-            <div className="flex gap-2 pb-2">
+          <Carousel opts={{ align: "start" }} className="w-full">
+            <CarouselContent className="-ml-2">
                 {allMedia.map((media, index) => (
-                <button
-                    key={index}
-                    onClick={() => setActiveMedia(media)}
-                    className={cn("relative aspect-square w-16 h-16 rounded-md overflow-hidden border-2 flex-shrink-0", activeMedia.src === media.src ? 'border-primary' : 'border-transparent')}
-                >
-                    <Image src={media.type === 'video' ? getYouTubeThumbnail(media.src) : media.src} alt={`${product.name} thumbnail ${index + 1}`} fill className="object-cover" />
-                    {media.type === 'video' && (
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center"><Youtube className="text-white h-6 w-6" /></div>
-                    )}
-                </button>
+                <CarouselItem key={index} className="basis-1/4 sm:basis-1/5 pl-2">
+                     <button
+                        onClick={() => setActiveMedia(media)}
+                        className={cn("relative aspect-square w-full rounded-md overflow-hidden border-2 flex-shrink-0", activeMedia.src === media.src ? 'border-primary' : 'border-transparent')}
+                    >
+                        <Image src={media.type === 'video' ? getYouTubeThumbnail(media.src) : media.src} alt={`${product.name} thumbnail ${index + 1}`} fill className="object-cover" />
+                        {media.type === 'video' && (
+                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center"><Youtube className="text-white h-6 w-6" /></div>
+                        )}
+                    </button>
+                </CarouselItem>
                 ))}
-            </div>
-          </ScrollArea>
+            </CarouselContent>
+            {allMedia.length > 5 && (
+              <>
+                <CarouselPrevious className="absolute -left-3 top-1/2 -translate-y-1/2 z-10 hidden sm:flex bg-white/80 hover:bg-white text-black h-7 w-7" />
+                <CarouselNext className="absolute -right-3 top-1/2 -translate-y-1/2 z-10 hidden sm:flex bg-white/80 hover:bg-white text-black h-7 w-7" />
+              </>
+            )}
+          </Carousel>
         </div>
         
         <div className="w-full md:w-1/2 flex flex-col">
           <ScrollArea className="h-full">
-            <div className="p-6 md:p-8 space-y-4">
+            <div className="p-6 space-y-3">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">{product.brand}</p>
-                <h2 className="text-2xl font-bold font-headline">{product.name}</h2>
-                <div className="flex items-center gap-2 mt-2">
-                    <div className="flex items-center gap-0.5 text-yellow-500">{[...Array(5)].map((_, i) => <Star key={i} size={16} className={i < 4 ? "fill-current" : "text-gray-300"} />)}</div>
-                    <span className="text-sm text-muted-foreground">(123 reviews)</span>
+                <p className="text-xs font-medium text-muted-foreground">{product.brand}</p>
+                <h2 className="text-xl font-bold font-headline">{product.name}</h2>
+                <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center gap-0.5 text-yellow-500">{[...Array(5)].map((_, i) => <Star key={i} size={14} className={i < 4 ? "fill-current" : "text-gray-300"} />)}</div>
+                    <span className="text-xs text-muted-foreground">(123 reviews)</span>
                 </div>
               </div>
 
@@ -231,10 +240,10 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
                 {product.description.length > 150 ? `${product.description.substring(0, 150)}...` : product.description}
               </p>
 
-              <div className="flex items-baseline gap-4 pt-2">
-                <span className="text-4xl font-bold font-roboto text-primary">৳{displayPrice.toFixed(2)}</span>
+              <div className="flex items-baseline gap-3 pt-1">
+                <span className="text-3xl font-bold font-roboto text-primary">৳{displayPrice.toFixed(2)}</span>
                 {displayOriginalPrice && displayOriginalPrice > displayPrice && (
-                    <span className="text-xl text-muted-foreground line-through">৳{displayOriginalPrice.toFixed(2)}</span>
+                    <span className="text-lg text-muted-foreground line-through">৳{displayOriginalPrice.toFixed(2)}</span>
                 )}
               </div>
               
@@ -246,35 +255,45 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
                   </div>
               )}
 
-              {availableColors.length > 0 && (
-                <div className="space-y-2 pt-2"><p className="font-semibold text-sm">Color: <span className="font-normal text-muted-foreground">{selectedColor}</span></p><div className="flex flex-wrap gap-2">{availableColors.map(color => (<button key={color} onClick={() => setSelectedColor(color)} className={cn('h-8 w-8 rounded-full border-2 transition-transform transform hover:scale-110', selectedColor === color ? 'border-primary ring-2 ring-primary/50' : 'border-border')} style={{ backgroundColor: color.toLowerCase() }} title={color} />))}</div></div>
-              )}
-              {availableSizes.length > 0 && (
-                <div className="space-y-2 pt-2"><p className="font-semibold text-sm">Size: <span className="font-normal text-muted-foreground">{selectedSize}</span></p><div className="flex flex-wrap gap-2">{availableSizes.map(size => (<button key={size} onClick={() => setSelectedSize(size)} className={cn('h-9 px-4 border rounded-md text-sm font-medium transition-colors', selectedSize === size ? 'bg-primary text-primary-foreground' : 'bg-secondary hover:bg-muted')}>{size}</button>))}</div></div>
-              )}
-
-              <div className="pt-4 space-y-4">
-                  <div className="flex items-center gap-4">
+              <div className="space-y-3 pt-2">
+                {availableColors.length > 0 && (
+                  <div className="space-y-2"><p className="font-semibold text-sm">Color: <span className="font-normal text-muted-foreground">{selectedColor}</span></p><div className="flex flex-wrap gap-2">{availableColors.map(color => (<button key={color} onClick={() => setSelectedColor(color)} className={cn('h-8 w-8 rounded-full border-2 transition-transform transform hover:scale-110', selectedColor === color ? 'border-primary ring-2 ring-primary/50' : 'border-border')} style={{ backgroundColor: color.toLowerCase() }} title={color} />))}</div></div>
+                )}
+                {availableSizes.length > 0 && (
+                  <div className="space-y-2"><p className="font-semibold text-sm">Size: <span className="font-normal text-muted-foreground">{selectedSize}</span></p><div className="flex flex-wrap gap-2">{availableSizes.map(size => (<button key={size} onClick={() => setSelectedSize(size)} className={cn('h-9 px-3 border rounded-md text-xs font-medium transition-colors', selectedSize === size ? 'bg-primary text-primary-foreground' : 'bg-secondary hover:bg-muted')}>{size}</button>))}</div></div>
+                )}
+              </div>
+              
+              <div className="flex items-center gap-2 text-sm pt-2">
+                <p className="font-semibold">Availability:</p>
+                {isOutOfStock ? (
+                  <Badge variant="destructive">Out of Stock</Badge>
+                ) : product.preOrder?.enabled ? (
+                  <Badge className="bg-blue-600/10 text-blue-600">Pre-order</Badge>
+                ) : (
+                  <Badge className="bg-green-600/10 text-green-600">In Stock: {stockCount} items</Badge>
+                )}
+              </div>
+              
+              <div className="space-y-3 pt-3 border-t">
+                  <div className="flex items-center gap-3">
+                      <p className="text-sm font-semibold">Quantity:</p>
                       <div className="flex items-center border rounded-md">
-                          <Button variant="ghost" size="icon" className="h-12 w-12" onClick={() => handleQuantityChange(-1)}><Minus size={16} /></Button>
-                          <span className="font-bold text-lg w-10 text-center">{quantity}</span>
-                          <Button variant="ghost" size="icon" className="h-12 w-12" onClick={() => handleQuantityChange(1)}><Plus size={16} /></Button>
+                          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => handleQuantityChange(-1)}><Minus size={14} /></Button>
+                          <span className="font-bold text-sm w-8 text-center">{quantity}</span>
+                          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => handleQuantityChange(1)}><Plus size={14} /></Button>
                       </div>
-                      <Button onClick={handleAddToCart} size="lg" className="w-full h-12 text-base" disabled={isOutOfStock}>
-                          <ShoppingBag size={20} className="mr-2" />
-                          {product.preOrder?.enabled ? 'Pre-order Now' : 'Add to Bag'}
-                      </Button>
                   </div>
-                  <div className="flex items-center justify-between">
-                     <div className="text-sm text-muted-foreground">
-                        <p>SKU: <span className="font-mono">{selectedVariant?.sku || 'N/A'}</span></p>
-                        {!isOutOfStock && <p className="text-green-600 font-bold">In Stock: {stockCount} items</p>}
-                     </div>
-                     <WishlistButton productId={product.id} variant="secondary" />
+                  <div className="flex items-center gap-2">
+                    <Button onClick={handleAddToCart} size="lg" className="w-full h-11 text-sm flex-1" disabled={isOutOfStock}>
+                        <ShoppingBag size={18} className="mr-2" />
+                        {product.preOrder?.enabled ? 'Pre-order Now' : 'Add to Bag'}
+                    </Button>
+                     <WishlistButton productId={product.id} variant="outline" size="icon" className="h-11 w-11 flex-shrink-0" />
                   </div>
               </div>
-
-              <div className="pt-4 border-t">
+              
+              <div className="pt-3 border-t">
                   <Button variant="link" asChild className="p-0 h-auto">
                       <Link href={`/product/${product.id}`} onClick={() => onOpenChange(false)}>
                           View Full Product Details <ArrowRight size={16} className="ml-2" />
