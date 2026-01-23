@@ -1,9 +1,11 @@
+
 'use client';
 import { FirebaseClientProvider } from '@/firebase';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter, usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import AverzoLogo from '@/components/averzo-logo';
+import LayoutDebugger from '@/components/debug/LayoutDebugger';
 
 function ProtectedContent({ children }: { children: React.ReactNode }) {
   const { user, userData, loading } = useAuth();
@@ -132,6 +134,7 @@ export default function ProtectedLayout({
   return (
     <FirebaseClientProvider>
       <ProtectedContent>{children}</ProtectedContent>
+      <LayoutDebugger />
     </FirebaseClientProvider>
   );
 }
