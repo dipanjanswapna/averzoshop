@@ -194,14 +194,16 @@ export default function UsersPage() {
         </CardHeader>
         <CardContent>
           <Tabs value={filter} onValueChange={setFilter}>
-            <TabsList>
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="customer">Customers</TabsTrigger>
-              <TabsTrigger value="sales">Sales Reps</TabsTrigger>
-              <TabsTrigger value="vendor">Vendors</TabsTrigger>
-              <TabsTrigger value="rider">Riders</TabsTrigger>
-              <TabsTrigger value="pending" className="text-orange-500">Pending</TabsTrigger>
-            </TabsList>
+            <div className="w-full overflow-x-auto no-scrollbar">
+                <TabsList>
+                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="customer">Customers</TabsTrigger>
+                <TabsTrigger value="sales">Sales Reps</TabsTrigger>
+                <TabsTrigger value="vendor">Vendors</TabsTrigger>
+                <TabsTrigger value="rider">Riders</TabsTrigger>
+                <TabsTrigger value="pending" className="text-orange-500">Pending</TabsTrigger>
+                </TabsList>
+            </div>
             <div className="mt-4">
               {/* Desktop View */}
               <div className="hidden md:block">

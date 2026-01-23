@@ -205,14 +205,16 @@ export default function OrdersPage() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="all">
-              <TabsList>
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="new">New</TabsTrigger>
-                <TabsTrigger value="preparing">Preparing</TabsTrigger>
-                <TabsTrigger value="out_for_delivery">Out for Delivery</TabsTrigger>
-                <TabsTrigger value="delivered">Delivered</TabsTrigger>
-                <TabsTrigger value="canceled">Canceled</TabsTrigger>
-              </TabsList>
+              <div className="w-full overflow-x-auto no-scrollbar">
+                <TabsList>
+                  <TabsTrigger value="all">All</TabsTrigger>
+                  <TabsTrigger value="new">New</TabsTrigger>
+                  <TabsTrigger value="preparing">Preparing</TabsTrigger>
+                  <TabsTrigger value="out_for_delivery">Out for Delivery</TabsTrigger>
+                  <TabsTrigger value="delivered">Delivered</TabsTrigger>
+                  <TabsTrigger value="canceled">Canceled</TabsTrigger>
+                </TabsList>
+              </div>
               <TabsContent value="all" className="mt-4">
                 <OrderTable orders={orders || []} isLoading={isLoading} onCancelClick={handleCancelClick} />
               </TabsContent>
