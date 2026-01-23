@@ -1,7 +1,8 @@
+
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import type { Outlet } from '@/types/outlet';
@@ -13,6 +14,7 @@ import { Bot, Loader2, Warehouse } from 'lucide-react';
 import { getReplenishmentPlan, type ReplenishmentPlannerOutput } from '@/ai/flows/replenishment-planner';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { cn } from '@/lib/utils';
+import { Badge } from '../ui/badge';
 
 export function ReplenishmentAdvisor({ className }: { className?: string }) {
   const [selectedOutletId, setSelectedOutletId] = useState<string | null>(null);
@@ -128,31 +130,65 @@ export function ReplenishmentAdvisor({ className }: { className?: string }) {
         {recommendations && (
             <div>
                  {recommendations.recommendations.length > 0 ? (
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Product</TableHead>
-                                <TableHead>Current Stock</TableHead>
-                                <TableHead>30d Sales</TableHead>
-                                <TableHead className="text-green-600">Recommended</TableHead>
-                                <TableHead>Reasoning</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {recommendations.recommendations.map(rec => (
-                                <TableRow key={rec.variantSku}>
-                                    <TableCell>
-                                        <div className="font-medium">{rec.productName}</div>
-                                        <div className="text-xs text-muted-foreground">{rec.variantSku}</div>
-                                    </TableCell>
-                                    <TableCell className="text-center">{rec.currentStock}</TableCell>
-                                    <TableCell className="text-center">{rec.thirtyDaySales}</TableCell>
-                                    <TableCell className="text-center font-bold text-green-600">{rec.recommendedQuantity}</TableCell>
-                                    <TableCell className="text-xs text-muted-foreground">{rec.reasoning}</TableCell>
+                    <>
+                       {/* Desktop Table */}
+                      <div className="hidden md:block">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Product</TableHead>
+                                    <TableHead>Current Stock</TableHead>
+                                    <TableHead>30d Sales</TableHead>
+                                    <TableHead className="text-green-600">Recommended</TableHead>
+                                    <TableHead>Reasoning</TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
+                            </TableHeader>
+                            <TableBody>
+                                {recommendations.recommendations.map(rec => (
+                                    <TableRow key={rec.variantSku}>
+                                        <TableCell>
+                                            <div className="font-medium">{rec.productName}</div>
+                                            <div className="text-xs text-muted-foreground">{rec.variantSku}</div>
+                                        </TableCell>
+                                        <TableCell className="text-center">{rec.currentStock}</TableCell>
+                                        <TableCell className="text-center">{rec.thirtyDaySales}</TableCell>
+                                        <TableCell className="text-center font-bold text-green-600">{rec.recommendedQuantity}</TableCell>
+                                        <TableCell className="text-xs text-muted-foreground">{rec.reasoning}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                      </div>
+                       {/* Mobile Cards */}
+                       <div className="grid md:hidden gap-4">
+                          {recommendations.recommendations.map(rec => (
+                            <Card key={rec.variantSku}>
+                                <CardHeader>
+                                    <div className="flex justify-between items-start">
+                                      <div>
+                                          <CardTitle className="text-base">{rec.productName}</CardTitle>
+                                          <CardDescription className="text-xs font-mono">{rec.variantSku}</CardDescription>
+                                      </div>
+                                      <Badge className="bg-green-100 text-green-800">
+                                        Reorder: {rec.recommendedQuantity}
+                                      </Badge>
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="text-xs space-y-2">
+                                     <div className="flex justify-between">
+                                        <span className="text-muted-foreground">Current Stock:</span>
+                                        <span className="font-bold">{rec.currentStock}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-muted-foreground">30-day Sales:</span>
+                                        <span className="font-bold">{rec.thirtyDaySales}</span>
+                                    </div>
+                                    <p className="italic pt-2 border-t">{rec.reasoning}</p>
+                                </CardContent>
+                            </Card>
+                          ))}
+                       </div>
+                    </>
                 ) : (
                     <div className="text-center p-8">
                         <p className="text-muted-foreground">No low-stock items found needing replenishment for this outlet.</p>

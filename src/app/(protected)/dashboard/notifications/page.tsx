@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -180,7 +181,7 @@ export default function NotificationsPage() {
       <Card className="shadow-lg border-2">
          <Tabs defaultValue="all" className="w-full">
             <CardHeader>
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3">
                     <TabsTrigger value="all"><Users className="mr-2 h-4 w-4" /> To All Users</TabsTrigger>
                     <TabsTrigger value="role"><User className="mr-2 h-4 w-4" /> By Role</TabsTrigger>
                     <TabsTrigger value="user"><User className="mr-2 h-4 w-4" /> To Specific User</TabsTrigger>

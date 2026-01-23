@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useMemo } from 'react';
@@ -67,7 +68,7 @@ export default function StockTransfersPage() {
     return <Badge variant={variant} className="capitalize gap-1"><Icon className="h-3 w-3" /> {status}</Badge>;
   };
 
-  const renderSkeleton = () => (
+  const renderDesktopSkeleton = () => (
     [...Array(5)].map((_, i) => (
       <TableRow key={i}>
         <TableCell><Skeleton className="h-5 w-24" /></TableCell>
@@ -79,6 +80,21 @@ export default function StockTransfersPage() {
     ))
   );
 
+  const renderMobileSkeleton = () => (
+     [...Array(3)].map((_, i) => (
+        <Card key={i} className="w-full">
+          <CardHeader>
+            <Skeleton className="h-5 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-2/3" />
+          </CardContent>
+        </Card>
+      ))
+  );
+
   return (
     <div className="flex flex-col gap-6">
       <h1 className="text-3xl font-bold font-headline">Inter-Outlet Stock Transfers</h1>
@@ -88,36 +104,63 @@ export default function StockTransfersPage() {
           <CardDescription>A log of all stock transfers initiated between outlets.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Transfer Details</TableHead>
-                <TableHead>Product</TableHead>
-                <TableHead className="text-right">Quantity</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? renderSkeleton() : enhancedTransfers.length > 0 ? enhancedTransfers.map(t => (
-                <TableRow key={t.id}>
-                  <TableCell>{t.createdAt?.toDate().toLocaleDateString()}</TableCell>
-                  <TableCell className="font-medium flex items-center gap-2">
-                    <span>{t.sourceOutletName}</span>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                    <span>{t.destinationOutletName}</span>
-                  </TableCell>
-                  <TableCell>{t.productName}</TableCell>
-                  <TableCell className="text-right font-bold">{t.quantity}</TableCell>
-                  <TableCell>{getStatusBadge(t.status)}</TableCell>
-                </TableRow>
-              )) : (
+           {/* Desktop Table */}
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center">No stock transfers found.</TableCell>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Transfer Details</TableHead>
+                  <TableHead>Product</TableHead>
+                  <TableHead className="text-right">Quantity</TableHead>
+                  <TableHead>Status</TableHead>
                 </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? renderDesktopSkeleton() : enhancedTransfers.length > 0 ? enhancedTransfers.map(t => (
+                  <TableRow key={t.id}>
+                    <TableCell>{t.createdAt?.toDate().toLocaleDateString()}</TableCell>
+                    <TableCell className="font-medium flex items-center gap-2">
+                      <span>{t.sourceOutletName}</span>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                      <span>{t.destinationOutletName}</span>
+                    </TableCell>
+                    <TableCell>{t.productName}</TableCell>
+                    <TableCell className="text-right font-bold">{t.quantity}</TableCell>
+                    <TableCell>{getStatusBadge(t.status)}</TableCell>
+                  </TableRow>
+                )) : (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center">No stock transfers found.</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+          {/* Mobile Cards */}
+          <div className="flex flex-col md:hidden gap-4">
+             {isLoading ? renderMobileSkeleton() : enhancedTransfers.length > 0 ? enhancedTransfers.map(t => (
+                <Card key={t.id}>
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                        <CardTitle className="text-base">{t.productName}</CardTitle>
+                        {getStatusBadge(t.status)}
+                    </div>
+                     <CardDescription className="text-xs">{t.createdAt?.toDate().toLocaleDateString()}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                     <div className="flex items-center gap-2 text-sm">
+                        <span>{t.sourceOutletName}</span>
+                        <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                        <span>{t.destinationOutletName}</span>
+                    </div>
+                     <p className="font-bold text-lg">{t.quantity} <span className="text-sm font-normal text-muted-foreground">units</span></p>
+                  </CardContent>
+                </Card>
+              )) : (
+                <div className="text-center py-10">No stock transfers found.</div>
               )}
-            </TableBody>
-          </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -26,6 +27,7 @@ import type { UserData } from '@/types/user';
 import { collection, query, where } from 'firebase/firestore';
 import { Input } from '@/components/ui/input';
 import { AddCustomerDialog } from '@/components/sales/add-customer-dialog';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 export default function SalesCustomersPage() {
   const { user } = useAuth();
@@ -51,7 +53,7 @@ export default function SalesCustomersPage() {
     );
   }, [customers, searchTerm]);
 
-  const renderSkeleton = () => (
+  const renderDesktopSkeleton = () => (
     [...Array(5)].map((_, i) => (
       <TableRow key={i}>
         <TableCell><Skeleton className="h-5 w-32" /></TableCell>
@@ -59,6 +61,25 @@ export default function SalesCustomersPage() {
         <TableCell><Skeleton className="h-5 w-24" /></TableCell>
       </TableRow>
     ))
+  );
+
+  const renderMobileSkeleton = () => (
+     [...Array(3)].map((_, i) => (
+        <Card key={i} className="flex-1 min-w-[300px] max-w-sm">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-3 w-32" />
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-4 w-24" />
+          </CardContent>
+        </Card>
+      ))
   );
 
   return (
@@ -86,32 +107,60 @@ export default function SalesCustomersPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? renderSkeleton() : filteredCustomers.length > 0 ? (
-                  filteredCustomers.map((customer) => (
-                    <TableRow key={customer.uid}>
-                      <TableCell className="font-medium">{customer.displayName}</TableCell>
-                      <TableCell>{customer.email}</TableCell>
-                      <TableCell>{customer.phone || 'N/A'}</TableCell>
-                    </TableRow>
-                  ))
-                ) : (
+             {/* Desktop Table */}
+            <div className="hidden md:block">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={3} className="h-24 text-center">
-                      No customers found.
-                    </TableCell>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Phone</TableHead>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {isLoading ? renderDesktopSkeleton() : filteredCustomers.length > 0 ? (
+                    filteredCustomers.map((customer) => (
+                      <TableRow key={customer.uid}>
+                        <TableCell className="font-medium">{customer.displayName}</TableCell>
+                        <TableCell>{customer.email}</TableCell>
+                        <TableCell>{customer.phone || 'N/A'}</TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={3} className="h-24 text-center">
+                        No customers found.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+            {/* Mobile Cards */}
+            <div className="flex flex-wrap justify-center md:hidden gap-4">
+              {isLoading ? renderMobileSkeleton() : filteredCustomers.length > 0 ? (
+                filteredCustomers.map((customer) => (
+                  <Card key={customer.uid} className="flex-1 min-w-[300px] max-w-sm">
+                    <CardHeader>
+                        <div className="flex items-center gap-3">
+                            <Avatar>
+                                <AvatarFallback>{customer.displayName?.charAt(0) || 'C'}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <p className="font-bold">{customer.displayName}</p>
+                                <p className="text-xs text-muted-foreground">{customer.email}</p>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                       <p className="text-sm text-muted-foreground">Phone: {customer.phone || 'N/A'}</p>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <div className="text-center py-10">No customers found.</div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>

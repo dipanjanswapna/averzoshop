@@ -1,9 +1,12 @@
+
+'use client';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
 import {
   Table,
@@ -40,23 +43,50 @@ export default function SubBrandsPage() {
           <CardDescription>Manage all sub-brands like Aura Men and Aura Women.</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Brand Name</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>
-                  <span className="sr-only">Actions</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {subBrands.map((brand) => (
-                <TableRow key={brand.id}>
-                  <TableCell className="font-medium">{brand.name}</TableCell>
-                  <TableCell>{brand.description}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
+           {/* Desktop Table */}
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Brand Name</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {subBrands.map((brand) => (
+                  <TableRow key={brand.id}>
+                    <TableCell className="font-medium">{brand.name}</TableCell>
+                    <TableCell>{brand.description}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem>Edit</DropdownMenuItem>
+                          <DropdownMenuItem>View Products</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          {/* Mobile Cards */}
+          <div className="flex flex-col md:hidden gap-4">
+            {subBrands.map((brand) => (
+              <Card key={brand.id}>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="text-lg">{brand.name}</CardTitle>
+                   <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button aria-haspopup="true" size="icon" variant="ghost">
                           <MoreHorizontal className="h-4 w-4" />
@@ -69,11 +99,13 @@ export default function SubBrandsPage() {
                         <DropdownMenuItem>View Products</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">{brand.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </CardContent>
       </Card>
     </div>
