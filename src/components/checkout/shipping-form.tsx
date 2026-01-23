@@ -54,29 +54,7 @@ export function ShippingForm() {
         discount, setShippingInfo, shippingInfo, pointsApplied, pointsDiscount,
         orderMode, setOrderMode, pickupOutletId, setPickupOutlet, cardPromoDiscountAmount,
         giftCardCode, giftCardDiscount, shippingMethod, courierName, setShippingDetails
-    } = useCart(state => ({
-        cartItems: state.items,
-        clearCart: state.clearCart,
-        totalPayable: state.totalPayable,
-        subtotal: state.subtotal,
-        fullOrderTotal: state.fullOrderTotal,
-        promoCode: state.promoCode,
-        discount: state.discount,
-        setShippingInfo: state.setShippingInfo,
-        shippingInfo: state.shippingInfo,
-        pointsApplied: state.pointsApplied,
-        pointsDiscount: state.pointsDiscount,
-        orderMode: state.orderMode,
-        setOrderMode: state.setOrderMode,
-        pickupOutletId: state.pickupOutletId,
-        setPickupOutlet: state.setPickupOutlet,
-        cardPromoDiscountAmount: state.cardPromoDiscountAmount,
-        giftCardCode: state.giftCardCode,
-        giftCardDiscount: state.giftCardDiscount,
-        shippingMethod: state.shippingMethod,
-        courierName: state.courierName,
-        setShippingDetails: state.setShippingDetails,
-    }));
+    } = useCart();
 
   const [isLoading, setIsLoading] = useState(false);
   const [isSavingAddress, setIsSavingAddress] = useState(false);

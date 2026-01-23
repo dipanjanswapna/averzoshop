@@ -36,6 +36,8 @@ type CartState = {
     distance: number | null;
     estimate: string | null;
   };
+  shippingMethod?: 'averzo_rider' | 'third_party_courier';
+  courierName?: string | null;
   subtotal: number;
   discount: number;
   totalPayable: number;
@@ -58,6 +60,7 @@ type CartState = {
   setOrderMode: (mode: 'delivery' | 'pickup') => void;
   setPickupOutlet: (outletId: string | null) => void;
   setShippingInfo: (info: Partial<CartState['shippingInfo']>) => void;
+  setShippingDetails: (details: { method: 'averzo_rider' | 'third_party_courier'; courierName: string | null; }) => void;
   removeExpiredItems: () => void;
   _recalculate: () => void;
 };
@@ -112,6 +115,8 @@ export const useCart = create<CartState>()(
       giftCardCode: null,
       giftCardDiscount: 0,
       shippingInfo: { fee: 0, outletId: null, distance: null, estimate: null },
+      shippingMethod: undefined,
+      courierName: null,
       subtotal: 0,
       discount: 0,
       totalPayable: 0,
@@ -207,6 +212,8 @@ export const useCart = create<CartState>()(
           set(state => ({ shippingInfo: { ...state.shippingInfo, ...info } }));
           get()._recalculate();
       },
+      
+      setShippingDetails: (details) => set({ shippingMethod: details.method, courierName: details.courierName }),
 
       setOrderMode: (mode) => {
           set({ orderMode: mode, pickupOutletId: null });
@@ -328,6 +335,8 @@ export const useCart = create<CartState>()(
             regularItemsSubtotal: 0,
             preOrderItemsSubtotal: 0,
             preOrderDepositPayable: 0,
+            shippingMethod: undefined,
+            courierName: null,
         });
       },
 
