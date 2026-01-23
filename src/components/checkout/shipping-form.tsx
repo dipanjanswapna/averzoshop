@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -50,10 +49,10 @@ const couriers = ['RedX', 'Steadfast', 'Paperfly', 'Sundarban Courier'];
 
 export function ShippingForm() {
     const { 
-        cartItems, clearCart, totalPayable, subtotal, fullOrderTotal, promoCode, 
+        items: cartItems, clearCart, totalPayable, subtotal, fullOrderTotal, promoCode, 
         discount, setShippingInfo, shippingInfo, pointsApplied, pointsDiscount,
         orderMode, setOrderMode, pickupOutletId, setPickupOutlet, cardPromoDiscountAmount,
-        giftCardCode, giftCardDiscount, shippingMethod, courierName, setShippingDetails
+        giftCardCode, giftCardDiscount, applyGiftCard, removeGiftCard, shippingMethod, courierName, setShippingDetails
     } = useCart();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -85,7 +84,7 @@ export function ShippingForm() {
   }, [userData, selectedAddressId]);
   
   const suitablePickupOutlets = useMemo(() => {
-      if (!allOutlets || !allProducts) return [];
+      if (!allOutlets || !allProducts || !cartItems) return [];
       return allOutlets.filter(outlet => 
           outlet.status === 'Active' &&
           cartItems.every(cartItem => {
@@ -101,6 +100,7 @@ export function ShippingForm() {
 
   useEffect(() => {
     const calculateShipping = () => {
+        if (!cartItems) return;
         const regularItems = cartItems.filter(item => !item.isPreOrder);
         const selectedAddress = userData?.addresses?.find(a => a.id === selectedAddressId);
         
@@ -194,7 +194,7 @@ export function ShippingForm() {
       return;
     }
 
-    if (!firestore || !user || !userData || cartItems.length === 0) {
+    if (!firestore || !user || !userData || !cartItems || cartItems.length === 0) {
       toast({ variant: 'destructive', title: 'Error', description: 'Could not process order. Please try again.' });
       setIsLoading(false);
       return;
