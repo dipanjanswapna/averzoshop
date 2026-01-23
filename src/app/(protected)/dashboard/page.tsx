@@ -58,13 +58,15 @@ export default function DashboardPage() {
     const monthlySales: {[key: string]: number} = {};
     
     orders.forEach(order => {
-        const date = order.createdAt.toDate();
-        const monthYear = `${date.toLocaleString('default', { month: 'short' })}-${date.getFullYear()}`;
-        
-        if (!monthlySales[monthYear]) {
-            monthlySales[monthYear] = 0;
+        if (order.createdAt && typeof order.createdAt.toDate === 'function') {
+            const date = order.createdAt.toDate();
+            const monthYear = `${date.toLocaleString('default', { month: 'short' })}-${date.getFullYear()}`;
+            
+            if (!monthlySales[monthYear]) {
+                monthlySales[monthYear] = 0;
+            }
+            monthlySales[monthYear] += order.totalAmount;
         }
-        monthlySales[monthYear] += order.totalAmount;
     });
 
     const sortedMonths = Object.keys(monthlySales).sort((a, b) => {
