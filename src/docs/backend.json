@@ -100,6 +100,16 @@
       },
       "required": ["pointsPer100Taka", "pointValueInTaka", "tierThresholds"]
     },
+    "registration_settings": {
+        "title": "Registration Settings",
+        "description": "Controls which roles can register on the platform.",
+        "type": "object",
+        "properties": {
+            "vendor": { "type": "boolean", "description": "Allow vendors to register." },
+            "rider": { "type": "boolean", "description": "Allow riders to register." },
+            "sales": { "type": "boolean", "description": "Allow sales reps to register." }
+        }
+    },
     "vendor": {
       "title": "Vendor",
       "description": "A product supplier for Averzo.",
@@ -234,6 +244,8 @@
         "status": { "type": "string", "enum": ["pending_payment", "new", "preparing", "ready_for_pickup", "out_for_delivery", "delivered", "canceled", "pre-ordered", "fulfilled"] },
         "orderType": { "type": "string", "enum": ["regular", "pre-order"] },
         "orderMode": { "type": "string", "enum": ["delivery", "pickup"], "description": "The mode of order fulfillment." },
+        "shippingMethod": { "type": "string", "enum": ["averzo_rider", "third_party_courier"], "description": "The selected shipping method." },
+        "courierName": { "type": "string", "description": "The name of the third-party courier service, if applicable." },
         "pickupOutletId": { "type": "string", "description": "The ID of the outlet selected for pickup." },
         "pickupCode": { "type": "string", "description": "The unique code for the customer to pick up the order." },
         "createdAt": { "type": "string", "format": "date-time" },
@@ -522,6 +534,7 @@
     "/coupons/{couponId}": { "schema": { "$ref": "#/entities/coupon" }, "description": "Stores all promotional codes for discounts." },
     "/gift_cards/{cardId}": { "schema": { "$ref": "#/entities/gift_card" }, "description": "Stores all gift card data." },
     "/notification_subscriptions/{subscriptionId}": { "schema": { "$ref": "#/entities/notification_subscription" }, "description": "Stores all user requests for back-in-stock notifications." },
-    "/settings/loyalty": { "schema": { "$ref": "#/entities/loyalty_settings" }, "description": "Stores the global settings for the loyalty program." }
+    "/settings/loyalty": { "schema": { "$ref": "#/entities/loyalty_settings" }, "description": "Stores the global settings for the loyalty program." },
+    "/settings/registration": { "schema": { "$ref": "#/entities/registration_settings" }, "description": "Controls role-based registration settings." }
   }
 }

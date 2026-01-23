@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -17,6 +17,7 @@ import AverzoLogo from '@/components/averzo-logo';
 import { FirebaseClientProvider, useFirebase } from '@/firebase';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useRouter } from 'next/navigation';
+import { useFirestoreDoc } from '@/hooks/useFirestoreQuery';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -25,12 +26,18 @@ const formSchema = z.object({
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
 });
 
+interface RegistrationSettings {
+  vendor: boolean;
+  rider: boolean;
+  sales: boolean;
+}
 
 function RegisterPageContent() {
   const [isLoading, setIsLoading] = useState(false);
   const { auth, firestore } = useFirebase();
   const router = useRouter();
   const { toast } = useToast();
+  const { data: regSettings, isLoading: settingsLoading } = useFirestoreDoc<RegistrationSettings>('settings/registration');
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -41,6 +48,14 @@ function RegisterPageContent() {
       password: '',
     },
   });
+
+  const availableRoles = useMemo(() => {
+    const roles = [{ value: 'customer', label: 'Customer' }];
+    if (regSettings?.vendor) roles.push({ value: 'vendor', label: 'Vendor' });
+    if (regSettings?.rider) roles.push({ value: 'rider', label: 'Rider' });
+    if (regSettings?.sales) roles.push({ value: 'sales', label: 'Sales Representative' });
+    return roles;
+  }, [regSettings]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
@@ -80,7 +95,7 @@ function RegisterPageContent() {
       if (isCustomer) {
           toast({
             title: "Welcome!",
-            description: "Your account is created and you've received 100 bonus points!"
+            description: "Your account is created. Let's get you set up."
           });
           router.push('/onboarding'); // Go to onboarding setup
       } else {
@@ -101,8 +116,8 @@ function RegisterPageContent() {
         setIsLoading(false);
     }
   };
-
-  const handleGoogleSignIn = async () => {
+  
+    const handleGoogleSignIn = async () => {
     if (!auth || !firestore) {
       toast({ variant: 'destructive', title: 'Auth service not available.' });
       return;
@@ -128,7 +143,7 @@ function RegisterPageContent() {
           totalSpent: 0,
           membershipTier: 'silver',
         });
-        toast({ title: 'Welcome!', description: "Your account is created and you've received 100 bonus points!" });
+        toast({ title: 'Welcome!', description: "Your account is created. Let's get you set up." });
         router.push('/onboarding');
       } else {
         await setDoc(userDocRef, {
@@ -136,14 +151,14 @@ function RegisterPageContent() {
           photoURL: user.photoURL,
         }, { merge: true });
         toast({ title: 'Google Sign-In Successful', description: 'Welcome back!' });
-        router.push('/customer');
+         router.push('/');
       }
 
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Google Sign-In Failed', description: error.message });
     }
   };
-  
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-secondary p-4">
       <Card className="w-full max-w-sm">
@@ -165,10 +180,9 @@ function RegisterPageContent() {
                   <FormItem><FormLabel>Register as</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}><FormControl><SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger></FormControl>
                     <SelectContent>
-                        <SelectItem value="customer">Customer</SelectItem>
-                        <SelectItem value="vendor">Vendor</SelectItem>
-                        <SelectItem value="rider">Rider</SelectItem>
-                        <SelectItem value="sales">Sales Representative</SelectItem>
+                        {availableRoles.map(role => (
+                          <SelectItem key={role.value} value={role.value}>{role.label}</SelectItem>
+                        ))}
                     </SelectContent>
                     </Select><FormMessage /></FormItem>
               )} />
