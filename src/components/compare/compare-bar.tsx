@@ -7,10 +7,13 @@ import { Button } from '@/components/ui/button';
 import { X, ArrowRight, Layers } from 'lucide-react';
 import Image from 'next/image';
 import { CompareDialog } from './compare-dialog';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 export function CompareBar() {
   const { items, removeItem } = useCompare();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   if (items.length === 0) {
     return null;
@@ -23,7 +26,10 @@ export function CompareBar() {
         animate={{ y: 0 }}
         exit={{ y: 100 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="fixed bottom-4 left-1/2 -translate-x-1/2 w-[95%] max-w-2xl bg-foreground text-background p-3 rounded-xl shadow-2xl z-50 flex items-center gap-4"
+        className={cn(
+          "fixed left-1/2 -translate-x-1/2 w-[95%] max-w-2xl bg-foreground text-background p-3 rounded-xl shadow-2xl z-[60] flex items-center gap-4",
+          "bottom-20 lg:bottom-4" // Position above mobile nav, or at bottom for desktop
+        )}
       >
         <div className="flex items-center gap-2 flex-1 overflow-hidden">
           <Layers className="text-primary flex-shrink-0" />
