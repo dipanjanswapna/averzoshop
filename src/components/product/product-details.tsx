@@ -4,7 +4,7 @@ import { Dispatch, SetStateAction, useMemo, useState, useEffect } from 'react';
 import type { Product, ProductVariant } from '@/types/product';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, ShoppingBag, Ruler, Barcode, MapPin, Share2, Star, Gift, Zap, Check, Loader2 } from 'lucide-react';
+import { Heart, ShoppingBag, Ruler, Barcode, MapPin, Share2, Star, Gift, Zap, Check, Loader2, Minus, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
@@ -47,6 +47,7 @@ export function ProductDetails({
   const [isStoreAvailabilityOpen, setIsStoreAvailabilityOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [buttonState, setButtonState] = useState<'idle' | 'adding' | 'added'>('idle');
+  const [quantity, setQuantity] = useState(1);
   const isMobile = useIsMobile();
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
 
@@ -94,7 +95,7 @@ export function ProductDetails({
       return;
     }
     setButtonState('adding');
-    addItem(product, selectedVariant);
+    addItem(product, selectedVariant, quantity);
     setTimeout(() => {
         setButtonState('added');
         setTimeout(() => {
@@ -113,6 +114,19 @@ export function ProductDetails({
   
   const displayPrice = selectedVariant?.price ?? product.price;
   const displayOriginalPrice = selectedVariant?.compareAtPrice ?? product.compareAtPrice;
+  const stockCount = selectedVariant?.stock ?? 0;
+
+  const handleQuantityChange = (amount: number) => {
+    setQuantity(prev => {
+        const newQuantity = prev + amount;
+        if (newQuantity < 1) return 1;
+        if (!product.preOrder?.enabled && newQuantity > stockCount) {
+            toast({ variant: 'destructive', title: 'Stock limit reached' });
+            return stockCount > 0 ? stockCount : 1;
+        }
+        return newQuantity;
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -196,11 +210,24 @@ export function ProductDetails({
         )}
       </div>
 
-      <div className="space-y-3 pt-6 border-t">
+      <div className="space-y-4 pt-6 border-t">
         {isOutOfStock ? (
           <NotifyMeButton productId={product.id} productName={product.name} />
         ) : (
-           <div className="flex flex-col md:flex-row gap-3">
+          <>
+            <div className="flex items-center gap-3">
+              <p className="text-sm font-semibold">Quantity:</p>
+              <div className="flex items-center border rounded-md">
+                <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => handleQuantityChange(-1)}>
+                  <Minus size={14} />
+                </Button>
+                <span className="font-bold text-sm w-8 text-center">{quantity}</span>
+                <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => handleQuantityChange(1)}>
+                  <Plus size={14} />
+                </Button>
+              </div>
+            </div>
+            <div className="flex flex-col md:flex-row gap-3">
               <Button onClick={handleAddToCart} size="lg" className="w-full h-12 flex items-center gap-2" disabled={buttonState !== 'idle'}>
                 {buttonState === 'idle' && (
                     <>
@@ -209,10 +236,11 @@ export function ProductDetails({
                     </>
                 )}
                 {buttonState === 'adding' && <Loader2 size={20} className="animate-spin" />}
-                {buttonState === 'added' && <><Check size={20} /> Added to Bag</>}
+                {buttonState === 'added' && <><Check size={20} /> Added</>}
               </Button>
               <WishlistButton productId={product.id} size="lg" variant="outline" className="w-full h-12 flex items-center gap-2" />
             </div>
+          </>
         )}
       </div>
 
