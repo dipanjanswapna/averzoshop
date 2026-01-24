@@ -1,4 +1,3 @@
-
 "use client";
 import { MobileBottomNav } from '@/components/mobile-bottom-nav';
 import AverzoNavbar from '@/components/store-header';
