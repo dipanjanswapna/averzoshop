@@ -137,13 +137,15 @@ export default function OnlineOrdersPage() {
             </CardHeader>
             <CardContent>
               <Tabs defaultValue="new">
-                <TabsList className="grid w-full grid-cols-3 lg:grid-cols-5">
-                  <TabsTrigger value="new">New Orders</TabsTrigger>
-                  <TabsTrigger value="preparing">Preparing</TabsTrigger>
-                  <TabsTrigger value="ready_for_pickup">Ready for Pickup</TabsTrigger>
-                  <TabsTrigger value="out_for_delivery">Out for Delivery</TabsTrigger>
-                  <TabsTrigger value="delivered">Delivered</TabsTrigger>
-                </TabsList>
+                 <div className="w-full overflow-x-auto no-scrollbar pb-1">
+                    <TabsList>
+                    <TabsTrigger value="new">New Orders</TabsTrigger>
+                    <TabsTrigger value="preparing">Preparing</TabsTrigger>
+                    <TabsTrigger value="ready_for_pickup">Ready for Pickup</TabsTrigger>
+                    <TabsTrigger value="out_for_delivery">Out for Delivery</TabsTrigger>
+                    <TabsTrigger value="delivered">Delivered</TabsTrigger>
+                    </TabsList>
+                </div>
                 <TabsContent value="new" className="mt-4"><OrdersView orders={filterDeliveryOrders('new')} isLoading={isLoading} onAction={handleUpdateDeliveryStatus} onCancel={handleCancelOrder} updatingId={updatingId} orderType="delivery"/></TabsContent>
                 <TabsContent value="preparing" className="mt-4"><OrdersView orders={filterDeliveryOrders('preparing')} isLoading={isLoading} onAction={handleUpdateDeliveryStatus} onCancel={handleCancelOrder} updatingId={updatingId} orderType="delivery"/></TabsContent>
                 <TabsContent value="ready_for_pickup" className="mt-4"><OrdersView orders={filterDeliveryOrders('ready_for_pickup')} isLoading={isLoading} onAction={handleUpdateDeliveryStatus} onCancel={handleCancelOrder} updatingId={updatingId} orderType="delivery"/></TabsContent>

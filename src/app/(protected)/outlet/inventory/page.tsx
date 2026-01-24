@@ -159,11 +159,13 @@ export default function InventoryPage() {
     <div className="flex flex-col gap-6">
         <h1 className="text-3xl font-bold font-headline">Inventory Management</h1>
         <Tabs defaultValue="current_stock">
-            <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="current_stock"><Box className="mr-2 h-4 w-4" /> Current Stock</TabsTrigger>
-                <TabsTrigger value="stock_inward"><History className="mr-2 h-4 w-4" /> Stock Inward</TabsTrigger>
-                <TabsTrigger value="stock_transfers"><ArrowRightLeft className="mr-2 h-4 w-4" /> Stock Transfers</TabsTrigger>
-            </TabsList>
+            <div className="w-full overflow-x-auto no-scrollbar pb-1">
+              <TabsList>
+                  <TabsTrigger value="current_stock"><Box className="mr-2 h-4 w-4" /> Current Stock</TabsTrigger>
+                  <TabsTrigger value="stock_inward"><History className="mr-2 h-4 w-4" /> Stock Inward</TabsTrigger>
+                  <TabsTrigger value="stock_transfers"><ArrowRightLeft className="mr-2 h-4 w-4" /> Stock Transfers</TabsTrigger>
+              </TabsList>
+            </div>
             
             <TabsContent value="current_stock">
                 <Card>

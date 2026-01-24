@@ -1,4 +1,3 @@
-
 'use client';
 import {
   Card,
@@ -157,11 +156,13 @@ export default function VendorDashboardPage() {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="dashboard">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="dashboard"><LayoutDashboard className="mr-2 h-4 w-4" /> Dashboard</TabsTrigger>
-          <TabsTrigger value="products"><Package className="mr-2 h-4 w-4" /> My Products</TabsTrigger>
-          <TabsTrigger value="stock"><History className="mr-2 h-4 w-4" /> Stock & Logistics</TabsTrigger>
-        </TabsList>
+        <div className="w-full overflow-x-auto no-scrollbar pb-1">
+          <TabsList>
+            <TabsTrigger value="dashboard"><LayoutDashboard className="mr-2 h-4 w-4" /> Dashboard</TabsTrigger>
+            <TabsTrigger value="products"><Package className="mr-2 h-4 w-4" /> My Products</TabsTrigger>
+            <TabsTrigger value="stock"><History className="mr-2 h-4 w-4" /> Stock & Logistics</TabsTrigger>
+          </TabsList>
+        </div>
         
         <TabsContent value="dashboard">
             <div className="space-y-6">
