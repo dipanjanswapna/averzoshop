@@ -27,8 +27,6 @@ export function CompareButton({ product, className, ...props }: CompareButtonPro
     if (isInCompare) {
       removeItem(product.id);
     } else {
-      // The addItem function returns false if it fails (e.g., list is full)
-      // but we don't need to show a toast here as the hook does it.
       addItem(product);
     }
   };

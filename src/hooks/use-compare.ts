@@ -20,6 +20,14 @@ export const useCompare = create<CompareState>()(
       items: [],
       addItem: (product) => {
         const currentItems = get().items;
+        if (currentItems.some((item) => item.id === product.id)) {
+          toast({
+            title: 'Already in Compare',
+            description: `${product.name} is already in your compare list.`,
+          });
+          return false;
+        }
+
         if (currentItems.length >= MAX_COMPARE_ITEMS) {
           toast({
             variant: 'destructive',
@@ -28,29 +36,19 @@ export const useCompare = create<CompareState>()(
           });
           return false;
         }
-        if (currentItems.some((item) => item.id === product.id)) {
-            toast({
-                title: 'Already in Compare',
-                description: `${product.name} is already in your compare list.`,
-            });
-            return false;
-        }
-        
-        // Check for category compatibility
-        if (currentItems.length > 0 && currentItems[0].category !== product.category) {
-            toast({
-                variant: 'destructive',
-                title: 'Category Mismatch',
-                description: `You can only compare items within the same category. Current category: ${currentItems[0].category}.`,
-            });
-            return false;
-        }
 
         set({ items: [...currentItems, product] });
+        toast({
+            title: 'Added to Compare',
+            description: `${product.name} has been added to your compare list.`
+        });
         return true;
       },
       removeItem: (productId) => {
-        set({ items: get().items.filter((item) => item.id !== productId) });
+        set((state) => ({ items: state.items.filter((item) => item.id !== productId) }));
+        toast({
+            title: 'Removed from Compare',
+        });
       },
       clearCompare: () => {
         set({ items: [] });
