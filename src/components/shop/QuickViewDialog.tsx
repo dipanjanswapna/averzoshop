@@ -3,9 +3,6 @@
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import type { Product, ProductVariant } from '@/types/product';
@@ -14,7 +11,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Star, Minus, Plus, ShoppingBag, ArrowRight, Youtube, Gift, Zap } from 'lucide-react';
+import { Star, Minus, Plus, ShoppingBag, ArrowRight, Youtube, Gift, Zap, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
@@ -23,6 +20,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { FlashSaleTimer } from '../product/flash-sale-timer';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Separator } from '../ui/separator';
 
 
 interface QuickViewDialogProps {
@@ -65,13 +63,16 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
 
 
   useEffect(() => {
-    if (product) {
+    if (product && open) {
       const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants || {});
       const initialVariant = variantsArray.find(v => (v.stock || 0) > 0) || variantsArray[0] || null;
       
       if (initialVariant) {
         setSelectedColor(initialVariant.color || null);
         setSelectedSize(initialVariant.size || null);
+      } else {
+        setSelectedColor(null);
+        setSelectedSize(null);
       }
       setActiveMedia({ type: 'image', src: product.image });
       setQuantity(1);
@@ -175,10 +176,10 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
 
   if (!product) return null;
 
-  const content = (
+  const DesktopContent = (
     <>
       {/* Image Gallery */}
-      <div className="w-full md:w-1/2 bg-muted/50 p-4 flex flex-col gap-4 sticky top-0 md:relative z-10">
+      <div className="w-full md:w-1/2 bg-muted/50 p-4 flex flex-col gap-4">
         <div className="relative aspect-square w-full rounded-xl overflow-hidden shadow-lg border">
             {activeMedia.type === 'video' ? (
                 <iframe className="w-full h-full" src={getAutoplayUrl(activeMedia.src)} title={product.name} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
@@ -226,7 +227,7 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
       {/* Product Details */}
       <div className="w-full md:w-1/2 flex flex-col">
         <ScrollArea className="h-full">
-            <div className="p-6 space-y-3">
+            <div className="p-6 space-y-4">
             <div>
                 <p className="text-xs font-medium text-muted-foreground">{product.brand}</p>
                 <h2 className="text-xl font-bold font-headline">{product.name}</h2>
@@ -251,7 +252,7 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
                     <div><p className="font-bold text-sm">Free Gift:</p><p className="text-xs">{product.giftWithPurchase.description}</p></div>
                 </div>
             )}
-            <div className="space-y-3 pt-2">
+            <div className="space-y-4 pt-2">
                 {availableColors.length > 0 && (
                 <div className="space-y-2"><p className="font-semibold text-sm">Color: <span className="font-normal text-muted-foreground">{selectedColor}</span></p><div className="flex flex-wrap gap-2">{availableColors.map(color => (<button key={color} onClick={() => setSelectedColor(color)} className={cn('h-8 w-8 rounded-full border-2 transition-transform transform hover:scale-110', selectedColor === color ? 'border-primary ring-2 ring-primary/50' : 'border-border')} style={{ backgroundColor: color.toLowerCase() }} title={color} />))}</div></div>
                 )}
@@ -299,13 +300,108 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
     </>
   );
 
+  const MobileContent = (
+    <div className="flex flex-col h-full">
+       <div className="p-2 border-b flex items-center justify-between sticky top-0 bg-background z-10">
+          <h2 className="font-bold font-headline text-base truncate pr-4 pl-2">{product.name}</h2>
+           <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)} className="h-8 w-8 rounded-full flex-shrink-0">
+                <X size={20} />
+            </Button>
+      </div>
+      <ScrollArea className="flex-1">
+          <div className="w-full bg-muted/30 p-2 flex flex-col gap-3">
+            <div className="relative aspect-square w-full rounded-xl overflow-hidden">
+                <Image src={activeMedia.src} alt={product.name} fill sizes="90vw" className="object-cover" />
+                 {isOutOfStock && (
+                    <div className="absolute inset-0 bg-white/70 flex items-center justify-center pointer-events-none">
+                        <span className="bg-destructive text-destructive-foreground font-bold px-3 py-1 rounded-md uppercase tracking-widest text-sm -rotate-12 border-2 border-destructive">Out of Stock</span>
+                    </div>
+                )}
+            </div>
+            {allMedia.length > 1 && (
+                <Carousel opts={{ align: "start" }} className="w-full px-8">
+                    <CarouselContent className="-ml-1">
+                        {allMedia.map((media, index) => (
+                        <CarouselItem key={index} className="basis-1/4 pl-1">
+                            <button
+                                onClick={() => setActiveMedia(media)}
+                                className={cn("relative aspect-square w-full rounded-md overflow-hidden border-2 flex-shrink-0", activeMedia.src === media.src ? 'border-primary' : 'border-transparent')}
+                            >
+                                <Image src={media.type === 'video' ? getYouTubeThumbnail(media.src) : media.src} alt={`${product.name} thumbnail ${index + 1}`} fill className="object-cover" />
+                                {media.type === 'video' && (
+                                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center"><Youtube className="text-white h-5 w-5" /></div>
+                                )}
+                            </button>
+                        </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                    <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-6 w-6" />
+                    <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-6 w-6" />
+                </Carousel>
+            )}
+          </div>
+          <div className="p-4 space-y-4 pb-48">
+            <div className="flex items-baseline gap-2 pt-1">
+                <span className="text-2xl font-bold font-roboto text-primary">৳{displayPrice.toFixed(2)}</span>
+                {displayOriginalPrice && displayOriginalPrice > displayPrice && (
+                    <span className="text-md text-muted-foreground line-through">৳{displayOriginalPrice.toFixed(2)}</span>
+                )}
+            </div>
+             <div className="flex flex-wrap items-center gap-2">
+                {discount > 0 && !isOutOfStock && <Badge className="text-xs font-bold" variant="destructive">{discount}% OFF</Badge>}
+                {product.preOrder?.enabled && <Badge className="text-xs font-bold bg-purple-600">Pre-Order</Badge>}
+                {isFlashSaleActive && <Badge className="text-xs font-bold bg-orange-500 animate-pulse flex items-center gap-1"><Zap size={12} /> FLASH SALE</Badge>}
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+                {product.description}
+            </p>
+             <Separator/>
+             <div className="space-y-4">
+                {availableColors.length > 0 && (
+                <div className="space-y-2"><p className="font-semibold text-sm">Color: <span className="font-normal text-muted-foreground">{selectedColor}</span></p><div className="flex flex-wrap gap-2">{availableColors.map(color => (<button key={color} onClick={() => setSelectedColor(color)} className={cn('h-8 w-8 rounded-full border-2 transition-transform transform hover:scale-110', selectedColor === color ? 'border-primary ring-2 ring-primary/50' : 'border-border')} style={{ backgroundColor: color.toLowerCase() }} title={color} />))}</div></div>
+                )}
+                {availableSizes.length > 0 && (
+                <div className="space-y-2"><p className="font-semibold text-sm">Size: <span className="font-normal text-muted-foreground">{selectedSize}</span></p><div className="flex flex-wrap gap-2">{availableSizes.map(size => (<button key={size} onClick={() => setSelectedSize(size)} className={cn('h-9 px-3 border rounded-md text-xs font-medium transition-colors', selectedSize === size ? 'bg-primary text-primary-foreground' : 'bg-secondary hover:bg-muted')}>{size}</button>))}</div></div>
+                )}
+            </div>
+             <Button variant="link" asChild className="p-0 h-auto text-xs">
+                <Link href={`/product/${product.id}`} onClick={() => onOpenChange(false)}>
+                    View Full Product Details <ArrowRight size={14} className="ml-1" />
+                </Link>
+            </Button>
+          </div>
+      </ScrollArea>
+      <div className="absolute bottom-0 left-0 right-0 p-3 bg-background/90 backdrop-blur-sm border-t space-y-3">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <p className="text-xs font-semibold">Quantity:</p>
+                    <div className="flex items-center border rounded-md">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleQuantityChange(-1)}><Minus size={14} /></Button>
+                        <span className="font-bold text-sm w-6 text-center">{quantity}</span>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleQuantityChange(1)}><Plus size={14} /></Button>
+                    </div>
+                </div>
+                 <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground text-sm">Total:</span>
+                    <span className="text-xl font-bold text-primary">৳{(displayPrice * quantity).toFixed(2)}</span>
+                </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button onClick={handleAddToCart} size="lg" className="w-full h-11 flex-1" disabled={isOutOfStock}>
+                  <ShoppingBag size={18} className="mr-2" />
+                  {product.preOrder?.enabled ? 'Pre-order Now' : 'Add to Bag'}
+              </Button>
+              <WishlistButton productId={product.id} variant="outline" size="icon" className="h-11 w-11 flex-shrink-0" />
+            </div>
+        </div>
+    </div>
+  );
+
   if (isMobile) {
     return (
         <Drawer open={open} onOpenChange={onOpenChange}>
-            <DrawerContent className="h-[90vh] flex flex-col p-0">
-                <ScrollArea className="h-full">
-                    {content}
-                </ScrollArea>
+            <DrawerContent className="h-[90vh] flex flex-col p-0 bg-background">
+                {MobileContent}
             </DrawerContent>
         </Drawer>
     );
@@ -314,7 +410,7 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl w-[95vw] h-auto max-h-[90vh] flex flex-col md:flex-row p-0 gap-0">
-        {content}
+        {DesktopContent}
       </DialogContent>
     </Dialog>
   );
