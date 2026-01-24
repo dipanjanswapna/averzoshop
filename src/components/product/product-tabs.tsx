@@ -21,7 +21,7 @@ interface Answer {
     answerText: string;
     answeredByUid: string;
     answeredByName: string;
-    answeredByRole: 'customer' | 'admin' | 'vendor' | 'outlet' | 'rider';
+    answeredByRole: 'customer' | 'admin' | 'vendor' | 'outlet' | 'rider' | 'sales';
     answeredAt: { toDate: () => Date };
 }
 

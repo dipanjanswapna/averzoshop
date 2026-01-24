@@ -53,7 +53,7 @@ export function AskQuestionDialog({ open, onOpenChange, productId }: AskQuestion
         askedByUid: user.uid,
         askedByName: user.displayName || 'Anonymous',
         createdAt: serverTimestamp(),
-        answerText: '',
+        answers: [],
       });
 
       toast({
