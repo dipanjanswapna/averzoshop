@@ -11,7 +11,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
 export function CompareBar() {
-  const { items, removeItem } = useCompare();
+  const { items, removeItem, clearCompare } = useCompare();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const isMobile = useIsMobile();
 
@@ -22,7 +22,7 @@ export function CompareBar() {
   return (
     <>
       <div className={cn(
-        "fixed bottom-20 lg:bottom-4 left-0 right-0 z-[60] flex justify-center pointer-events-none"
+        "fixed bottom-20 lg:bottom-4 z-[60] flex justify-center pointer-events-none w-full"
       )}>
         <motion.div
           initial={{ y: 100 }}
@@ -73,6 +73,15 @@ export function CompareBar() {
             className="bg-primary text-primary-foreground hover:bg-primary/90 flex-shrink-0"
           >
             Compare Now <ArrowRight size={16} className="ml-2" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={clearCompare}
+            className="h-8 w-8 rounded-full flex-shrink-0 hover:bg-white/20"
+            aria-label="Clear compare list"
+          >
+            <X size={16} />
           </Button>
         </motion.div>
       </div>
