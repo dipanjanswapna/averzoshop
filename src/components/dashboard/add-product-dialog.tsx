@@ -95,6 +95,14 @@ const formSchema = z.object({
     enabled: z.boolean().default(false),
     endDate: z.date().optional().nullable(),
   }).optional(),
+  metaTitle: z.string().optional(),
+  metaDescription: z.string().optional(),
+  weight: z.coerce.number().min(0).optional(),
+  dimensions: z.object({
+    length: z.coerce.number().min(0).optional(),
+    width: z.coerce.number().min(0).optional(),
+    height: z.coerce.number().min(0).optional(),
+  }).optional(),
 });
 
 
@@ -141,6 +149,14 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
       flashSale: {
         enabled: false,
         endDate: null,
+      },
+      metaTitle: "",
+      metaDescription: "",
+      weight: 0,
+      dimensions: {
+        length: 0,
+        width: 0,
+        height: 0,
       },
     },
   });
@@ -296,7 +312,11 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
         flashSale: {
             enabled: !!values.flashSale?.enabled,
             endDate: values.flashSale?.endDate || null,
-        }
+        },
+        metaTitle: values.metaTitle,
+        metaDescription: values.metaDescription,
+        weight: values.weight,
+        dimensions: values.dimensions,
       };
 
       await addDoc(collection(firestore, 'products'), productData);
@@ -703,6 +723,33 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
                         )}
                     </div>
                   </div>
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="seo">
+                <AccordionTrigger>SEO & Shipping Details</AccordionTrigger>
+                <AccordionContent>
+                    <div className="space-y-4">
+                        <FormField control={form.control} name="metaTitle" render={({ field }) => (
+                            <FormItem><FormLabel>Meta Title</FormLabel><FormControl><Input placeholder="Custom title for search engines" {...field} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                        <FormField control={form.control} name="metaDescription" render={({ field }) => (
+                            <FormItem><FormLabel>Meta Description</FormLabel><FormControl><Textarea placeholder="Custom description for search engines" {...field} /></FormControl><FormMessage /></FormItem>
+                        )} />
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
+                            <FormField control={form.control} name="weight" render={({ field }) => (
+                                <FormItem><FormLabel>Weight (kg)</FormLabel><FormControl><Input type="number" placeholder="0.5" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={form.control} name="dimensions.length" render={({ field }) => (
+                                <FormItem><FormLabel>Length (cm)</FormLabel><FormControl><Input type="number" placeholder="20" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={form.control} name="dimensions.width" render={({ field }) => (
+                                <FormItem><FormLabel>Width (cm)</FormLabel><FormControl><Input type="number" placeholder="15" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                            <FormField control={form.control} name="dimensions.height" render={({ field }) => (
+                                <FormItem><FormLabel>Height (cm)</FormLabel><FormControl><Input type="number" placeholder="5" {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
+                            )} />
+                        </div>
+                    </div>
                 </AccordionContent>
               </AccordionItem>
             </Accordion>

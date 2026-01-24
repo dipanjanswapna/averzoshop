@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useMemo } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -142,7 +141,7 @@ export function ProductTabs({ product }: { product: Product }) {
                           <TableCell className="text-muted-foreground">{product.weight} kg</TableCell>
                         </TableRow>
                       )}
-                      {product.dimensions && (
+                      {product.dimensions?.length && product.dimensions?.width && product.dimensions?.height && (
                         <TableRow>
                           <TableCell className="font-semibold text-foreground">Dimensions</TableCell>
                           <TableCell className="text-muted-foreground">{product.dimensions.length} x {product.dimensions.width} x {product.dimensions.height} cm</TableCell>
