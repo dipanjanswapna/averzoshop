@@ -86,17 +86,15 @@ export const ProductCard = ({ product }: { product: Product }) => {
     <>
       <div className="group relative bg-card border border-border/50 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 flex flex-col text-foreground">
         <div className="relative aspect-square overflow-hidden bg-muted rounded-t-xl">
-           <Link href={`/product/${product.id}`} className="relative block w-full h-full">
-            {product.image && (
-                <Image
-                src={product.image}
-                alt={product.name}
-                fill
-                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-            )}
-           </Link>
+          {product.image && (
+              <Image
+              src={product.image}
+              alt={product.name}
+              fill
+              sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+          )}
           
           <div className="absolute top-2 left-2 z-10 flex flex-col gap-1.5">
             {variantDiscount > 0 && !isOutOfStock && (
