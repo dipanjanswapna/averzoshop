@@ -197,7 +197,7 @@ function ProductPageContent() {
             
             {frequentlyBoughtTogether.length > 1 &&
               <div className="container py-12">
-                  <FrequentlyBought products={frequentlyBoughtTogether} />
+                  <FrequentlyBought products={[product, ...frequentlyBoughtTogether].slice(0, 2)} />
               </div>
             }
 
