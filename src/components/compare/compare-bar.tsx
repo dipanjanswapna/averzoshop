@@ -27,7 +27,7 @@ export function CompareBar() {
         exit={{ y: 100 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         className={cn(
-          "fixed left-1/2 -translate-x-1/2 w-[95%] max-w-2xl bg-foreground text-background p-3 rounded-xl shadow-2xl z-[60] flex items-center gap-4",
+          "fixed left-1/2 -translate-x-1/2 w-auto max-w-[95%] bg-foreground text-background p-3 rounded-xl shadow-2xl z-[60] flex items-center gap-4",
           "bottom-20 lg:bottom-4" // Position above mobile nav, or at bottom for desktop
         )}
       >
