@@ -11,7 +11,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Star, Minus, Plus, ShoppingBag, ArrowRight, Youtube, Gift, Zap, X } from 'lucide-react';
+import { Star, Minus, Plus, ShoppingBag, ArrowRight, Youtube, Gift, Zap, X, Check, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
@@ -33,6 +33,7 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
   const { addItem } = useCart();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const [buttonState, setButtonState] = useState<'idle' | 'adding' | 'added'>('idle');
 
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
@@ -76,6 +77,7 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
       }
       setActiveMedia({ type: 'image', src: product.image });
       setQuantity(1);
+      setButtonState('idle');
     }
   }, [product, open]);
 
@@ -152,12 +154,20 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
   };
 
   const handleAddToCart = () => {
+    if (buttonState !== 'idle') return;
+
     if (!selectedVariant) {
       toast({ variant: 'destructive', title: 'Unavailable', description: 'Please select from available options.' });
       return;
     }
+    setButtonState('adding');
     addItem(product, selectedVariant, quantity);
-    onOpenChange(false);
+    setTimeout(() => {
+        setButtonState('added');
+        setTimeout(() => {
+            setButtonState('idle');
+        }, 1500);
+    }, 500);
   };
   
   const getYouTubeThumbnail = (url: string) => {
@@ -280,9 +290,10 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button onClick={handleAddToCart} size="lg" className="w-full h-11 text-sm flex-1" disabled={isOutOfStock}>
-                        <ShoppingBag size={18} className="mr-2" />
-                        {product.preOrder?.enabled ? 'Pre-order Now' : 'Add to Bag'}
+                    <Button onClick={handleAddToCart} size="lg" className="w-full h-11 text-sm flex-1" disabled={isOutOfStock || buttonState !== 'idle'}>
+                        {buttonState === 'idle' && <><ShoppingBag size={18} className="mr-2" /> {product.preOrder?.enabled ? 'Pre-order Now' : 'Add to Bag'}</>}
+                        {buttonState === 'adding' && <Loader2 size={18} className="mr-2 animate-spin" />}
+                        {buttonState === 'added' && <><Check size={18} className="mr-2" /> Added</>}
                     </Button>
                     <WishlistButton productId={product.id} variant="outline" size="icon" className="h-11 w-11 flex-shrink-0" />
                 </div>
@@ -387,9 +398,10 @@ export function QuickViewDialog({ product, open, onOpenChange }: QuickViewDialog
                 </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button onClick={handleAddToCart} size="lg" className="w-full h-11 flex-1" disabled={isOutOfStock}>
-                  <ShoppingBag size={18} className="mr-2" />
-                  {product.preOrder?.enabled ? 'Pre-order Now' : 'Add to Bag'}
+              <Button onClick={handleAddToCart} size="lg" className="w-full h-11 flex-1" disabled={isOutOfStock || buttonState !== 'idle'}>
+                  {buttonState === 'idle' && <><ShoppingBag size={18} className="mr-2" />{product.preOrder?.enabled ? 'Pre-order' : 'Add to Bag'}</>}
+                  {buttonState === 'adding' && <Loader2 size={18} className="mr-2 animate-spin" />}
+                  {buttonState === 'added' && <><Check size={18} className="mr-2" />Added</>}
               </Button>
               <WishlistButton productId={product.id} variant="outline" size="icon" className="h-11 w-11 flex-shrink-0" />
             </div>

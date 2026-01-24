@@ -4,7 +4,7 @@ import { Dispatch, SetStateAction, useMemo, useState, useEffect } from 'react';
 import type { Product, ProductVariant } from '@/types/product';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Heart, ShoppingBag, Ruler, Barcode, MapPin, Share2, Star, Gift, Zap } from 'lucide-react';
+import { Heart, ShoppingBag, Ruler, Barcode, MapPin, Share2, Star, Gift, Zap, Check, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useCart } from '@/hooks/use-cart';
 import { useToast } from '@/hooks/use-toast';
@@ -46,18 +46,19 @@ export function ProductDetails({
   const [isBarcodeOpen, setIsBarcodeOpen] = useState(false);
   const [isStoreAvailabilityOpen, setIsStoreAvailabilityOpen] = useState(false);
   const [isShareOpen, setIsShareOpen] = useState(false);
+  const [buttonState, setButtonState] = useState<'idle' | 'adding' | 'added'>('idle');
   const isMobile = useIsMobile();
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
 
   const availableColors = useMemo(() => {
     if (!product?.variants) return [];
-    const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants);
+    const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants || {});
     return [...new Set(variantsArray.map(v => v.color).filter(Boolean))];
   }, [product]);
 
   const availableSizes = useMemo(() => {
     if (!product?.variants) return [];
-    const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants);
+    const variantsArray = Array.isArray(product.variants) ? product.variants : Object.values(product.variants || {});
     return [...new Set(variantsArray.map(v => v.size).filter(Boolean))];
   }, [product]);
   
@@ -82,6 +83,8 @@ export function ProductDetails({
   };
 
   const handleAddToCart = () => {
+    if (buttonState !== 'idle') return;
+
     if (!selectedVariant) {
       toast({
         variant: 'destructive',
@@ -90,7 +93,14 @@ export function ProductDetails({
       });
       return;
     }
+    setButtonState('adding');
     addItem(product, selectedVariant);
+    setTimeout(() => {
+        setButtonState('added');
+        setTimeout(() => {
+            setButtonState('idle');
+        }, 1500);
+    }, 500);
   };
   
   const isFlashSaleActive = useMemo(() => {
@@ -191,8 +201,15 @@ export function ProductDetails({
           <NotifyMeButton productId={product.id} productName={product.name} />
         ) : (
            <div className="flex flex-col md:flex-row gap-3">
-              <Button onClick={handleAddToCart} size="lg" className="w-full h-12 flex items-center gap-2">
-                <ShoppingBag size={20} /> {product.preOrder?.enabled ? 'Pre-order Now' : 'Add to Bag'}
+              <Button onClick={handleAddToCart} size="lg" className="w-full h-12 flex items-center gap-2" disabled={buttonState !== 'idle'}>
+                {buttonState === 'idle' && (
+                    <>
+                        <ShoppingBag size={20} />
+                        {product.preOrder?.enabled ? 'Pre-order Now' : 'Add to Bag'}
+                    </>
+                )}
+                {buttonState === 'adding' && <Loader2 size={20} className="animate-spin" />}
+                {buttonState === 'added' && <><Check size={20} /> Added to Bag</>}
               </Button>
               <WishlistButton productId={product.id} size="lg" variant="outline" className="w-full h-12 flex items-center gap-2" />
             </div>

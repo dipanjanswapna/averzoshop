@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { ShoppingBag, Zap, Eye, Gift, Archive } from 'lucide-react';
+import { ShoppingBag, Zap, Eye, Gift, Archive, Check, Loader2 } from 'lucide-react';
 import type { Product } from '@/types/product';
 import Link from 'next/link';
 import { Button } from './ui/button';
@@ -13,11 +13,15 @@ import { QuickViewDialog } from './shop/QuickViewDialog';
 import { Progress } from './ui/progress';
 import { cn } from '@/lib/utils';
 import { CompareButton } from './ui/compare-button';
+import { useRouter } from 'next/navigation';
 
 export const ProductCard = ({ product }: { product: Product }) => {
   const { addItem } = useCart();
   const { toast } = useToast();
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
+  const [buttonState, setButtonState] = useState<'idle' | 'adding' | 'added'>('idle');
+  const router = useRouter();
+
 
   const { defaultVariant, displayPrice, displayOriginalPrice, isOutOfStock, stockPercentage, isLowStock } = useMemo(() => {
     const variantsArray = Array.isArray(product.variants)
@@ -64,7 +68,9 @@ export const ProductCard = ({ product }: { product: Product }) => {
   const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
+    if (buttonState !== 'idle') return;
+
     if (isOutOfStock) {
         toast({ variant: "destructive", title: 'Out of Stock' });
         return;
@@ -73,7 +79,16 @@ export const ProductCard = ({ product }: { product: Product }) => {
         toast({ variant: "destructive", title: 'Product Unavailable' });
         return;
     }
+    
+    setButtonState('adding');
     addItem(product, defaultVariant);
+    
+    setTimeout(() => {
+        setButtonState('added');
+        setTimeout(() => {
+            setButtonState('idle');
+        }, 1500);
+    }, 500);
   };
 
   const handleQuickView = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -172,9 +187,20 @@ export const ProductCard = ({ product }: { product: Product }) => {
             )}
           </div>
 
-          <Button className="w-full h-9 text-xs font-bold mt-3" onClick={handleAddToCart} disabled={isOutOfStock}>
-            <ShoppingBag size={16} className="mr-2"/>
-            {product.preOrder?.enabled ? 'Pre-order' : 'Add to Bag'}
+          <Button className="w-full h-9 text-xs font-bold mt-3" onClick={handleAddToCart} disabled={isOutOfStock || buttonState !== 'idle'}>
+            {buttonState === 'idle' && (
+              <>
+                <ShoppingBag size={16} className="mr-2"/>
+                {product.preOrder?.enabled ? 'Pre-order' : 'Add to Bag'}
+              </>
+            )}
+            {buttonState === 'adding' && <Loader2 size={16} className="mr-2 animate-spin"/>}
+            {buttonState === 'added' && (
+              <>
+                <Check size={16} className="mr-2"/>
+                Added!
+              </>
+            )}
           </Button>
         </div>
       </div>
