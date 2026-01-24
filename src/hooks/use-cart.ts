@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from "react";
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Product, ProductVariant } from '@/types/product';
@@ -7,7 +8,9 @@ import { toast } from './use-toast';
 import type { Coupon } from '@/types/coupon';
 import type { UserData } from '@/types/user';
 import type { GiftCard } from '@/types/gift-card';
-import { doc, getDoc, type Firestore } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, getDocs, limit, type Firestore } from 'firebase/firestore';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 
 export type CartItem = {
@@ -259,6 +262,18 @@ export const useCart = create<CartState>()(
         const currentItems = get().items;
         const RESERVATION_TIME = 10 * 60 * 1000; // 10 minutes
 
+        if (currentItems.length > 0) {
+            const cartIsPreOrder = !!currentItems[0].isPreOrder;
+            if (isPreOrderItem !== cartIsPreOrder) {
+                toast({
+                    variant: 'destructive',
+                    title: 'Mixed Cart Not Allowed',
+                    description: 'Pre-order and regular items must be purchased in separate transactions. Please complete your current order first.',
+                });
+                return;
+            }
+        }
+
         const existingItem = currentItems.find((item) => item.variant && item.variant.sku === variant.sku);
 
         let newQuantity = existingItem ? existingItem.quantity + quantity : quantity;
@@ -277,8 +292,30 @@ export const useCart = create<CartState>()(
         get()._recalculate();
 
         toast({
-          title: isPreOrderItem ? 'Pre-ordered!' : 'Added to cart',
-          description: `${product.name} has been added to your bag.`,
+          title: isPreOrderItem ? 'Pre-ordered!' : 'Added to Bag',
+          description: `${product.name} is now in your bag.`,
+          action: React.createElement(
+            'div',
+            { className: 'grid gap-2 w-full mt-4' },
+            React.createElement(
+              Link,
+              { href: '/cart', className: 'w-full' },
+              React.createElement(
+                Button,
+                { variant: 'secondary', className: 'w-full' },
+                'View Bag'
+              )
+            ),
+            React.createElement(
+              Link,
+              { href: '/checkout', className: 'w-full' },
+              React.createElement(
+                Button,
+                { className: 'w-full' },
+                'Checkout'
+              )
+            )
+          ),
         });
       },
 
