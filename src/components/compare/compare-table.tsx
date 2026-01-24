@@ -4,6 +4,8 @@ import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+
 
 interface CompareTableProps {
   items: Product[];
@@ -21,14 +23,14 @@ export function CompareTable({ items }: CompareTableProps) {
     <>
       {/* Desktop Table View */}
       <div className="hidden md:block overflow-x-auto">
-        <table className="w-full min-w-[800px] text-sm border-collapse">
-          <thead>
-            <tr className="border-b">
-              <th className="sticky left-0 bg-background p-4 font-bold text-left w-48">
+        <Table className="w-full min-w-[800px] border-collapse">
+          <TableHeader>
+            <TableRow className="border-b">
+              <TableHead className="sticky left-0 bg-background p-4 font-bold text-left w-48">
                 Feature
-              </th>
+              </TableHead>
               {items.map((item) => (
-                <th key={item.id} className="p-4 border-l text-center w-64">
+                <TableHead key={item.id} className="p-4 border-l text-center w-64">
                   <div className="flex flex-col items-center">
                     <div className="relative w-24 h-24 mb-2">
                       <Image
@@ -50,45 +52,45 @@ export function CompareTable({ items }: CompareTableProps) {
                       </Button>
                     </Link>
                   </div>
-                </th>
+                </TableHead>
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="hover:bg-muted/50">
-              <td className="sticky left-0 bg-background p-4 border-b font-medium">Brand</td>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow className="hover:bg-muted/50">
+              <TableCell className="sticky left-0 bg-background p-4 border-b font-medium">Brand</TableCell>
               {items.map((item) => (
-                <td key={item.id} className="p-4 border-b border-l text-center">
+                <TableCell key={item.id} className="p-4 border-b border-l text-center">
                   {item.brand || '—'}
-                </td>
+                </TableCell>
               ))}
-            </tr>
-            <tr className="hover:bg-muted/50">
-              <td className="sticky left-0 bg-background p-4 border-b font-medium">Category</td>
+            </TableRow>
+            <TableRow className="hover:bg-muted/50">
+              <TableCell className="sticky left-0 bg-background p-4 border-b font-medium">Category</TableCell>
               {items.map((item) => (
-                <td key={item.id} className="p-4 border-b border-l text-center">
+                <TableCell key={item.id} className="p-4 border-b border-l text-center">
                   {item.category || '—'}
-                </td>
+                </TableCell>
               ))}
-            </tr>
+            </TableRow>
             {allSpecKeys.map((specKey) => (
-              <tr key={specKey} className="hover:bg-muted/50">
-                <td className="sticky left-0 bg-background p-4 border-b font-medium capitalize">
+              <TableRow key={specKey} className="hover:bg-muted/50">
+                <TableCell className="sticky left-0 bg-background p-4 border-b font-medium capitalize">
                   {specKey.replace(/_/g, ' ')}
-                </td>
+                </TableCell>
                 {items.map((item) => (
-                  <td key={item.id} className="p-4 border-b border-l text-center">
+                  <TableCell key={item.id} className="p-4 border-b border-l text-center">
                     {item.specifications?.[specKey] || '—'}
-                  </td>
+                  </TableCell>
                 ))}
-              </tr>
+              </TableRow>
             ))}
-            <tr className="hover:bg-muted/50">
-              <td className="sticky left-0 bg-background p-4 border-b font-medium">
+            <TableRow className="hover:bg-muted/50">
+              <TableCell className="sticky left-0 bg-background p-4 border-b font-medium">
                 Availability
-              </td>
+              </TableCell>
               {items.map((item) => (
-                <td key={item.id} className="p-4 border-b border-l text-center">
+                <TableCell key={item.id} className="p-4 border-b border-l text-center">
                   {item.preOrder?.enabled ? (
                     <span className="text-orange-600 font-bold">Pre-order</span>
                   ) : item.total_stock > 0 ? (
@@ -96,11 +98,11 @@ export function CompareTable({ items }: CompareTableProps) {
                   ) : (
                     <span className="text-red-600 font-bold">Out of Stock</span>
                   )}
-                </td>
+                </TableCell>
               ))}
-            </tr>
-          </tbody>
-        </table>
+            </TableRow>
+          </TableBody>
+        </Table>
       </div>
 
       {/* Mobile Card View */}

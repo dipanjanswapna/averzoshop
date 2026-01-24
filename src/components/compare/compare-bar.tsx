@@ -22,18 +22,18 @@ export function CompareBar() {
   return (
     <>
       <div className={cn(
-        "fixed bottom-20 lg:bottom-4 z-[60] flex justify-center pointer-events-none w-full"
+        "fixed bottom-20 lg:bottom-4 z-[60] left-1/2 -translate-x-1/2 w-auto pointer-events-none"
       )}>
         <motion.div
-          initial={{ y: 100 }}
-          animate={{ y: 0 }}
-          exit={{ y: 100 }}
+          initial={{ y: 100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 100, opacity: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
           className={cn(
-            "pointer-events-auto w-auto max-w-[95%] bg-foreground text-background p-3 rounded-xl shadow-2xl flex items-center gap-4"
+            "pointer-events-auto max-w-[95vw] bg-foreground text-background p-2 pr-1 rounded-xl shadow-2xl flex items-center gap-2"
           )}
         >
-          <div className="flex items-center gap-2 flex-1 overflow-hidden">
+          <div className="flex items-center gap-2 flex-1 overflow-x-auto no-scrollbar pl-2">
             <Layers className="text-primary flex-shrink-0" />
             <AnimatePresence>
               {items.map((item) => (
@@ -56,23 +56,23 @@ export function CompareBar() {
                   </div>
                   <button
                     onClick={() => removeItem(item.id)}
-                    className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute -top-1.5 -right-1.5 bg-destructive text-destructive-foreground rounded-full w-4 h-4 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                   >
-                    <X size={12} />
+                    <X size={10} />
                   </button>
                 </motion.div>
               ))}
             </AnimatePresence>
-            <div className="text-sm font-medium ml-2">
-              Comparing {items.length} item{items.length > 1 ? 's' : ''}
+            <div className="text-sm font-medium ml-2 flex-shrink-0">
+              {items.length} item{items.length > 1 ? 's' : ''}
             </div>
           </div>
           <Button
             onClick={() => setIsDialogOpen(true)}
             disabled={items.length < 2}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 flex-shrink-0"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 flex-shrink-0 h-10 text-xs px-3"
           >
-            Compare Now <ArrowRight size={16} className="ml-2" />
+            Compare
           </Button>
           <Button
             variant="ghost"

@@ -85,7 +85,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
   return (
     <>
       <div className="group relative bg-card border border-border/50 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 flex flex-col text-foreground">
-        <div className="relative aspect-square overflow-hidden bg-muted rounded-t-xl">
+        <Link href={`/product/${product.id}`} className="block relative aspect-square overflow-hidden bg-muted rounded-t-xl">
           {product.image && (
               <Image
               src={product.image}
@@ -147,14 +147,12 @@ export const ProductCard = ({ product }: { product: Product }) => {
               Quick View
             </Button>
           </div>
-        </div>
+        </Link>
 
         <div className="p-3 flex-1 flex flex-col">
-          <Link href={`/product/${product.id}`} className="flex-1">
-            <h3 className="text-sm font-semibold leading-snug mt-1" title={product.name}>
+          <h3 className="text-sm font-semibold leading-snug mt-1 cursor-pointer hover:text-primary" onClick={() => router.push(`/product/${product.id}`)} title={product.name}>
               {product.name}
-            </h3>
-          </Link>
+          </h3>
           
           <div className="mt-2">
              <div className="flex items-baseline gap-2">

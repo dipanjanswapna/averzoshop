@@ -29,7 +29,7 @@ export function CompareDialog({ isOpen, onClose }: CompareDialogProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl w-full h-[90vh] flex flex-col p-0">
+      <DialogContent className="max-w-6xl w-[95vw] h-[90vh] flex flex-col p-0">
         <DialogHeader className="p-6 pb-2">
           <DialogTitle>Compare Products ({items.length})</DialogTitle>
           <DialogDescription>

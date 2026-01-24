@@ -37,7 +37,7 @@ export function CompareButton({ product, className, ...props }: CompareButtonPro
     <Tooltip>
         <TooltipTrigger asChild>
             <Button onClick={handleToggle} className={className} {...props}>
-                <Layers className={cn('transition-colors', isInCompare ? 'fill-primary text-primary-foreground' : 'text-current')} />
+                <Layers className={cn('transition-colors', isInCompare ? 'fill-primary text-primary' : 'text-current')} />
             </Button>
         </TooltipTrigger>
         <TooltipContent>
