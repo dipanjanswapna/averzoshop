@@ -39,7 +39,7 @@ const nextConfig = {
         port: '',
         pathname: '/**',
       },
-      {
+       {
         protocol: 'https',
         hostname: 'securepay.sslcommerz.com',
         port: '',

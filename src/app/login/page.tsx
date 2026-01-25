@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -11,13 +12,13 @@ import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import AverzoLogo from '@/components/averzo-logo';
 import { useAuth } from '@/hooks/use-auth';
 import { FirebaseClientProvider } from '@/firebase';
+import { motion } from 'framer-motion';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Invalid email address.' }),
@@ -50,10 +51,11 @@ function LoginPageContent() {
       const roleRedirects: { [key: string]: string } = {
         admin: '/dashboard',
         vendor: '/vendor/dashboard',
+        artisan: '/artisan/dashboard',
         outlet: '/outlet/dashboard',
         rider: '/rider/dashboard',
         sales: '/sales/dashboard',
-        customer: '/', // Redirect customer to home page
+        customer: '/', 
       };
       
       router.replace(roleRedirects[userData.role] || '/');
@@ -132,25 +134,59 @@ function LoginPageContent() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-secondary p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-          <AverzoLogo className="mx-auto mb-4" />
-          <CardTitle>Welcome Back!</CardTitle>
-          <CardDescription>Enter your credentials to access your account.</CardDescription>
-        </CardHeader>
-        <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+    <div className="min-h-screen w-full lg:grid lg:grid-cols-2">
+      <div className="relative hidden lg:block">
+        <Image 
+            src="https://i.postimg.cc/PxH2GnKd/beautiful-young-woman-wearing-professional-makeup.jpg"
+            alt="Fashion model"
+            fill
+            className="object-cover"
+            priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+        <div className="relative z-10 flex flex-col justify-end h-full p-12 text-white">
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: 0.2 }}
+            >
+                <h1 className="text-5xl font-extrabold font-headline leading-tight">
+                    Style That Defines You.
+                </h1>
+                <p className="mt-4 text-lg max-w-lg text-white/80">
+                    Discover a world of curated fashion and lifestyle products. Your next favorite look is just a click away.
+                </p>
+            </motion.div>
+        </div>
+      </div>
+      <div className="flex items-center justify-center py-12 px-4">
+        <div className="mx-auto grid w-[350px] gap-6">
+           <motion.div 
+             initial={{ opacity: 0, y: -20 }}
+             animate={{ opacity: 1, y: 0 }}
+             transition={{ duration: 0.5, delay: 0.4 }}
+             className="grid gap-2 text-center"
+           >
+            <AverzoLogo className="text-4xl mx-auto mb-4" />
+            <h1 className="text-3xl font-bold font-headline">Welcome Back!</h1>
+            <p className="text-balance text-muted-foreground">
+              Enter your credentials to access your account.
+            </p>
+          </motion.div>
+          <Form {...form}>
+            <motion.form 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+              onSubmit={form.handleSubmit(onSubmit)} className="space-y-4"
+            >
                 <FormField
                   control={form.control}
                   name="email"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input placeholder="name@example.com" {...field} />
-                      </FormControl>
+                      <FormControl><Input placeholder="name@example.com" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -169,25 +205,27 @@ function LoginPageContent() {
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full" disabled={loading}>
+                <Button type="submit" className="w-full h-11" disabled={loading}>
                   {loading ? 'Logging in...' : 'Login'}
                 </Button>
-              </form>
+              </motion.form>
             </Form>
 
-          <div className="relative my-4">
-            <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
-            <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-2 text-muted-foreground">Or continue with</span></div>
+             <div className="relative my-2">
+                <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
+                <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-2 text-muted-foreground">Or continue with</span></div>
+            </div>
+
+            <Button variant="outline" className="w-full" onClick={handleGoogleSignIn}>Google</Button>
+
+          <div className="mt-4 text-center text-sm">
+            Don&apos;t have an account?{" "}
+            <Link href="/register" className="font-medium text-primary hover:underline">
+              Sign up
+            </Link>
           </div>
-
-          <Button variant="outline" className="w-full" onClick={handleGoogleSignIn}>Google</Button>
-
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{' '}
-            <Link href="/register" className="font-medium text-primary hover:underline">Sign up</Link>
-          </p>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
