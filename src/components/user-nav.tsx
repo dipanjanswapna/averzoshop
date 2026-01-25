@@ -36,6 +36,7 @@ export function UserNav() {
     switch (userData?.role) {
       case 'admin': return '/dashboard';
       case 'vendor': return '/vendor/dashboard';
+      case 'artisan': return '/artisan/dashboard';
       case 'outlet': return '/outlet/dashboard';
       case 'rider': return '/rider/dashboard';
       case 'sales': return '/sales/dashboard';
@@ -48,6 +49,7 @@ export function UserNav() {
     switch (userData?.role) {
       case 'admin': return '/dashboard/settings';
       case 'vendor': return '/vendor/settings';
+      case 'artisan': return '/artisan/settings';
       case 'outlet': return '/outlet/settings';
       case 'rider': return '/rider/settings';
       case 'sales': return '/sales/settings';
@@ -118,3 +120,5 @@ export function UserNav() {
     </div>
   );
 }
+
+    

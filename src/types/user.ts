@@ -6,7 +6,7 @@ export interface UserData {
   email: string | null;
   displayName: string | null;
   photoURL: string | null;
-  role: 'customer' | 'vendor' | 'rider' | 'admin' | 'outlet' | 'sales';
+  role: 'customer' | 'vendor' | 'rider' | 'admin' | 'outlet' | 'sales' | 'artisan';
   status: 'pending' | 'approved' | 'rejected';
   wishlist?: string[];
   addresses?: Address[];
@@ -21,3 +21,5 @@ export interface UserData {
   managedBy?: string;
   cardPromoDiscount?: number;
 }
+
+    

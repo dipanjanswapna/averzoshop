@@ -1,0 +1,223 @@
+
+'use client';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { PlusCircle, LayoutDashboard, Package, DollarSign, Clock, ShoppingCart } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
+import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
+import { Product } from '@/types/product';
+import Image from 'next/image';
+import { Badge } from '@/components/ui/badge';
+import { useState, useMemo } from 'react';
+import { AddProductDialog } from '@/components/dashboard/add-product-dialog';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useFirebase } from '@/firebase';
+import { collection, query } from 'firebase/firestore';
+import type { Order } from '@/types/order';
+import type { POSSale } from '@/types/pos';
+import { SalesChart } from '@/components/sales-chart';
+import { cn } from '@/lib/utils';
+
+export default function ArtisanDashboardPage() {
+  const { user } = useAuth();
+  const { firestore } = useFirebase();
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+
+  // Firestore queries
+  const productsQuery = useMemo(() => firestore ? query(collection(firestore, 'products')) : null, [firestore]);
+  const ordersQuery = useMemo(() => firestore ? query(collection(firestore, 'orders')) : null, [firestore]);
+  const posSalesQuery = useMemo(() => firestore ? query(collection(firestore, 'pos_sales')) : null, [firestore]);
+
+  const { data: allProducts, isLoading: productsLoading } = useFirestoreQuery<Product>(productsQuery);
+  const { data: allOrders, isLoading: ordersLoading } = useFirestoreQuery<Order>(ordersQuery);
+  const { data: allPosSales, isLoading: salesLoading } = useFirestoreQuery<POSSale>(posSalesQuery);
+
+  const isLoading = productsLoading || ordersLoading || salesLoading;
+
+  // Memoized calculations for artisan-specific data
+  const artisanProducts = useMemo(() => {
+    if (!allProducts || !user) return [];
+    return allProducts.filter(p => p.vendorId === user.uid);
+  }, [allProducts, user]);
+
+  const { totalRevenue, totalUnitsSold, salesData, topProducts, lowStockCount, preOrderCount } = useMemo(() => {
+    if (!artisanProducts.length || !allOrders || !allPosSales || !user) {
+      return { totalRevenue: 0, totalUnitsSold: 0, salesData: [], topProducts: [], lowStockCount: 0, preOrderCount: 0 };
+    }
+
+    const artisanProductIds = new Set(artisanProducts.map(p => p.id));
+    let revenue = 0;
+    let unitsSold = 0;
+    const monthlySales: { [key: string]: number } = {};
+    const productSales: { [key: string]: { name: string; sku: string; units: number; revenue: number } } = {};
+    let currentPreOrderCount = 0;
+
+    const processItem = (item: { productId: string; quantity: number; price: number }, date: Date) => {
+      if (artisanProductIds.has(item.productId)) {
+        const itemRevenue = item.price * item.quantity;
+        revenue += itemRevenue;
+        unitsSold += item.quantity;
+
+        const monthYear = `${date.toLocaleString('default', { month: 'short' })}-${date.getFullYear()}`;
+        monthlySales[monthYear] = (monthlySales[monthYear] || 0) + itemRevenue;
+
+        if (!productSales[item.productId]) {
+            const product = artisanProducts.find(p => p.id === item.productId);
+            productSales[item.productId] = { name: product?.name || 'Unknown', sku: product?.baseSku || 'N/A', units: 0, revenue: 0 };
+        }
+        productSales[item.productId].units += item.quantity;
+        productSales[item.productId].revenue += itemRevenue;
+      }
+    };
+
+    allOrders.forEach(order => {
+      if (order.status === 'delivered' || order.status === 'fulfilled') {
+        order.items.forEach(item => processItem(item, order.createdAt.toDate()));
+      }
+      if (order.orderType === 'pre-order' && order.status === 'pre-ordered') {
+          order.items.forEach(item => {
+              if (artisanProductIds.has(item.productId)) {
+                  currentPreOrderCount += item.quantity;
+              }
+          });
+      }
+    });
+
+    allPosSales.forEach(sale => {
+      sale.items.forEach(item => processItem(item, sale.createdAt.toDate()));
+    });
+    
+    const lowStock = artisanProducts.filter(p => p.total_stock > 0 && p.total_stock < 10).length;
+
+    const sortedMonths = Object.keys(monthlySales).sort((a, b) => {
+        const [aMonth, aYear] = a.split('-');
+        const [bMonth, bYear] = b.split('-');
+        return new Date(`${aMonth} 1, ${aYear}`).getTime() - new Date(`${bMonth} 1, ${bYear}`).getTime();
+    }).slice(-6);
+
+    const chartData = sortedMonths.map(monthYear => ({
+      month: monthYear.split('-')[0],
+      desktop: monthlySales[monthYear],
+    }));
+    
+    const sortedTopProducts = Object.values(productSales)
+      .sort((a, b) => b.units - a.units)
+      .slice(0, 5);
+
+    return { totalRevenue: revenue, totalUnitsSold: unitsSold, salesData: chartData, topProducts: sortedTopProducts, lowStockCount: lowStock, preOrderCount: currentPreOrderCount };
+
+  }, [artisanProducts, allOrders, allPosSales, user]);
+
+  return (
+    <div className="space-y-6">
+      <div className="space-y-6">
+          <div className="flex flex-wrap justify-center gap-4">
+              <Card className="flex-1 min-w-[280px] max-w-sm">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                      <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                      {isLoading ? <Skeleton className="h-8 w-3/4" /> : <div className="text-2xl font-bold">৳{totalRevenue.toFixed(2)}</div>}
+                      <p className="text-xs text-muted-foreground">From all completed sales.</p>
+                  </CardContent>
+              </Card>
+              <Card className="flex-1 min-w-[280px] max-w-sm">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Total Units Sold</CardTitle>
+                      <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                      {isLoading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{totalUnitsSold}</div>}
+                       <p className="text-xs text-muted-foreground">From all completed sales.</p>
+                  </CardContent>
+              </Card>
+              <Card className="flex-1 min-w-[280px] max-w-sm">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Product Status</CardTitle>
+                      <Package className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                      {isLoading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{artisanProducts.length} Active</div>}
+                      <p className={cn("text-xs", lowStockCount > 0 ? "text-destructive font-bold" : "text-muted-foreground")}>
+                        {lowStockCount} items are low on stock.
+                      </p>
+                  </CardContent>
+              </Card>
+              <Card className="flex-1 min-w-[280px] max-w-sm">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Active Pre-orders</CardTitle>
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                      {isLoading ? <Skeleton className="h-8 w-1/2" /> : <div className="text-2xl font-bold">{preOrderCount} Units</div>}
+                      <p className="text-xs text-muted-foreground">
+                      Total pending pre-ordered units.
+                      </p>
+                  </CardContent>
+              </Card>
+          </div>
+          <div className="flex flex-col xl:flex-row gap-6">
+              <Card className="flex-1">
+                   <CardHeader>
+                      <CardTitle className="font-headline">Sales Overview</CardTitle>
+                      <CardDescription>Your sales performance over the last 6 months.</CardDescription>
+                   </CardHeader>
+                   <CardContent className="pl-2">
+                      <SalesChart data={salesData} />
+                   </CardContent>
+              </Card>
+               <Card className="w-full xl:w-[400px] shrink-0">
+                  <CardHeader>
+                      <CardTitle>Top Selling Products</CardTitle>
+                      <CardDescription>Your most popular products by units sold.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                       <Table>
+                          <TableHeader>
+                              <TableRow>
+                              <TableHead>Product</TableHead>
+                              <TableHead className="text-right">Units Sold</TableHead>
+                              <TableHead className="text-right">Revenue</TableHead>
+                              </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                              {isLoading ? [...Array(5)].map((_, i) => (
+                                  <TableRow key={i}>
+                                      <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                                      <TableCell className="text-right"><Skeleton className="h-5 w-8 ml-auto" /></TableCell>
+                                      <TableCell className="text-right"><Skeleton className="h-5 w-12 ml-auto" /></TableCell>
+                                  </TableRow>
+                              )) : topProducts.map(p => (
+                                  <TableRow key={p.sku}>
+                                      <TableCell className="font-medium">{p.name}</TableCell>
+                                      <TableCell className="text-right">{p.units}</TableCell>
+                                      <TableCell className="text-right">৳{p.revenue.toFixed(2)}</TableCell>
+                                  </TableRow>
+                              ))}
+                          </TableBody>
+                      </Table>
+                  </CardContent>
+              </Card>
+          </div>
+      </div>
+    </div>
+  );
+}
+
+    

@@ -10,8 +10,10 @@ export type Coupon = {
   usageLimit: number;
   usedCount: number;
   expiryDate: Timestamp;
-  creatorType: 'admin' | 'vendor';
+  creatorType: 'admin' | 'vendor' | 'artisan';
   creatorId: string;
   applicableProducts?: string[];
   createdAt: Timestamp;
 };
+
+    

@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import { Settings, Save, Loader2 } from "lucide-react";
@@ -15,6 +16,7 @@ interface RegistrationSettingsData {
     vendor: boolean;
     rider: boolean;
     sales: boolean;
+    artisan: boolean;
 }
 
 export function RegistrationSettings() {
@@ -25,6 +27,7 @@ export function RegistrationSettings() {
   const [vendorReg, setVendorReg] = useState(true);
   const [riderReg, setRiderReg] = useState(true);
   const [salesReg, setSalesReg] = useState(true);
+  const [artisanReg, setArtisanReg] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -32,6 +35,7 @@ export function RegistrationSettings() {
       setVendorReg(settings.vendor ?? true);
       setRiderReg(settings.rider ?? true);
       setSalesReg(settings.sales ?? true);
+      setArtisanReg(settings.artisan ?? true);
     }
   }, [settings]);
 
@@ -44,6 +48,7 @@ export function RegistrationSettings() {
             vendor: vendorReg,
             rider: riderReg,
             sales: salesReg,
+            artisan: artisanReg,
         }, { merge: true });
         toast({ title: "Settings Saved", description: "Registration rules have been updated." });
     } catch (e: any) {
@@ -83,6 +88,13 @@ export function RegistrationSettings() {
                     </div>
                     <Switch checked={vendorReg} onCheckedChange={setVendorReg} />
                 </div>
+                 <div className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                        <Label>Allow Artisan / Home Business Registration</Label>
+                        <p className="text-xs text-muted-foreground">If turned off, new artisans cannot sign up.</p>
+                    </div>
+                    <Switch checked={artisanReg} onCheckedChange={setArtisanReg} />
+                </div>
                 <div className="flex flex-row items-center justify-between rounded-lg border p-4">
                     <div className="space-y-0.5">
                         <Label>Allow Rider Registration</Label>
@@ -107,3 +119,5 @@ export function RegistrationSettings() {
     </Card>
   );
 }
+
+    

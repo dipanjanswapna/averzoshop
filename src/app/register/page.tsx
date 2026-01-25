@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -22,7 +23,7 @@ import { useFirestoreDoc } from '@/hooks/useFirestoreQuery';
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   email: z.string().email({ message: 'Invalid email address.' }),
-  role: z.enum(['customer', 'vendor', 'rider', 'outlet', 'admin', 'sales'], { required_error: 'Please select a role.' }),
+  role: z.enum(['customer', 'vendor', 'rider', 'outlet', 'admin', 'sales', 'artisan'], { required_error: 'Please select a role.' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
 });
 
@@ -30,6 +31,7 @@ interface RegistrationSettings {
   vendor: boolean;
   rider: boolean;
   sales: boolean;
+  artisan: boolean;
 }
 
 function RegisterPageContent() {
@@ -51,7 +53,8 @@ function RegisterPageContent() {
 
   const availableRoles = useMemo(() => {
     const roles = [{ value: 'customer', label: 'Customer' }];
-    if (regSettings?.vendor) roles.push({ value: 'vendor', label: 'Vendor' });
+    if (regSettings?.vendor) roles.push({ value: 'vendor', label: 'Vendor (with outlets)' });
+    if (regSettings?.artisan) roles.push({ value: 'artisan', label: 'Artisan / Home Business' });
     if (regSettings?.rider) roles.push({ value: 'rider', label: 'Rider' });
     if (regSettings?.sales) roles.push({ value: 'sales', label: 'Sales Representative' });
     return roles;
@@ -227,3 +230,5 @@ export default function RegisterPage() {
         </FirebaseClientProvider>
     )
 }
+
+    

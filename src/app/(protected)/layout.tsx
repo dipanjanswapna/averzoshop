@@ -59,6 +59,7 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
       const isRider = userData.role === 'rider';
       const isAdmin = userData.role === 'admin';
       const isSales = userData.role === 'sales';
+      const isArtisan = userData.role === 'artisan';
       
       const onAdminRoute = pathname.startsWith('/dashboard');
       const onCustomerRoute = pathname.startsWith('/customer');
@@ -66,6 +67,7 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
       const onVendorRoute = pathname.startsWith('/vendor');
       const onRiderRoute = pathname.startsWith('/rider');
       const onSalesRoute = pathname.startsWith('/sales');
+      const onArtisanRoute = pathname.startsWith('/artisan');
       
 
       if (isCustomer && !onCustomerRoute && !onOnboardingRoute) {
@@ -80,6 +82,8 @@ function ProtectedContent({ children }: { children: React.ReactNode }) {
         router.replace('/sales/dashboard');
       } else if (isAdmin && !onAdminRoute) {
         router.replace('/dashboard');
+      } else if (isArtisan && !onArtisanRoute) {
+        router.replace('/artisan/dashboard');
       }
     }
   }, [user, userData, loading, router, pathname]);
@@ -138,3 +142,5 @@ export default function ProtectedLayout({
     </FirebaseClientProvider>
   );
 }
+
+    

@@ -37,7 +37,7 @@ const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
   email: z.string().email({ message: 'A valid email is required.' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
-  role: z.enum(['customer', 'vendor', 'rider', 'outlet', 'admin', 'sales'], { required_error: 'Please select a role.' }),
+  role: z.enum(['customer', 'vendor', 'rider', 'outlet', 'admin', 'sales', 'artisan'], { required_error: 'Please select a role.' }),
   assignedOutlets: z.array(z.string()).optional(),
 });
 
@@ -146,6 +146,7 @@ export function AddUserDialog({ open, onOpenChange }: AddUserDialogProps) {
                         <SelectItem value="customer">Customer</SelectItem>
                         <SelectItem value="sales">Sales Representative</SelectItem>
                         <SelectItem value="vendor">Vendor</SelectItem>
+                        <SelectItem value="artisan">Artisan / Home Business</SelectItem>
                         <SelectItem value="rider">Rider</SelectItem>
                         <SelectItem value="outlet">Outlet Manager</SelectItem>
                         <SelectItem value="admin">Admin</SelectItem>
@@ -209,3 +210,5 @@ export function AddUserDialog({ open, onOpenChange }: AddUserDialogProps) {
     </Dialog>
   );
 }
+
+    
