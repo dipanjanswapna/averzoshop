@@ -514,8 +514,8 @@
       },
       "required": ["code", "initialValue", "balance", "expiryDate", "createdAt", "isEnabled"]
     },
-    "notification_subscription": {
-      "title": "Notification Subscription",
+    "back_in_stock_notification": {
+      "title": "Back in Stock Notification",
       "description": "Tracks user requests for back-in-stock notifications.",
       "type": "object",
       "properties": {
@@ -527,6 +527,16 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["email", "productId", "status", "createdAt"]
+    },
+    "newsletter_subscription": {
+      "title": "Newsletter Subscription",
+      "description": "Stores email addresses of users who subscribed to the newsletter.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "format": "email" },
+        "subscribedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["email", "subscribedAt"]
     }
   },
   "auth": {
@@ -548,7 +558,8 @@
     "/stock_transfers/{transferId}": { "schema": { "$ref": "#/entities/stock_transfer" }, "description": "Tracks inter-outlet stock transfers initiated by admins." },
     "/coupons/{couponId}": { "schema": { "$ref": "#/entities/coupon" }, "description": "Stores all promotional codes for discounts." },
     "/gift_cards/{cardId}": { "schema": { "$ref": "#/entities/gift_card" }, "description": "Stores all gift card data." },
-    "/notification_subscriptions/{subscriptionId}": { "schema": { "$ref": "#/entities/notification_subscription" }, "description": "Stores all user requests for back-in-stock notifications." },
+    "/back_in_stock_subscriptions/{subscriptionId}": { "schema": { "$ref": "#/entities/back_in_stock_notification" }, "description": "Stores all user requests for back-in-stock notifications." },
+    "/newsletter_subscriptions/{subscriptionId}": { "schema": { "$ref": "#/entities/newsletter_subscription" }, "description": "Stores newsletter subscriber emails." },
     "/settings/loyalty": { "schema": { "$ref": "#/entities/loyalty_settings" }, "description": "Stores the global settings for the loyalty program." },
     "/settings/registration": { "schema": { "$ref": "#/entities/registration_settings" }, "description": "Controls role-based registration settings." }
   }

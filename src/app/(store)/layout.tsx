@@ -1,4 +1,10 @@
 "use client";
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Loader2 } from 'lucide-react';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { MobileBottomNav } from '@/components/mobile-bottom-nav';
 import AverzoNavbar from '@/components/store-header';
 import Link from 'next/link';
@@ -10,6 +16,67 @@ import { Button } from '@/components/ui/button';
 import { Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
 import { LiveSearch } from '@/components/live-search';
 import AverzoLogo from '@/components/averzo-logo';
+import { useToast } from '@/hooks/use-toast';
+import { subscribeToNewsletter } from '@/actions/subscription-actions';
+
+// New Newsletter Form Component
+const NewsletterForm = () => {
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const formSchema = z.object({
+    email: z.string().email({ message: 'Please enter a valid email address.' }),
+  });
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: '',
+    },
+  });
+
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true);
+    const result = await subscribeToNewsletter(values.email);
+    if (result.success) {
+      toast({
+        title: 'Subscription Successful!',
+        description: result.message,
+      });
+      form.reset();
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Subscription Failed',
+        description: result.message,
+      });
+    }
+    setIsLoading(false);
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="flex w-full max-w-md items-center space-x-2">
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem className="flex-1">
+              <FormControl>
+                <Input type="email" placeholder="Enter your email" className="bg-background h-12" {...field} />
+              </FormControl>
+              <FormMessage className="text-xs pt-1" />
+            </FormItem>
+          )}
+        />
+        <Button type="submit" size="lg" className="h-12" disabled={isLoading}>
+            {isLoading ? <Loader2 className="animate-spin" /> : 'Subscribe'}
+        </Button>
+      </form>
+    </Form>
+  );
+};
+
 
 export default function StoreLayout({
   children,
@@ -36,10 +103,7 @@ export default function StoreLayout({
                 Subscribe to our newsletter for the latest fashion, deals, and updates.
               </p>
             </div>
-            <form className="flex w-full max-w-md items-center space-x-2">
-              <Input type="email" placeholder="Enter your email" className="bg-background h-12" />
-              <Button type="submit" size="lg" className="h-12">Subscribe</Button>
-            </form>
+            <NewsletterForm />
           </div>
 
           <div className="flex flex-wrap justify-between gap-8 py-12">

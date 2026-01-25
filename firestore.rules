@@ -180,10 +180,16 @@ service cloud.firestore {
       allow write: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     
-    // Notification subscriptions can be created by anyone, but not read publicly.
-    match /notification_subscriptions/{subscriptionId} {
+    // Back in stock subscriptions can be created by anyone, but not read publicly by other users.
+    match /back_in_stock_subscriptions/{subscriptionId} {
       allow create: if true;
       allow read, update, delete: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Newsletter subscriptions can be created by anyone, but not read publicly.
+    match /newsletter_subscriptions/{subscriptionId} {
+        allow create: if true;
+        allow read, update, delete: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
     
     // This collection is used for generating unique IDs and should not be publicly accessible.

@@ -32,7 +32,7 @@ export function NotifyMeButton({ productId, productName }: NotifyMeButtonProps) 
       if (!firestore || !email || !productId) return;
       
       const q = query(
-        collection(firestore, 'notification_subscriptions'),
+        collection(firestore, 'back_in_stock_subscriptions'),
         where('email', '==', email),
         where('productId', '==', productId)
       );
@@ -49,7 +49,7 @@ export function NotifyMeButton({ productId, productName }: NotifyMeButtonProps) 
     
     setIsLoading(true);
     try {
-      await addDoc(collection(firestore, 'notification_subscriptions'), {
+      await addDoc(collection(firestore, 'back_in_stock_subscriptions'), {
         email: emailToSubscribe,
         productId,
         userId: user?.uid || null,
