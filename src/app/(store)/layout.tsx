@@ -106,6 +106,7 @@ export default function StoreLayout({
                   </a>
               </div>
               <p className="text-sm text-muted-foreground">&copy; {new Date().getFullYear()} Averzo. All rights reserved.</p>
+              <p className="text-xs text-muted-foreground mt-2">Averzo is a proud sister concern of the PRANGONS ECOSYSTEM.</p>
           </div>
         </div>
       </footer>
