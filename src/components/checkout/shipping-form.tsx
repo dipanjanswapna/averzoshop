@@ -75,6 +75,15 @@ export function ShippingForm() {
     },
   });
 
+  const showAverzoRider = useMemo(() => shippingInfo.distance !== null && shippingInfo.distance <= 5, [shippingInfo.distance]);
+
+  useEffect(() => {
+      if (!showAverzoRider && shippingMethod === 'averzo_rider') {
+          setShippingDetails({ method: 'third_party_courier', courierName: couriers[0] });
+      }
+  }, [showAverzoRider, shippingMethod, setShippingDetails]);
+
+
   useEffect(() => {
     if (userData?.addresses && userData.addresses.length > 0 && !selectedAddressId) {
         setSelectedAddressId(userData.addresses[0].id);
@@ -250,7 +259,7 @@ export function ShippingForm() {
                         const productData = productDoc.data() as Product;
                         const variantsArray = Array.isArray(productData.variants) ? JSON.parse(JSON.stringify(productData.variants)) : JSON.parse(JSON.stringify(Object.values(productData.variants || {})));
                         const variantIndex = variantsArray.findIndex((v: ProductVariant) => v.sku === item.variant.sku);
-                        if (variantIndex === -1) throw new Error(`Variant ${item.variant.sku} not found.`);
+                        if (variantIndex === -1) throw new Error(`Variant ${item.variant.sku} not found for product ${product.name}.`);
                         const variant = variantsArray[variantIndex];
                         const currentStock = variant.outlet_stocks?.[assignedOutletId!] ?? 0;
                         if (currentStock < item.quantity) throw new Error(`Not enough stock for ${productData.name}.`);
@@ -264,7 +273,7 @@ export function ShippingForm() {
                 transaction.set(orderRef, orderDataForCod);
                 
                 if (pointsApplied > 0) {
-                    transaction.update(userRef, { loyaltyPoints: increment(-pointsApplied) });
+                     transaction.update(userRef, { loyaltyPoints: increment(-pointsApplied) });
                 }
             });
             clearCart();
@@ -363,13 +372,19 @@ export function ShippingForm() {
                     value={shippingMethod ? `${shippingMethod}:${courierName || ''}` : ''}
                     className="flex flex-wrap gap-3"
                   >
-                    <FormItem className="flex-1 min-w-[180px]">
-                      <FormControl>
-                        <Label className="flex items-center gap-2 p-4 border rounded-lg cursor-pointer has-[:checked]:bg-primary/10 has-[:checked]:border-primary">
-                          <RadioGroupItem value="averzo_rider:" /> Averzo Rider
-                        </Label>
-                      </FormControl>
-                    </FormItem>
+                    {showAverzoRider && (
+                      <FormItem className="flex-1 min-w-[180px]">
+                        <FormControl>
+                          <Label className="flex items-center gap-2 p-4 border rounded-lg cursor-pointer has-[:checked]:bg-primary/10 has-[:checked]:border-primary">
+                            <RadioGroupItem value="averzo_rider:" />
+                            <div>
+                                <p>Averzo Rider</p>
+                                <p className="text-xs text-muted-foreground">Express: {shippingInfo.estimate}</p>
+                            </div>
+                          </Label>
+                        </FormControl>
+                      </FormItem>
+                    )}
                     {couriers.map(c => (
                       <FormItem key={c} className="flex-1 min-w-[180px]">
                         <FormControl>
