@@ -15,7 +15,7 @@ type ProductGridProps = {
 const SKELETON_COUNT = 18;
 
 export const ProductGrid = ({ products, isLoading, currentPage, totalPages, onPageChange }: ProductGridProps) => {
-  const gridClass = "grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4";
+  const gridClass = "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4";
 
   if (isLoading) {
     return (
