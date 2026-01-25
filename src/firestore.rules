@@ -14,15 +14,17 @@ service cloud.firestore {
       return (role == 'customer')
           || (role == 'vendor' && settings.vendor == true)
           || (role == 'rider' && settings.rider == true)
-          || (role == 'sales' && settings.sales == true);
+          || (role == 'sales' && settings.sales == true)
+          || (role == 'artisan' && settings.artisan == true);
     }
 
     // Users can read their own profile. Admins can read any profile.
-    // Sales reps can read customers they manage.
+    // Sales reps can read customers they manage. Artisans' profiles are public.
     match /users/{userId} {
       allow read: if request.auth.uid == userId 
                     || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
-                    || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'sales' && resource.data.managedBy == request.auth.uid);
+                    || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'sales' && resource.data.managedBy == request.auth.uid)
+                    || resource.data.role == 'artisan';
 
       allow create: if (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') // Admin creation
                       || (request.auth.uid == userId && canSelfRegister(request.resource.data.role)) // Self-signup
@@ -43,14 +45,14 @@ service cloud.firestore {
     }
 
     // Products can be read by anyone.
-    // They can be created by vendors or admins.
-    // They can only be updated by the vendor who owns it, or an admin.
+    // They can be created by vendors, artisans or admins.
+    // They can only be updated by the owner or an admin.
     match /products/{productId} {
       allow read: if true;
-      allow create: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['vendor', 'admin'];
+      allow create: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['vendor', 'admin', 'artisan'];
       allow update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
-                      || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'vendor'
-                          && resource.data.vendorId == request.auth.uid);
+                      || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'vendor' && resource.data.vendorId == request.auth.uid)
+                      || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'artisan' && resource.data.vendorId == request.auth.uid);
     }
     
     // Product reviews can be read by anyone.
@@ -88,6 +90,7 @@ service cloud.firestore {
                     || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.outletId == resource.data.pickupOutletId
                     || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'sales' && resource.data.salesRepId == request.auth.uid)
                     || request.auth.uid == resource.data.riderId
+                    || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'rider' && resource.data.status == 'ready_for_pickup')
                   );
       allow create: if request.auth != null && (
                         request.auth.uid == request.resource.data.customerId 
@@ -165,11 +168,11 @@ service cloud.firestore {
     }
 
     // Coupons are publicly readable.
-    // Admins can create any coupon. Vendors can create coupons for their own products.
+    // Admins can create any coupon. Vendors/Artisans can create coupons for their own products.
     match /coupons/{couponId} {
       allow read: if true;
       allow create, update: if get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
-                              || (request.resource.data.creatorType == 'vendor' && request.auth.uid == request.resource.data.creatorId);
+                              || (request.resource.data.creatorType in ['vendor', 'artisan'] && request.auth.uid == request.resource.data.creatorId);
     }
     
     // Gift Cards: Admins can manage them. Authenticated users can read.
