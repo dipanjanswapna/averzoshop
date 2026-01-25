@@ -22,6 +22,8 @@ import { RelatedProducts } from '@/components/product/related-products';
 import { MobileActionbar } from '@/components/product/mobile-action-bar';
 import { FrequentlyBought } from '@/components/product/frequently-bought';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ProductSchema } from '@/components/product/product-schema';
+import type { Review } from '@/types/review';
 
 function ProductPageContent() {
     const params = useParams();
@@ -35,6 +37,13 @@ function ProductPageContent() {
     
     // Fetch single product efficiently
     const { data: product, isLoading: productLoading } = useFirestoreDoc<Product>(`products/${id}`);
+
+    // Fetch reviews for the product
+    const reviewsQuery = useMemo(() => {
+        if (!firestore || !id) return null;
+        return query(collection(firestore, `products/${id}/reviews`));
+    }, [firestore, id]);
+    const { data: reviews, isLoading: reviewsLoading } = useFirestoreQuery<Review>(reviewsQuery);
     
     // Fetch related products
     const relatedProductsQuery = useMemo(() => {
@@ -60,7 +69,7 @@ function ProductPageContent() {
     }, [firestore]);
     const { data: allFrequentlyBought, isLoading: frequentlyBoughtLoading } = useFirestoreQuery<Product>(frequentlyBoughtQuery);
 
-    const isLoading = productLoading || relatedLoading || frequentlyBoughtLoading;
+    const isLoading = productLoading || relatedLoading || frequentlyBoughtLoading || reviewsLoading;
 
     // Post-process the fetched data
     const { relatedProducts, frequentlyBoughtTogether } = useMemo(() => {
@@ -156,6 +165,7 @@ function ProductPageContent() {
 
     return (
         <div className="bg-background">
+            {product && <ProductSchema product={product} selectedVariant={selectedVariant} reviews={reviews} />}
             <div className="container py-8">
                  <Breadcrumb className="mb-6 overflow-x-auto whitespace-nowrap no-scrollbar">
                     <BreadcrumbList>
