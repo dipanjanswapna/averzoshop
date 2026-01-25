@@ -80,7 +80,12 @@ export const categoriesData = [
     { 
       mother_name: "Artisan & Handicrafts", 
       path: "/artisan-handicrafts",
-      groups: [ { group_name: "Decor", subs: ["Paintings", "Sculptures"] }, { group_name: "Crafts", subs: ["Pottery", "Woodwork"] } ]  
+      groups: [ 
+        { group_name: "Home Decor", subs: ["Wall Hangings", "Pottery", "Macrame", "Lamps & Lighting"] }, 
+        { group_name: "Fashion Accessories", subs: ["Handmade Jewelry", "Embroidered Bags", "Scarves"] },
+        { group_name: "Artwork", subs: ["Paintings", "Sketches", "Digital Art"] },
+        { group_name: "Traditional Crafts", subs: ["Nakshi Kantha", "Rickshaw Painting", "Shital Pati"] }
+      ]  
     },
     { 
       mother_name: "Travel & Luggage", 
