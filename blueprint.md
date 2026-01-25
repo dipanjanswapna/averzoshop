@@ -3,7 +3,7 @@
 
 ## 1. Project Overview
 
-Averzo is a multi-faceted e-commerce platform designed to operate on a B2B2D2C (Business-to-Business-to-Distributor-to-Customer) model. It integrates a rich online storefront for end-users with powerful, role-based dashboards for administrators, vendors, physical outlet managers, delivery riders, and a sales force. The platform supports a wide range of products, complex logistics, point-of-sale (POS) operations, and leverages AI for enhanced decision-making and marketing.
+Averzo is a multi-faceted e-commerce platform designed to operate on a B2B2D2C (Business-to-Business-to-Distributor-to-Customer) model. It integrates a rich online storefront for end-users with powerful, role-based dashboards for administrators, vendors, artisans (home businesses), physical outlet managers, delivery riders, and a sales force. The platform supports a wide range of products, complex logistics, point-of-sale (POS) operations, and leverages AI for enhanced decision-making and marketing.
 
 ## 2. Technology Stack
 
@@ -20,7 +20,7 @@ Averzo is a multi-faceted e-commerce platform designed to operate on a B2B2D2C (
 
 ### 3.1. Storefront (Customer-Facing)
 
-- **Authentication:** Secure user registration (Customer, Vendor, Rider, Sales) and login with email/password and Google OAuth.
+- **Authentication:** Secure user registration (Customer, Vendor, Rider, Sales, Artisan) and login with email/password and Google OAuth.
 - **Product Catalog:**
     - Multi-level category pages (e.g., Men's Fashion > Topwear > T-Shirts).
     - Advanced filtering by brand, color, size, price range, and discounts.
@@ -28,16 +28,20 @@ Averzo is a multi-faceted e-commerce platform designed to operate on a B2B2D2C (
     - Live search functionality.
 - **Product Detail Page (PDP):**
     - Image and video gallery.
-    - Variant selection (color, size).
-    - Real-time stock availability.
-    - Pre-order and Flash Sale support with timers.
+    - Variant selection (color, size) with dynamic price and stock updates.
+    - Real-time stock availability check.
     - "Frequently Bought Together" and "Related Products" sections.
     - Q&A and Customer Reviews sections.
+    - SEO-optimized with dynamic metadata and structured data (Schema.org).
+- **Special Product Types:**
+    - **Pre-order:** Support for upcoming products with partial payment options.
+    - **Flash Sale:** Time-limited deals with countdown timers.
 - **Shopping & Checkout:**
     - Persistent shopping cart with item reservation timers.
     - Product comparison tool.
     - Multi-step checkout process with support for:
-        - Delivery or Store Pickup.
+        - **Delivery Options:** Location-based express delivery via "Averzo Rider" (for short distances) or standard third-party couriers.
+        - **Store Pickup:** Option to collect orders from a designated outlet.
         - Multiple shipping addresses.
         - Coupon, Gift Card, and Loyalty Point redemption.
         - Cash on Delivery (COD) and Online Payments (SSLCommerz).
@@ -47,41 +51,50 @@ Averzo is a multi-faceted e-commerce platform designed to operate on a B2B2D2C (
     - Profile and address management.
     - Wishlist functionality.
     - Loyalty points and membership tier tracking.
+- **Personalization:**
+    - **"For You" Section:** AI-powered product recommendations on the homepage based on user's wishlist and browsing history. Displays bestsellers for new or guest users.
+- **Public Storefronts:**
+    - **Artisan Pages (`/artisan/[id]`):** Dedicated public pages for each artisan showcasing their profile, bio, cover photo, and all their products.
+    - **Outlet Pages (`/outlet/[id]`):** Public pages for each physical outlet showing its location, status, and available inventory.
 
 ### 3.2. Admin Dashboard (`/dashboard`)
 
 - **Analytics:** KPI cards (revenue, orders, users) and sales charts.
 - **User Management:** View all users, filter by role, approve/reject pending accounts, and assign sales reps to customers.
-- **Product Management:** Approve or reject vendor-submitted products.
+- **Product Management:** Approve or reject vendor-submitted products. Add and edit products directly.
 - **Logistics:**
     - Approve/reject vendor stock requests and issue delivery challans.
     - Initiate and monitor inter-outlet stock transfers.
 - **Marketing & Promotions:**
     - Create and manage coupons and gift cards.
-    - Manage storefront appearance (hero banners, carousels).
+    - Manage storefront appearance (hero banners, carousels via Store Assets).
     - Send push notifications (to all, by role, or to a specific user).
 - **AI-Powered Tools:**
     - **Delivery Monitor:** Analyze active deliveries for potential issues.
     - **Replenishment Advisor:** Generate stock reorder recommendations for outlets.
     - **Sales Route Planner:** Optimize daily routes for the sales force.
 
-### 3.3. Vendor Portal (`/vendor`)
+### 3.3. Vendor & Artisan Portal (`/vendor`, `/artisan`)
 
 - **Dashboard:** Overview of sales, top-selling products, and stock status.
-- **Product Management:** Add new products (with pending admin approval), view listed products, and monitor pre-order/wishlist counts.
-- **Logistics:** Create stock requests to supply physical outlets. View delivery challans.
-- **Promotions:** Create vendor-specific coupons for their products.
+- **Product Management:**
+    - Add new products (with pending admin approval).
+    - Use an **AI-powered tool to generate product descriptions**.
+    - View listed products and monitor pre-order/wishlist counts.
+- **Logistics (Vendor only):** Create stock requests to supply physical outlets. View delivery challans.
+- **Promotions:** Create vendor/artisan-specific coupons for their products.
+- **Settings:** Update public profile info, including bio and cover photo (for artisans).
 
 ### 3.4. Outlet Portal (`/outlet`)
 
 - **Point of Sale (POS):**
     - Barcode/camera scanning and product search.
     - Customer selection (including NFC card scanning).
-    - Integrated application of all discount types (promo, loyalty, gift card, card promo).
+    - Integrated application of all discount types.
     - Multiple payment methods (Cash, Card, Mobile).
     - Printable thermal receipts.
 - **Inventory Management:**
-    - View live stock levels for all product variants in the outlet.
+    - View live stock levels for all product variants.
     - Receive stock from vendors (via delivery challans).
     - Dispatch and receive stock for inter-outlet transfers.
 - **Order Fulfillment:**
@@ -102,10 +115,10 @@ Averzo is a multi-faceted e-commerce platform designed to operate on a B2B2D2C (
 
 ## 4. Database Schema (`docs/backend.json`)
 
-The Firestore database structure is defined in `docs/backend.json`, which serves as a schema for the application's data models. Key collections include:
+The Firestore database structure is defined in `docs/backend.json`. Key collections and recent updates include:
 
-- `/users/{userId}`: Stores all user data, including roles, status, addresses, and loyalty information.
-- `/products/{productId}`: Contains detailed product information, including variants, stock levels, and special offer details.
+- `/users/{userId}`: Stores all user data. New fields include `coverPhotoURL` and `bio` for artisan/vendor profiles.
+- `/products/{productId}`: Contains detailed product information. New fields for SEO (`metaTitle`, `metaDescription`) and shipping (`weight`, `dimensions`) have been added.
 - `/orders/{orderId}`: Stores all online and sales-rep-placed orders.
 - `/pos_sales/{saleId}`: Logs all sales made through the Point of Sale system.
 - `/outlets/{outletId}`: Information about physical store locations.
@@ -116,22 +129,22 @@ The Firestore database structure is defined in `docs/backend.json`, which serves
 ## 5. Project Structure
 
 - `/src/app/(auth)`: Public routes for authentication (login, register).
-- `/src/app/(protected)`: Role-based protected routes for different user dashboards (admin, customer, vendor, etc.).
-- `/src/app/(store)`: Public-facing storefront pages (home, product, category, cart, checkout).
-- `/src/app/api`: Server-side API routes for handling backend logic like payment verification and order completion.
-- `/src/components`: Reusable React components, organized by feature (e.g., `cart`, `product`, `dashboard`).
-- `/src/hooks`: Custom React hooks (e.g., `useAuth`, `useCart`, `useFirestoreQuery`).
-- `/src/lib`: Utility functions, static data, and external API integrations.
-- `/src/types`: TypeScript type definitions for data models (e.g., `Product`, `Order`, `User`).
+- `/src/app/(protected)`: Role-based protected routes for different user dashboards. New top-level directories for `artisan`, `rider`, and `sales` have been added.
+- `/src/app/(store)`: Public-facing storefront pages. New pages for artisan stores (`/artisan/[id]`) and outlet stores (`/outlet/[id]`) are included.
+- `/src/app/api`: Server-side API routes.
+- `/src/components`: Reusable React components.
+- `/src/hooks`: Custom React hooks.
+- `/src/lib`: Utility functions and static data.
+- `/src/types`: TypeScript type definitions for data models.
 - `/src/ai`: Genkit flows and AI-related server actions.
 
 ## 6. AI & Genkit Integration
 
 The application leverages Genkit to integrate various AI-powered features:
 
-- **Product Description Generator:** (`product-description-generator.ts`) - Assists vendors/admins in creating compelling product descriptions.
-- **Product Recommender:** (`product-recommender.ts`) - Provides personalized "For You" product recommendations based on a user's wishlist.
-- **Delivery Monitor:** (`delivery-monitoring-dashboard.ts`) - Identifies potential issues with active deliveries for admins.
-- **Replenishment Planner:** (`replenishment-planner.ts`) - Analyzes sales data to suggest stock replenishment for outlet managers.
-- **Sales Route Planner:** (`sales-route-planner.ts`) - Generates optimized routes for sales representatives.
-- **Notification Flows:** (`send-notification-*.ts`) - A suite of flows for sending targeted push notifications.
+- **Product Description Generator:** Assists vendors/admins in creating compelling product descriptions.
+- **Product Recommender:** Provides personalized "For You" product recommendations.
+- **Delivery Monitor:** Identifies potential issues with active deliveries for admins.
+- **Replenishment Planner:** Suggests stock replenishment for outlet managers.
+- **Sales Route Planner:** Generates optimized routes for sales representatives.
+- **Notification Flows:** A suite of flows for sending targeted push notifications.
