@@ -8,7 +8,7 @@ import { Home, Store, Truck } from 'lucide-react';
 export default function NotFoundPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-secondary p-4 sm:p-6 md:p-8 text-center">
-      <div className="max-w-lg w-full bg-background p-6 sm:p-8 rounded-2xl shadow-2xl border">
+      <div className="w-full max-w-lg md:max-w-2xl bg-background p-6 sm:p-8 rounded-2xl shadow-2xl border">
         <Image
           src="https://i.postimg.cc/1XTRPtpJ/Blue-Screen-Loading-GIF-by-Fresh-Cake.gif"
           alt="404 Not Found Animation"
