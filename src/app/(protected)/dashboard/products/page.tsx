@@ -1,8 +1,9 @@
-
 'use client';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useFirestoreQuery } from '@/hooks/useFirestoreQuery';
 import type { Product } from '@/types/product';
+import type { UserData } from '@/types/user';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, MoreHorizontal, PackageOpen } from 'lucide-react';
 import { AddProductDialog } from '@/components/dashboard/add-product-dialog';
@@ -20,13 +21,22 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 export default function ProductsPage() {
-  const { data: products, isLoading } = useFirestoreQuery<Product>('products');
+  const { data: products, isLoading: productsLoading } = useFirestoreQuery<Product>('products');
+  const { data: users, isLoading: usersLoading } = useFirestoreQuery<UserData>('users');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const { userData } = useAuth();
   const { firestore } = useFirebase();
   const { toast } = useToast();
+
+  const isLoading = productsLoading || usersLoading;
+
+  const userMap = useMemo(() => {
+    if (!users) return new Map();
+    return new Map(users.map(u => [u.uid, u]));
+  }, [users]);
+
 
   const handleStatusChange = async (productId: string, newStatus: 'approved' | 'rejected') => {
     if (!firestore) return;
@@ -174,7 +184,21 @@ export default function ProductsPage() {
                             <Image alt={product.name} className="aspect-square rounded-md object-cover" height="64" src={product.image || 'https://placehold.co/64'} width="64" />
                           </TableCell>
                           <TableCell className="font-medium">{product.name}</TableCell>
-                          <TableCell className="text-sm text-muted-foreground">{product.vendorId}</TableCell>
+                          <TableCell>
+                            {(() => {
+                                const vendor = userMap.get(product.vendorId);
+                                if (!vendor) return <span className="text-sm text-muted-foreground">{product.vendorId}</span>;
+                                
+                                if (vendor.role === 'artisan') {
+                                return (
+                                    <Link href={`/artisan/${vendor.uid}`} className="text-sm hover:underline text-primary" target="_blank">
+                                    {vendor.displayName}
+                                    </Link>
+                                );
+                                }
+                                return <span className="text-sm text-muted-foreground">{vendor.displayName}</span>;
+                            })()}
+                          </TableCell>
                            <TableCell>
                             {renderProductStatusBadge(product)}
                           </TableCell>
@@ -198,7 +222,16 @@ export default function ProductsPage() {
                        <Image alt={product.name} className="aspect-square rounded-md object-cover" height="64" src={product.image || 'https://placehold.co/64'} width="64" />
                        <div className="flex-1 space-y-1">
                           <h4 className="font-semibold text-sm leading-tight">{product.name}</h4>
-                          <p className="text-xs text-muted-foreground">Vendor: {product.vendorId}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Vendor: {(() => {
+                                const vendor = userMap.get(product.vendorId);
+                                if (!vendor) return product.vendorId;
+                                if (vendor.role === 'artisan') {
+                                    return <Link href={`/artisan/${vendor.uid}`} className="hover:underline text-primary" target="_blank">{vendor.displayName}</Link>;
+                                }
+                                return vendor.displayName;
+                            })()}
+                           </p>
                           <p className="font-bold text-primary pt-1">৳{product.price.toFixed(2)}</p>
                        </div>
                        <div>

@@ -1,7 +1,7 @@
-
 'use client';
 import { useState, useMemo } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import {
   Card,
   CardContent,
@@ -224,6 +224,7 @@ export default function UsersPage() {
                 <TabsTrigger value="customer">Customers</TabsTrigger>
                 <TabsTrigger value="sales">Sales Reps</TabsTrigger>
                 <TabsTrigger value="vendor">Vendors</TabsTrigger>
+                <TabsTrigger value="artisan">Artisans</TabsTrigger>
                 <TabsTrigger value="rider">Riders</TabsTrigger>
                 <TabsTrigger value="pending" className="text-orange-500">Pending</TabsTrigger>
                 </TabsList>
@@ -258,7 +259,15 @@ export default function UsersPage() {
                               <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
                             </Avatar>
                             <div>
-                              <div className="font-medium">{user.displayName}</div>
+                               <div className="font-medium">
+                                {user.role === 'artisan' ? (
+                                    <Link href={`/artisan/${user.uid}`} className="hover:underline text-primary" target="_blank">
+                                    {user.displayName}
+                                    </Link>
+                                ) : (
+                                    user.displayName
+                                )}
+                                </div>
                               <div className="text-sm text-muted-foreground">{user.email}</div>
                             </div>
                           </div>
@@ -370,7 +379,15 @@ export default function UsersPage() {
                                         <AvatarFallback>{user.displayName?.charAt(0) || 'U'}</AvatarFallback>
                                     </Avatar>
                                     <div>
-                                        <div className="font-medium">{user.displayName}</div>
+                                        <div className="font-medium">
+                                          {user.role === 'artisan' ? (
+                                            <Link href={`/artisan/${user.uid}`} className="hover:underline text-primary" target="_blank">
+                                              {user.displayName}
+                                            </Link>
+                                          ) : (
+                                            user.displayName
+                                          )}
+                                        </div>
                                         <div className="text-sm text-muted-foreground">{user.email}</div>
                                     </div>
                                 </div>

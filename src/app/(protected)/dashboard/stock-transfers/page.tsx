@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo } from 'react';
@@ -23,6 +22,7 @@ import { Badge } from '@/components/ui/badge';
 import { ArrowRight, Clock, CheckCircle, Truck, XCircle } from 'lucide-react';
 import type { StockTransfer } from '@/types/logistics';
 import type { Outlet } from '@/types/outlet';
+import Link from 'next/link';
 
 export default function StockTransfersPage() {
   const { data: transfers, isLoading: transfersLoading } = useFirestoreQuery<StockTransfer>('stock_transfers');
@@ -121,9 +121,9 @@ export default function StockTransfersPage() {
                   <TableRow key={t.id}>
                     <TableCell>{t.createdAt?.toDate().toLocaleDateString()}</TableCell>
                     <TableCell className="font-medium flex items-center gap-2">
-                      <span>{t.sourceOutletName}</span>
-                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                      <span>{t.destinationOutletName}</span>
+                        <Link href={`/outlet/${t.sourceOutletId}`} className="hover:underline" target="_blank">{t.sourceOutletName}</Link>
+                        <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                        <Link href={`/outlet/${t.destinationOutletId}`} className="hover:underline" target="_blank">{t.destinationOutletName}</Link>
                     </TableCell>
                     <TableCell>{t.productName}</TableCell>
                     <TableCell className="text-right font-bold">{t.quantity}</TableCell>
@@ -150,9 +150,9 @@ export default function StockTransfersPage() {
                   </CardHeader>
                   <CardContent className="space-y-2">
                      <div className="flex items-center gap-2 text-sm">
-                        <span>{t.sourceOutletName}</span>
+                        <Link href={`/outlet/${t.sourceOutletId}`} className="hover:underline" target="_blank">{t.sourceOutletName}</Link>
                         <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                        <span>{t.destinationOutletName}</span>
+                        <Link href={`/outlet/${t.destinationOutletId}`} className="hover:underline" target="_blank">{t.destinationOutletName}</Link>
                     </div>
                      <p className="font-bold text-lg">{t.quantity} <span className="text-sm font-normal text-muted-foreground">units</span></p>
                   </CardContent>

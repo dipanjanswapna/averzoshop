@@ -39,6 +39,7 @@ import type { Outlet } from '@/types/outlet';
 import { RequestDetailsDialog } from './request-details-dialog';
 import { sendTargetedNotification } from '@/ai/flows/send-targeted-notification';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 export default function StockRequestsPage() {
   const { firestore } = useFirebase();
@@ -206,7 +207,11 @@ export default function StockRequestsPage() {
                     <TableRow key={req.id}>
                       <TableCell>{req.createdAt?.toDate().toLocaleDateString()}</TableCell>
                       <TableCell className="font-medium">{req.vendorName}</TableCell>
-                      <TableCell>{req.outletName}</TableCell>
+                      <TableCell>
+                        <Link href={`/outlet/${req.outletId}`} className="hover:underline text-primary" target="_blank">
+                          {req.outletName}
+                        </Link>
+                      </TableCell>
                       <TableCell>{req.totalQuantity}</TableCell>
                       <TableCell>{getStatusBadge(req.status)}</TableCell>
                       <TableCell className="text-right">
@@ -250,7 +255,11 @@ export default function StockRequestsPage() {
                     <CardHeader>
                         <div className="flex justify-between items-start">
                              <div>
-                                <CardTitle className="text-base">{req.outletName}</CardTitle>
+                                <CardTitle className="text-base">
+                                  <Link href={`/outlet/${req.outletId}`} className="hover:underline text-primary" target="_blank">
+                                    {req.outletName}
+                                  </Link>
+                                </CardTitle>
                                 <CardDescription>From: {req.vendorName}</CardDescription>
                             </div>
                             {getStatusBadge(req.status)}
