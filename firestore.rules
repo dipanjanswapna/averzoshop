@@ -19,11 +19,12 @@ service cloud.firestore {
     }
 
     // Users can read their own profile. Admins can read any profile.
-    // Sales reps can read customers they manage.
+    // Sales reps can read customers they manage. Artisans' profiles are public.
     match /users/{userId} {
       allow read: if request.auth.uid == userId 
                     || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
-                    || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'sales' && resource.data.managedBy == request.auth.uid);
+                    || (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'sales' && resource.data.managedBy == request.auth.uid)
+                    || resource.data.role == 'artisan';
 
       allow create: if (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') // Admin creation
                       || (request.auth.uid == userId && canSelfRegister(request.resource.data.role)) // Self-signup
@@ -197,5 +198,3 @@ service cloud.firestore {
     }
   }
 }
-
-    

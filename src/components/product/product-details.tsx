@@ -2,6 +2,7 @@
 
 import { Dispatch, SetStateAction, useMemo, useState, useEffect } from 'react';
 import type { Product, ProductVariant } from '@/types/product';
+import type { UserData } from '@/types/user';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Heart, ShoppingBag, Ruler, Barcode, MapPin, Share2, Star, Gift, Zap, Check, Loader2, Minus, Plus } from 'lucide-react';
@@ -20,6 +21,8 @@ import { ShareButtons } from './share-buttons';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { format } from 'date-fns';
+import { useFirestoreDoc } from '@/hooks/useFirestoreQuery';
+import Link from 'next/link';
 
 interface ProductDetailsProps {
   product: Product;
@@ -50,6 +53,8 @@ export function ProductDetails({
   const [quantity, setQuantity] = useState(1);
   const isMobile = useIsMobile();
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+
+  const { data: vendorData } = useFirestoreDoc<UserData>(`users/${product.vendorId}`);
 
   const availableColors = useMemo(() => {
     if (!product?.variants) return [];
@@ -90,7 +95,7 @@ export function ProductDetails({
       toast({
         variant: 'destructive',
         title: 'Unavailable',
-        description: 'Please select a size and color.',
+        description: 'Please select from available options.',
       });
       return;
     }
@@ -131,7 +136,17 @@ export function ProductDetails({
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-medium text-muted-foreground">{product.brand}</p>
+        <div className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+            <span>Brand: {product.brand}</span>
+            {vendorData && vendorData.role === 'artisan' && (
+                <>
+                    <span className="text-border">|</span>
+                    <span>
+                        Sold by: <Link href={`/artisan/${vendorData.uid}`} className="text-primary hover:underline">{vendorData.displayName}</Link>
+                    </span>
+                </>
+            )}
+        </div>
         <h1 className="text-3xl font-bold font-headline">{product.name}</h1>
         <div className="flex items-center gap-2 mt-2">
             <div className="flex items-center gap-1 text-yellow-500">
