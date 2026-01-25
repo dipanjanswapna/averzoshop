@@ -11,7 +11,7 @@
         "displayName": { "type": "string", "description": "The user's display name." },
         "photoURL": { "type": "string", "format": "uri", "description": "The URL of the user's profile picture." },
         "phone": { "type": "string", "description": "The user's phone number, especially for vendors, riders, and outlet managers." },
-        "role": { "type": "string", "description": "The role of the user.", "enum": ["customer", "admin", "outlet", "vendor", "rider", "sales"] },
+        "role": { "type": "string", "description": "The role of the user.", "enum": ["customer", "admin", "outlet", "vendor", "rider", "sales", "artisan"] },
         "status": { "type": "string", "description": "The approval status of the user.", "enum": ["pending", "approved", "rejected"] },
         "wishlist": {
           "type": "array",
@@ -107,7 +107,8 @@
         "properties": {
             "vendor": { "type": "boolean", "description": "Allow vendors to register." },
             "rider": { "type": "boolean", "description": "Allow riders to register." },
-            "sales": { "type": "boolean", "description": "Allow sales reps to register." }
+            "sales": { "type": "boolean", "description": "Allow sales reps to register." },
+            "artisan": { "type": "boolean", "description": "Allow artisans/home vendors to register." }
         }
     },
     "vendor": {
@@ -303,7 +304,7 @@
         "brand": { "type": "string" },
         "colors": { "type": "array", "items": { "type": "string" } },
         "sizes": { "type": "array", "items": { "type": "string" } },
-        "vendorId": { "type": "string" },
+        "vendorId": { "type": "string", "description": "The ID of the vendor or artisan who listed the product." },
         "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
         "createdAt": { "type": "string", "format": "date-time" },
         "discount": { "type": "number", "description": "The calculated discount percentage, derived from price and compareAtPrice." },
@@ -336,6 +337,18 @@
                 "enabled": { "type": "boolean" },
                 "endDate": { "type": "string", "format": "date-time" }
             }
+        },
+        "metaTitle": { "type": "string", "description": "Custom SEO title for the product page." },
+        "metaDescription": { "type": "string", "description": "Custom SEO description for the product page." },
+        "weight": { "type": "number", "description": "Weight of the product in kilograms." },
+        "dimensions": {
+            "type": "object",
+            "description": "Dimensions of the product packaging in centimeters.",
+            "properties": {
+                "length": { "type": "number" },
+                "width": { "type": "number" },
+                "height": { "type": "number" }
+            }
         }
       },
       "required": ["name", "price", "total_stock", "vendorId", "status", "category", "group", "subcategory", "brand", "image", "baseSku", "variants"]
@@ -360,7 +373,7 @@
               "answerText": { "type": "string" },
               "answeredByUid": { "type": "string" },
               "answeredByName": { "type": "string" },
-              "answeredByRole": { "type": "string", "enum": ["customer", "admin", "vendor"] },
+              "answeredByRole": { "type": "string", "enum": ["customer", "admin", "vendor", "outlet", "rider", "sales", "artisan"] },
               "answeredAt": { "type": "string", "format": "date-time" }
             }
           }
@@ -475,7 +488,7 @@
         "usageLimit": { "type": "number", "description": "Total number of times the coupon can be used." },
         "usedCount": { "type": "number", "description": "How many times the coupon has been used." },
         "expiryDate": { "type": "string", "format": "date-time", "description": "The expiration date of the coupon." },
-        "creatorType": { "type": "string", "enum": ["admin", "vendor"], "description": "Who created the coupon." },
+        "creatorType": { "type": "string", "enum": ["admin", "vendor", "artisan"], "description": "Who created the coupon." },
         "creatorId": { "type": "string", "description": "The UID of the admin or vendor who created it." },
         "applicableProducts": { "type": "array", "items": { "type": "string" }, "description": "Array of product IDs this coupon applies to. Empty means all." },
         "createdAt": { "type": "string", "format": "date-time", "description": "The timestamp when the coupon was created." }
