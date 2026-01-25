@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useMemo } from 'react';
@@ -36,6 +35,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { calculateDistance } from '@/lib/distance';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 
 interface StoreAvailabilityDialogProps {
@@ -131,7 +131,11 @@ export function StoreAvailabilityDialog({ open, onOpenChange, product }: StoreAv
                       <AccordionTrigger className="p-4 hover:no-underline">
                         <div className="flex w-full items-center justify-between gap-4">
                           <div className="flex-1 text-left">
-                            <p className="font-bold text-foreground text-base">{outlet.name}</p>
+                            <Link href={`/outlet/${outlet.id}`} passHref legacyBehavior>
+                               <a target="_blank" className="font-bold text-foreground text-base hover:underline" onClick={(e) => e.stopPropagation()}>
+                                {outlet.name}
+                               </a>
+                            </Link>
                             <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
                               <MapPin size={12} />
                               <span className="truncate">{outlet.location.address}</span>
