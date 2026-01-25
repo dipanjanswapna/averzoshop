@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import { FlashSalePageTimer } from '@/components/shop/flash-sale-page-timer';
 import ForYouProducts from '@/components/for-you-products';
 import { default as placeholderData } from '@/lib/placeholder-images.json';
+import { FeaturedArtisans } from '@/components/FeaturedArtisans';
 
 
 export default function StoreFrontPage() {
@@ -183,6 +184,8 @@ export default function StoreFrontPage() {
         )}
 
        <ForYouProducts />
+       
+       <FeaturedArtisans />
     </>
   );
 }
