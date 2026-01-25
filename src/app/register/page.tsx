@@ -1,7 +1,7 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,7 +10,6 @@ import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, up
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
@@ -19,6 +18,7 @@ import { FirebaseClientProvider, useFirebase } from '@/firebase';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useRouter } from 'next/navigation';
 import { useFirestoreDoc } from '@/hooks/useFirestoreQuery';
+import { motion } from 'framer-motion';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -163,16 +163,52 @@ function RegisterPageContent() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-secondary p-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader className="text-center">
-          <AverzoLogo className="mx-auto mb-4" />
-          <CardTitle>Create an Account</CardTitle>
-          <CardDescription>Join our community by entering your details below.</CardDescription>
-        </CardHeader>
-        <CardContent>
+    <div className="min-h-screen w-full lg:grid lg:grid-cols-2">
+       <div className="relative hidden lg:block">
+        <Image 
+            src="https://i.postimg.cc/GpZKNMRz/jon_ly_Xn7Gvim_Qrk8_unsplash.jpg"
+            alt="Person working on crafts"
+            fill
+            className="object-cover"
+            priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+        <div className="relative z-10 flex flex-col justify-end h-full p-12 text-white">
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: 0.2 }}
+            >
+                <h1 className="text-5xl font-extrabold font-headline leading-tight">
+                    Join the Movement.
+                </h1>
+                <p className="mt-4 text-lg max-w-lg text-white/80">
+                    Become a part of our vibrant community of creators, sellers, and shoppers. Your next masterpiece starts here.
+                </p>
+            </motion.div>
+        </div>
+      </div>
+      <div className="flex items-center justify-center py-12 px-4">
+        <div className="mx-auto grid w-full max-w-sm gap-6">
+           <motion.div 
+             initial={{ opacity: 0, y: -20 }}
+             animate={{ opacity: 1, y: 0 }}
+             transition={{ duration: 0.5, delay: 0.4 }}
+             className="grid gap-2 text-center"
+           >
+            <AverzoLogo className="text-4xl mx-auto mb-4" />
+            <h1 className="text-3xl font-bold font-headline">Create an Account</h1>
+            <p className="text-balance text-muted-foreground">
+              Join our community by entering your details below.
+            </p>
+          </motion.div>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <motion.form 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+              onSubmit={form.handleSubmit(onSubmit)} className="space-y-4"
+            >
               <FormField control={form.control} name="name" render={({ field }) => (
                   <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="John Doe" {...field} /></FormControl><FormMessage /></FormItem>
               )} />
@@ -202,23 +238,26 @@ function RegisterPageContent() {
                     </FormItem>
                     )}
                 />
-              <Button type="submit" className="w-full" disabled={isLoading || settingsLoading}>
+              <Button type="submit" className="w-full h-11" disabled={isLoading || settingsLoading}>
                 {isLoading || settingsLoading ? 'Processing...' : 'Create Account'}
               </Button>
-            </form>
+            </motion.form>
           </Form>
 
-          <div className="relative my-4">
+          <div className="relative my-2">
             <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
             <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-2 text-muted-foreground">Or continue with</span></div>
           </div>
 
           <Button variant="outline" className="w-full" onClick={handleGoogleSignIn}>Google</Button>
-          <p className="mt-4 text-center text-sm text-muted-foreground">Already have an account?{' '}
-            <Link href="/login" className="font-medium text-primary hover:underline">Sign in</Link>
-          </p>
-        </CardContent>
-      </Card>
+          <div className="mt-4 text-center text-sm">
+            Already have an account?{" "}
+            <Link href="/login" className="font-medium text-primary hover:underline">
+              Sign in
+            </Link>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -230,5 +269,3 @@ export default function RegisterPage() {
         </FirebaseClientProvider>
     )
 }
-
-    
