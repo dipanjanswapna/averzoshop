@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -66,8 +67,8 @@ export default function VendorSettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Personal Information</CardTitle>
-          <CardDescription>Manage your personal and contact details.</CardDescription>
+          <CardTitle>Business Information</CardTitle>
+          <CardDescription>Manage your business and contact details.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center gap-4">
@@ -75,11 +76,11 @@ export default function VendorSettingsPage() {
               <AvatarImage src={user?.photoURL || ''} alt={user?.displayName || ''} />
               <AvatarFallback>{user?.displayName?.charAt(0) || 'V'}</AvatarFallback>
             </Avatar>
-            <Button variant="outline" disabled>Change Photo (coming soon)</Button>
+            <Button variant="outline" disabled>Change Logo (coming soon)</Button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name / Business Name</Label>
+              <Label htmlFor="name">Business Name</Label>
               <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
             </div>
             <div className="space-y-2">

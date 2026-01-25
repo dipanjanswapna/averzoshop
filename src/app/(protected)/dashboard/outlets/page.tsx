@@ -18,7 +18,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { PlusCircle, MoreHorizontal, MapPin, Power, Eye, Loader2 } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, MapPin, Power, Eye, Loader2, Globe } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
@@ -186,11 +186,8 @@ export default function OutletsPage() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuItem asChild>
-                                <Link href={`/dashboard/outlets/${outlet.id}`}>
-                                  <Eye className="mr-2 h-4 w-4" /> View Details & Inventory
-                                </Link>
-                              </DropdownMenuItem>
+                              <DropdownMenuItem asChild><Link href={`/dashboard/outlets/${outlet.id}`}><Eye className="mr-2 h-4 w-4" /> View Details</Link></DropdownMenuItem>
+                              <DropdownMenuItem asChild><Link href={`/outlet/${outlet.id}`} target="_blank"><Globe className="mr-2 h-4 w-4" /> View Public Page</Link></DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleEditClick(outlet)}>Edit Details</DropdownMenuItem>
                                <DropdownMenuItem onClick={() => handleStatusToggle(outlet)}>
                                 {outlet.status === 'Active' ? 'Deactivate' : 'Activate'}
@@ -248,16 +245,19 @@ export default function OutletsPage() {
                             {outlet.location.address}
                           </div>
                       </CardContent>
-                       <CardFooter className="pt-4">
+                       <CardFooter className="pt-4 flex flex-col gap-2">
                          <Link href={`/dashboard/outlets/${outlet.id}`} className="w-full">
                            <Button variant="outline" className="w-full"><Eye className="mr-2 h-4 w-4" /> View Details</Button>
+                         </Link>
+                          <Link href={`/outlet/${outlet.id}`} className="w-full" target="_blank">
+                           <Button variant="outline" className="w-full"><Globe className="mr-2 h-4 w-4" /> View Public Page</Button>
                          </Link>
                       </CardFooter>
                     </Card>
                   ))
                 ) : (
                   <div className="flex flex-col items-center justify-center h-48 border-2 border-dashed rounded-lg text-center p-4">
-                     <Building className="w-12 h-12 text-muted-foreground" />
+                     <Warehouse className="w-12 h-12 text-muted-foreground" />
                      <h3 className="font-semibold mt-4">No Outlets Found</h3>
                      <p className="text-sm text-muted-foreground">Get started by adding a new one.</p>
                   </div>

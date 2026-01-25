@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useParams } from 'next/navigation';
@@ -18,6 +19,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
+import Image from 'next/image';
 
 export default function ArtisanStorefrontPage() {
     const params = useParams();
@@ -42,13 +44,16 @@ export default function ArtisanStorefrontPage() {
     if (isLoading) {
         return (
             <div className="container mx-auto px-4 py-8">
-                <div className="flex items-center gap-4 mb-8">
-                    <Skeleton className="h-24 w-24 rounded-full" />
-                    <div className="space-y-2">
-                         <Skeleton className="h-8 w-48" />
-                         <Skeleton className="h-4 w-64" />
-                    </div>
-                </div>
+                 <div className="relative h-48 md:h-64 rounded-xl bg-muted w-full mb-8 flex items-end p-8">
+                     <Skeleton className="absolute inset-0" />
+                     <div className="relative flex items-end gap-4">
+                        <Skeleton className="h-24 w-24 md:h-32 md:w-32 rounded-full border-4 border-background" />
+                        <div className="space-y-2 pb-4">
+                            <Skeleton className="h-8 w-48" />
+                            <Skeleton className="h-4 w-64" />
+                        </div>
+                     </div>
+                 </div>
                 <div className="grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))] gap-4">
                     {[...Array(8)].map((_, i) => (
                     <div key={i} className="space-y-2">
@@ -77,18 +82,29 @@ export default function ArtisanStorefrontPage() {
                      <BreadcrumbItem><BreadcrumbPage>{artisan.displayName}</BreadcrumbPage></BreadcrumbItem>
                 </BreadcrumbList>
             </Breadcrumb>
-
-            <div className="flex items-center gap-6 mb-8 bg-secondary p-8 rounded-xl">
-                <Avatar className="h-24 w-24 border-4 border-background shadow-lg">
-                    <AvatarImage src={artisan.photoURL || undefined} alt={artisan.displayName || ''} />
-                    <AvatarFallback>{artisan.displayName?.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div>
-                    <p className="text-sm font-bold uppercase tracking-widest text-primary">Artisan Store</p>
-                    <h1 className="text-4xl font-extrabold font-headline">{artisan.displayName}</h1>
-                    {/* Maybe add a bio later if it exists on the user model */}
+            
+            <div className="relative h-48 md:h-64 rounded-xl bg-muted w-full mb-8 flex items-end p-4 md:p-8">
+                {artisan.coverPhotoURL && (
+                    <Image src={artisan.coverPhotoURL} alt={`${artisan.displayName}'s cover photo`} fill className="object-cover rounded-xl" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent rounded-xl"></div>
+                <div className="relative flex items-end gap-4">
+                     <Avatar className="h-24 w-24 md:h-32 md:w-32 rounded-full border-4 border-background shadow-lg">
+                        <AvatarImage src={artisan.photoURL || undefined} alt={artisan.displayName || ''} />
+                        <AvatarFallback>{artisan.displayName?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                     <div className="pb-4 text-white">
+                        <p className="text-sm font-bold uppercase tracking-widest">Artisan Store</p>
+                        <h1 className="text-2xl md:text-4xl font-extrabold font-headline">{artisan.displayName}</h1>
+                    </div>
                 </div>
             </div>
+
+            {artisan.bio && (
+                 <div className="mb-12 max-w-3xl mx-auto text-center">
+                    <p className="text-muted-foreground italic">{artisan.bio}</p>
+                 </div>
+            )}
             
             <ProductGrid 
                 products={products || []} 
